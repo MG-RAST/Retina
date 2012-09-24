@@ -7,7 +7,6 @@
     var root = this;
     var Retina = root.Retina = {};
     var dataServiceURI;
-    var services = Retina.services = {};
     var renderer_resources  = [];
     var available_renderers = {};
     var loaded_renderers    = {};  
@@ -305,6 +304,11 @@
 	    });
 	}
     };
+
+    // renderer = { name, resource, filename }
+    Retina.add_renderer = function (renderer) {
+	available_renderers[renderer.name] = renderer;
+    }
     
     Retina.load_renderer = function (renderer) {
 	var promise;
@@ -336,6 +340,11 @@
 	
 	return promise;
     };
+    
+    // widget = { name, resource, filename }
+    Retina.add_widget = function (widget) {
+	available_widgets[widget.name] = widget;
+    }
     
     Retina.load_widget = function (widget) {
 	var promise;
