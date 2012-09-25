@@ -1,0 +1,111 @@
+Retina & stm
+
+OVERVIEW
+
+Retina is a webframework to support dynamic usage of reusable web components. It uses the short term memory (stm) module to provide an organized storage of data within the client memory. In Retina there are two component concepts - renderers and widgets.
+
+A renderer is an independent visualization library that given data and a DOM target renders the data within the target element. It has no concept or knowledge of its surroundings and simply renders the data given to it. It expects the data to be in the format it requires and makes no assumptions about the rendering space given to it. A renderer can be parameterized and offer an arbitrary amount of options, including callback functions to events captured by the renderer. It offers useful defaults for all parameters. An example of a renderer would be a piechart, a table or a three-dimensional graph.
+
+A widget is a component that handles the flow of data for a specific task. It uses the stm to retrieve the data and to store the intermediate data products. It prepares the data in such a way that it can be used by chosen renderers to display and offer a user interface to transform it.
+
+STM is a client side storage for data. It represents the data in a JSON hash of data types, each being a list of data ids, which in turn point at the individual data objects. The data can be retrieved from a REST API, put in directly via javascript calls or be loaded from a file. STM provides callback functions for asynchronously retrieved data.
+
+USAGE
+
+HTML setup
+
+First you should set up a basic HTML page to initialize the modules. We use bootstrap basic layouting functionality. In the head section of the document, link the required libraries:
+
+      <!--external javascript files-->
+      <script type="text/javascript" src="jquery.min.js"></script>
+      <script type="text/javascript" src="jquery-ui.min.js"></script>
+      <script type="text/javascript" src="bootstrap.min.js"></script>
+      <script type="text/javascript" src="html2canvas.min.js"></script>
+      
+      <!--basic javascript files-->
+      <script type="text/javascript" src="stm.js"></script>
+      <script type="text/javascript" src="retina.js"></script>
+      
+      <!--bootstrap style-->
+      <link rel="stylesheet" type="text/css" href="bootstrap.css">
+      <link rel="stylesheet" type="text/css" href="bootstrap-responsive.css">
+      <link rel="stylesheet" type="text/css" href="jquery.ui.all.css">
+
+Then use a jQuery function call to set up Retina and stm:
+
+     <!--initialization-->
+     <script type="text/javascript">
+     	     jQuery(function () {
+	          stm.init('URL_TO_API').then(function() {
+		       Retina.init( { renderer_resources: [ LIST_OF_RESOURCE_PROVIDERS ], library_resource: LOCATION_OF_LIBRARY_FILES, widget_resources: [ LIST_OF_WIDGET_RESOURCES ] } ).then( function () {
+		            Retina.load_widget("myWidget").then( function () {
+			         Retina.Widget.myWidget.create(DIV_TO_RENDER_IN);
+			    });
+		       });
+ 		  });
+	      });
+    </script>
+
+Then in the body of the HTML page simply place a div with the id passed to the widget you want to display. Note that you can use an arbitrary amount of widgets on the page. You can also directly use a renderer if you wish.
+
+STM - FUNCTIONS
+
+init(repository)
+
+Initializes the stm, optionally setting a default repository. If stm was already set up, this will purge all data in the storage. This function must be called before any operations with stm can occur.
+
+repository(name, attribute)
+
+If called without parameters, returns the hash of all repositories in the stm. If called with a repository name, returns a reference to that repository object or null if the repository does not exist. If called with a name and a attribute, will return the value of that attribute of the respository.
+
+add_repository
+
+remove_repository
+
+default_repository
+
+load_data
+
+file_upload
+
+get_object
+
+delete_object
+
+delete_objects
+
+Retina - FUNCTIONS
+
+init
+
+each
+
+values
+
+extend
+
+require
+
+getJSON
+
+validate
+
+capitalize
+
+mouseCoords
+
+query_renderer_resource
+
+query_widget_resource
+
+test_renderer
+
+add_renderer
+
+load_renderer
+
+add_widget
+
+load_widget
+
+load_library
