@@ -8,8 +8,63 @@
     stm.TypeData = [];
     stm.DataRepositoryDefault = null;
     stm.DataRepositoriesCount = 0;
+    stm.SourceOrigin = "*";
+    stm.TargetOrigin = "*";
     
-    // get
+    // receive messages sent from other frames
+    window.addEventListener("message", receiveMessage, false);
+    function receiveMessage(event) {
+
+	// do not caputre the event if the allowed origin does not match
+	if (event.origin !== stm.SourceOrigin) { return; }
+	
+	// parse the data into an object
+	var data = JSON.parse(event.data);
+	if (typeof(data) == 'object') {
+	    // try to load the data
+	    stm.load_data(data);
+	}
+	// alert if the data is not valid json
+	else {
+	    alert('invalid message received');
+	}
+    }
+
+    // send data to another iframe
+    stm.send_data = function (frame, data, type, no_clear) {
+	// if frame is a string, interpret it as an id
+	if (typeof(frame) == 'string') {
+	    frame = document.getElementById(frame);
+	}
+	// check if frame is an iframe
+	if (typeof(frame.contentWindow) !== 'undefined') {
+	    frame = frame.contentWindow;	    
+	}
+	
+	// check if frame is now a window object
+	if (typeof(frame.postMessage) == 'undefined') {
+	    alert('invalid target object');
+	}
+
+	// check if data is an array
+	if (typeof(data.length) == 'undefined') {
+	    data = [ data ];
+	}
+
+	// check if a type was passed
+	if (! type) {
+	    if (typeof(data[0].type) == 'undefined') {
+		alert('invalid data');
+	    } else {
+		type = data[0].type;
+	    }
+	}
+
+	// send out the data
+	frame.postMessage(data, stm.TargetOrigin);
+    }
+
+    // get / set a repository, or get all repos if no argument is passed
     stm.repository = function (name, value) {
 	if (typeof value !== 'undefined' &&
 	    typeof name  !== 'undefined' ) {
@@ -59,7 +114,11 @@
 	
 	if (new_data) {
 	    if (! new_data.length) {
-		new_data = [ new_data ];
+		if (new_data.next && new_data.data) {
+		    new_data = new_data.data;
+		} else {
+		    new_data = [ new_data ];
+		}
 	    }
 	    if (typeof(new_data[0]) != 'object') {
 		var dataids = [];
