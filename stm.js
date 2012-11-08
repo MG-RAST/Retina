@@ -250,7 +250,15 @@
 	if (options) {
 	    query_params = "?";
 	    for (var i in options) {
-		query_params += i + '=' + options[i] + '&';
+		if (options.hasOwnProperty(i)) {
+		    if (typeof(options[i].length) == 'undefined') {
+			query_params += i + '=' + options[i] + '&';
+		    } else {
+			for (h=0;h<options[i].length;h++) {
+			    query_params += i + '=' + options[i][h] + '&';
+			}
+		    }
+		}
 	    }
 	    query_params.slice(0,-1);
 	}
