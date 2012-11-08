@@ -16,7 +16,7 @@
 
 <p>First you should set up a basic HTML page to initialize the modules. We use bootstrap basic layouting functionality. In the head section of the document, link the required libraries:</p>
 
-<pre>
+```html
       <!--external javascript files-->
       <script type="text/javascript" src="jquery.min.js"></script>
       <script type="text/javascript" src="jquery-ui.min.js"></script>
@@ -31,11 +31,11 @@
       <link rel="stylesheet" type="text/css" href="bootstrap.css">
       <link rel="stylesheet" type="text/css" href="bootstrap-responsive.css">
       <link rel="stylesheet" type="text/css" href="jquery.ui.all.css">
-</pre>
+```
 
 <p>Then use a jQuery function call to set up Retina and stm:</p>
 
-<pre>
+```html
      <!--initialization-->
      <script type="text/javascript">
      	     jQuery(function () {
@@ -48,7 +48,7 @@
  		  });
 	      });
     </script>
-</pre>
+```
 
 <p>Then in the body of the HTML page simply place a div with the id passed to the widget you want to display. Note that you can use an arbitrary amount of widgets on the page. You can also directly use a renderer if you wish.</p>
 
