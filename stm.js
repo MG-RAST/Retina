@@ -128,7 +128,7 @@
 	
 	if (new_data) {
 	    if (! new_data.length) {
-		if (new_data.next && new_data.data) {
+		if (new_data.hasOwnProperty("next") && new_data.hasOwnProperty("data")) {
 		    new_data = new_data.data;
 		} else {
 		    new_data = [ new_data ];
