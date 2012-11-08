@@ -238,12 +238,12 @@
 	    query_params = "?";
 	    for (var i in options) {
 		if (options.hasOwnProperty(i)) {
-		    if (typeof(options[i].length) == 'undefined') {
-			query_params += i + '=' + options[i] + '&';
-		    } else {
+		    if (options[i] instanceof Array) {
 			for (h=0;h<options[i].length;h++) {
 			    query_params += i + '=' + options[i][h] + '&';
 			}
+		    } else {
+			query_params += i + '=' + options[i] + '&';
 		    }
 		}
 	    }
