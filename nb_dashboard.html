@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html>
+  	<head>
+    	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    	<title>Notebook Dashboard</title>
+    
+    	<!--external javascript files-->
+    	<script type="text/javascript" src="jquery.min.js"></script>
+    	<script type="text/javascript" src="jquery-ui.min.js"></script>
+    	<script type="text/javascript" src="bootstrap.min.js"></script>
+		<script type="text/javascript" src="bootstrap-select.js"></script>
+    	<script type="text/javascript" src="html2canvas.min.js"></script>
+
+    	<!--basic javascript files-->
+    	<script type="text/javascript" src="stm.js"></script>
+    	<script type="text/javascript" src="retina.js"></script>
+
+    	<!--style-->
+		<link rel="stylesheet" type="text/css" href="jquery.ui.all.css">
+    	<link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    	<link rel="stylesheet" type="text/css" href="bootstrap-responsive.css">
+		<link rel="stylesheet" type="text/css" href="bootstrap-select.css">
+    	<link rel="stylesheet" type="text/css" href="jquery.ui.all.css">
+
+    	<!--initialization-->
+    	<script type="text/javascript">
+      		jQuery(function () {
+      			stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
+					//Retina.add_renderer({"name": "table", "resource": "./renderers/", "filename": "renderer.table.js" });
+					//Retina.add_widget({"name": "NotebookDashboard", "resource": "./widgets/", "filename": "widget.NotebookDashboard.js" });
+      				//Retina.load_widget("NotebookDashboard").then( function () {
+			        //    Retina.Widget.NotebookDashboard.display(document.getElementById("target"), {user: "travis"});
+			    	//});
+					Retina.add_renderer({"name": "table", "resource": "./renderers/", "filename": "renderer.table.js" });
+					Retina.add_widget({"name": "MGRASTBrowser", "resource": "./widgets/", "filename": "widget.MGRASTBrowser.js" });
+					Retina.load_widget("MGRASTBrowser").then( function () {
+						Retina.Widget.MGRASTBrowser.create({ renderer: document.getElementById('renderer_space'),
+															 selector: document.getElementById('selector_space'),
+										  					 detail: document.getElementById('detail_space') });
+					});
+      			});
+      		});
+    	</script>
+
+  	</head>
+  
+  	<body>
+		<div class="container" style="margin-top: 100px;">
+			<h3>Notebook Dashboard</h3>
+    		<div id="selector_space"></div>
+			<div id="renderer_space"></div>
+			<div id="detail_space"></div>
+		</div>
+  	</body>
+</html>
