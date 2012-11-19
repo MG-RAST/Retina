@@ -7,7 +7,6 @@
     var root = this;
     var Retina = root.Retina = {};
     var dataServiceURI;
-    var services = Retina.services = {};
     var renderer_resources  = [];
     var available_renderers = {};
     var loaded_renderers    = {};  
@@ -16,6 +15,8 @@
     var loaded_widgets      = {};
     var library_resource    = null;
     var loaded_libraries    = {};
+    var RendererInstances   = Retina.RendererInstances = [];
+    var WidgetInstances     = Retina.WidgetInstances = [];
     
     //
     // initialization
@@ -181,6 +182,16 @@
 		jQuery.when.apply(this, promises).then(function () {
 		    widgetInstance.display(element, args);
 		});
+		if (widgetInstance.about.name) {
+		    if (typeof(RetinaWidgetInstances[widgetInstance.about.name]) == 'undefined') {
+			Retina.WidgetInstances[wigetInstance.about.name] = [];
+		    }
+		    widgetInstance.index = Retina.WidgetInstances[widgetInstance.about.name].length;
+		    Retina.WidgetInstances[widgetInstance.about.name].push(widgetInstance);
+		} else {
+		    alert('invalid renderer structure, missing name');
+		    return;
+		}
 		return widgetInstance;
 	    },
 	    setup: function (args) { return [] },
@@ -209,7 +220,12 @@
 	
 	var tmpRender = renderer.render;
 	renderer.render = function (settings) {
+
+	    // initialize settings
 	    settings = (settings || {});
+	    if (this.settings) {
+		Retina.extend(settings, this.settings);
+	    }
 	    if (renderer.about) {
 		if (renderer.about.defaults) {
 		    Retina.extend(settings, renderer.about.defaults);
@@ -229,6 +245,21 @@
 		    console.log(check['errors']);
 		    return check['errors'];
 		}
+	    }
+
+	    // store a reference of the instance
+	    if (renderer.about.name) {
+		if (typeof(Retina.RendererInstances[renderer.about.name]) == 'undefined') {
+		    Retina.RendererInstances[renderer.about.name] = [];
+		}
+		if (typeof(this.settings) == 'undefined') {
+		    renderer.index = Retina.RendererInstances[renderer.about.name].length;
+		    Retina.RendererInstances[renderer.about.name].push(renderer);
+		}
+		renderer.settings = settings;
+	    } else {
+		alert('invalid renderer structure, missing name');
+		return;
 	    }
 	    return tmpRender(settings);
 	};
@@ -305,6 +336,11 @@
 	    });
 	}
     };
+
+    // renderer = { name, resource, filename }
+    Retina.add_renderer = function (renderer) {
+	available_renderers[renderer.name] = renderer;
+    }
     
     Retina.load_renderer = function (renderer) {
 	var promise;
@@ -336,6 +372,11 @@
 	
 	return promise;
     };
+    
+    // widget = { name, resource, filename }
+    Retina.add_widget = function (widget) {
+	available_widgets[widget.name] = widget;
+    }
     
     Retina.load_widget = function (widget) {
 	var promise;
