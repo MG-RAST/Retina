@@ -169,11 +169,7 @@
 		return Retina.load_renderer(args);
 	    },
 	    create: function (element, args) {
-		var widgetInstance = {
-		    about: function (name) {
-			return about[name];
-		    }
-		};
+		var widgetInstance = {};
 		Retina.extend(widgetInstance, widget);
 		var promises = widgetInstance.setup(args);
 		if (!jQuery.isArray(promises)) {
@@ -183,13 +179,13 @@
 		    widgetInstance.display(element, args);
 		});
 		if (widgetInstance.about.name) {
-		    if (typeof(RetinaWidgetInstances[widgetInstance.about.name]) == 'undefined') {
-			Retina.WidgetInstances[wigetInstance.about.name] = [];
+		    if (typeof(Retina.WidgetInstances[widgetInstance.about.name]) == 'undefined') {
+			Retina.WidgetInstances[widgetInstance.about.name] = [];
 		    }
 		    widgetInstance.index = Retina.WidgetInstances[widgetInstance.about.name].length;
 		    Retina.WidgetInstances[widgetInstance.about.name].push(widgetInstance);
 		} else {
-		    alert('invalid renderer structure, missing name');
+		    alert('invalid widget structure, missing name');
 		    return;
 		}
 		return widgetInstance;
@@ -391,7 +387,7 @@
 	    var widget_data = available_widgets[widget];
 	    var script_url = widget_data.resource + widget_data.filename;
 	    jQuery.getScript(script_url).then(function() {
-		var requires = Retina.Widget[widget].about('requires');
+		var requires = Retina.Widget[widget].about.requires;
 		for (var i=0; i<requires.length; i++) {
 		    promises.push(Retina.load_library(requires[i]));
 		}

@@ -1,12 +1,10 @@
 (function () {
     widget = Retina.Widget.extend({
-        about: function () {
-            return {
-                title: "MGRAST Browser Widget",
-                name: "MGRASTBrowser",
-                author: "Tobias Paczian",
-                requires: [ ]
-            };
+        about: {
+            title: "MGRAST Browser Widget",
+            name: "MGRASTBrowser",
+            author: "Tobias Paczian",
+            requires: [ ]
         }
     });
 
