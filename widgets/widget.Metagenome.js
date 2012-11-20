@@ -1,12 +1,10 @@
 (function () {
     widget = Retina.Widget.extend({
-        about: function () {
-            return {
+        about: {
                 title: "Metagenome Widget",
                 name: "Metagenome",
                 author: "Tobias Paczian",
                 requires: [ ]
-            };
         }
     });
     

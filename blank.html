@@ -1,30 +1,30 @@
 <!DOCTYPE HTML>
 <html>
   <head>
+
+    <!--meta section-->
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+    <!--page title-->
     <title>Blank</title>
     
     <!--external javascript files-->
     <script type="text/javascript" src="jquery.min.js"></script>
-    <script type="text/javascript" src="jquery-ui.min.js"></script>
     <script type="text/javascript" src="bootstrap.min.js"></script>
-    <script type="text/javascript" src="html2canvas.min.js"></script>
     
-    <!--basic javascript files-->
+    <!--retina javascript files-->
     <script type="text/javascript" src="stm.js"></script>
     <script type="text/javascript" src="retina.js"></script>
     
     <!--bootstrap style-->
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="bootstrap-responsive.css">
-    <link rel="stylesheet" type="text/css" href="jquery.ui.all.css">
     
-    <!--initialization-->
+    <!--initialization of retina-->
     <script type="text/javascript">
     jQuery(function () {
 	stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
-	    Retina.init( { library_resource: "./", widget_resource: "./widgets/" } ).then( function () {
-		Retina.add_widget({"name": "tutorial", "resource": "./",  "filename": "widget.tutorial.js" });
+	    Retina.init( { library_resource: "./" } ).then( function () {
+		Retina.add_widget({"name": "tutorial", "resource": "./widgets/",  "filename": "widget.tutorial.js" });
 		Retina.load_widget("tutorial").then( function () {
 		    Retina.Widget.tutorial.create(document.getElementById("content"));
 		});
@@ -37,6 +37,7 @@
   
   <body>
     
+    <!--the content div-->
     <div id="content"></div>
 
   </body>

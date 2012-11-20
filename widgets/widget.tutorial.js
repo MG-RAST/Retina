@@ -1,15 +1,12 @@
 (function () {
     widget = Retina.Widget.extend({
-        about: function () {
-            return {
+        about: {
                 title: "Tutorial Widget",
                 name: "tutorial",
                 author: "Tobias Paczian",
                 requires: [ ]
-            };
         }
     });
-
 
     widget.setup = function () {
 	return [ ];
