@@ -1,12 +1,10 @@
 (function () {
     widget = Retina.Widget.extend({
-        about: function () {
-            return {
+        about: {
                 title: "User Interface Widget",
                 name: "UI",
                 author: "Tobias Paczian",
                 requires: [ ]
-            };
         }
     });
 

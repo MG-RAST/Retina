@@ -156,17 +156,19 @@
     };
     
     // adds / replaces a repository in the stm.DataRepositories list
-    stm.add_repository = function (repository) {
+    stm.add_repository = function (repository, resolve_resources) {
 	if (repository) {
 	    var promises = [];
 	    var promise = jQuery.Deferred();
 	    promises.push(jQuery.getJSON(repository, function (data) {
 		repository = data;
 		stm.DataRepositories[repository.service] = repository;
-		for (var i=0; i<repository.resources.length; i++) {
-		    promises.push(jQuery.getJSON(repository.resources[i].url, function (data) {
-			stm.TypeData[data.name] = data;
-		    }));
+		if (resolve_resources) {
+		    for (var i=0; i<repository.resources.length; i++) {
+			promises.push(jQuery.getJSON(repository.resources[i].url, function (data) {
+			    stm.TypeData[data.name] = data;
+			}));
+		    }
 		}
 		stm.DataRepositoriesCount++;
 		if (stm.DataRepositoryDefault == null) {
@@ -212,16 +214,44 @@
 		var reader = new FileReader();
 		reader.onload = (function(theFile) {
 		    return function(e) {
-			var new_data = JSON.parse(e.target.result);
+			var new_data = JSON.parse(e.target.result.toString().replace(/\n/g, ""));
 			for (var h in new_data) {
-			    stm.load_data(new_data[i], null, i);
+			    if (new_data.hasOwnProperty(h)) {
+				stm.load_data({ data: new_data[h], type: h});
+			    }
 			}
-			callback_function.call(null, callback_parameters);
+			if (typeof(callback_function) == 'function') {
+			    callback_function.call(null, callback_parameters);
+			}
 		    };
 		})(f);
 		reader.readAsText(f);
 	    }
 	}
+    };
+
+    stm.dump = function () {
+	var dstring = "";
+	dstring += "<pre>{";
+	for (i in stm.DataStore) {
+	    if (stm.DataStore.hasOwnProperty(i)) {
+		dstring += '"'+i+'":[';
+		for (h in stm.DataStore[i]) {
+		    if (stm.DataStore[i].hasOwnProperty(h)) {
+			dstring += JSON.stringify(stm.DataStore[i][h]);
+			dstring += ",";
+		    }
+		}
+		dstring = dstring.slice(0,-1);
+		dstring += "],";
+	    }
+	}
+	dstring = dstring.slice(0,-1);
+	dstring += "}</pre>";
+	var w = window.open('', 'session dump');
+	var d = w.document.open();
+	d.write(dstring);
+	d.close();
     };
     
     // client side data requestor
@@ -250,15 +280,7 @@
 	if (options) {
 	    query_params = "?";
 	    for (var i in options) {
-		if (options.hasOwnProperty(i)) {
-		    if (options[i] instanceof Array) {
-			for (h=0;h<options[i].length;h++) {
-			    query_params += i + '=' + options[i][h] + '&';
-			}
-		    } else {
-			query_params += i + '=' + options[i] + '&';
-		    }
-		}
+		query_params += i + '=' + options[i] + '&';
 	    }
 	    query_params.slice(0,-1);
 	}
