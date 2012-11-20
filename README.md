@@ -82,6 +82,12 @@
 
 <p>If this function is set as the onchange event of a input type file HTML element, any file selected by the user with that file browse diablog will be attempted to be loaded into the storage. The contents of the file will JSON.parsed and must have the same structure as the storage (a hash of types, each pointing to a hash of ids, each pointing to an object instance). This function can be used to load a dump of the storage back into memory. Note that existing data in the storage will not be cleared, the data will simply be added.</p>
 
+<p>This function is suited for loading data dumped by stm.dump</p>
+
+<h3>dump</h3>
+
+<p>Dumps the content of the stm.DataStore to a new window. If the content is copied/pasted and saved to a file, it can later be loaded by the file_upload.</p>
+
 <h3>get_objects({repository, type, id, options})</h3>
 
 <p>This will retrieve one or more objects from the speciefied repository. The function returns a promise, which is fulfilled once the data is loaded into the storage. If no repository is passed, the default repository will be used. The stm will make an api call, using the repositories base url, appending the type and optioanl id as path parameters. Options will be passed as query parameters. All returned data objects will be put into the storage organized under the type passed in the type parameter.</p>
@@ -97,6 +103,56 @@
 <h3>delete_object_type(type)</h3>
 
 <p>Deletes all instances of the specified data type from the storage.</p>
+
+<h3>send_data(frame, data, type)</h3>
+
+<p>Sends data to an stm in a different window or iframe. The frame parameter can be either a string with the id of an iframe, an iframe object or a window object. The data parameter must hold a data structure suitable for the stm.DataStore and type defines the data type within the data store that the data should be stored in.</p>
+
+<p>If security is of concern, the allowed source and target origin of the message may be set by changing stm.SourceOrigin and stm.TargetOrigin. The default value for both is '*' (allow to/from any origin). If this is to be changed from the default setting, it must be changed in both source and target window.</p>
+
+<h2>STM - VARIABLES</h2>
+
+<h3>stm.DataStore</h3>
+
+<p>This variable holds all data. It is a hash of object types, where the key is the name of the object type and the key is a hash that stores the objects. Each type is a hash of object ids pointing to an actual object. The structure of the object is arbitrary.</p>
+
+<p>An example could look like this:</p>
+
+```javascript
+    { 'metagenome': { 'mgm10001.3': { 'name': 'metagenome1',
+                                      'biome': 'human-gut',
+                                      'project': { 'name': 'project1',
+                                                   'id': 'mgp10001' } },
+                      'mgm10002.3': ... },
+      'circles': { 'circ1': { 'x': 100,
+                              'y': 120,
+                              'r': 10,
+			      'circumference': function () { return 2 * Math.PI * r; } } } }
+```
+
+<h3>stm.DataRepositories</h3>
+
+<p>Holds structure data of all current data repositories.</p>
+
+<h3>stm.TypeData</h3>
+
+<p>Stores the names of all data types loaded in the data store and a count of objects for each.</p>
+
+<h3>stm.DataRepositoryDefault</h3>
+
+<p>A reference to the current default data repository. Passing a reference to a data repository will set the default to that repo. The default repository will be used in all get_objects calls without a defined repository.</p>
+
+<h3>stm.DataRepositoriesCount</h3>
+
+<p>The number of currently available data repositories.</p>
+
+<h3>stm.SourceOrigin</h3>
+
+<p>The allowed source origin for the send_message method. Default is '*' (allow any origin).</p>
+
+<h3>stm.TargetOrigin</h3>
+
+<p>The allowed target origin for the send_message method. Default is '*' (allow any origin).</p>
 
 <h2>Retina - FUNCTIONS</h2>
 
@@ -159,3 +215,13 @@
 <h3>load_library(library_name)</h3>
 
 <p>Loads a javascript library into memory, returning a promise which fulfills once the script is loaded.</p>
+
+<h2>Retina - VARIABLES</h2>
+
+<h3>RendererInstances</h3>
+
+<p>Stores an array of references to all instanciated renderers. Each renderer has a property 'index' which is the index in this array.</p>
+
+<h3>WidgetInstances</h3>
+
+<p>Stores an array of references to all instanciated widgets. Each widget has a property 'index' which is the index in this array.</p>
