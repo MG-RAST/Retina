@@ -270,7 +270,7 @@
 	var type = params['type'];
 	var id = params['id'];
 	if (id) {
-	    id = id+'/';
+	    id = '/'+id;
 	} else {
 	    id = '';
 	}
@@ -280,14 +280,13 @@
 	if (options) {
 	    query_params = "?";
 	    for (var i in options) {
-		query_params += i + '=' + options[i] + '&';
+		    query_params += i + '=' + options[i] + '&';
 	    }
-	    query_params.slice(0,-1);
+	    query_params = query_params.slice(0,-1);
 	}
 	
 	var base_url = repo.url;
-	base_url += "/" + type + "/" + id + query_params;
-
+	base_url += "/" + type + id + query_params;
 	var xhr = new XMLHttpRequest();
 	xhr.addEventListener("progress", updateProgress, false);
 	if ("withCredentials" in xhr) {
