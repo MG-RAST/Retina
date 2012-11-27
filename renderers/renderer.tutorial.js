@@ -139,6 +139,8 @@
 	    target.appendChild(button_span);
 	    target.appendChild(result_list);
 	    target.appendChild(submit_button);
+	    
+	    return renderer;
 	},
 	redrawResultlist: function (result_list) {
 	    var result_list_string = "";

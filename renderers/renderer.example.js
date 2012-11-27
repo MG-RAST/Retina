@@ -60,6 +60,8 @@
 	    // just in case the renderer is called multiple times
 	    options.target.innerHTML = "";
 
+	    return renderer;
+
 	},
 	somefunc: function () {
 	    // put any additional functions your renderer might need in like this
