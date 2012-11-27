@@ -11,7 +11,7 @@
 	<script>
     stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
 	Retina.init( { library_resource: "./" } ).then( function () {
-	    Retina.add_renderer({"name": "graph", "resource": "./",  "filename": "renderer.graph.js" });
+	    Retina.add_renderer({"name": "graph", "resource": "./renderers/",  "filename": "renderer.graph.js" });
 	    Retina.load_renderer("graph").then( function () {
 		    Retina.Renderer.graph.render({ target: document.getElementById('target')});
 	    });
