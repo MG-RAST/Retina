@@ -11,6 +11,7 @@
     stm.SourceOrigin = "*";
     stm.TargetOrigin = "*";
     
+
     // receive messages sent from other frames
     window.addEventListener("message", receiveMessage, false);
     function receiveMessage(event) {
@@ -91,6 +92,19 @@
 	    return stm.add_repository(repo);
 	}
     };
+
+    // get a repository, a repository attribute or the list of all repositories
+    stm.repository = function (name, value) {
+	if (typeof value !== 'undefined' &&
+	    typeof name  !== 'undefined' ) {
+	    return stm.DataRepositories[name] = value;
+	} else if (typeof name !== 'undefined') {
+	    return stm.DataRepositories[name];
+	} else {
+	    return stm.DataRepositories;
+	}
+    }
+    stm.repositories = function () { return stm.repository(); }
     
     // generic data loader
     // given a DOM id, interprets the innerHTML of the element as JSON data and loads it into the DataStore
@@ -260,7 +274,6 @@
 	} else {
 	    id = '';
 	}
-	var filter = params['filter'];
 	var options = params['options'];
 	
 	var query_params = "";
