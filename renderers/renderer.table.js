@@ -1,3 +1,68 @@
+/*
+  Table Renderer
+
+  Displays a browsable, filterable table with clickable cells / rows.
+
+  Options
+
+  target (HTML Container Element)
+      Element to render the table in.
+
+  width (INT)
+      Width of the table.
+
+  height (INT)
+      Height of the table.
+
+  rows_per_page (INT)
+      The maximum number of table rows to be displayed at a time. Default is 10.
+
+  sortcol (INT)
+      Zero based index of the row the table should be sorted by. Default is 0.
+
+  sorted (BOOLEAN)
+      Enables / disabled initial sorting of the table by the sortcol. Default is false.
+  
+  offset (INT)
+      Initial first row to display. Default is 0.
+
+  invisible_columns (HASH)
+      Hash of column indices pointing at 1. Columns in this hash are not displayed.
+
+  disable_sort (HASH)
+      Hash of column indices pointing at 1. Columns in this hash can not be sorted.
+
+  sorttype (HASH)
+      Hash of column indices pointing at a sorttype. A sorttype can be either string or number.
+
+  filter_autodetect (BOOLEAN)
+      If set to false will try to detect which filter type is most appropriate for each column. Default is false.
+
+  filter_autodetect_select_max (INT)
+      Maximum number of distinct entries in a column that will still autodetec the column filter as a select box. Default is 10.
+
+  sort_autodetect (BOOLEAN)
+      If set to true will try to detect which sorttype is appropriate for each column. Default is false.
+
+  filter (HASH)
+      Hash of column indices pointing at filter objects. A filter object has the properties
+        searchword - the current entry in the search field
+        case_sensitive - boolean to turn on / off case sensitivity in filtering
+        operator - list of operators available in this filter
+        active_operator - selected operator
+        type - text or select
+
+  hide_options (BOOLEAN)
+      Turns display of the options button on and off. Default is false (the option button is visible).
+
+  onclick (FUNCTION)
+      The function to be called when the table is clicked. This function will be passed the parameters (as an ordered list)
+        clicked_row - array of contents of the cells of the clicked row
+        clicked_cell - content of the clicked cell
+        clicked_row_index - zero based index of the clicked row
+        clicked_cell_index - zero based index of the clicked cell
+    
+*/
 (function () {
     var schema = {
         properties: {
