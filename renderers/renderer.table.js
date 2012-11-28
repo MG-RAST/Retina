@@ -83,43 +83,43 @@
         },
 	  render: function (options) {
 	  
-	  options.target.innerHTML = "";
-
-	  // check if we have a header, otherwise interpret the first line as the header
-	  if (options.data.length) {
-	    options.data = { header: options.data[0], data: options.data };
-	  }
-
-	  // if a header has already been initialized, don't touch it again
-	  var header;
-	  if (options.header) {
-	    header = options.header;
-	  } else {
-	    header = options.data.header;
-	    if (!options.data.header) {
-	      header = options.data.data.shift();
-	    }
-	    options.header = header;
-	    options.data.header = null;
-	  }
-	  
-	  // check if we have already parsed the data
-	  var tdata = [];
-	  if (options.tdata) {
-	    tdata = options.tdata;
-	  } else {
-
-	    // the data has not been parsed, do it now
-	    for (i=0;i<options.data.data.length; i++) {
-	      tdata[tdata.length] = {};
-	      for (h=0;h<options.data.data[i].length;h++) {
-		tdata[tdata.length - 1][header[h]] = options.data.data[i][h];
+	      options.target.innerHTML = "";
+	      
+	      // check if we have a header, otherwise interpret the first line as the header
+	      if (options.data.length) {
+		  options.data = { header: options.data[0], data: options.data };
 	      }
-	    }
-	    options.tdata = tdata;
-	    options.data.data = null;
-	  }
-
+	      
+	      // if a header has already been initialized, don't touch it again
+	      var header;
+	      if (options.header) {
+		  header = options.header;
+	      } else {
+		  header = options.data.header;
+		  if (!options.data.header) {
+		      header = options.data.data.shift();
+		  }
+		  options.header = header;
+		  options.data.header = null;
+	      }
+	      
+	      // check if we have already parsed the data
+	      var tdata = [];
+	      if (options.tdata) {
+		  tdata = options.tdata;
+	      } else {
+		  
+		  // the data has not been parsed, do it now
+		  for (i=0;i<options.data.data.length; i++) {
+		      tdata[tdata.length] = {};
+		      for (h=0;h<options.data.data[i].length;h++) {
+			  tdata[tdata.length - 1][header[h]] = options.data.data[i][h] || "";
+		      }
+		  }
+		  options.tdata = tdata;
+		  options.data.data = null;
+	      }
+	      
 	      // if we are to auto determine sort functions, do so
 	      if (options.sort_autodetect) {
 		  for (var i=0; i<header.length; i++) {
@@ -132,7 +132,7 @@
 		      }
 		  }
 	      }
-
+	      
 	      // create filter elements
 	      var filter = options.filter;
 	      var filter_present = false;
@@ -302,7 +302,7 @@
 			      }
 			      var selopts = [];
 			      var numopts = 0;
-			      for (h=0;h<tdata.length;h++) {
+			      for (h=0;h<tdata.length;h++) {				  
 				  if (! selopts[tdata[h][header[i]]]) {
 				      numopts++;
 				  }
@@ -709,6 +709,8 @@
 	      }
 	      target.appendChild(table_element);
 	      target.appendChild(bottom_table);	  
+	      
+	      return renderer;
 	  }
     });
  }).call(this);

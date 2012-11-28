@@ -48,6 +48,8 @@
 		target.firstChild.setAttribute('style', "width: "+ options.width+"px; height: "+options.height+"px;");
 		
 		jQuery('#graph_div'+renderer.index).svg({onLoad: renderer.drawImage});
+
+		return renderer;
 		
 	    })});
 	},
