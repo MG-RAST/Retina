@@ -57,8 +57,106 @@
    widget.display = function (params) {
       params.target.innerHTML = "<p>Hello World</p>";
    };
-```javascript
+```
 
 <p>The remaining two parts in the widget show how you add custom variables and functions to your widget, that can be accessed within your widget.</p>
 
-<p>Right now your widget will only display a paragraph with the text Hello World, but it could do so much more! Let us use the table renderer we loaded in the setup function. F</p>
+```javascript
+   widget.someVariable = 'someValue';
+   widget.someFunction = function (params) {
+   
+   };
+```
+
+<h2>Retrieving Data and Using Renderers in Widgets</h2>
+
+<p>Right now your widget will only display a paragraph with the text Hello World, but it could do so much more! Let us use the table renderer we loaded in the setup function. First we need to create the data we want to display in the table. Lets assume we want stm to get the meta data for a hundred metagenomes. That will not happen instantly, so we need to issue a callback. First we look if the data we need is already there, if not, we request it.</p>
+
+```javascript
+   widget.display = function (params) {
+      
+      if (! stm.DataStore[metagenome]) {
+         stm.get_objects( { type: "metagenome", "options": { "verbosity": "full", "limit": 100 } }).then(function () {
+            widget.display();
+         });
+         return;
+      }
+      
+      params.target.innerHTML = "<p>Hello World</p>";
+   };
+```
+
+<p>The stm.get_objects function returns a promise, so once the data is ready, we just call the display function again. All parameters are automatically preserved. Through the closure, the function knows about the widget object. Since we have no data at this point, we simply return. The next time we get to this point, we know the data is in the DataStore.</p>
+
+<p>The metagenome objects returned by the API contain the data we want to show in our table, but we still need to format it correctly, since the table renderer is incapable of doing that. We might need to do this multiple times, so let us use a function.</p>
+
+```javascript
+   widget.display = function (params) {
+      
+      if (! stm.DataStore[metagenome]) {
+         stm.get_objects( { type: "metagenome", "options": { "verbosity": "full", "limit": 100 } }).then(function () {
+            widget.display();
+         });
+         return;
+      }
+
+      var data = widget.formatData(stm.DataStore.metagenome);
+      
+      params.target.innerHTML = "<p>Hello World</p>";
+   };
+   
+   widget.formatData = function (data) {
+      var columns = ['id', 'name', 'sequence type', 'creation date'];
+      var formatted_data = [];
+      for (i in data) {
+         if (data.hasOwnProperty(i)) {
+            formatted_data.push( [ data[i].id, data[i].name, data[i].sequence_type, data[i].created ] );
+         }
+      }
+      return { 'data': formatted_data, 'header': columns };
+   }
+```
+
+<p>Now we have the data we want to display in the table. First we need to create a div element that the table renderer can render itself to, then we can call the render function of the table.</p>
+
+```javascript
+   widget.display = function (params) {
+      
+      if (! stm.DataStore[metagenome]) {
+         stm.get_objects( { type: "metagenome", "options": { "verbosity": "full", "limit": 100 } }).then(function () {
+            widget.display();
+         });
+         return;
+      }
+
+      var data = widget.formatData(stm.DataStore.metagenome);
+      
+      params.target.innerHTML = "<p>Hello World</p>";
+      
+      var table_div = document.createElement('div');
+      params.target.appendChild(table_div);
+      Retina.Renderer.table.render({ target: table_div, data: data });
+   };
+```
+
+<h2>User Interaction</h2>
+
+<p>The table renderer will offer the user ways to manipulate its display. It will not tell your widget about it, it will simply update its settings and render again to the same div you passed to it. This will allow the user to sort, browse and filter the table. However, the table renderer also supports a callback function. It can tell you when a user has clicked a cell. To capture this event, you need to pass a function to the renderer you want invoked when the event occurs.</p>
+
+```javascript
+   Retina.Renderer.table.render({ target: table_div, data: data, onclick: widget.tableClicked });
+```
+
+<p>Then you need to implement that function to do something about the event. This particular function will return an ordered list of the clicked row data, the clicked cell data, the row index and cell index.</p>
+
+```javascript
+   widget.tableClicked = function (clicked_row, clicked_cell, clicked_row_index, clicked_cell_index) {
+      alert("You just clicked row "+clicked_row_index+" cell "+clicked_cell_index+", which contains the text '"+clicked_cell+"'");
+   }
+```
+
+<p>You can then use this feedback information to trigger other actions, for example retrieve data specified by the user interaction, manipulate it and feed it to another renderer.</p>
+
+<h2>Further Reading</h2>
+
+<p>This concludes the widget tutorial. If you would like to know more, you should probably take a look at the renderer tutorial (Tutorial-Renderer.md).</p>
