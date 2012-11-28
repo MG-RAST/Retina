@@ -43,9 +43,9 @@
     jQuery(function () {
 	stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
 	    Retina.init( { library_resource: "./" } ).then( function () {
-		Retina.add_widget({"name": "tutorial", "resource": "./widgets/",  "filename": "widget.tutorial.js" });
-		Retina.load_widget("tutorial").then( function () {
-		    Retina.Widget.tutorial.create(document.getElementById("content"));
+		Retina.add_widget({"name": "Example", "resource": "./widgets/",  "filename": "widget.Example.js" });
+		Retina.load_widget("Example").then( function () {
+		    Retina.Widget.Example.create({target: document.getElementById("content")});
 		});
 	    });
 	});

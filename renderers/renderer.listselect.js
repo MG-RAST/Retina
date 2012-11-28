@@ -8,7 +8,7 @@
    target (HTML Container Element)
       Element to render in.
 
-   data (HASH of IDs pointing to objects)
+   data (ARRAY of objects)
       The data to display.
 
    multiple (BOOLEAN)
@@ -243,7 +243,7 @@
 	},
 	redrawSelection: function (selection_list) {
 	    // initialize the filter
-	    renderer.settings.filtered_data = renderer.object_to_list();
+	    renderer.settings.filtered_data = renderer.settings.data;
 
 	    // apply all filter breadcrumbs
 	    for (i=0; i<renderer.settings.filter_breadcrumbs.length; i++) {
@@ -264,17 +264,6 @@
 	    selection_list.innerHTML = options_string;
 	    
 	    return;
-	},
-	object_to_list: function () {
-	    var results = [];
-	    for (x in renderer.settings.data) {
-		if (renderer.settings.data.hasOwnProperty(x)) {
-		    if (typeof(renderer.settings.selection[x]) == 'undefined') {
-			results.push(renderer.settings.data[x]);
-		    }
-		}
-	    }
-	    return results;
 	},
 	filter: function(options) {
 	    var results = [];
