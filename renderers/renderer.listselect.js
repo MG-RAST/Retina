@@ -1,3 +1,41 @@
+/* 
+   Listselect Renderer
+
+   Provides a select list that allows the selection of one or multiple data items that can be filtered by their attributes. The attribute to be filtered will be displayed as the label in the selection list. Filters can be chained by pressing the enter key in the filter box.
+
+   Options:
+
+   target (HTML Container Element)
+      Element to render in.
+
+   data (HASH of IDs pointing to objects)
+      The data to display.
+
+   multiple (BOOLEAN)
+      If set to false, displays a single select vs a multi select. Default is true.
+
+   rows (INT)
+      The number of rows to display in the select list. Default is 10.
+
+   filter (ARRAY of STRING)
+      An ordered list of attribute names that are attributes of the objects passed in data that the selection list may be filtered by
+
+   filter_value (STRING)
+      Initial value of the filter. Default is an empty string.
+
+   filter_attribute (STRING)
+      Initial attribute to be displayed and filtered by. Default is the first element in the filter list.
+
+   value (STRING)
+      The attribute of the data objects to be used as the value of the select options.
+
+   callback (FUNCTION)
+      The function to be called when the submit button is pressed. This function will pass the values of the selected option(s).
+
+   selection (HASH of STRING)
+      Hash of values pointing to 1. The inital selection in the result box. The values must be attribute values of the data object attribute selected as the value attribute of the selection list.
+
+*/
 (function () {
     var schema = {};
     var renderer = Retina.Renderer.extend({
@@ -10,15 +48,14 @@
             defaults: {
 		'rows': 10,
 		'filter': [],
-		'enable_filter': true,
 		'filter_value': '',
 		'filter_type': 'substring',
 		'filter_attribute': null,
+		'filtered_data': [],
 		'filter_breadcrumbs': [],
 		'selection': {},
 		'data': {},
-		'multiple': true,
-		'filtered_data': [] },
+		'multiple': true },
 	},
 	exampleData: function () {
 	    return { };
