@@ -1,3 +1,82 @@
+/*
+  Graph Renderer
+
+  Displays a graph of pie / bar charts with an optional legend.
+
+  Options
+
+  type (STRING)
+      Defines the display type of the graph, can be one of
+        pie
+        column
+        stackedColumn
+        row
+        stackedRow
+        line
+      Default is pie.
+
+  title (STRING)
+      Title string written at the top of the graph
+  
+  title_color (CSS Color Value)
+      Color of the title text. Default is black.
+
+  x_title (STRING)
+      Title written below the x-axis.
+
+  y_title (STRING)
+      Title written to the left of the y-axis.
+
+  x_title_color (CSS Color Value)
+      Color of the x-axis title string. Default is black.
+
+  y_title_color (CSS Color Value)
+      Color of the y-axis title string. Default is black.
+
+  x_labels (ARRAY of STRING)
+      List of the labels at the ticks of the x-axis.
+
+  y_labels (ARRAY of STRING)
+      List of the labels at the ticks of the y-axis. If no list is passed will use the y-valus.
+
+  x_tick_interval (INT)
+      Determines how many ticks are actually drawn on the x-axis. Default is 0.
+
+  y_tick_interval (INT)
+      Determines how many ticks are actually drawn on the y-axis. Default is 1.
+  
+  x_labeled_tick_interval (INT)
+      Determines which ticks on the x-axis get labels. Default is 1.
+
+  y_labeled_tick_interval (INT)
+      Determines which ticks on the y-axis get labels. Default is 10.
+
+  default_line_color (CSS Color Value)
+      Determines the color of lines if not specified for an individual line. Default is black.
+
+  default_line_width (INT)
+      Number of pixels lines should be wide if not specified for an individual line. Default is 1.
+
+  show_legend (BOOLEAN)
+      Turns the display of the legend on / off. Default ist true.
+
+  legend_position (STRING)
+      Can be one of
+        left
+        right
+        top
+        bottom
+  
+  width (INT)
+      The width of the graph in pixel (including legend).
+  
+  height (INT)
+      The height of the graph in pixel (including legend).
+
+  data (ARRAY of OBJECT)
+      List of data series. Each series has a name and a data attribute. The data attribute is a list of y-values for the series.
+
+*/
 (function () {
     var schema = {};
     var renderer = Retina.Renderer.extend({
@@ -9,16 +88,16 @@
             requires: [ ],
             defaults: {
 		'type': 'pie', // [ column, stackedColumn, row, stackedRow, line, pie ]
-		'title': 'Browser Usage',
+		'title': '',
 		'title_color': 'black',
-		'x_title': 'Year',
-		'y_title': 'Percentage',
-		'x_title_color': 'blue',
+		'x_title': '',
+		'y_title': '',
+		'x_title_color': 'black',
 		'y_title_color': 'black',
-		'x_labels': ['2002', '2004', '2005', '2006'],
+		'x_labels': [],
 		'y_labels': [],
 		'x_tick_interval': 0,
-		'y_tick_interval': 5,
+		'y_tick_interval': 10,
 		'x_labeled_tick_interval': 1,
 		'y_labeled_tick_interval': 10,
 		'default_line_color': 'black',
@@ -48,6 +127,8 @@
 		target.firstChild.setAttribute('style', "width: "+ options.width+"px; height: "+options.height+"px;");
 		
 		jQuery('#graph_div'+renderer.index).svg({onLoad: renderer.drawImage});
+
+		return renderer;
 		
 	    })});
 	},

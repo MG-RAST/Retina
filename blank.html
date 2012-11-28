@@ -26,7 +26,7 @@
 	    Retina.init( { library_resource: "./" } ).then( function () {
 		Retina.add_widget({"name": "tutorial", "resource": "./widgets/",  "filename": "widget.tutorial.js" });
 		Retina.load_widget("tutorial").then( function () {
-		    Retina.Widget.tutorial.create(document.getElementById("content"));
+		    Retina.Widget.tutorial.create({target: document.getElementById("content")});
 		});
 	    });
 	});
