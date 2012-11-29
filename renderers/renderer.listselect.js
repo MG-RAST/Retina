@@ -37,7 +37,6 @@
 
 */
 (function () {
-    var schema = {};
     var renderer = Retina.Renderer.extend({
 	about: {
 	    name: "listselect",
@@ -55,7 +54,7 @@
 		'filter_breadcrumbs': [],
 		'selection': {},
 		'data': {},
-		'multiple': true },
+		'multiple': false },
 	},
 	exampleData: function () {
 	    return { };
