@@ -13,7 +13,13 @@
 	Retina.init( { library_resource: "./" } ).then( function () {
 	    Retina.add_renderer({"name": "graph", "resource": "./renderers/",  "filename": "renderer.graph.js" });
 	    Retina.load_renderer("graph").then( function () {
-		    Retina.Renderer.graph.render({ target: document.getElementById('target')});
+		Retina.Renderer.graph.render( {
+		    target: document.getElementById('target'),
+		    data: Retina.Renderer.graph.exampleData(),
+		    title: "Browser Usage",
+		    x_labels: [ "2005", "2006", "2007", "2008" ],
+		    x_title: 'Year',
+		    y_title: 'Percentage' });
 	    });
 	});
     });
