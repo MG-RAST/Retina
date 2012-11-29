@@ -217,6 +217,7 @@
 	    }
 	    target.appendChild(submit_button);
 	},
+	// add a breadcrumb to the list
 	addBreadcrumb: function () {
 	    if (renderer.settings.filter_value != "") {
 		renderer.settings.filter_breadcrumbs.push([renderer.settings.filter_attribute, renderer.settings.filter_value]);
@@ -225,21 +226,28 @@
 		renderer.render();
 	    }
 	},
+	// remove a breadcrumb from the list
 	removeBreadcrumb: function (button) {
 	    renderer.settings.filter_breadcrumbs.splice(button.name, 1);
 	    renderer.settings.filter_value = '';
 	    renderer.render();
 	},
-	redrawResultlist: function (result_list) {
-	    var result_list_string = "";
-	    for (i in renderer.settings.selection) {
-		if (renderer.settings.selection.hasOwnProperty(i)) {
-		    var popid = 'sl'+i;
-		    result_list_string += '<option value="'+renderer.settings.data[i][renderer.settings.value]+'" title="'+renderer.settings.data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.data[i][renderer.settings.filter_attribute]+'</option>';
+	// redraw the result list (right)
+	redrawResultlist: function (result_list) {  
+	    var result_list_array = [];
+	    for (i=0; i<renderer.settings.data.length; i++) {
+		if (renderer.settings.selection[renderer.settings.data[i][renderer.settings.value]]) {
+		    result_list_array.push( [ renderer.settings.data[i][renderer.settings.value], '<option value="'+renderer.settings.data[i][renderer.settings.value]+'" title="'+renderer.settings.data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.data[i][renderer.settings.filter_attribute]+'</option>'] );
 		}
+	    }
+	    result_list_array.sort(renderer.listsort);
+	    var result_list_string = "";
+	    for (i=0; i<result_list_array.length; i++) {
+		result_list_string += result_list_array[i][1];
 	    }
 	    result_list.innerHTML = result_list_string;
 	},
+	// redraw the selection list (left)
 	redrawSelection: function (selection_list) {
 	    // initialize the filter
 	    renderer.settings.filtered_data = renderer.settings.data;
@@ -258,12 +266,15 @@
 	    // create the selection list
 	    var options_string = "";
 	    for (i=0; i<renderer.settings.filtered_data.length; i++) {
-		options_string += '<option value="'+renderer.settings.filtered_data[i][renderer.settings.value]+'" title="'+renderer.settings.filtered_data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.filtered_data[i][renderer.settings.filter_attribute]+'</option>';
+		if (! renderer.settings.selection[renderer.settings.filtered_data[i][renderer.settings.value]]) {
+		    options_string += '<option value="'+renderer.settings.filtered_data[i][renderer.settings.value]+'" title="'+renderer.settings.filtered_data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.filtered_data[i][renderer.settings.filter_attribute]+'</option>';
+		}
 	    }
 	    selection_list.innerHTML = options_string;
 	    
 	    return;
 	},
+	// filter the data according to all breadcrumbs and the current filter
 	filter: function(options) {
 	    var results = [];
 	    for (x=0;x<options.data.length;x++) {
@@ -283,10 +294,21 @@
 	    }
 	    return results;
 	},
+	// sort the list by the label attribute
 	objectsort: function(a, b) {
 	    if (a[renderer.settings.label] > b[renderer.settings.label]) {
 		return 1;
 	    } else if (b[renderer.settings.label] > a[renderer.settings.label]) {
+		return -1;
+	    } else {
+		return 0;
+	    }
+	},
+	// sort the list by the first item in the sublist
+	listsort: function (a, b) {
+	    if (a[0] > b[0]) {
+		return 1;
+	    } else if (b[0] > a[0]) {
 		return -1;
 	    } else {
 		return 0;

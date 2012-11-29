@@ -96,7 +96,7 @@
 		'x_labels': [],
 		'y_labels': [],
 		'x_tick_interval': 0,
-		'y_tick_interval': 10,
+		'y_tick_interval': 5,
 		'x_labeled_tick_interval': 1,
 		'y_labeled_tick_interval': 10,
 		'default_line_color': 'black',
@@ -105,14 +105,14 @@
 		'legend_position': 'left',
 		'width': 800,
 		'height': 400,
-		'data': [ { "name": 'IE', "data": [95, 91, 78, 66] },
-			  { "name": 'Netscape', "data": [3, 12, 18, 18] },
-			  { "name": 'Firefox', "data": [0, 4, 8, 9] },
-			  { "name": 'Chrome', "data": [0, 8, 18, 22] },
-			  { "name": 'Gecko', "data": [1, 2, 3, 33] } ] }
+		'data': [ ] }
 	},
 	exampleData: function () {
-	    return [ ];
+	    return [ { "name": 'IE', "data": [95, 91, 78, 66] },
+		     { "name": 'Netscape', "data": [3, 12, 18, 18] },
+		     { "name": 'Firefox', "data": [0, 4, 8, 9] },
+		     { "name": 'Chrome', "data": [0, 8, 18, 22] },
+		     { "name": 'Gecko', "data": [1, 2, 3, 33] } ];
         },
 
 	render: function (options) {

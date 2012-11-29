@@ -1,12 +1,12 @@
 <!DOCTYPE HTML>
 <html>
   <head>
-    <title>Retina Demo Page</title>
+    <title>Retina - Table Renderer Example</title>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <script type="text/javascript" src="jquery-1.8.0.min.js"></script>
+    <script type="text/javascript" src="jquery.min.js"></script>
     <script type="text/javascript" src="retina.js"></script>
     <script type="text/javascript" src="stm.js"></script>
-    <link rel="stylesheet" type="text/css" href="bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
 
     <script type="text/javascript">
       var tdata =  [ [ 'a1', 'b1', 'c1' ], [ 'a1', 'b1', 'c1' ], [ 'a2', 'b2', 'c2' ], [ 'a3', 'b3', 'c3' ], [ 'a4', 'b4', 'c4' ], [ 'a5', 'b5', 'c5' ] ];
@@ -15,22 +15,21 @@
         Retina.init( { library_resource: "./" } ).then( function () {
           Retina.add_renderer({"name": "table", "resource": "./renderers/", "filename": "renderer.table.js" });
           Retina.load_renderer("table").then( function () {
-            Retina.Renderer.table.render( { "target": document.getElementById("target"), "data": { "data":tdata, "header": hdata}, "sort_autodetect": true,"onclick":table_click} );
+            Retina.Renderer.table.render( { "target": document.getElementById("target"), "data": { "data": tdata, "header": hdata }, "sort_autodetect": true,"filter_autodetect": true,"onclick": function (clicked_row, clicked_cell, clicked_row_index, clicked_cell_index) {
+      var html = "<h3>You clicked something</h3><p style='font-size: 18px;'><i>row: " + clicked_row_index + "<br>clicked cell: " + clicked_cell_index + "<br>row data: " + clicked_row.join(", ") +"<br>cell data: "+clicked_cell+"</p>";
+      document.getElementById('details').innerHTML = html;
+      } } );
           });
         });
       });
-
-      function table_click (clicked_row, clicked_cell, clicked_row_index, clicked_cell_index) {
-      var html = "<h3>You clicked something</h3><p style='font-size: 18px;'><i>row data: '"+tdata[clicked_row_index][0]+"-"+tdata[clicked_row_index][1]+"-"+tdata[clicked_row_index][2]+"</p>";
-      document.getElementById('details').innerHTML = html;
-      }
     </script>
   </head>
   
   <body style="margin: 15px;">
-    <h3>Retina Demo Page</h3>
-    <p>This is an initial demo page for Retina using a table renderer.</p>
+    <h3>Retina - Table Renderer Example</h3>
+    <br><br>
     <div id="target"></div>
+    <br><br>
     <div id="details"></div>
     
   </body>
