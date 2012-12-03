@@ -11,8 +11,10 @@
 
     // ipython notebook server ip
     widget.nb_server = 'http://140.221.84.122:8888';
-    // shock id of empty notebook
-    widget.empty_nb = '';
+    // shock id of templatenotebook
+    widget.nb_template = '';
+    // list of filterable notebook attributes
+    widget.nb_filter = ['name', 'created', 'public'];
     // dict of notebook uuid: [ notebook_objs ]
     // notebook_objs is list of notebooks with same uuid sorted by datetime (lates first)
     widget.sorted_nbs = {};
@@ -30,18 +32,11 @@
     // this will be called whenever the widget is displayed
     // the params should at least contain a space in the DOM for the widget to render to
     // if the widget is visual
-    widget.display = function (div, args) {
-        jQuery('#'+div).html('<div class="alert alert-block alert-info" style="width: 400px">\
-        <button type="button" class="close" data-dismiss="alert">×</button>\
-        <h4>Please wait...</h4>\
-        <p>The data to be displayed is currently loading. Depending on your connection speed, this may take up to one minute.</p>\
-        </div>');
-        
+    widget.display = function (dash_div, iframe_div) {        
 	    stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
 	        Retina.Widget.NotebookDashboard.nb_sort();
-
-            // create space for two select lists and buttons
-	        html = '<div class="row">\
+            // create space for select lists and buttons
+	        dash_html = '<div class="row">\
 	            <div id="nb_div" class="span3 offset1"></div>\
 	            <div id="version_div" class="span2"></div>\
 	            <div class="span4 offset2"><div class="btn-group">\
@@ -59,7 +54,15 @@
                         <button class="btn btn-primary" data-dismiss="modal" onclick="Retina.Widget.NotebookDashboard.new_nb_click()">Launch</button>\
                     </div>\
                 </div>';
-            jQuery('#'+div).html(html);
+            jQuery('#'+dash_div).html(dash_html);
+            // create tabs for iframe
+            if (iframe_div) {
+                iframe_html = '<div class="tabbable" style="margin-top: 15px;">\
+        		        <ul id="tab_list" class="nav nav-tabs"></ul>\
+        		        <div id="tab_div" class="tab-content"></div>\
+        		        </div>';
+                jQuery('#'+iframe_div).html(iframe_html);
+            }
             // populate selects
             Retina.Widget.NotebookDashboard.nb_select_init();
         });
@@ -80,15 +83,24 @@
             html += '<option value="'+snbs[nb].uuid+'">'+snbs[nb].name+' ('+date.toLocaleString()+')</option>';
         }
         html += '</select>';
-        jQuery('#nb_div').html(html);
-        jQuery("#nb_select").selectBoxIt({showFirstOption: false});
+        //jQuery('#nb_div').html(html);
+        //jQuery("#nb_select").selectBoxIt({showFirstOption: false});
+        
+        Retina.Renderer.listselect.render( { "target": document.getElementById('nb_div'),
+                                             "data": snbs,
+                                             "value": 'id',
+                                             "label": 'name',
+                                             "filter": Retina.Widget.NotebookDashboard.nb_filter,
+                                             "multiple": false,
+                                             "callback": Retina.Widget.NotebookDashboard.nb_select_change
+                                        });
+        
         jQuery('#version_div').html('<select id="version_select"><option value="">Select Version ...</option></select>');
         jQuery("#version_select").selectBoxIt();
     };
 
     // populate second select list with versions of selected notebook
-    widget.nb_select_change = function () {
-        var uuid = jQuery('#nb_select').val();
+    widget.nb_select_change = function (uuid) {
         var html = '<select id="version_select"><option value="">Select Version ...</option>';
         var snbs = Retina.Widget.NotebookDashboard.sorted_nbs[uuid];
         for (var nb in snbs) {
@@ -120,7 +132,7 @@
                 return;
             }
             Retina.Widget.NotebookDashboard.nb_create_tab(nsel_uuid, curr_name);
-            Retina.Widget.NotebookDashboard.display("nb_dash");
+            Retina.Widget.NotebookDashboard.display("nb_dash", null);
         } else {
             var date = new Date(Retina.Widget.NotebookDashboard.sorted_nbs[nsel_uuid][vsel_pos].created);
             var new_name = curr_name+' ('+date.toLocaleString()+')';
@@ -128,7 +140,7 @@
             var new_uuid = Retina.Widget.NotebookDashboard.uuidv4();
             stm.get_objects({"type": "notebook", "id": old_id+'/'+new_uuid, "options": {"verbosity": "minimal"}}).then(function () {
                 Retina.Widget.NotebookDashboard.nb_create_tab(new_uuid, new_name);
-                Retina.Widget.NotebookDashboard.display("nb_dash");
+                Retina.Widget.NotebookDashboard.display("nb_dash", null);
             });
         }
     };
@@ -136,10 +148,10 @@
     widget.new_nb_click = function () {
         var new_uuid = Retina.Widget.NotebookDashboard.uuidv4();
         var new_name = jQuery('#new_nb_name').val();
-        if (new_name && Retina.Widget.NotebookDashboard.empty_nb) {
-            stm.get_objects({"type": "notebook", "id": Retina.Widget.NotebookDashboard.empty_nb+'/'+new_uuid, "options": {"verbosity": "minimal"}}).then(function () {
+        if (new_name && Retina.Widget.NotebookDashboard.nb_template) {
+            stm.get_objects({"type": "notebook", "id": Retina.Widget.NotebookDashboard.nb_template+'/'+new_uuid, "options": {"verbosity": "minimal"}}).then(function () {
                 Retina.Widget.NotebookDashboard.nb_create_tab(new_uuid, new_name);
-                Retina.Widget.NotebookDashboard.display("nb_dash");
+                Retina.Widget.NotebookDashboard.display("nb_dash", null);
             });
         }
     };
