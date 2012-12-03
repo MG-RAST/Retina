@@ -64,35 +64,6 @@
     
 */
 (function () {
-    var schema = {
-        properties: {
-            target: {
-                type: 'object',
-                required: true
-            },
-            data: {
-                type: 'object',
-                properties: {
-                    data: {
-                        required: true,
-                        type: 'array',
-                        items: {
-                            type: 'array',
-                            items: {
-                                type: 'string'
-                            }
-                        }
-                    },
-                    header: {
-                        type: 'array',
-                        items: {
-                            type: 'string'
-                        }
-                    }
-                }
-            }
-        }
-    };
     var renderer = Retina.Renderer.extend({
       about: {
 	name: "table",

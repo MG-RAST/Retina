@@ -46,7 +46,7 @@
 
 ```javascript
    widget.setup = function () {
-      return [ Retina.add_renderer({"name": "table", "resource": "./", "filename": "renderer.table.js" }),
+      return [ Retina.add_renderer({"name": "table", "resource": "./renderers/", "filename": "renderer.table.js" }),
                this.loadRenderer('table') ];
    }
 ```

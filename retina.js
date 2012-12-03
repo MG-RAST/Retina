@@ -112,18 +112,6 @@
 	});
     };
     
-    Retina.validate = function (obj, schema) {
-	if (window.json.validate) {
-	    return window.json.validate(obj, schema);
-	} else {
-	    if (revalidator !== undefined) {
-		return revalidator.validate(obj, schema);
-	    } else {
-		return {valid: false, errors: ['validate function not defined']};
-	    }
-	}
-    }
-
     Retina.mouseCoords = function (ev) {
 	if (ev.pageX || ev.pageY) {
 	    return {
@@ -231,18 +219,6 @@
 		}
 	    }
 	    
-	    // validate(args);
-	    if (renderer.about.schema) {
-		var check = Retina.validate(settings, renderer.about.schema);
-		if (check['valid']) {
-		    console.log("automatic validation", renderer.about.name);
-		    return tmpRender(settings);
-		} else {
-		    console.log(check['errors']);
-		    return check['errors'];
-		}
-	    }
-
 	    // store a reference of the instance
 	    if (renderer.about.name) {
 		if (typeof(Retina.RendererInstances[renderer.about.name]) == 'undefined') {
