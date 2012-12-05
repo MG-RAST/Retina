@@ -65,7 +65,8 @@
 	    return [ { "name": 'Sine', "function": Math.sin },
 		     { "name": 'Cosine', "function": Math.cos },
 		     { "name": 'Decaying', "function": renderer.decay },
-		     { "name": 'Square', "function": renderer.square, "lineWidth": 3 } ];
+		     { "name": 'Square', "function": renderer.square, "lineWidth": 3 }
+	    ];
         },
 
 	render: function (options) {
@@ -96,7 +97,8 @@
 	drawImage: function (svg) {
 
 	    var plotZooms   = [ [ -2, 2, -1.5, 1.5 ],
-				[ -10, 10, -10, 10 ] ]; 
+				[ -10, 10, -10, 10 ],
+				[ -20, 20, -10, 10 ] ]; 
 	    var chartAreas  = [ [ 0.1, 0.1, 0.95, 0.9 ],
 				[ 0.2, 0.1, 0.95, 0.9 ],
 				[ 0.1, 0.1, 0.8, 0.9 ],
@@ -123,12 +125,12 @@
 	    }
 	    svg.plot.noDraw().format('white', 'gray'). 
 		gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
-	    svg.plot.xAxis.scale(-1, 3.5).ticks(1, 0.2); 
-	    svg.plot.yAxis.scale(-1.5, 1.5).ticks(1, 0.2); 
+	    svg.plot.xAxis.scale(-1, 3.5).ticks(10, 1); 
+	    svg.plot.yAxis.scale(-1.5, 1.5).ticks(2, 1); 
 	    svg.plot.legend.settings({fill: 'white', 
 				      stroke: 'gray'});
 
-	    var plotZoom = 0; 
+	    var plotZoom = 2; 
 	    var plotEqual = 1; 
 	    var plotLegend = 0;
 	    if (renderer.settings.show_legend) {

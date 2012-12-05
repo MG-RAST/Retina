@@ -17,13 +17,20 @@
     function receiveMessage(event) {
 
 	// do not caputre the event if the allowed origin does not match
-	if (event.origin !== stm.SourceOrigin) { return; }
+	if (stm.SourceOrigin != '*' && event.origin !== stm.SourceOrigin) { return; }
 	
 	// parse the data into an object
-	var data = JSON.parse(event.data);
-	if (typeof(data) == 'object') {
-	    // try to load the data
-	    stm.load_data(data);
+	var data = event.data;
+	if (typeof(data) == 'object' && data.hasOwnProperty('type')) {
+	    var type = data.type;
+	    // check what kind of message this is
+	    if (type == 'data') {
+		// try to load the data
+		stm.load_data(data.data);
+	    } else if (type == 'action') {
+		data.data = data.data.replace(/##/g, "'").replace(/!!/g, '"');
+		eval(data.data);
+	    }
 	}
 	// alert if the data is not valid json
 	else {
@@ -32,7 +39,7 @@
     }
 
     // send data to another iframe
-    stm.send_data = function (frame, data, type, no_clear) {
+    stm.send_message = function (frame, data, type, no_clear) {
 	// if frame is a string, interpret it as an id
 	if (typeof(frame) == 'string') {
 	    frame = document.getElementById(frame);
@@ -47,22 +54,27 @@
 	    alert('invalid target object');
 	}
 
-	// check if data is an array
-	if (typeof(data.length) == 'undefined') {
-	    data = [ data ];
-	}
-
 	// check if a type was passed
 	if (! type) {
+	    type = 'data';
+	}
+
+	if (type == 'data') {
+
+	    // check if data is an array
+	    if (typeof(data.length) == 'undefined') {
+		data = [ data ];
+	    }
 	    if (typeof(data[0].type) == 'undefined') {
 		alert('invalid data');
 	    } else {
 		type = data[0].type;
 	    }
+
 	}
 
 	// send out the data
-	frame.postMessage(data, stm.TargetOrigin);
+	frame.postMessage({ 'type': type, 'data': data }, stm.TargetOrigin);
     }
 
     // get / set a repository, or get all repos if no argument is passed
