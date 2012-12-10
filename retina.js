@@ -130,6 +130,16 @@
 	return string[0].toUpperCase() + string.slice(1);
     }
 
+    Retina.wait = function (ms) {
+	ms += new Date().getTime();
+	while (new Date() < ms){}
+    }
+
+    Number.prototype.formatString = function(c, d, t) {
+	var n = this, c = isNaN(c = Math.abs(c)) ? 0 : c, d = d == undefined ? "." : d, t = t == undefined ? "," : t, s = n < 0 ? "-" : "", i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", j = (j = i.length) > 3 ? j % 3 : 0;
+	return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+    };
+
     /* ===================================================
      * Retina.Widget
      */
@@ -193,13 +203,15 @@
      * Retina.Renderer
      */
     var Renderer = Retina.Renderer = {};
-    
     Renderer.extend = function (spec) {
 	spec = (spec || {});
-	var renderer = Retina.extend({}, spec);
-	Retina.extend(renderer, Renderer);
+	var renderer = jQuery.extend(true, {}, Renderer);
+	jQuery.extend(renderer, spec);
 	if (renderer.about.name) {
 	    Retina.Renderer[renderer.about.name] = renderer;
+	} else {
+	    alert('called invalid renderer, missing about.name');
+	    return null;
 	}
 	
 	var tmpRender = renderer.render;
@@ -226,15 +238,17 @@
 		}
 		if (typeof(this.settings) == 'undefined') {
 		    renderer.index = Retina.RendererInstances[renderer.about.name].length;
-		    Retina.RendererInstances[renderer.about.name].push(renderer);
+		    renderer.settings = settings;
+		    Retina.RendererInstances[renderer.about.name].push(jQuery.extend(true, {}, renderer));
 		}
-		renderer.settings = settings;
 	    } else {
 		alert('invalid renderer structure, missing name');
 		return;
 	    }
+
 	    return tmpRender(settings);
 	};
+
 	return renderer;
     };
     

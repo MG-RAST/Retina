@@ -84,7 +84,7 @@
 	    title: "Graph",
             author: "Tobias Paczian",
             version: "1.0",
-            requires: [ ],
+            requires: [ "jquery.svg.js", "jquery.svggraph.js" ],
             defaults: {
 		'type': 'pie', // [ column, stackedColumn, row, stackedRow, line, pie ]
 		'title': '',
@@ -101,8 +101,9 @@
 		'y_labeled_tick_interval': 10,
 		'default_line_color': 'black',
 		'default_line_width': 1,
-		'show_legend': true,
+		'show_legend': false,
 		'legend_position': 'left',
+		'show_grid': false,
 		'width': 800,
 		'height': 400,
 		'data': [ ] }
@@ -117,19 +118,18 @@
 
 	render: function (options) {
 
-	    // load the libs
-	    Retina.load_library("jquery.svg.js").then(function(){ Retina.load_library("jquery.svggraph.js").then(function(){
-
-		// get the target div
-		var target = options.target;
-		target.innerHTML = "<div id='graph_div"+renderer.index+"'></div>";
-		target.firstChild.setAttribute('style', "width: "+ options.width+"px; height: "+options.height+"px;");
-		
-		jQuery('#graph_div'+renderer.index).svg({onLoad: renderer.drawImage});
-
-		return renderer;
-		
-	    })});
+	    // get the target div
+	    var target = options.target;
+	    var index = 0;
+	    while (document.getElementById('graph_div'+index)) {
+		index++;
+	    }
+	    target.innerHTML = "<div id='graph_div"+index+"'></div>";
+	    target.firstChild.setAttribute('style', "width: "+ options.width+"px; height: "+options.height+"px;");
+	    jQuery('#graph_div'+index).svg();
+	    Retina.RendererInstances.graph[index].drawImage(jQuery('#graph_div'+index).svg('get'));
+	    
+	    return renderer;
 	},
 	hover: function (title, value, event) {
 	    var svg = jQuery('#graph_div'+renderer.index).svg('get');
@@ -148,13 +148,13 @@
 
 	    var chartAreas = [ [ 0.1, 0.1, 0.95, 0.9 ],   // no legend
 			       [ 0.2, 0.1, 0.95, 0.9 ],   // legend left
-			       [ 0.1, 0.1, 0.8, 0.9  ],   // legend right
+			       [ 0.1, 0.1, 0.75, 0.9 ],   // legend right
 			       [ 0.1, 0.25, 0.9, 0.9 ],   // legend top
 			       [ 0.1, 0.1, 0.9, 0.8  ] ]; // legend bottom
 
 	    var legendAreas = [ [ 0.0, 0.0, 0.0, 0.0     ],   // no legend
 				[ 0.005, 0.1, 0.125, 0.5 ],   // left
-				[ 0.85, 0.1, 0.97, 0.5   ],   // right
+				[ 0.8, 0.1, 0.97, 0.5    ],   // right
 				[ 0.2, 0.1, 0.8, 0.2     ],   // top
 				[ 0.2, 0.9, 0.8, 0.995   ] ]; // bottom
 
@@ -168,10 +168,11 @@
 	    svg.linearGradient(defs, 'fadeYellow', [[0, '#FBB450'], [1, '#F89406']]);
 	    svg.linearGradient(defs, 'fadeLightblue', [[0, '#5BC0DE'], [1, '#2F96B4']]);
 	    svg.linearGradient(defs, 'fadePurple', [[0, '#ee5be0'], [1, '#bd2fa6']]);
-	    
-	    svg.graph.noDraw().title(renderer.settings.title, renderer.settings.title_color).
-		format('white', 'gray'). 
-		gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
+	    svg.graph.noDraw().title(renderer.settings.title, renderer.settings.title_color, renderer.settings.title_settings);
+	    svg.graph.noDraw().format('white', renderer.settings.show_grid ? 'gray' : 'white' );
+	    if (renderer.settings.show_grid) {
+		svg.graph.noDraw().gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray');
+	    }
 
 	    for (i=0;i<renderer.settings.data.length;i++) {
 		svg.graph.noDraw().addSeries( renderer.settings.data[i].name, renderer.settings.data[i].data, null, renderer.settings.data[i].lineColor || renderer.settings.default_line_color, renderer.settings.data[i].lineWidth || renderer.settings.default_line_width);
@@ -211,7 +212,7 @@
 	    svg.graph.noDraw(). 
 		legend.show(chartLegend).area(legendAreas[chartLegend]).end();
 	    for (i=0; i< renderer.settings.data.length; i++) {
-		svg.graph.noDraw().series(i).format(fills[i]).end();
+		svg.graph.noDraw().series(i).format(renderer.settings.data[i].fill || fills[i]).end();
 	    }
 	    svg.graph.noDraw().area(chartAreas[chartLegend]).
 		type(chartType, chartOptions).redraw();

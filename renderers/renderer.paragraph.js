@@ -8,7 +8,7 @@
   width (STRING)
       Width of the output.
       Can be either a bootstrap class name specifying a width (span1 .. span12) or a width in pixel.
-      Default is span8.
+      Default is span12.
 
   data (LIST of Objects to render)
       Title string written at the top of the graph
@@ -38,7 +38,7 @@
             version: "1.0",
             requires: [],
             defaults: {
-		'width': 'span8',
+		'width': 'span12',
 		'data': '',
 		'title_color': 'black',
 		'header_color': 'black',
@@ -68,7 +68,7 @@
 		
 		var html_string = "<style>\
 #para"+renderer.index+" > h2 { color: "+options.title_color+"; }\
-#para"+renderer.index+" > h3 { color: "+options.header_color+"; }\
+#para"+renderer.index+" > h3 { color: "+options.header_color+"; margin-top: 20px; margin-bottom: 10px; }\
 #para"+renderer.index+" > p { color: "+options.text_color+"; }\
 </style><div id='para"+renderer.index+"' ";
 		if (options.width.match(/^\d+$/)) {
@@ -83,17 +83,35 @@
 			html_string += "<h3>"+options.data[i].header+"</h3>";
 		    } else if (options.data[i].hasOwnProperty('p')) {
 			html_string += "<p>"+options.data[i].p+"</p>";
+		    } else if (options.data[i].hasOwnProperty('footnote')) {
+			html_string += "<p><small style='color: black;'><b>"+options.data[i].footnote.title+"</b> "+options.data[i].footnote.text+"</small></p>";
 		    } else if (options.data[i].hasOwnProperty('table')) {
-			html_string += "<table>";
+			html_string += "<table style='width: 100%;'>";
 			for (h=0;h<options.data[i].table.length;h++) {
 			    html_string += "<tr>";
 			    for (j=0;j<options.data[i].table[h].length;j++) {
 				if (typeof(options.data[i].table[h][j]) == 'object') {
 				    if (options.data[i].table[h][j].hasOwnProperty('header')) {
-					html_string += "<th>"+options.data[i].table[h][j].header+"</th>";
+					html_string += "<th style='text-align: left;'>"+options.data[i].table[h][j].header.replace(/\s/g, "&nbsp;")+"</th>";
 				    }
 				} else {
 				    html_string += "<td>"+options.data[i].table[h][j]+"</td>";
+				}
+			    }
+			    html_string += "</tr>";
+			}
+			html_string += "</table>";
+		    }  else if (options.data[i].hasOwnProperty('fancy_table')) {
+			html_string += "<table style='width: 100%;' class='table table-striped table-hover'>";
+			for (h=0;h<options.data[i].fancy_table.data.length;h++) {
+			    html_string += "<tr>";
+			    for (j=0;j<options.data[i].fancy_table.data[h].length;j++) {
+				if (typeof(options.data[i].fancy_table.data[h][j]) == 'object') {
+				    if (options.data[i].fancy_table.data[h][j].hasOwnProperty('header')) {
+					html_string += "<th style='text-align: left;'>"+options.data[i].fancy_table.data[h][j].header.replace(/\s/g, "&nbsp;")+"</th>";
+				    }
+				} else {
+				    html_string += "<td>"+options.data[i].fancy_table.data[h][j]+"</td>";
 				}
 			    }
 			    html_string += "</tr>";
