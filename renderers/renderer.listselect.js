@@ -67,7 +67,7 @@
 	    if (options.multiple) {
 		tstyle += '600px;';
 	    } else {
-		tstyle += '286px;';
+		tstyle += '256px;';
 	    }
 	    target.setAttribute('style', tstyle);
 	    target.innerHTML = "";
@@ -186,13 +186,13 @@
 		button_span.appendChild(button_right);
 	    }
 
-	    // create the submit button
-	    var submit_button = document.createElement('a');
-	    submit_button.setAttribute('class', 'btn btn-small btn-success');
-	    submit_button.setAttribute('style', 'margin-left: 15px;');
-	    submit_button.innerHTML = '<i class="icon-ok icon-white"></i>';
+	    // create the callback event
 	    if (typeof(options.callback) == 'function') {
 		if (options.multiple) {
+		    var submit_button = document.createElement('a');
+    	    submit_button.setAttribute('class', 'btn btn-small btn-success');
+    	    submit_button.setAttribute('style', 'margin-left: 15px;');
+    	    submit_button.innerHTML = '<i class="icon-ok icon-white"></i>';
 		    submit_button.addEventListener('click', function () {
 			var selection_result = [];
 			for (x=0; x<result_list.options.length; x++) {
@@ -201,8 +201,8 @@
 			options.callback(selection_result);
 		    });
 		} else {
-		    submit_button.addEventListener('click', function () {
-			options.callback(selection_list.options[selection_list.selectedIndex].value);
+		    selection_list.addEventListener('change', function () {
+			    options.callback(selection_list.options[selection_list.selectedIndex].value);
 		    });
 		}
 	    }
@@ -214,8 +214,8 @@
 	    if (options.multiple) {
 		target.appendChild(button_span);
 		target.appendChild(result_list);
-	    }
 	    target.appendChild(submit_button);
+        }
 	},
 	// add a breadcrumb to the list
 	addBreadcrumb: function () {
