@@ -47,9 +47,10 @@
 	            <div id="nb_div" class="span3 offset1"></div>\
 	            <div id="version_div" class="span3 offset1"></div>\
 	            <div class="span2 offset1"><table>\
-	                <tr><td><button type="button" class="btn btn-success" onclick="Retina.Widget.NotebookDashboard.nb_launch_click()">Launch Notebook</button></td></tr>\
-	                <tr><td><button type="button" class="btn btn-warning" data-toggle="modal" data-target="#new_nb_modal">New Notebook</button></td></tr>\
-	                <tr><td><button type="button" class="btn btn-danger" data-toggle="modal" data-target="#del_nb_modal">Delete Notebook</button></td></tr>\
+	                <tr><td><button type="button" class="btn btn-success" style="width: 135px" onclick="Retina.Widget.NotebookDashboard.nb_launch_click()">Launch Notebook</button></td></tr>\
+	                <tr><td><button type="button" class="btn btn-warning" style="width: 135px" data-toggle="modal" data-target="#new_nb_modal">New Notebook</button></td></tr>\
+	                <tr><td><button type="button" class="btn btn-danger" style="width: 135px" data-toggle="modal" data-target="#del_nb_modal">Delete Notebook</button></td></tr>\
+	                <tr><td><button type="button" class="btn" style="width: 135px" onclick="Retina.Widget.NotebookDashboard.display(\'nb_dash\', null);">Refresh Dashboard</button></td></tr>\
 	            </table></div></div>\
 	            <div id="new_nb_modal" class="modal hide fade" role="dialog">\
                     <div class="modal-header">\
@@ -85,7 +86,7 @@
             jQuery('#'+dash_div).html(dash_html);
             // create tabs for iframe
             if (iframe_div) {
-                iframe_html = '<div class="tabbable" style="margin-top: 15px; margin-left: 10px;">\
+                iframe_html = '<div class="tabbable" style="margin-top: 15px; margin-left: 15px;">\
         		        <ul id="tab_list" class="nav nav-tabs"></ul>\
         		        <div id="tab_div" class="tab-content"></div>\
         		        </div>';
@@ -105,7 +106,7 @@
             snbs.push(Retina.Widget.NotebookDashboard.sorted_nbs[uuid][0]);
         }
         snbs.sort( function(a,b) {
-            return (a.created < b.created) ? 1 : ((b.created < a.created) ? -1 : 0);
+            return (a.created > b.created) ? 1 : ((b.created > a.created) ? -1 : 0);
         });
         Retina.Renderer.listselect.render( { "target": document.getElementById('nb_div'),
                                              "data": snbs,
@@ -147,8 +148,7 @@
             alert("No notebook is selected");
             return;
         }
-        var nb_set = Retina.Widget.NotebookDashboard.sorted_nbs[sel_nb[0]];
-        
+        var nb_set = Retina.Widget.NotebookDashboard.sorted_nbs[sel_nb[0]];        
         if (sel_nb[1] == nb_set[0].id) {
             var has_uuid = jQuery('#'+sel_nb[0]);
             if (has_uuid.length > 0) {
@@ -209,13 +209,15 @@
             return;
         }
         alert("Currently notebook deletion is not supported.");
+        jQuery('#del_nb_modal').modal('hide');
+        Retina.Widget.NotebookDashboard.display("nb_dash", null);
     }
 
     widget.nb_create_tab = function (uuid, name) {
         var url = Retina.Widget.NotebookDashboard.nb_server+'/'+uuid;
         console.log(url);
-        var li_elem  = '<li class="active"><a data-toggle="tab" href="#'+uuid+'">'+name+'</a></li>';
-        var div_elem = '<div id="'+uuid+'" class="tab-pane active"><iframe id="'+uuid+'_notebook" src="'+url+'" width="935" height="750">Your Browser does not support iFrames</iframe></div>';
+        var li_elem  = '<li class="active"><a data-toggle="tab" href="#'+uuid+'_div">'+name+'</a></li>';
+        var div_elem = '<div id="'+uuid+'_div" class="tab-pane active"><iframe id="'+uuid+'" src="'+url+'" width="935" height="750">Your Browser does not support iFrames</iframe></div>';
         jQuery('#tab_list').children('.active').removeClass('active');
         jQuery('#tab_div').children('.active').removeClass('active');
         jQuery('#tab_list').append(li_elem);
@@ -229,7 +231,7 @@
             if (id == Retina.Widget.NotebookDashboard.nb_template) {
                 continue;
             }
-            all_nbs[id].datetime = Retina.Widget.NotebookDashboard.date_string(all_nbs[id].created);
+            all_nbs[id]['datetime'] = Retina.Widget.NotebookDashboard.date_string(all_nbs[id].created);
             var uuid = all_nbs[id].uuid;
             if (uuid in uuid_nbs) {
                 uuid_nbs[uuid].push( all_nbs[id] );
@@ -239,7 +241,7 @@
         }
         for (var u in uuid_nbs) {
             uuid_nbs[u].sort( function(a,b) {
-                return (a.created < b.created) ? 1 : ((b.created < a.created) ? -1 : 0);
+                return (a.created > b.created) ? 1 : ((b.created > a.created) ? -1 : 0);
             });
         }
         Retina.Widget.NotebookDashboard.sorted_nbs = uuid_nbs;
