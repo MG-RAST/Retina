@@ -12,6 +12,7 @@
     var widget_resources    = [];
     var available_widgets   = {};
     var loaded_widgets      = {};
+    var library_queue       = [];
     var library_resource    = null;
     var loaded_libraries    = {};
     var RendererInstances   = Retina.RendererInstances = [];
@@ -377,21 +378,32 @@
     
     Retina.load_library = function (library) {
 	var promise;
+	if (library == undefined) {
+	    library = library_queue[0];
+	}
 	if (loaded_libraries[library]) {
 	    promise = loaded_libraries[library];
 	} else {
 	    promise = jQuery.Deferred();
 	    loaded_libraries[library] = promise;
 	    
-	    var script_url = library_resource + library;
-	    jQuery.getScript(script_url).then(function() {
-		promise.resolve();
-	    }, function(jqXHR, textStatus, errorThrown) {
-		if (textStatus === 'parsererror') {
-		    console.log(errorThrown);
-		    parserError(script_url);
-		}
-	    });
+	    if (library_queue.length) {
+		loaded_libraries[library_queue[library_queue.length - 1]].then(Retina.load_library());
+		library_queue.push(library);
+		return promise;
+	    } else {
+
+		var script_url = library_resource + library;
+		jQuery.getScript(script_url).then(function() {
+		    library_queue.shift();
+		    promise.resolve();
+		}, function(jqXHR, textStatus, errorThrown) {
+		    if (textStatus === 'parsererror') {
+			console.log(errorThrown);
+			parserError(script_url);
+		    }
+		});
+	    }
 	}
 	
 	return promise;
