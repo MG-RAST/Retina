@@ -135,7 +135,7 @@
       
       var table_div = document.createElement('div');
       params.target.appendChild(table_div);
-      Retina.Renderer.table.render({ target: table_div, data: data });
+      Retina.Renderer.create("table", { target: table_div, data: data }).render();
    };
 ```
 
@@ -144,7 +144,7 @@
 <p>The table renderer will offer the user ways to manipulate its display. It will not tell your widget about it, it will simply update its settings and render again to the same div you passed to it. This will allow the user to sort, browse and filter the table. However, the table renderer also supports a callback function. It can tell you when a user has clicked a cell. To capture this event, you need to pass a function to the renderer you want invoked when the event occurs.</p>
 
 ```javascript
-   Retina.Renderer.table.render({ target: table_div, data: data, onclick: widget.tableClicked });
+   Retina.Renderer.create("table", { target: table_div, data: data, onclick: widget.tableClicked }).render();
 ```
 
 <p>Then you need to implement that function to do something about the event. This particular function will return an ordered list of the clicked row data, the clicked cell data, the row index and cell index.</p>

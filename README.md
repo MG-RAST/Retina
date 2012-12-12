@@ -19,9 +19,7 @@
 ```html
       <!--external javascript files-->
       <script type="text/javascript" src="jquery.min.js"></script>
-      <script type="text/javascript" src="jquery-ui.min.js"></script>
       <script type="text/javascript" src="bootstrap.min.js"></script>
-      <script type="text/javascript" src="html2canvas.min.js"></script>
       
       <!--basic javascript files-->
       <script type="text/javascript" src="stm.js"></script>
@@ -29,8 +27,6 @@
       
       <!--bootstrap style-->
       <link rel="stylesheet" type="text/css" href="bootstrap.css">
-      <link rel="stylesheet" type="text/css" href="bootstrap-responsive.css">
-      <link rel="stylesheet" type="text/css" href="jquery.ui.all.css">
 ```
 
 <p>Then use a jQuery function call to set up Retina and stm:</p>
