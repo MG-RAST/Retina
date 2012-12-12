@@ -59,8 +59,9 @@
 <p>Next is the render function, the heart of your renderer. This is where you put the code that actually performs the rendering. Right now it expects the data argument to be a string containg valid HTML which it prints as the content of its target parameter. You should always capture the HTML container element you render in as the target parameter and the data you render as the data parameter. You can have an arbitrary amount of additional parameters, which will extend the defaults set in the about object. The render function always needs to return a reference to the renderer instance.</p>
 
 ```javascript
-   render: function (options) {
-      options.target.innerHTML = options.data;
+   render: function () {
+      renderer = this;
+      renderer.settings.target.innerHTML = renderer.settings.data;
       return renderer;
    }
 ```
@@ -76,7 +77,7 @@
 
 <h2>Tips and Tricks</h2>
 
-<p>The options passed to your render function are preserved in a local variable 'settings'. In all functions in your module you can do</p>
+<p>The render function has access to the renderer.settings which are the default settings, extended by user set options. In all functions in your module you can do</p>
 
 ```javascript
    var width = renderer.settings.width;
@@ -86,7 +87,7 @@
 <p>When a renderer is instanciated, it automatically receives an index attribute. The value of index is the position in an array that stores references to all instanciated renderers.</p>
 
 ```javascript
-   var renderer = Retina.Renderer.table.render({ /* params here */ });
+   var renderer = Retina.Renderer.create("table", { /* params here */ }).render();
    var index = renderer.index;
    var same_renderer = Retina.RendererInstances.table[index];
 ```
@@ -94,7 +95,7 @@
 <p>Since you already have a reference to the renderer instance returned by the render function, you might think you do not need this additional storage. Consider though that you can use the index in arbitrary other elements in the DOM that have no way to access the reference you get returned.</p>
 
 ```html
-   <input type="button" value="make table big" onclick="Retina.RendererInstances.table[0].render({ width: 1000 });">
+   <input type="button" value="make table big" onclick="Retina.RendererInstances.table[0].settings.width=1000;Retina.RendererInstances.table[0].render();">
 ```
 
 <h2>Further Reading</h2>

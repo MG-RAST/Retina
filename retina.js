@@ -3,7 +3,6 @@
  *
  */
 (function () {
-    jQuery.noConflict();
     var root = this;
     var Retina = root.Retina = {};
     var dataServiceURI;
@@ -13,6 +12,7 @@
     var widget_resources    = [];
     var available_widgets   = {};
     var loaded_widgets      = {};
+    var library_queue       = [];
     var library_resource    = null;
     var loaded_libraries    = {};
     var RendererInstances   = Retina.RendererInstances = [];
@@ -43,7 +43,7 @@
 	if (libraryResource) {
 	    library_resource = libraryResource;
 	}
-		
+
 	jQuery.when.apply(this, promises).then(function() {
 	    promise.resolve();
 	});
@@ -130,6 +130,16 @@
 	return string[0].toUpperCase() + string.slice(1);
     }
 
+    Retina.wait = function (ms) {
+	ms += new Date().getTime();
+	while (new Date() < ms){}
+    }
+
+    Number.prototype.formatString = function(c, d, t) {
+	var n = this, c = isNaN(c = Math.abs(c)) ? 0 : c, d = d == undefined ? "." : d, t = t == undefined ? "," : t, s = n < 0 ? "-" : "", i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", j = (j = i.length) > 3 ? j % 3 : 0;
+	return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+    };
+
     /* ===================================================
      * Retina.Widget
      */
@@ -193,50 +203,33 @@
      * Retina.Renderer
      */
     var Renderer = Retina.Renderer = {};
-    
     Renderer.extend = function (spec) {
+	var renderer = jQuery.extend(true, {}, Renderer);
+	renderer.settings = {};
 	spec = (spec || {});
-	var renderer = Retina.extend({}, spec);
-	Retina.extend(renderer, Renderer);
+	jQuery.extend(renderer, spec);
+	jQuery.extend(true, renderer.settings, renderer.about.defaults);
 	if (renderer.about.name) {
-	    Retina.Renderer[renderer.about.name] = renderer;
+	    if (typeof(Retina.RendererInstances[renderer.about.name]) == 'undefined') {
+		Retina.RendererInstances[renderer.about.name] = [];
+	    }
+	    renderer.index = Retina.RendererInstances[renderer.about.name].length;
+	    Retina.RendererInstances[renderer.about.name].push(renderer);
+	} else {
+	    alert('called invalid renderer, missing about.name');
+	    return null;
 	}
 	
-	var tmpRender = renderer.render;
-	renderer.render = function (settings) {
-
-	    // initialize settings
-	    settings = (settings || {});
-	    if (this.settings) {
-		Retina.extend(settings, this.settings);
-	    }
-	    if (renderer.about) {
-		if (renderer.about.defaults) {
-		    Retina.extend(settings, renderer.about.defaults);
-		}
-		if (renderer.about.setDefaults) {
-		    Retina.extend(settings, renderer.about.setDefaults());
-		}
-	    }
-	    
-	    // store a reference of the instance
-	    if (renderer.about.name) {
-		if (typeof(Retina.RendererInstances[renderer.about.name]) == 'undefined') {
-		    Retina.RendererInstances[renderer.about.name] = [];
-		}
-		if (typeof(this.settings) == 'undefined') {
-		    renderer.index = Retina.RendererInstances[renderer.about.name].length;
-		    Retina.RendererInstances[renderer.about.name].push(renderer);
-		}
-		renderer.settings = settings;
-	    } else {
-		alert('invalid renderer structure, missing name');
-		return;
-	    }
-	    return tmpRender(settings);
-	};
 	return renderer;
     };
+
+    Renderer.create = function (rend, settings) {
+	var renderer_instance = jQuery.extend(true, {}, Retina.RendererInstances[rend][0]);
+	renderer_instance.index = Retina.RendererInstances[rend].length;
+	jQuery.extend(true, renderer_instance.settings, settings);
+	Retina.RendererInstances[rend].push(renderer_instance);
+	return renderer_instance;
+    }
     
     //
     // resource section
@@ -327,7 +320,7 @@
 	    var rend_data = available_renderers[renderer];
 	    var script_url = rend_data.resource + rend_data.filename;
 	    jQuery.getScript(script_url).then(function() {
-		var requires = Retina.Renderer[renderer].about.requires;
+		var requires = Retina.RendererInstances[renderer][0].about.requires;
 		for (var i=0; i<requires.length; i++) {
 		    promises.push(Retina.load_library(requires[i]));
 		}
@@ -337,6 +330,7 @@
 		});
 	    }, function(jqXHR, textStatus, errorThrown) {
 		if (textStatus === 'parsererror') {
+		    console.log(errorThrown);
 		    parserError(script_url);
 		}
 	    });
@@ -373,6 +367,7 @@
 		});
 	    }, function(jqXHR, textStatus, errorThrown) {
 		if (textStatus === 'parsererror') {
+		    console.log(errorThrown);
 		    parserError(script_url);
 		}
 	    });
@@ -383,20 +378,32 @@
     
     Retina.load_library = function (library) {
 	var promise;
+	if (library == undefined) {
+	    library = library_queue[0];
+	}
 	if (loaded_libraries[library]) {
 	    promise = loaded_libraries[library];
 	} else {
 	    promise = jQuery.Deferred();
 	    loaded_libraries[library] = promise;
 	    
-	    var script_url = library_resource + library;
-	    jQuery.getScript(script_url).then(function() {
-		promise.resolve();
-	    }, function(jqXHR, textStatus, errorThrown) {
-		if (textStatus === 'parsererror') {
-		    parserError(script_url);
-		}
-	    });
+	    if (library_queue.length) {
+		loaded_libraries[library_queue[library_queue.length - 1]].then(Retina.load_library());
+		library_queue.push(library);
+		return promise;
+	    } else {
+
+		var script_url = library_resource + library;
+		jQuery.getScript(script_url).then(function() {
+		    library_queue.shift();
+		    promise.resolve();
+		}, function(jqXHR, textStatus, errorThrown) {
+		    if (textStatus === 'parsererror') {
+			console.log(errorThrown);
+			parserError(script_url);
+		    }
+		});
+	    }
 	}
 	
 	return promise;
