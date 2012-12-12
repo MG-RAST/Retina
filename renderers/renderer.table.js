@@ -117,60 +117,61 @@
 	      header: ["column A", "column B", "column C"]
 	      };
         },
-	  render: function (options) {
-	  
-	      options.target.innerHTML = "";
+	  render: function () {
+	      renderer = this;
+
+	      renderer.settings.target.innerHTML = "";
 	      
 	      // check if we have a header, otherwise interpret the first line as the header
-	      if (options.data.length) {
-		  options.data = { header: options.data[0], data: options.data };
+	      if (renderer.settings.data.length) {
+		  renderer.settings.data = { header: renderer.settings.data[0], data: renderer.settings.data };
 	      }
 	      
 	      // if a header has already been initialized, don't touch it again
 	      var header;
-	      if (options.header) {
-		  header = options.header;
+	      if (renderer.settings.header) {
+		  header = renderer.settings.header;
 	      } else {
-		  header = options.data.header;
-		  if (!options.data.header) {
-		      header = options.data.data.shift();
+		  header = renderer.settings.data.header;
+		  if (!renderer.settings.data.header) {
+		      header = renderer.settings.data.data.shift();
 		  }
-		  options.header = header;
-		  options.data.header = null;
+		  renderer.settings.header = header;
+		  renderer.settings.data.header = null;
 	      }
 	      
 	      // check if we have already parsed the data
 	      var tdata = [];
-	      if (options.tdata) {
-		  tdata = options.tdata;
+	      if (renderer.settings.tdata) {
+		  tdata = renderer.settings.tdata;
 	      } else {
 		  
 		  // the data has not been parsed, do it now
-		  for (i=0;i<options.data.data.length; i++) {
+		  for (i=0;i<renderer.settings.data.data.length; i++) {
 		      tdata[tdata.length] = {};
-		      for (h=0;h<options.data.data[i].length;h++) {
-			  tdata[tdata.length - 1][header[h]] = options.data.data[i][h] || "";
+		      for (h=0;h<renderer.settings.data.data[i].length;h++) {
+			  tdata[tdata.length - 1][header[h]] = renderer.settings.data.data[i][h] || "";
 		      }
 		  }
-		  options.tdata = tdata;
-		  options.data.data = null;
+		  renderer.settings.tdata = tdata;
+		  renderer.settings.data.data = null;
 	      }
 	      
 	      // if we are to auto determine sort functions, do so
-	      if (options.sort_autodetect) {
+	      if (renderer.settings.sort_autodetect) {
 		  for (var i=0; i<header.length; i++) {
-		      if (!options.sorttype[i]) {
+		      if (!renderer.settings.sorttype[i]) {
 			  if (isNaN(parseFloat(tdata[0][header[i]]))) {
-			      options.sorttype[i] = "string";
+			      renderer.settings.sorttype[i] = "string";
 			  } else {
-			      options.sorttype[i] = "number";
+			      renderer.settings.sorttype[i] = "number";
 			  }
 		      }
 		  }
 	      }
 	      
 	      // create filter elements
-	      var filter = options.filter;
+	      var filter = renderer.settings.filter;
 	      var filter_present = false;
 	      for (i in filter) {
 		  if (typeof(filter[i].searchword) != "undefined" && filter[i].searchword.length > 0) {
@@ -180,8 +181,8 @@
 	      }
 	      if (filter_present) {
 		  var newdata = [];
-		  if (options.filter_changed) {
-		      options.offset = 0;
+		  if (renderer.settings.filter_changed) {
+		      renderer.settings.offset = 0;
 		      for (i in filter) {
 			  var re;
 			  if (filter[i].case_sensitive) {
@@ -240,31 +241,31 @@
 			  }
 		      }
 		  } else {
-		      newdata = options.filtered_data;
+		      newdata = renderer.settings.filtered_data;
 		  }
-		  options.filter_changed = false;
-		  options.filtered_data = newdata;
+		  renderer.settings.filter_changed = false;
+		  renderer.settings.filtered_data = newdata;
 		  tdata = newdata;
 	      }
 	      
 	      // initialize the options
-	      var offset = options.offset;
-	      var rows = options.rows_per_page;
-	      var sortcol = options.sortcol;
-	      var sortdir = options.sortdir;
-	      var sorttype = options.sorttype;
-	      var target = options.target;
+	      var offset = renderer.settings.offset;
+	      var rows = renderer.settings.rows_per_page;
+	      var sortcol = renderer.settings.sortcol;
+	      var sortdir = renderer.settings.sortdir;
+	      var sorttype = renderer.settings.sorttype;
+	      var target = renderer.settings.target;
 
 	      // check for data filtering
 
 	      // check width and height
 	      var defined_width = "";
-	      if (options.width) {
-		  defined_width = "width: " + options.width + "px; ";
+	      if (renderer.settings.width) {
+		  defined_width = "width: " + renderer.settings.width + "px; ";
 	      }
 	      var defined_height = "";
-	      if (options.height) {
-		  defined_height = "height: " + options.height + "px; ";
+	      if (renderer.settings.height) {
+		  defined_height = "height: " + renderer.settings.height + "px; ";
 	      }
 	      
 	      // create the actual table header
@@ -276,7 +277,7 @@
 	      for (i=0;i<header.length;i++) {
 
 		  // check if this column is visible
-		  if (! options.invisible_columns[i]) {
+		  if (! renderer.settings.invisible_columns[i]) {
 		      
 		      // create sorting elements
 		      var asc = document.createElement("i");
@@ -292,10 +293,10 @@
 			      desc.setAttribute("style", "cursor: pointer;");
 			      desc.i = i;
 			      desc.onclick = function () {
-				  options.sortcol = this.i;
-				  options.sorted = false;
-				  options.sortdir = 'desc';
-				  renderer.render(options);
+				  renderer.settings.sortcol = this.i;
+				  renderer.settings.sorted = false;
+				  renderer.settings.sortdir = 'desc';
+				  renderer.render();
 			      }
 			  } else {
 			      desc.setAttribute("class", "icon-chevron-up icon-white");
@@ -303,38 +304,38 @@
 			      asc.setAttribute("style", "cursor: pointer;");
 			      asc.i = i;
 			      asc.onclick = function () {
-				  options.sortcol = this.i;
-				  options.sorted = false;
-				  options.sortdir = 'asc';
-				  renderer.render(options);
+				  renderer.settings.sortcol = this.i;
+				  renderer.settings.sorted = false;
+				  renderer.settings.sortdir = 'asc';
+				  renderer.render();
 			      }
 			  }
 		      } else {
 			  asc.setAttribute("style", "cursor: pointer;");
 			  asc.i = i;
 			  asc.onclick = function () {
-			      options.sortcol = this.i;
-			      options.sorted = false;
-			      options.sortdir = 'asc';
-			      renderer.render(options);
+			      renderer.settings.sortcol = this.i;
+			      renderer.settings.sorted = false;
+			      renderer.settings.sortdir = 'asc';
+			      renderer.render();
 			  }
 			  desc.setAttribute("style", "cursor: pointer;");
 			  desc.i = i;
 			  desc.onclick = function () {
-			      options.sortcol = this.i;
-			      options.sorted = false;
-			      options.sortdir = 'desc';
-			      renderer.render(options);
+			      renderer.settings.sortcol = this.i;
+			      renderer.settings.sorted = false;
+			      renderer.settings.sortdir = 'desc';
+			      renderer.render();
 			  }
 		      }
 
 		      // check for filter autodetection
-		      if (options.filter_autodetect) {
-			  if (! options.filter[i]) {
-			      options.filter[i] = { type: "text" };
-			      if (options.sorttype[i] == "number") {
-				  options.filter[i].operator = [ "=", "<", ">", "><" ];
-				  options.filter[i].active_operator = 0;
+		      if (renderer.settings.filter_autodetect) {
+			  if (! renderer.settings.filter[i]) {
+			      renderer.settings.filter[i] = { type: "text" };
+			      if (renderer.settings.sorttype[i] == "number") {
+				  renderer.settings.filter[i].operator = [ "=", "<", ">", "><" ];
+				  renderer.settings.filter[i].active_operator = 0;
 			      }
 			      var selopts = [];
 			      var numopts = 0;
@@ -344,19 +345,19 @@
 				  }
 				  selopts[tdata[h][header[i]]] = 1;
 			      }
-			      if (numopts <= options.filter_autodetect_select_max) {
-				  options.filter[i].type = "select";
+			      if (numopts <= renderer.settings.filter_autodetect_select_max) {
+				  renderer.settings.filter[i].type = "select";
 			      }
 			  }
 		      }
 		      
 		      // create filter element
-		      if (options.filter[i]) {
-			  if (! options.filter[i].searchword) {
-			      options.filter[i].searchword = "";
+		      if (renderer.settings.filter[i]) {
+			  if (! renderer.settings.filter[i].searchword) {
+			      renderer.settings.filter[i].searchword = "";
 			  }
 			  var filter_elem;
-			  if (options.filter[i].type == "text") {
+			  if (renderer.settings.filter[i].type == "text") {
 			      
 			      var filter_text  = document.createElement("input");
 			      filter_text.value = filter[i].searchword;
@@ -365,13 +366,13 @@
 			      filter_text.onkeypress = function (e) {
 				  e = e || window.event;
 				  if (e.keyCode == 13) {
-				      options.filter[this.i].searchword = this.value;
-				      options.filter_changed = true;
-				      renderer.render(options);
+				      renderer.settings.filter[this.i].searchword = this.value;
+				      renderer.settings.filter_changed = true;
+				      renderer.render();
 				  }
 			      };
 			      
-			      if (options.filter[i].operator) {
+			      if (renderer.settings.filter[i].operator) {
 				  filter_elem = document.createElement("div");
 				  filter_elem.setAttribute("style", "float: left; margin-bottom: 0px; display: none;");
 				  filter_elem.className = "input-prepend";
@@ -384,20 +385,20 @@
 					      this.childNodes[x].style.display = "none";
 					      if (x == this.childNodes.length - 1) {
 						  this.childNodes[0].style.display = "";
-						  options.filter[this.i].active_operator = 0;
+						  renderer.settings.filter[this.i].active_operator = 0;
 					      } else {
 						  this.childNodes[x + 1].style.display = "";
 						  x++;
-						  options.filter[this.i].active_operator = x;
+						  renderer.settings.filter[this.i].active_operator = x;
 					      }
 					  }
 				      }
 				  }
 				  operator_span.className = "add-on";
-				  for (var h=0; h<options.filter[i].operator.length; h++) {
+				  for (var h=0; h<renderer.settings.filter[i].operator.length; h++) {
 				      var operator = document.createElement("span");
-				      operator.innerHTML = options.filter[i].operator[h];
-				      if (h==options.filter[i].active_operator) {
+				      operator.innerHTML = renderer.settings.filter[i].operator[h];
+				      if (h==renderer.settings.filter[i].active_operator) {
 					  operator.setAttribute("style", "font-weight: bold;");
 				      } else {
 					  operator.setAttribute("style", "display: none; font-weight: bold;");
@@ -412,7 +413,7 @@
 				  filter_elem = filter_text;
 			      }
 			      
-			  } else if (options.filter[i].type == "select") {
+			  } else if (renderer.settings.filter[i].type == "select") {
 			      filter_elem = document.createElement("select");
 			      filter_elem.setAttribute("style", "float: left; width: 100px; display: none;");
 			      filter_elem.add(new Option("-show all-", ""), null);
@@ -423,7 +424,7 @@
 				  }
 			      }
 			      for (h in selopts) {
-				  if (h == options.filter[i].searchword) {
+				  if (h == renderer.settings.filter[i].searchword) {
 				      filter_elem.add(new Option(h,h, true), null);
 				  } else {
 				      filter_elem.add(new Option(h,h), null);
@@ -431,9 +432,9 @@
 			      }
 			      filter_elem.i = i;
 			      filter_elem.onchange = function () {
-				  options.filter[this.i].searchword = this.options[this.selectedIndex].value;
-				  options.filter_changed = true;
-				  renderer.render(options);
+				  renderer.settings.filter[this.i].searchword = this.options[this.selectedIndex].value;
+				  renderer.settings.filter_changed = true;
+				  renderer.render();
 			      }
 			  }
 		      }
@@ -459,7 +460,7 @@
 		      th_div.setAttribute("style", "float: left; position: relative; top: 4px;");
 		      th_div.innerHTML = header[i];
 		      th.appendChild(th_div);
-		      if (options.disable_sort[i]) {
+		      if (renderer.settings.disable_sort[i]) {
 			  th_div.style.top = "-6px";
 		      } else {
 			  th.appendChild(caret);
@@ -494,7 +495,7 @@
 	      
 	      // check if the data is sorted, otherwise sort now
 	      var disp;
-	      if (options.sorted) {
+	      if (renderer.settings.sorted) {
 		  disp = tdata;
 	      } else {
 		  disp = tdata.sort(function (a,b) {
@@ -520,7 +521,7 @@
 			  return 1;
 		      }
 		  });
-		  options.sorted = true;
+		  renderer.settings.sorted = true;
 	      }
 
 	      // select the part of the data that will be displayed
@@ -530,7 +531,7 @@
 	      for (i=0;i<disp.length;i++) {
 		  var tinner_row = document.createElement("tr");
 		  for (h=0; h<header.length; h++) {
-		      if (! options.invisible_columns[h]) {
+		      if (! renderer.settings.invisible_columns[h]) {
 			  var tinner_cell = document.createElement("td");
 			  tinner_cell.innerHTML = disp[i][header[h]];
 			  tinner_row.appendChild(tinner_cell);
@@ -553,19 +554,19 @@
 		  first.setAttribute("title", "first");
 		  first.setAttribute("style", "cursor: pointer;");
 		  first.onclick = function () {
-		      options.offset = 0;
-		      renderer.render(options);
+		      renderer.settings.offset = 0;
+		      renderer.render();
 		  }
 		  var prev = document.createElement("i");
 		  prev.setAttribute("class", "icon-step-backward");
 		  prev.setAttribute("title", "previous");
 		  prev.setAttribute("style", "cursor: pointer;");
 		  prev.onclick = function () {
-		      options.offset -= rows;
-		      if (options.offset < 0) {
-			  options.offset = 0;
+		      renderer.settings.offset -= rows;
+		      if (renderer.settings.offset < 0) {
+			  renderer.settings.offset = 0;
 		      }
-		      renderer.render(options);
+		      renderer.render();
 		  }
 		  prev_td.appendChild(first);
 		  prev_td.appendChild(prev);
@@ -581,25 +582,25 @@
 		  last.setAttribute("title", "last");
 		  last.setAttribute("style", "cursor: pointer;");
 		  last.onclick = function () {
-		      options.offset = tdata.length - rows;
-		      if (options.offset < 0) {
-			  options.offset = 0;
+		      renderer.settings.offset = tdata.length - rows;
+		      if (renderer.settings.offset < 0) {
+			  renderer.settings.offset = 0;
 		      }
-		      renderer.render(options);
+		      renderer.render();
 		  }
 		  var next = document.createElement("i");
 		  next.setAttribute("class", "icon-step-forward");
 		  next.setAttribute("title", "next");
 		  next.setAttribute("style", "cursor: pointer;");
 		  next.onclick = function () {
-		      options.offset += rows;
-		      if (options.offset > tdata.length - 1) {
-			  options.offset = tdata.length - rows;
-			  if (options.offset < 0) {
-			      options.offset = 0;
+		      renderer.settings.offset += rows;
+		      if (renderer.settings.offset > tdata.length - 1) {
+			  renderer.settings.offset = tdata.length - rows;
+			  if (renderer.settings.offset < 0) {
+			      renderer.settings.offset = 0;
 			  }
 		      }
-		      renderer.render(options);
+		      renderer.render();
 		  }
 		  next_td.appendChild(next);
 		  next_td.appendChild(last);
@@ -629,14 +630,14 @@
 	      goto_text.onkeypress = function (e) {
 		  e = e || window.event;
 		  if (e.keyCode == 13) {
-		      options.offset = parseInt(this.value) - 1;
-		      if (options.offset < 0) {
-			  options.offset = 0;
+		      renderer.settings.offset = parseInt(this.value) - 1;
+		      if (renderer.settings.offset < 0) {
+			  renderer.settings.offset = 0;
 		      }
-		      if (options.offset > rows) {
-			  options.offset = rows;
+		      if (renderer.settings.offset > rows) {
+			  renderer.settings.offset = rows;
 		      }
-		      renderer.render(options);
+		      renderer.render();
 		  }
 	      };
 
@@ -647,11 +648,11 @@
 	      clear_btn.setAttribute("value", "clear all filters");
 	      clear_btn.style.marginLeft = "10px";
 	      clear_btn.onclick = function () {
-		  for (i in options.filter) {
-		      options.filter[i].searchword = "";
+		  for (i in renderer.settings.filter) {
+		      renderer.settings.filter[i].searchword = "";
 		  }
-		  options.sorted = false;
-		  renderer.render(options);
+		  renderer.settings.sorted = false;
+		  renderer.render();
 	      };
 
 	      // rows per page
@@ -662,9 +663,9 @@
 	      perpage.onkeypress = function (e) {
 		  e = e || window.event;
 		  if (e.keyCode == 13) {
-		      options.offset = 0;
-		      options.rows_per_page = parseInt(this.value);
-		      renderer.render(options);
+		      renderer.settings.offset = 0;
+		      renderer.settings.rows_per_page = parseInt(this.value);
+		      renderer.render();
 		  }
 	      };
 	      var ppspan1 = document.createElement("span");
@@ -675,7 +676,7 @@
 	      ppspan2.innerHTML = " rows at a time";
 
 	      // handle onclick event
-	      if (options.onclick) {
+	      if (renderer.settings.onclick) {
 		  table_element.onclick = function (e) {
 		      e = e || window.event;
 		      var ot = e.originalTarget || e.srcElement;
@@ -696,7 +697,7 @@
 			      }
 			  }
 			  var clicked_cell = ot.innerHTML;
-			  options.onclick(clicked_row, clicked_cell, clicked_row_index, clicked_cell_index);
+			  renderer.settings.onclick(clicked_row, clicked_cell, clicked_row_index, clicked_cell_index);
 		      }
 		  };
 	      }
@@ -732,7 +733,7 @@
 	      options_span.innerHTML = "<div title='close options' onclick='this.parentNode.previousSibling.style.display=\"\";this.parentNode.style.display=\"none\";' style='cursor: pointer; margin-right: 5px;' class='btn'><i class='icon-remove'></div>";
 
 	      // append navigation to target element
-	      if (options.hide_options == false) {
+	      if (renderer.settings.hide_options == false) {
 		  target.appendChild(options_icon);
 		  target.appendChild(options_span);
 		  options_span.appendChild(goto_label);

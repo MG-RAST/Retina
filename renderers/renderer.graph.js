@@ -108,7 +108,6 @@
 		'height': 400,
 		'data': [ ] }
 	},
-	settings: {},
 	exampleData: function () {
 	    return [ { "name": 'IE', "data": [95, 91, 78, 66] },
 		     { "name": 'Netscape', "data": [3, 12, 18, 18] },
