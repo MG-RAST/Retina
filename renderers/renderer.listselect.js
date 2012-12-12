@@ -38,7 +38,6 @@
 */
 (function () {
     var renderer = Retina.Renderer.extend({
-	settings: {},
 	about: {
 	    name: "listselect",
 	    title: "List Select",
@@ -115,7 +114,7 @@
 	    filter_list.setAttribute('style', 'left: 58px;');
 	    var filter_string = '';
 	    for (i=0; i<renderer.settings.filter.length; i++) {
-		filter_string += '<li><a onclick="Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_value=\'\';Retina.RendererInstances[\'listselect\']['+renderer.index+'].render({filter_attribute: this.innerHTML.slice(0, -1)});" style="cursor: pointer;">'+renderer.settings.filter[i]+' </a></li>';
+		filter_string += '<li><a onclick="Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_value=\'\';Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_attribute=this.innerHTML.slice(0, -1);Retina.RendererInstances[\'listselect\']['+renderer.index+'].render();" style="cursor: pointer;">'+renderer.settings.filter[i]+' </a></li>';
 	    }
 	    filter_list.innerHTML = filter_string;
 	    filter_grp.appendChild(filter_input);
@@ -157,7 +156,7 @@
 		button_left.addEventListener('click', function () {
 		    for (x=0; x<result_list.options.length; x++) {
 			if (result_list.options[x].selected) {
-			    delete renderer.options[result_list.options[x].value];			
+			    delete result_list.options[result_list.options[x].value];			
 			}
 		    }
 		    renderer.redrawResultlist(result_list);

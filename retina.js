@@ -42,7 +42,7 @@
 	if (libraryResource) {
 	    library_resource = libraryResource;
 	}
-		
+
 	jQuery.when.apply(this, promises).then(function() {
 	    promise.resolve();
 	});
@@ -204,6 +204,7 @@
     var Renderer = Retina.Renderer = {};
     Renderer.extend = function (spec) {
 	var renderer = jQuery.extend(true, {}, Renderer);
+	renderer.settings = {};
 	spec = (spec || {});
 	jQuery.extend(renderer, spec);
 	jQuery.extend(true, renderer.settings, renderer.about.defaults);

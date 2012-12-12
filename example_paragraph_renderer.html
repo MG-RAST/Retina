@@ -11,11 +11,11 @@
 	<script>
 	    Retina.add_renderer({"name": "paragraph", "resource": "./renderers/",  "filename": "renderer.paragraph.js" });
 	    Retina.load_renderer("paragraph").then( function () {
-		Retina.Renderer.paragraph.render( {
+		Retina.Renderer.create("paragraph", {
 		    target: document.getElementById('target'),
 		    title_color: '#8FBC3F',
 		    header_color: '#8FBC3F',
-		    data: document.getElementById('para_text').value });
+		    data: document.getElementById('para_text').value }).render();
 	    });
 	</script>
   </head>
@@ -33,9 +33,9 @@
 [ { "header": "header cell 1" }, "data cell 1" ],
 [ { "header": "header cell 2" }, "data cell 2" ],
 [ { "header": "header cell 3" }, "data cell 3" ],
-[ { "header": "header cell 4" }, "data cell 4" ] ] } ]</textarea><input type="checkbox" id="raw"> raw
-      <input type="button" value="render" class="btn" onclick="Retina.RendererInstances.paragraph[0].render({ data: JSON.parse(document.getElementById('para_text').value) , raw: document.getElementById('raw').checked } );">
-      <div id="target" style="border: 1px dotted black;"></div>
+[ { "header": "header cell 4" }, "data cell 4" ] ] } ]</textarea>
+      <input type="button" value="render" class="btn" onclick="Retina.RendererInstances.paragraph[1].settings.data=JSON.parse(document.getElementById('para_text').value);Retina.RendererInstances.paragraph[1].render();">
+      <div id="target"></div>
     </div>
 
   </body>
