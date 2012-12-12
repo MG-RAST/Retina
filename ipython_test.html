@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>iPython Demo</title>
+	<script src="jquery.min.js"></script>
+	<script src="stm.js"></script>
+	<script src="retina.js"></script>
+	<script src="bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+	<script>
+stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
+    Retina.init( { library_resource: "./" } ).then( function () {
+	Retina.add_widget({"name": "ipython", "resource": "./",  "filename": "widget.ipython.js" });
+	Retina.load_widget("ipython").then( function () {
+	     Retina.Widget.ipython.create({target: document.getElementById("target")});
+	});
+    });
+});
+	</script>
+  </head>
+
+  <body>
+    
+   <div id='target'></div>
+   
+   <div id="result"></div>
+    
+  </body>
+</html>
