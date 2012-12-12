@@ -3,7 +3,6 @@
  *
  */
 (function () {
-    jQuery.noConflict();
     var root = this;
     var Retina = root.Retina = {};
     var dataServiceURI;
