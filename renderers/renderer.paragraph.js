@@ -59,59 +59,61 @@
 			 [ { header: "header cell 3" }, "data cell 3" ],
 			 [ { header: "header cell 4" }, "data cell 4" ] ] } ];
         },
-	render: function (options) {
+	render: function () {
+	    renderer = this;
+
 	    var toc = "";
-	    if (options.raw) {
-		options.target.innerHTML = options.data;
+	    if (renderer.settings.raw) {
+		renderer.settings.target.innerHTML = renderer.settings.data;
 	    } else {
-		options.target.innerHTML = "";
+		renderer.settings.target.innerHTML = "";
 		
 		var html_string = "<style>\
-#para"+renderer.index+" > h2 { color: "+options.title_color+"; }\
-#para"+renderer.index+" > h3 { color: "+options.header_color+"; margin-top: 20px; margin-bottom: 10px; }\
-#para"+renderer.index+" > p { color: "+options.text_color+"; }\
+#para"+renderer.index+" > h2 { color: "+renderer.settings.title_color+"; }\
+#para"+renderer.index+" > h3 { color: "+renderer.settings.header_color+"; margin-top: 20px; margin-bottom: 10px; }\
+#para"+renderer.index+" > p { color: "+renderer.settings.text_color+"; }\
 </style><div id='para"+renderer.index+"' ";
-		if (options.width.match(/^\d+$/)) {
-		    html_string += "style='width: "+options.width+"px;'>";
+		if (renderer.settings.width.match(/^\d+$/)) {
+		    html_string += "style='width: "+renderer.settings.width+"px;'>";
 		} else {
-		    html_string += "class='"+options.width+"'>";
+		    html_string += "class='"+renderer.settings.width+"'>";
 		}
-		for (i=0; i<options.data.length; i++) {
-		    if (options.data[i].hasOwnProperty('title')) {
-			html_string += "<h2>"+options.data[i].title+"</h2>";
-		    } else if (options.data[i].hasOwnProperty('header')) {
-			html_string += "<h3>"+options.data[i].header+"</h3>";
-		    } else if (options.data[i].hasOwnProperty('p')) {
-			html_string += "<p>"+options.data[i].p+"</p>";
-		    } else if (options.data[i].hasOwnProperty('footnote')) {
-			html_string += "<p><small style='color: black;'><b>"+options.data[i].footnote.title+"</b> "+options.data[i].footnote.text+"</small></p>";
-		    } else if (options.data[i].hasOwnProperty('table')) {
+		for (i=0; i<renderer.settings.data.length; i++) {
+		    if (renderer.settings.data[i].hasOwnProperty('title')) {
+			html_string += "<h2>"+renderer.settings.data[i].title+"</h2>";
+		    } else if (renderer.settings.data[i].hasOwnProperty('header')) {
+			html_string += "<h3>"+renderer.settings.data[i].header+"</h3>";
+		    } else if (renderer.settings.data[i].hasOwnProperty('p')) {
+			html_string += "<p>"+renderer.settings.data[i].p+"</p>";
+		    } else if (renderer.settings.data[i].hasOwnProperty('footnote')) {
+			html_string += "<p><small style='color: black;'><b>"+renderer.settings.data[i].footnote.title+"</b> "+renderer.settings.data[i].footnote.text+"</small></p>";
+		    } else if (renderer.settings.data[i].hasOwnProperty('table')) {
 			html_string += "<table style='width: 100%;'>";
-			for (h=0;h<options.data[i].table.length;h++) {
+			for (h=0;h<renderer.settings.data[i].table.length;h++) {
 			    html_string += "<tr>";
-			    for (j=0;j<options.data[i].table[h].length;j++) {
-				if (typeof(options.data[i].table[h][j]) == 'object') {
-				    if (options.data[i].table[h][j].hasOwnProperty('header')) {
-					html_string += "<th style='text-align: left;'>"+options.data[i].table[h][j].header.replace(/\s/g, "&nbsp;")+"</th>";
+			    for (j=0;j<renderer.settings.data[i].table[h].length;j++) {
+				if (typeof(renderer.settings.data[i].table[h][j]) == 'object') {
+				    if (renderer.settings.data[i].table[h][j].hasOwnProperty('header')) {
+					html_string += "<th style='text-align: left;'>"+renderer.settings.data[i].table[h][j].header.replace(/\s/g, "&nbsp;")+"</th>";
 				    }
 				} else {
-				    html_string += "<td>"+options.data[i].table[h][j]+"</td>";
+				    html_string += "<td>"+renderer.settings.data[i].table[h][j]+"</td>";
 				}
 			    }
 			    html_string += "</tr>";
 			}
 			html_string += "</table>";
-		    }  else if (options.data[i].hasOwnProperty('fancy_table')) {
+		    }  else if (renderer.settings.data[i].hasOwnProperty('fancy_table')) {
 			html_string += "<table style='width: 100%;' class='table table-striped table-hover'>";
-			for (h=0;h<options.data[i].fancy_table.data.length;h++) {
+			for (h=0;h<renderer.settings.data[i].fancy_table.data.length;h++) {
 			    html_string += "<tr>";
-			    for (j=0;j<options.data[i].fancy_table.data[h].length;j++) {
-				if (typeof(options.data[i].fancy_table.data[h][j]) == 'object') {
-				    if (options.data[i].fancy_table.data[h][j].hasOwnProperty('header')) {
-					html_string += "<th style='text-align: left;'>"+options.data[i].fancy_table.data[h][j].header.replace(/\s/g, "&nbsp;")+"</th>";
+			    for (j=0;j<renderer.settings.data[i].fancy_table.data[h].length;j++) {
+				if (typeof(renderer.settings.data[i].fancy_table.data[h][j]) == 'object') {
+				    if (renderer.settings.data[i].fancy_table.data[h][j].hasOwnProperty('header')) {
+					html_string += "<th style='text-align: left;'>"+renderer.settings.data[i].fancy_table.data[h][j].header.replace(/\s/g, "&nbsp;")+"</th>";
 				    }
 				} else {
-				    html_string += "<td>"+options.data[i].fancy_table.data[h][j]+"</td>";
+				    html_string += "<td>"+renderer.settings.data[i].fancy_table.data[h][j]+"</td>";
 				}
 			    }
 			    html_string += "</tr>";
@@ -121,7 +123,7 @@
 		}
 		html_string += "</div>";
 
-		options.target.innerHTML = html_string;
+		renderer.settings.target.innerHTML = html_string;
 	    }
 	    return renderer;
 	}

@@ -15,10 +15,10 @@
         Retina.init( { library_resource: "./" } ).then( function () {
           Retina.add_renderer({"name": "table", "resource": "./renderers/", "filename": "renderer.table.js" });
           Retina.load_renderer("table").then( function () {
-            Retina.Renderer.table.render( { "target": document.getElementById("target"), "data": { "data": tdata, "header": hdata }, "sort_autodetect": true,"filter_autodetect": true,"onclick": function (clicked_row, clicked_cell, clicked_row_index, clicked_cell_index) {
+            Retina.Renderer.create("table", { "target": document.getElementById("target"), "data": { "data": tdata, "header": hdata }, "sort_autodetect": true,"filter_autodetect": true,"onclick": function (clicked_row, clicked_cell, clicked_row_index, clicked_cell_index) {
       var html = "<h3>You clicked something</h3><p style='font-size: 18px;'><i>row: " + clicked_row_index + "<br>clicked cell: " + clicked_cell_index + "<br>row data: " + clicked_row.join(", ") +"<br>cell data: "+clicked_cell+"</p>";
       document.getElementById('details').innerHTML = html;
-      } } );
+      } } ).render();
           });
         });
       });

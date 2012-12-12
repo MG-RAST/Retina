@@ -48,7 +48,7 @@
 	    title: "Plot",
             author: "Tobias Paczian",
             version: "1.0",
-            requires: [ ],
+            requires: [ "jquery.svg.js", "jquery.svggraph.js" ],
             defaults: {
 		'type': 'pie', // [ column, stackedColumn, row, stackedRow, line, pie ]
 		'title': 'Functions',
@@ -69,21 +69,17 @@
 	    ];
         },
 
-	render: function (options) {
+	render: function () {
+	    renderer = this;
 
-	    // load the libs
-	    Retina.load_library("jquery.svg.js").then(function(){ Retina.load_library("jquery.svgplot.js").then(function(){
-
-		// get the target div
-		var target = options.target;
-		target.innerHTML = "<div id='plot_div"+renderer.index+"'></div>";
-		target.firstChild.setAttribute('style', "width: "+ options.width+"px; height: "+options.height+"px;");
-		
-		jQuery('#plot_div'+renderer.index).svg({onLoad: renderer.drawImage});
-
-		return renderer;
-		
-	    })});
+	    // get the target div
+	    var target = renderer.settings.target;
+	    target.innerHTML = "<div id='plot_div"+renderer.index+"'></div>";
+	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
+	    
+	    jQuery('#plot_div'+renderer.index).svg({onLoad: renderer.drawImage});
+	    
+	    return renderer;
 	},
 
 	square: function (x) {

@@ -13,7 +13,7 @@
 	Retina.init( { library_resource: "./" } ).then( function () {
 	    Retina.add_renderer({"name": "listselect", "resource": "./renderers/",  "filename": "renderer.listselect.js" });
 	    Retina.load_renderer("listselect").then( function () {
-		Retina.Renderer.listselect.render( {
+		Retina.Renderer.create("listselect", {
 		    target: document.getElementById('target'),
 		    data: [ { name: 'Hans', age: '75', city: 'New York' },
 			    { name: 'Peter', age: '5', city: 'New Hampshire' },
@@ -28,7 +28,7 @@
 		    label: 'name',
 		    value: 'name',
 		    multiple: true,
-		    callback: function (data) { alert("You selected: "+data.join(", ") ); } });
+		    callback: function (data) { alert("You selected: "+data.join(", ") ); } }).render();
 	    });
 	});
     });

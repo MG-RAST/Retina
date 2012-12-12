@@ -9,9 +9,9 @@
     });
     
     widget.setup = function () {
-	return [ Retina.add_renderer({"name": "paragraph", "resource": "./",  "filename": "renderer.paragraph.js" }),
+	return [ Retina.add_renderer({"name": "paragraph", "resource": "./renderers/",  "filename": "renderer.paragraph.js" }),
 		 Retina.load_renderer("paragraph"),
-		 Retina.add_renderer({"name": "graph", "resource": "./",  "filename": "renderer.graph.js" }),
+		 Retina.add_renderer({"name": "graph", "resource": "./renderers/",  "filename": "renderer.graph.js" }),
 		 Retina.load_renderer("graph"),
 	       ];
     };
@@ -79,13 +79,13 @@
 		data.target = div;
 		data.title_color = title_color;
 		data.header_color = header_color;
-		var rend = new Retina.Renderer.paragraph.render(data);	
+		Retina.Renderer.create("paragraph", data).render();
 		break;
 	    case 'graph':
 		var data = widget[outputs[out].data](mg, mg_stats);
 		div.setAttribute('class', 'span12');
 		data.target = div;
-		var rend = new Retina.Renderer.graph.render(data);
+		Retina.Renderer.create("graph", data).render();
 		break;
 	    };
 	}

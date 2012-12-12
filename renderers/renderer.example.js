@@ -21,15 +21,16 @@
 	exampleData: function () {
 	    return "<p style='color: red;'>Hello World</p>";
         },
-	render: function (options) {
+	render: function () {
+	    renderer = this;
 	    // this will be called to display the renderer
-	    // the options will contain the contents of the defaults attribute
+	    // renderer.settings will contain the contents of the defaults attribute
 	    // of the about function extended by anything actually passed to the
 	    // function when it is called
 	    // the target parameter should always be the DOM element the renderer
 	    // is to render to. It is usually a good idea to empty the the target
 	    // just in case the renderer is called multiple times
-	    options.target.innerHTML = options.data;
+	    renderer.settings.target.innerHTML = options.data;
 
 	    return renderer;
 	},

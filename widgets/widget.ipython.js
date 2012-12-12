@@ -9,9 +9,9 @@
     });
     
     widget.setup = function () {
-	return [ Retina.add_renderer({"name": "listselect", "resource": "./",  "filename": "renderer.listselect.js" }),
+	return [ Retina.add_renderer({"name": "listselect", "resource": "./renderers/",  "filename": "renderer.listselect.js" }),
 		 Retina.load_renderer("listselect"),
-		 Retina.add_renderer({"name": "graph", "resource": "./",  "filename": "renderer.graph.js" }),
+		 Retina.add_renderer({"name": "graph", "resource": "./renderers/",  "filename": "renderer.graph.js" }),
 		 Retina.load_renderer("graph"),
 	         stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 1 } })
 	       ];
@@ -27,7 +27,7 @@
 	master_table.setAttribute('style', "width: 94%; margin-left: 3%; margin-top: 50px;");
 	var line = document.createElement('tr');
 	var leftside = document.createElement('td');
-	leftside.setAttribute('style', "width: 50%; vertical-align: top;");
+	leftside.setAttribute('style', "width: 400px; vertical-align: top;");
 	var rightside = document.createElement('td');
 	line.appendChild(leftside);
 	line.appendChild(rightside);
