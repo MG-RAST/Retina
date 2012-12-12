@@ -38,6 +38,7 @@
 */
 (function () {
     var renderer = Retina.Renderer.extend({
+	settings: {},
 	about: {
 	    name: "listselect",
 	    title: "List Select",
@@ -54,17 +55,19 @@
 		'filter_breadcrumbs': [],
 		'selection': {},
 		'data': {},
+		'target': null,
 		'multiple': false },
 	},
 	exampleData: function () {
 	    return { };
         },
-	render: function (options) {
+	render: function () {
+	    renderer = this;
 
 	    // get the target div
-	    var target = options.target;
+	    var target = renderer.settings.target;
 	    var tstyle = 'background-image: linear-gradient(to bottom, #FAFAFA, #F2F2F2); background-repeat: repeat-x; border: 1px solid #D4D4D4; border-radius: 4px 4px 4px 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067); padding-left: 10px; padding-top: 10px; width: ';
-	    if (options.multiple) {
+	    if (renderer.settings.multiple) {
 		tstyle += '600px;';
 	    } else {
 		tstyle += '286px;';
@@ -73,16 +76,16 @@
 	    target.innerHTML = "";
 
 	    // initialize filter attribute
-	    if (options.filter_attribute == null) {
-		options.filter_attribute = options.filter[0];
+	    if (renderer.settings.filter_attribute == null) {
+		renderer.settings.filter_attribute = renderer.settings.filter[0];
 	    }
 
 	    // get the selection list
 	    var selection_list = document.createElement('select');
-	    if (options.multiple) {
+	    if (renderer.settings.multiple) {
 		selection_list.setAttribute('multiple', '');
 	    }
-	    selection_list.setAttribute('size', options.rows);
+	    selection_list.setAttribute('size', renderer.settings.rows);
 	    renderer.redrawSelection(selection_list);
 
 	    // create a filter box
@@ -94,7 +97,7 @@
 	    filter_input.setAttribute('class', 'span2');
 	    filter_input.setAttribute('style', 'float: left;');
 	    filter_input.setAttribute('placeholder', 'Enter filter');
-	    filter_input.setAttribute('value', options.filter_value);
+	    filter_input.setAttribute('value', renderer.settings.filter_value);
 	    filter_input.addEventListener('keyup', function (event) {
 		if (event.keyCode == 13) {
 		    renderer.addBreadcrumb();
@@ -106,13 +109,13 @@
 	    filter_select.setAttribute('class', 'btn dropdown-toggle');
 	    filter_select.setAttribute('style', 'width: 80px; text-align: right;');
 	    filter_select.setAttribute('data-toggle', 'dropdown');
-	    filter_select.innerHTML = options.filter_attribute + ' <span class="caret"></span>';
+	    filter_select.innerHTML = renderer.settings.filter_attribute + ' <span class="caret"></span>';
 	    var filter_list = document.createElement('ul');
 	    filter_list.setAttribute('class', 'dropdown-menu');
 	    filter_list.setAttribute('style', 'left: 58px;');
 	    var filter_string = '';
-	    for (i=0; i<options.filter.length; i++) {
-		filter_string += '<li><a onclick="Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_value=\'\';Retina.RendererInstances[\'listselect\']['+renderer.index+'].render({filter_attribute: this.innerHTML.slice(0, -1)});" style="cursor: pointer;">'+options.filter[i]+' </a></li>';
+	    for (i=0; i<renderer.settings.filter.length; i++) {
+		filter_string += '<li><a onclick="Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_value=\'\';Retina.RendererInstances[\'listselect\']['+renderer.index+'].render({filter_attribute: this.innerHTML.slice(0, -1)});" style="cursor: pointer;">'+renderer.settings.filter[i]+' </a></li>';
 	    }
 	    filter_list.innerHTML = filter_string;
 	    filter_grp.appendChild(filter_input);
@@ -123,13 +126,13 @@
 	    // create the filter breadcrumbs
 	    var filter_breadcrumbs = document.createElement('div');
 	    filter_breadcrumbs.setAttribute('style', 'font-size: 9px; position: relative; top: -5px;');
-	    for (i=0;i<options.filter_breadcrumbs.length;i++) {
+	    for (i=0;i<renderer.settings.filter_breadcrumbs.length;i++) {
 		var bc_button = document.createElement('button');
 		bc_button.setAttribute('class', "btn btn-mini");
 		bc_button.setAttribute('style', "margin-right: 3px;");
 		bc_button.setAttribute('title', "remove filter");
 		bc_button.setAttribute('name', i);
-		bc_button.innerHTML = options.filter_breadcrumbs[i][0]+": "+options.filter_breadcrumbs[i][1]+' <span style="font-size: 11px; color: gray;">x</span>';
+		bc_button.innerHTML = renderer.settings.filter_breadcrumbs[i][0]+": "+renderer.settings.filter_breadcrumbs[i][1]+' <span style="font-size: 11px; color: gray;">x</span>';
 		bc_button.addEventListener('click', function (event) {
 		    renderer.removeBreadcrumb(this);
 		});
@@ -137,12 +140,12 @@
 	    }
 
 	    // check for multi-select vs single select
-	    if (options.multiple) {
+	    if (renderer.settings.multiple) {
 	    
 		// create the result list
 		var result_list = document.createElement('select');
 		result_list.setAttribute('multiple', '');
-		result_list.setAttribute('size', options.rows);
+		result_list.setAttribute('size', renderer.settings.rows);
 		renderer.redrawResultlist(result_list);
 		
 		// create the action buttons
@@ -154,7 +157,7 @@
 		button_left.addEventListener('click', function () {
 		    for (x=0; x<result_list.options.length; x++) {
 			if (result_list.options[x].selected) {
-			    delete renderer.settings.selection[result_list.options[x].value];			
+			    delete renderer.options[result_list.options[x].value];			
 			}
 		    }
 		    renderer.redrawResultlist(result_list);
@@ -191,18 +194,18 @@
 	    submit_button.setAttribute('class', 'btn btn-small btn-success');
 	    submit_button.setAttribute('style', 'margin-left: 15px;');
 	    submit_button.innerHTML = '<i class="icon-ok icon-white"></i>';
-	    if (typeof(options.callback) == 'function') {
-		if (options.multiple) {
+	    if (typeof(renderer.settings.callback) == 'function') {
+		if (renderer.settings.multiple) {
 		    submit_button.addEventListener('click', function () {
 			var selection_result = [];
 			for (x=0; x<result_list.options.length; x++) {
 			    selection_result.push(result_list.options[x].value);			
 			}
-			options.callback(selection_result);
+			renderer.settings.callback(selection_result);
 		    });
 		} else {
 		    submit_button.addEventListener('click', function () {
-			options.callback(selection_list.options[selection_list.selectedIndex].value);
+			renderer.settings.callback(selection_list.options[selection_list.selectedIndex].value);
 		    });
 		}
 	    }
@@ -211,7 +214,7 @@
 	    target.appendChild(filter);
 	    target.appendChild(filter_breadcrumbs);
 	    target.appendChild(selection_list);
-	    if (options.multiple) {
+	    if (renderer.settings.multiple) {
 		target.appendChild(button_span);
 		target.appendChild(result_list);
 	    }
@@ -262,31 +265,31 @@
 
 	    // sort the list
 	    renderer.settings.filtered_data.sort(renderer.objectsort);
-	    
+
 	    // create the selection list
-	    var options_string = "";
+	    var settings_string = "";
 	    for (i=0; i<renderer.settings.filtered_data.length; i++) {
 		if (! renderer.settings.selection[renderer.settings.filtered_data[i][renderer.settings.value]]) {
-		    options_string += '<option value="'+renderer.settings.filtered_data[i][renderer.settings.value]+'" title="'+renderer.settings.filtered_data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.filtered_data[i][renderer.settings.filter_attribute]+'</option>';
+		    settings_string += '<option value="'+renderer.settings.filtered_data[i][renderer.settings.value]+'" title="'+renderer.settings.filtered_data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.filtered_data[i][renderer.settings.filter_attribute]+'</option>';
 		}
 	    }
-	    selection_list.innerHTML = options_string;
+	    selection_list.innerHTML = settings_string;
 	    
 	    return;
 	},
 	// filter the data according to all breadcrumbs and the current filter
-	filter: function(options) {
+	filter: function(settings) {
 	    var results = [];
-	    for (x=0;x<options.data.length;x++) {
+	    for (x=0;x<settings.data.length;x++) {
 		if (typeof(renderer.settings.selection[x]) == 'undefined') {
-		    if (options.data[x].hasOwnProperty(options.attribute) && typeof(options.data[x][options.attribute]) == 'string') {
-			if (options.type == 'substring') {
-			    if (options.data[x][options.attribute].toLowerCase().indexOf(options.value.toLowerCase()) > -1) {
-				results.push(options.data[x]);
+		    if (settings.data[x].hasOwnProperty(settings.attribute) && typeof(settings.data[x][settings.attribute]) == 'string') {
+			if (settings.type == 'substring') {
+			    if (settings.data[x][settings.attribute].toLowerCase().indexOf(settings.value.toLowerCase()) > -1) {
+				results.push(settings.data[x]);
 			    }
-			} else if (options.type == 'complete') {
-			    if (options.data[x][options.attribute] == options.value) {
-				results.push(options.data[x]);
+			} else if (settings.type == 'complete') {
+			    if (settings.data[x][settings.attribute] == settings.value) {
+				results.push(settings.data[x]);
 			    }
 			}
 		    }

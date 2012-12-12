@@ -1,5 +1,4 @@
 (function () {
-    jQuery.noConflict();
     var root = this;
     var ipy = root.ipy = {};
 
@@ -15,4 +14,20 @@
 	IPython.notebook.get_cell(index).set_text(IPython.notebook.get_cell(index).get_text() + text);
     }
 
+    ipy.createHTML = function () {
+	var cells = document.getElementsByClassName('output_subarea');
+	var html = "";
+	for (i=0;i<cells.length;i++) {
+	    html += cells[i].innerHTML;
+	}
+	stm.send_message(window.parent, { data: html, target: 'result'}, 'html');
+    }
+
+    ipy.add_cell = function (index, type) {
+	if (type == undefined) {
+	    type = 'code';
+	}
+	IPython.notebook.insert_cell_below(type, index);
+    }
+    
 }).call(this);
