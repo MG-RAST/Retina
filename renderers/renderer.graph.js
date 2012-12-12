@@ -108,6 +108,7 @@
 		'height': 400,
 		'data': [ ] }
 	},
+	settings: {},
 	exampleData: function () {
 	    return [ { "name": 'IE', "data": [95, 91, 78, 66] },
 		     { "name": 'Netscape', "data": [3, 12, 18, 18] },
@@ -116,16 +117,17 @@
 		     { "name": 'Gecko', "data": [1, 2, 3, 33] } ];
         },
 
-	render: function (options) {
+	render: function () {
+	    renderer = this;
 
 	    // get the target div
-	    var target = options.target;
+	    var target = renderer.settings.target;
 	    var index = 0;
 	    while (document.getElementById('graph_div'+index)) {
 		index++;
 	    }
 	    target.innerHTML = "<div id='graph_div"+index+"'></div>";
-	    target.firstChild.setAttribute('style', "width: "+ options.width+"px; height: "+options.height+"px;");
+	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
 	    jQuery('#graph_div'+index).svg();
 	    Retina.RendererInstances.graph[index].drawImage(jQuery('#graph_div'+index).svg('get'));
 	    

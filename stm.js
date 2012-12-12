@@ -30,6 +30,8 @@
 	    } else if (type == 'action') {
 		data.data = data.data.replace(/##/g, "'").replace(/!!/g, '"');
 		eval(data.data);
+	    } else if (type == 'html') {
+		document.getElementById(data.data.target).innerHTML = data.data.data;
 	    }
 	}
 	// alert if the data is not valid json
@@ -317,7 +319,14 @@
 	    if (progressIndicator) {
 		progressIndicator.style.display = "none";
 	    }
-	    stm.load_data({ "data": JSON.parse(xhr.responseText), "type": type });
+	    if (params.hasOwnProperty('return_type') && params.return_type == 'text') {
+		var d = {};
+		d['id'] = params['id'];
+		d['data'] = xhr.responseText;
+		stm.load_data({ "data": d, "type": type });
+	    } else {
+		stm.load_data({ "data": JSON.parse(xhr.responseText), "type": type });
+	    }
 	    promise.resolve();
 	};
 	
