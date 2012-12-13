@@ -14,6 +14,9 @@
    multiple (BOOLEAN)
       If set to false, displays a single select vs a multi select. Default is true.
 
+   no_button (BOOLEAN)
+      If set to true, does not display submit button (callback triggers on change event). Default is false.
+
    rows (INT)
       The number of rows to display in the select list. Default is 10.
 
@@ -55,7 +58,8 @@
 		'selection': {},
 		'data': {},
 		'target': null,
-		'multiple': false },
+		'multiple': false, 
+		'no_button': false },
 	},
 	exampleData: function () {
 	    return { };
@@ -67,9 +71,11 @@
 	    var target = renderer.settings.target;
 	    var tstyle = 'background-image: linear-gradient(to bottom, #FAFAFA, #F2F2F2); background-repeat: repeat-x; border: 1px solid #D4D4D4; border-radius: 4px 4px 4px 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067); padding-left: 10px; padding-top: 10px; width: ';
 	    if (renderer.settings.multiple) {
-		tstyle += '600px;';
+		    tstyle += '600px;';
+	    } else if (renderer.settings.no_button) {
+		    tstyle += '256px;';
 	    } else {
-		tstyle += '286px;';
+	        tstyle += '286px;';
 	    }
 	    target.setAttribute('style', tstyle);
 	    target.innerHTML = "";
@@ -194,30 +200,36 @@
 	    submit_button.setAttribute('style', 'margin-left: 15px;');
 	    submit_button.innerHTML = '<i class="icon-ok icon-white"></i>';
 	    if (typeof(renderer.settings.callback) == 'function') {
-		if (renderer.settings.multiple) {
-		    submit_button.addEventListener('click', function () {
-			var selection_result = [];
-			for (x=0; x<result_list.options.length; x++) {
-			    selection_result.push(result_list.options[x].value);			
-			}
-			renderer.settings.callback(selection_result);
-		    });
-		} else {
-		    submit_button.addEventListener('click', function () {
-			renderer.settings.callback(selection_list.options[selection_list.selectedIndex].value);
-		    });
+		    if (renderer.settings.multiple) {
+		        submit_button.addEventListener('click', function () {
+			        var selection_result = [];
+			        for (x=0; x<result_list.options.length; x++) {
+			            selection_result.push(result_list.options[x].value);			
+			        }
+			        renderer.settings.callback(selection_result);
+		        });
+		    } else if (renderer.settings.no_button) {
+		        selection_list.addEventListener('change', function () {
+                    renderer.settings.callback(selection_list.options[selection_list.selectedIndex].value);
+	            });
+		    } else {
+		        submit_button.addEventListener('click', function () {
+			        renderer.settings.callback(selection_list.options[selection_list.selectedIndex].value);
+		        });
+	        }
 		}
-	    }
 
 	    // build the output
 	    target.appendChild(filter);
 	    target.appendChild(filter_breadcrumbs);
 	    target.appendChild(selection_list);
 	    if (renderer.settings.multiple) {
-		target.appendChild(button_span);
-		target.appendChild(result_list);
+		    target.appendChild(button_span);
+		    target.appendChild(result_list);
+		    target.appendChild(submit_button);
+	    } else if (! renderer.settings.no_button) {
+	        target.appendChild(submit_button);
 	    }
-	    target.appendChild(submit_button);
 	},
 	// add a breadcrumb to the list
 	addBreadcrumb: function () {
