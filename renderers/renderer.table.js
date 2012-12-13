@@ -119,6 +119,7 @@
         },
 	  render: function () {
 	      renderer = this;
+	      var index = renderer.index;
 
 	      renderer.settings.target.innerHTML = "";
 	      
@@ -293,10 +294,10 @@
 			      desc.setAttribute("style", "cursor: pointer;");
 			      desc.i = i;
 			      desc.onclick = function () {
-				  renderer.settings.sortcol = this.i;
-				  renderer.settings.sorted = false;
-				  renderer.settings.sortdir = 'desc';
-				  renderer.render();
+				  Retina.RendererInstances.table[index].settings.sortcol = this.i;
+				  Retina.RendererInstances.table[index].settings.sorted = false;
+				  Retina.RendererInstances.table[index].settings.sortdir = 'desc';
+				  Retina.RendererInstances.table[index].render();
 			      }
 			  } else {
 			      desc.setAttribute("class", "icon-chevron-up icon-white");
@@ -304,28 +305,28 @@
 			      asc.setAttribute("style", "cursor: pointer;");
 			      asc.i = i;
 			      asc.onclick = function () {
-				  renderer.settings.sortcol = this.i;
-				  renderer.settings.sorted = false;
-				  renderer.settings.sortdir = 'asc';
-				  renderer.render();
+				  Retina.RendererInstances.table[index].settings.sortcol = this.i;
+				  Retina.RendererInstances.table[index].settings.sorted = false;
+				  Retina.RendererInstances.table[index].settings.sortdir = 'asc';
+				  Retina.RendererInstances.table[index].render();
 			      }
 			  }
 		      } else {
 			  asc.setAttribute("style", "cursor: pointer;");
 			  asc.i = i;
 			  asc.onclick = function () {
-			      renderer.settings.sortcol = this.i;
-			      renderer.settings.sorted = false;
-			      renderer.settings.sortdir = 'asc';
-			      renderer.render();
+			      Retina.RendererInstances.table[index].settings.sortcol = this.i;
+			      Retina.RendererInstances.table[index].settings.sorted = false;
+			      Retina.RendererInstances.table[index].settings.sortdir = 'asc';
+			      Retina.RendererInstances.table[index].render();
 			  }
 			  desc.setAttribute("style", "cursor: pointer;");
 			  desc.i = i;
 			  desc.onclick = function () {
-			      renderer.settings.sortcol = this.i;
-			      renderer.settings.sorted = false;
-			      renderer.settings.sortdir = 'desc';
-			      renderer.render();
+			      Retina.RendererInstances.table[index].settings.sortcol = this.i;
+			      Retina.RendererInstances.table[index].settings.sorted = false;
+			      Retina.RendererInstances.table[index].settings.sortdir = 'desc';
+			      Retina.RendererInstances.table[index].render();
 			  }
 		      }
 
@@ -366,9 +367,9 @@
 			      filter_text.onkeypress = function (e) {
 				  e = e || window.event;
 				  if (e.keyCode == 13) {
-				      renderer.settings.filter[this.i].searchword = this.value;
-				      renderer.settings.filter_changed = true;
-				      renderer.render();
+				      Retina.RendererInstances.table[index].settings.filter[this.i].searchword = this.value;
+				      Retina.RendererInstances.table[index].settings.filter_changed = true;
+				      Retina.RendererInstances.table[index].render();
 				  }
 			      };
 			      
@@ -385,11 +386,11 @@
 					      this.childNodes[x].style.display = "none";
 					      if (x == this.childNodes.length - 1) {
 						  this.childNodes[0].style.display = "";
-						  renderer.settings.filter[this.i].active_operator = 0;
+						  Retina.RendererInstances.table[index].settings.filter[this.i].active_operator = 0;
 					      } else {
 						  this.childNodes[x + 1].style.display = "";
 						  x++;
-						  renderer.settings.filter[this.i].active_operator = x;
+						  Retina.RendererInstances.table[index].settings.filter[this.i].active_operator = x;
 					      }
 					  }
 				      }
@@ -432,9 +433,9 @@
 			      }
 			      filter_elem.i = i;
 			      filter_elem.onchange = function () {
-				  renderer.settings.filter[this.i].searchword = this.options[this.selectedIndex].value;
-				  renderer.settings.filter_changed = true;
-				  renderer.render();
+				  Retina.RendererInstances.table[index].settings.filter[this.i].searchword = this.options[this.selectedIndex].value;
+				  Retina.RendererInstances.table[index].settings.filter_changed = true;
+				  Retina.RendererInstances.table[index].render();
 			      }
 			  }
 		      }
@@ -554,19 +555,19 @@
 		  first.setAttribute("title", "first");
 		  first.setAttribute("style", "cursor: pointer;");
 		  first.onclick = function () {
-		      renderer.settings.offset = 0;
-		      renderer.render();
+		      Retina.RendererInstances.table[index].settings.offset = 0;
+		      Retina.RendererInstances.table[index].render();
 		  }
 		  var prev = document.createElement("i");
 		  prev.setAttribute("class", "icon-step-backward");
 		  prev.setAttribute("title", "previous");
 		  prev.setAttribute("style", "cursor: pointer;");
 		  prev.onclick = function () {
-		      renderer.settings.offset -= rows;
-		      if (renderer.settings.offset < 0) {
-			  renderer.settings.offset = 0;
+		      Retina.RendererInstances.table[index].settings.offset -= rows;
+		      if (Retina.RendererInstances.table[index].settings.offset < 0) {
+			  Retina.RendererInstances.table[index].settings.offset = 0;
 		      }
-		      renderer.render();
+		      Retina.RendererInstances.table[index].render();
 		  }
 		  prev_td.appendChild(first);
 		  prev_td.appendChild(prev);
@@ -582,25 +583,25 @@
 		  last.setAttribute("title", "last");
 		  last.setAttribute("style", "cursor: pointer;");
 		  last.onclick = function () {
-		      renderer.settings.offset = tdata.length - rows;
-		      if (renderer.settings.offset < 0) {
-			  renderer.settings.offset = 0;
+		      Retina.RendererInstances.table[index].settings.offset = tdata.length - rows;
+		      if (Retina.RendererInstances.table[index].settings.offset < 0) {
+			  Retina.RendererInstances.table[index].settings.offset = 0;
 		      }
-		      renderer.render();
+		      Retina.RendererInstances.table[index].render();
 		  }
 		  var next = document.createElement("i");
 		  next.setAttribute("class", "icon-step-forward");
 		  next.setAttribute("title", "next");
 		  next.setAttribute("style", "cursor: pointer;");
 		  next.onclick = function () {
-		      renderer.settings.offset += rows;
-		      if (renderer.settings.offset > tdata.length - 1) {
-			  renderer.settings.offset = tdata.length - rows;
-			  if (renderer.settings.offset < 0) {
-			      renderer.settings.offset = 0;
+		      Retina.RendererInstances.table[index].settings.offset += rows;
+		      if (Retina.RendererInstances.table[index].settings.offset > tdata.length - 1) {
+			  Retina.RendererInstances.table[index].settings.offset = tdata.length - rows;
+			  if (Retina.RendererInstances.table[index].settings.offset < 0) {
+			      Retina.RendererInstances.table[index].settings.offset = 0;
 			  }
 		      }
-		      renderer.render();
+		      Retina.RendererInstances.table[index].render();
 		  }
 		  next_td.appendChild(next);
 		  next_td.appendChild(last);
@@ -630,14 +631,14 @@
 	      goto_text.onkeypress = function (e) {
 		  e = e || window.event;
 		  if (e.keyCode == 13) {
-		      renderer.settings.offset = parseInt(this.value) - 1;
-		      if (renderer.settings.offset < 0) {
-			  renderer.settings.offset = 0;
+		      Retina.RendererInstances.table[index].settings.offset = parseInt(this.value) - 1;
+		      if (Retina.RendererInstances.table[index].settings.offset < 0) {
+			  Retina.RendererInstances.table[index].settings.offset = 0;
 		      }
-		      if (renderer.settings.offset > rows) {
-			  renderer.settings.offset = rows;
+		      if (Retina.RendererInstances.table[index].settings.offset > rows) {
+			  Retina.RendererInstances.table[index].settings.offset = rows;
 		      }
-		      renderer.render();
+		      Retina.RendererInstances.table[index].render();
 		  }
 	      };
 
@@ -648,11 +649,11 @@
 	      clear_btn.setAttribute("value", "clear all filters");
 	      clear_btn.style.marginLeft = "10px";
 	      clear_btn.onclick = function () {
-		  for (i in renderer.settings.filter) {
-		      renderer.settings.filter[i].searchword = "";
+		  for (i in Retina.RendererInstances.table[index].settings.filter) {
+		      Retina.RendererInstances.table[index].settings.filter[i].searchword = "";
 		  }
-		  renderer.settings.sorted = false;
-		  renderer.render();
+		  Retina.RendererInstances.table[index].settings.sorted = false;
+		  Retina.RendererInstances.table[index].render();
 	      };
 
 	      // rows per page
@@ -663,9 +664,9 @@
 	      perpage.onkeypress = function (e) {
 		  e = e || window.event;
 		  if (e.keyCode == 13) {
-		      renderer.settings.offset = 0;
-		      renderer.settings.rows_per_page = parseInt(this.value);
-		      renderer.render();
+		      Retina.RendererInstances.table[index].settings.offset = 0;
+		      Retina.RendererInstances.table[index].settings.rows_per_page = parseInt(this.value);
+		      Retina.RendererInstances.table[index].render();
 		  }
 	      };
 	      var ppspan1 = document.createElement("span");
@@ -697,7 +698,7 @@
 			      }
 			  }
 			  var clicked_cell = ot.innerHTML;
-			  renderer.settings.onclick(clicked_row, clicked_cell, clicked_row_index, clicked_cell_index);
+			  Retina.RendererInstances.table[index].settings.onclick(clicked_row, clicked_cell, clicked_row_index, clicked_cell_index);
 		      }
 		  };
 	      }
