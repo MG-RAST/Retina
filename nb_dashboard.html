@@ -26,11 +26,11 @@
     	<!--initialization-->
     	<script type="text/javascript">
       		jQuery(function () {
-      			stm.init('http://test.metagenomics.anl.gov/api2.cgi').then(function() {
+      			stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
       			    Retina.add_renderer({"name": "listselect", "resource": "./renderers/", "filename": "renderer.listselect.js"});
 					Retina.add_widget({"name": "NotebookDashboard", "resource": "./widgets/", "filename": "widget.NotebookDashboard.js"});
       				Retina.load_widget("NotebookDashboard").then( function () {
-			            Retina.Widget.NotebookDashboard.create("nb_dash", "nb_iframe");
+			            Retina.Widget.NotebookDashboard.create("dashboard", "nb_iframe");
 			    	});
       			});
       		});
@@ -48,8 +48,7 @@
                     </div>
     	        </div>
     	    </div>
-    	    <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#nb_dash">Notebook Dashboard</button>
-    	    <div id="nb_dash" class="collapse in" style="margin-top: 20px;"></div>
+    	    <div id="dashboard"></div>
 		</div>
 		<div id='nb_iframe'></div>
   	</body>
