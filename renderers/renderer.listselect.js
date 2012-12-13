@@ -200,24 +200,25 @@
 	    submit_button.setAttribute('style', 'margin-left: 15px;');
 	    submit_button.innerHTML = '<i class="icon-ok icon-white"></i>';
 	    if (typeof(renderer.settings.callback) == 'function') {
+	        var index = renderer.index;
 		    if (renderer.settings.multiple) {
 		        submit_button.addEventListener('click', function () {
 			        var selection_result = [];
 			        for (x=0; x<result_list.options.length; x++) {
 			            selection_result.push(result_list.options[x].value);			
 			        }
-			        renderer.settings.callback(selection_result);
+			        Retina.RendererInstances.listselect[index].settings.callback(selection_result);
 		        });
 		    } else if (renderer.settings.no_button) {
 		        selection_list.addEventListener('change', function () {
-                    renderer.settings.callback(selection_list.options[selection_list.selectedIndex].value);
+                    Retina.RendererInstances.listselect[index].settings.callback(selection_list.options[selection_list.selectedIndex].value);
 	            });
 		    } else {
 		        submit_button.addEventListener('click', function () {
-			        renderer.settings.callback(selection_list.options[selection_list.selectedIndex].value);
+			        Retina.RendererInstances.listselect[index].settings.callback(selection_list.options[selection_list.selectedIndex].value);
 		        });
 	        }
-		}
+        }
 
 	    // build the output
 	    target.appendChild(filter);
