@@ -208,7 +208,7 @@
 	    }
 	    var chartOptions = { };
 	    	    
-	    svg.graph.status(renderer.hover);
+	    svg.graph.status(Retina.RendererInstances.graph[renderer.index].hover);
 
 	    svg.graph.noDraw(). 
 		legend.show(chartLegend).area(legendAreas[chartLegend]).end();
