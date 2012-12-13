@@ -54,7 +54,8 @@
 	                    <tr><td><button type="button" class="btn btn-success" style="width: 135px" onclick="Retina.Widget.NotebookDashboard.nb_launch_click()">Launch Notebook</button></td></tr>\
 	                    <tr><td><button type="button" class="btn btn-warning" style="width: 135px" data-toggle="modal" data-target="#new_nb_modal">New Notebook</button></td></tr>\
 	                    <tr><td><button type="button" class="btn btn-danger" style="width: 135px" data-toggle="modal" data-target="#del_nb_modal">Delete Notebook</button></td></tr>\
-	                    <tr><td><button type="button" class="btn" style="width: 135px" onclick="Retina.Widget.NotebookDashboard.display(\'nb_dash\', null);">Refresh Dashboard</button></td></tr>\
+	                    <tr><td><button type="button" class="btn btn-primary" style="width: 135px" onclick="Retina.Widget.NotebookDashboard.nb_save();">Save Notebook</button></td></tr>\
+	                    <tr><td><button type="button" class="btn btn-inverse" style="width: 135px" onclick="Retina.Widget.NotebookDashboard.nb_select_refresh();">Refresh Dashboard</button></td></tr>\
 	                </table></div>\
 	            </div>\
 	        </div><div id="data_pick" class="collapse" style="margin-top: 10px;">\
@@ -140,7 +141,7 @@
     widget.mg_select_refresh = function () {
         // get mgs from api
         if ((! stm.DataStore["metagenome"]) || (stm.DataStore["metagenome"].length = 0)) {
-            stm.get_objects({"type": "metagenome", "options": {"verbosity": "minimal", "limit": 10}}).then(function () {
+            stm.get_objects({"type": "metagenome", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
                 var mg_data = [];
                 for (id in stm.DataStore["metagenome"]) {
                     mg_data.push( stm.DataStore["metagenome"][id] );
@@ -164,6 +165,7 @@
             widget.ver_list.render();
             jQuery('#dash_head').css('display','inline');
             jQuery('#dash_butt').css('display','inline');
+            widget.ipy_refresh();
         });
     };
 
@@ -222,9 +224,8 @@
                         alert("Please enter a new name for notebook copy.");
                         return;
                     } else {
-                        console.log({"type": "notebook", "id": nb_set[i].id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}});
-                        return;
                         stm.get_objects({"type": "notebook", "id": nb_set[i].id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
+                            widget.ipy_refresh();
                             widget.nb_create_tab(new_uuid, new_name);
                             widget.nb_select_refresh();
                             return;
@@ -243,6 +244,7 @@
         var new_name = jQuery('#new_nb_name').val();
         if (new_name && widget.nb_template) {
             stm.get_objects({"type": "notebook", "id": widget.nb_template+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
+                widget.ipy_refresh();
                 widget.nb_create_tab(new_uuid, new_name);
                 widget.nb_select_refresh();
             });
@@ -261,17 +263,35 @@
         alert("Currently notebook deletion is not supported.");
         jQuery('#del_nb_modal').modal('hide');
         widget.nb_select_refresh();
-    }
+    };
 
     widget.nb_create_tab = function (uuid, name) {
         var url = widget.nb_server+'/'+uuid;
         console.log(url);
         var li_elem  = '<li class="active"><a data-toggle="tab" href="#'+uuid+'_tab">'+name+'</a></li>';
-        var div_elem = '<div id="'+uuid+'_tab" class="tab-pane active"><iframe id="'+uuid+'_iframe" src="'+url+'" width="935" height="750">Your Browser does not support iFrames</iframe></div>';
+        var div_elem = '<div id="'+uuid+'_tab" class="tab-pane active"><iframe id="'+uuid+'" src="'+url+'" width="935" height="750">Your Browser does not support iFrames</iframe></div>';
         jQuery('#tab_list').children('.active').removeClass('active');
         jQuery('#tab_div').children('.active').removeClass('active');
         jQuery('#tab_list').append(li_elem);
         jQuery('#tab_div').append(div_elem);
+    };
+
+    widget.nb_save = function () {
+        var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
+        if (curr_iframe.length > 0) {
+            stm.send_message(curr_iframe[0].id, 'ipy.notebook_save();', 'action');
+            stm.send_message(curr_iframe[0].id, 'ipy.notebook_refresh();', 'action');
+            alert("Notebook "+widget.sorted_nbs[curr_iframe[0].id][0].name+" has been saved.");
+        } else {
+            alert("No notebook is currently selected.")
+        }
+    };
+    
+    widget.ipy_refresh = function () {
+        var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
+        if (curr_iframe.length > 0) {
+            stm.send_message(curr_iframe[0].id, 'ipy.notebook_refresh();', 'action');
+        }
     };
 
     widget.transfer = function (iframe, cell, data, append) {
@@ -280,7 +300,7 @@
     	var ipy_msg  = 'ipy.'+ipy_func+'('+cell+', \''+command+'\');';
     	stm.send_message(iframe, ipy_msg, 'action');
     };
-
+    
     widget.nb_sort = function () {
         var uuid_nbs = {};
         var all_nbs  = stm.DataStore["notebook"];

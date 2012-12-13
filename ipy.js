@@ -56,4 +56,12 @@
         return IPython.notebook.find_cell_index(cell);
     }
     
+    ipy.notebook_refresh = function () {
+        IPython.notebook_list.load_list();
+    }
+    
+    ipy.notebook_save = function () {
+        IPython.notebook_list.save_notebook();
+    }
+    
 }).call(this);
