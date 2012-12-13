@@ -20,6 +20,9 @@
    rows (INT)
       The number of rows to display in the select list. Default is 10.
 
+   sort (BOOLEAN)
+      Setting this to true will automatically sort the lists by the currently selected filter. Default is false.
+
    filter (ARRAY of STRING)
       An ordered list of attribute names that are attributes of the objects passed in data that the selection list may be filtered by
 
@@ -58,6 +61,7 @@
 		'selection': {},
 		'data': {},
 		'target': null,
+		'sort': false,
 		'multiple': false, 
 		'no_button': false },
 	},
@@ -66,6 +70,7 @@
         },
 	render: function () {
 	    renderer = this;
+	    var index = renderer.index;
 
 	    // get the target div
 	    var target = renderer.settings.target;
@@ -105,10 +110,10 @@
 	    filter_input.setAttribute('value', renderer.settings.filter_value);
 	    filter_input.addEventListener('keyup', function (event) {
 		if (event.keyCode == 13) {
-		    renderer.addBreadcrumb();
+		    Retina.RendererInstances.listselect[index].addBreadcrumb();
 		}
-		renderer.settings.filter_value = filter_input.value;
-		renderer.redrawSelection(selection_list);
+		Retina.RendererInstances.listselect[index].settings.filter_value = filter_input.value;
+		Retina.RendererInstances.listselect[index].redrawSelection(selection_list);
 	    });
 	    var filter_select = document.createElement('button');
 	    filter_select.setAttribute('class', 'btn dropdown-toggle');
@@ -139,7 +144,7 @@
 		bc_button.setAttribute('name', i);
 		bc_button.innerHTML = renderer.settings.filter_breadcrumbs[i][0]+": "+renderer.settings.filter_breadcrumbs[i][1]+' <span style="font-size: 11px; color: gray;">x</span>';
 		bc_button.addEventListener('click', function (event) {
-		    renderer.removeBreadcrumb(this);
+		    Retina.RendererInstances.listselect[index].removeBreadcrumb(this);
 		});
 		filter_breadcrumbs.appendChild(bc_button);
 	    }
@@ -165,8 +170,8 @@
 			    delete result_list.options[result_list.options[x].value];			
 			}
 		    }
-		    renderer.redrawResultlist(result_list);
-		    renderer.redrawSelection(selection_list);
+		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list);
+		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list);
 		});
 		var button_right = document.createElement('a');
 		button_right.setAttribute('class', 'btn btn-small');
@@ -175,19 +180,19 @@
 		button_right.addEventListener('click', function () {
 		    for (x=0; x<selection_list.options.length; x++) {
 			if (selection_list.options[x].selected) {
-			    renderer.settings.selection[selection_list.options[x].value] = 1;
+			    Retina.RendererInstances.listselect[index].settings.selection[selection_list.options[x].value] = 1;
 			}
 		    }
-		    renderer.redrawResultlist(result_list);
-		    renderer.redrawSelection(selection_list);
+		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list);
+		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list);
 		});
 		var button_x = document.createElement('a');
 		button_x.setAttribute('class', 'btn btn-small');
 		button_x.innerHTML = '<i class="icon-remove"></i>';
 		button_x.addEventListener('click', function () {
-		    renderer.settings.selection = {};
-		    renderer.redrawResultlist(result_list);
-		    renderer.redrawSelection(selection_list);
+		    Retina.RendererInstances.listselect[index].settings.selection = {};
+		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list);
+		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list);
 		});
 		button_span.appendChild(button_left);
 		button_span.appendChild(button_x);
@@ -255,7 +260,9 @@
 		    result_list_array.push( [ renderer.settings.data[i][renderer.settings.value], '<option value="'+renderer.settings.data[i][renderer.settings.value]+'" title="'+renderer.settings.data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.data[i][renderer.settings.filter_attribute]+'</option>'] );
 		}
 	    }
-	    result_list_array.sort(renderer.listsort);
+	    if (renderer.settings.sort) {
+		result_list_array.sort(renderer.listsort);
+	    }
 	    var result_list_string = "";
 	    for (i=0; i<result_list_array.length; i++) {
 		result_list_string += result_list_array[i][1];
@@ -276,7 +283,9 @@
 	    renderer.settings.filtered_data = renderer.filter({ data: renderer.settings.filtered_data, value: renderer.settings.filter_value, type: renderer.settings.filter_type, attribute: renderer.settings.filter_attribute });
 
 	    // sort the list
-	    renderer.settings.filtered_data.sort(renderer.objectsort);
+	    if (renderer.settings.sort) {
+		renderer.settings.filtered_data.sort(renderer.objectsort);
+	    }
 
 	    // create the selection list
 	    var settings_string = "";
