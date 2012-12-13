@@ -12,7 +12,7 @@
       The data to display.
 
    multiple (BOOLEAN)
-      If set to false, displays a single select vs a multi select. Default is true.
+      If set to false, displays a single select vs a multi select. Default is false.
 
    no_button (BOOLEAN)
       If set to true, does not display submit button (callback triggers on change event). Default is false.
