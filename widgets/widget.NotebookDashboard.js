@@ -39,15 +39,16 @@
     widget.display = function (dash_div, iframe_div) {
         // populate divs with html
 	    dash_html = '\
-	        <button id="nbdash_toggle_button" onclick="this.style.display=\'none\';document.getElementById(\'nb_dash\').style.display=\'\';" style="display:none;" type="button" class="btn btn-info">Notebook Dashboard</button>\
-                <button id="dataselect_toggle_button" onclick="this.style.display=\'none\';document.getElementById(\'data_pick\').style.display=\'\';" type="button" class="btn btn-info">Data Selector</button>\
+	        <span style="margin-left:10px;"></span>\
+	        <button id="nbdash_toggle_button" onclick="this.style.display=\'none\';document.getElementById(\'nb_dash\').style.display=\'\';" style="display:none;margin-left:20px;" type="button" class="btn btn-info">Notebook Dashboard</button>\
+            <button id="dataselect_toggle_button" onclick="this.style.display=\'none\';document.getElementById(\'data_pick\').style.display=\'\';Retina.Widget.NotebookDashboard.mg_select_refresh();" style="margin-left:20px;" type="button" class="btn btn-info">Data Selector</button>\
+            </div></div>\
 	        <div id="nb_dash" style="margin-top: 1px; height: 300px; border-bottom: 1px dotted; border-top: 1px dotted;">\
-                    <input type="button" id="nbdash_off_button" onclick="document.getElementById(\'nbdash_toggle_button\').style.display=\'\';document.getElementById(\'nb_dash\').style.display=\'none\';" style="border-radius: 0 0 0 0;position: relative; top: 139px; transform: rotate(-90deg); width: 300px; left: -139px; padding-top: 0px;" value="Notebook Dashboard" class="btn btn-info">\
+                <input type="button" id="nbdash_off_button" onclick="document.getElementById(\'nbdash_toggle_button\').style.display=\'\';document.getElementById(\'nb_dash\').style.display=\'none\';" style="border-radius: 0 0 0 0;position: relative; top: 139px; transform: rotate(-90deg); width: 300px; left: -139px; padding-top: 0px;" value="Notebook Dashboard" class="btn btn-info">\
 	            <div class="row" id="dash_head" style="display: none;">\
 	                <div class="span3 offset1"><h4 style="margin-bottom: 5px;">Select Notebook</h4></div>\
 	                <div class="span3 offset1"><h4 style="margin-bottom: 5px;">Select Version</h4></div>\
-	            </div>\
-                    <div class="row">\
+	            </div><div class="row">\
 	                <div id="nb_div" class="span3 offset1"></div>\
 	                <div id="version_div" class="span3 offset1"></div>\
 	                <div class="span2 offset1"><table id="dash_butt" style="display: none;">\
@@ -59,8 +60,8 @@
 	                </table></div>\
 	            </div>\
 	        </div>\
-                <div id="data_pick" style="display: none; height: 300px; margin-top: 1px;border-bottom: 1px dotted; border-top: 1px dotted;">\
-                    <input type="button" onclick="document.getElementById(\'dataselect_toggle_button\').style.display=\'\';document.getElementById(\'data_pick\').style.display=\'none\';" style="border-radius: 0 0 0 0;position: relative; top: 139px; transform: rotate(-90deg); width: 300px; left: -139px; padding-top: 0px;" value="Data Selector" class="btn btn-info">\
+            <div id="data_pick" style="display: none; height: 300px; margin-top: 1px;border-bottom: 1px dotted; border-top: 1px dotted;">\
+                <input type="button" onclick="document.getElementById(\'dataselect_toggle_button\').style.display=\'\';document.getElementById(\'data_pick\').style.display=\'none\';" style="border-radius: 0 0 0 0;position: relative; top: 139px; transform: rotate(-90deg); width: 300px; left: -139px; padding-top: 0px;" value="Data Selector" class="btn btn-info">\
 	            <div class="row"><div id="mg_div" class="span5 offset1">\
                     <div class="alert alert-block alert-info" style="position: relative; top: 10px; height: 110px, width: 400px; left: 100px;">\
                         <button type="button" class="close" data-dismiss="alert">×</button>\
@@ -99,8 +100,8 @@
                 </div>\
             </div>';
         iframe_html = '<div class="tabbable" style="margin-top: 15px; margin-left: 15px;">\
-            <ul id="tab_list" class="nav nav-tabs"><li class="active"><a data-toggle="tab" href="#test_tab">Info</a></li></ul>\
-            <div id="tab_div" class="tab-content"><div id="test_tab" class="tab-pane active">Hello World</div>\
+            <ul id="tab_list" class="nav nav-tabs"><li class="hide"><a data-toggle="tab" href="#hidden_dash">Ipython Dashboard</a></li></ul>\
+            <div id="tab_div" class="tab-content"><div id="hidden_dash" class="tab-pane hide"><iframe id="ipython_dash" src="'+widget.nb_server+'" width="95%" height="750"></iframe></div>\
             </div>';
         jQuery('#'+dash_div).html(dash_html);
         jQuery('#'+iframe_div).html(iframe_html);
@@ -134,12 +135,9 @@
                                                 });
         // populate nb selects
         widget.nb_select_refresh();
-        // populate mg select
-        //jQuery('#data_pick').on('shown', function () {
-            widget.mg_select_refresh();
-        //});
     };
 
+    // populate mg listselect if datastore empty
     widget.mg_select_refresh = function () {
         // get mgs from api
         if ((! stm.DataStore["metagenome"]) || (stm.DataStore["metagenome"].length = 0)) {
@@ -282,7 +280,7 @@
         var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
         if (curr_iframe.length > 0) {
             stm.send_message(curr_iframe[0].id, 'ipy.notebook_save();', 'action');
-            stm.send_message(curr_iframe[0].id, 'ipy.notebook_refresh();', 'action');
+            widget.ipy_refresh();
             alert("Notebook "+widget.sorted_nbs[curr_iframe[0].id][0].name+" has been saved.");
         } else {
             alert("No notebook is currently selected.")
@@ -290,10 +288,9 @@
     };
     
     widget.ipy_refresh = function () {
-        var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
-        if (curr_iframe.length > 0) {
-            stm.send_message(curr_iframe[0].id, 'ipy.notebook_refresh();', 'action');
-        }
+        stm.send_message('ipython_dash', 'ipy.notebook_refresh();', 'action').then(function () {
+            return;
+        });
     };
 
     widget.transfer = function (iframe, cell, data, append) {
@@ -308,7 +305,7 @@
         var all_nbs  = stm.DataStore["notebook"];
         // create sorted_nbs: { uuid: [nbs with this uuid] }
         for (var id in all_nbs) {
-            if (id == widget.nb_template) {
+            if ((id == widget.nb_template) || (! all_nbs[id].name)) {
                 continue;
             }
             all_nbs[id]['datetime'] = widget.date_string(all_nbs[id].created);
