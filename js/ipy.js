@@ -57,11 +57,11 @@
     }
     
     ipy.notebook_refresh = function () {
-        IPython.notebook_list.load_list();
+        IPython.notebooklist.load_list();
     }
     
     ipy.notebook_save = function () {
-        IPython.notebook_list.save_notebook();
+        IPython.notebook.save_notebook();
     }
     
 }).call(this);
