@@ -8,10 +8,6 @@
         }
     });
     
-    widget.setup = function () {
-	return [ this.loadRenderer('table') ];
-    }
-    
     widget.display = function (div, args) {
 	if (! stm.DataStore['metagenome'] || ! stm.DataStore['metagenome'][args.id]) {
 	    stm.get_objects( { "type": "metagenome", "id": args.id, "options": { "verbosity": "full" } } ).then( function () { Retina.Widget.Metagenome.display(div, args); } );
