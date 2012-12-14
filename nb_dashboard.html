@@ -1,55 +1,52 @@
 <!DOCTYPE HTML>
 <html>
-  	<head>
-    	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-    	<title>MG-RAST iPyNB</title>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MG-RAST iPyNB</title>
     
-    	<!--external javascript files-->
-    	<script type="text/javascript" src="jquery.min.js"></script>
-    	<script type="text/javascript" src="jquery-ui.min.js"></script>
-    	<script type="text/javascript" src="bootstrap.min.js"></script>
-		<script type="text/javascript" src="selectBoxIt.js"></script>
-    	<script type="text/javascript" src="html2canvas.min.js"></script>
-
-    	<!--basic javascript files-->
-    	<script type="text/javascript" src="stm.js"></script>
-    	<script type="text/javascript" src="retina.js"></script>
-
-    	<!--style-->
-		<link rel="stylesheet" type="text/css" href="jquery.ui.all.css">
-    	<link rel="stylesheet" type="text/css" href="bootstrap.min.css">
-    	<link rel="stylesheet" type="text/css" href="bootstrap-responsive.css">
-    	<link rel="stylesheet" type="text/css" href="jquery.ui.all.css">
-		<link rel="stylesheet" type="text/css" href="selectBoxIt.css">
-
-    	<!--initialization-->
-    	<script type="text/javascript">
-      		jQuery(function () {
-      			stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
-      			    Retina.add_renderer({"name": "listselect", "resource": "./renderers/", "filename": "renderer.listselect.js"});
-					Retina.add_widget({"name": "NotebookDashboard", "resource": "./widgets/", "filename": "widget.NotebookDashboard.js"});
-      				Retina.load_widget("NotebookDashboard").then( function () {
-			            Retina.Widget.NotebookDashboard.create("dashboard", "nb_iframe");
-			    	});
-      			});
-      		});
-    	</script>
-
-  	</head>
+    <!--external javascript files-->
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/selectBoxIt.js"></script>
+    
+    <!--basic javascript files-->
+    <script type="text/javascript" src="js/stm.js"></script>
+    <script type="text/javascript" src="js/retina.js"></script>
+    
+    <!--style-->
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/selectBoxIt.css">
+    
+    <!--initialization-->
+    <script type="text/javascript">
+    jQuery(function () {
+      	stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
+      	    Retina.add_renderer({"name": "listselect", "resource": "renderers/", "filename": "renderer.listselect.js"});
+	    Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
+      	    Retina.load_widget("NotebookDashboard").then( function () {
+		Retina.Widget.NotebookDashboard.create("dashboard", "nb_iframe");
+	    });
+      	});
+    });
+    </script>
+	
+  </head>
   
-  	<body>
-  	    <div class="container">
-            <div class="navbar">
-    	        <div class="navbar-inner">
-                    <div class="container">
-                        <img src="MGRAST_logo.png" style="height: 55px; margin-top: 2px; float: left;">
-    	                <a class="brand" href="#" style="color: white; cursor: default; margin-top: 8px; margin-left: 30px;">iPyNB - The MG-RAST iPython Notebook</a>
-                    </div>
-    	        </div>
-    	    </div>
-    	    <div id="dashboard"></div>
-		</div>
-		<div id='nb_iframe'></div>
-  	</body>
+  <body style="margin-top: 60px;">
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+	<div class="container" style="width: 100%; padding-left: 10px;">
+          <img src="images/MGRAST_logo.png" style="height: 55px; margin-top: 2px; float: left;">
+    	  <a class="brand" href="#" style="color: white; cursor: default; margin-top: 8px; margin-left: 30px;">iPyNB - The MG-RAST iPython Notebook</a>
+	</div>
+      </div>
+    </div>
+    
+    <div id="dashboard"></div>
+    
+    <div id="nb_iframe"></div>
+
+  </body>
 </html>

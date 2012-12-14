@@ -117,7 +117,7 @@
 	    });
 	    var filter_select = document.createElement('button');
 	    filter_select.setAttribute('class', 'btn dropdown-toggle');
-	    filter_select.setAttribute('style', 'width: 80px; text-align: right;');
+	    filter_select.setAttribute('style', 'width: 85px; text-align: right;');
 	    filter_select.setAttribute('data-toggle', 'dropdown');
 	    filter_select.innerHTML = renderer.settings.filter_attribute + ' <span class="caret"></span>';
 	    var filter_list = document.createElement('ul');

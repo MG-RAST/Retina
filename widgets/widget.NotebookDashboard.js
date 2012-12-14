@@ -39,26 +39,28 @@
     widget.display = function (dash_div, iframe_div) {
         // populate divs with html
 	    dash_html = '\
-	        <div class="row">\
-	            <div class="span2"><button type="button" class="btn btn-info" data-toggle="collapse" data-target="#nb_dash">Notebook Dashboard</button></div>\
-                <div class="span2"><button type="button" class="btn btn-info" data-toggle="collapse" data-target="#data_pick">Data Selector</button></div>\
-            </div>\
-	        <div id="nb_dash" class="collapse in" style="margin-top: 10px;">\
+	        <button id="nbdash_toggle_button" onclick="this.style.display=\'none\';document.getElementById(\'nb_dash\').style.display=\'\';" style="display:none;" type="button" class="btn btn-info">Notebook Dashboard</button>\
+                <button id="dataselect_toggle_button" onclick="this.style.display=\'none\';document.getElementById(\'data_pick\').style.display=\'\';" type="button" class="btn btn-info">Data Selector</button>\
+	        <div id="nb_dash" style="margin-top: 1px; height: 300px; border-bottom: 1px dotted; border-top: 1px dotted;">\
+                    <input type="button" id="nbdash_off_button" onclick="document.getElementById(\'nbdash_toggle_button\').style.display=\'\';document.getElementById(\'nb_dash\').style.display=\'none\';" style="border-radius: 0 0 0 0;position: relative; top: 139px; transform: rotate(-90deg); width: 300px; left: -139px; padding-top: 0px;" value="Notebook Dashboard" class="btn btn-info">\
 	            <div class="row" id="dash_head" style="display: none;">\
 	                <div class="span3 offset1"><h4 style="margin-bottom: 5px;">Select Notebook</h4></div>\
 	                <div class="span3 offset1"><h4 style="margin-bottom: 5px;">Select Version</h4></div>\
-	            </div><div class="row">\
+	            </div>\
+                    <div class="row">\
 	                <div id="nb_div" class="span3 offset1"></div>\
 	                <div id="version_div" class="span3 offset1"></div>\
 	                <div class="span2 offset1"><table id="dash_butt" style="display: none;">\
-	                    <tr><td><button type="button" class="btn btn-success" style="width: 135px" onclick="Retina.Widget.NotebookDashboard.nb_launch_click()">Launch Notebook</button></td></tr>\
+	                    <tr><td><button type="button" class="btn btn-success" style="width: 135px" onclick="Retina.Widget.NotebookDashboard.nb_launch_click();document.getElementById(\'nbdash_off_button\').click();">Launch Notebook</button></td></tr>\
 	                    <tr><td><button type="button" class="btn btn-warning" style="width: 135px" data-toggle="modal" data-target="#new_nb_modal">New Notebook</button></td></tr>\
 	                    <tr><td><button type="button" class="btn btn-danger" style="width: 135px" data-toggle="modal" data-target="#del_nb_modal">Delete Notebook</button></td></tr>\
 	                    <tr><td><button type="button" class="btn btn-primary" style="width: 135px" onclick="Retina.Widget.NotebookDashboard.nb_save();">Save Notebook</button></td></tr>\
 	                    <tr><td><button type="button" class="btn btn-inverse" style="width: 135px" onclick="Retina.Widget.NotebookDashboard.nb_select_refresh();">Refresh Dashboard</button></td></tr>\
 	                </table></div>\
 	            </div>\
-	        </div><div id="data_pick" class="collapse" style="margin-top: 10px;">\
+	        </div>\
+                <div id="data_pick" style="display: none; height: 300px; margin-top: 1px;border-bottom: 1px dotted; border-top: 1px dotted;">\
+                    <input type="button" onclick="document.getElementById(\'dataselect_toggle_button\').style.display=\'\';document.getElementById(\'data_pick\').style.display=\'none\';" style="border-radius: 0 0 0 0;position: relative; top: 139px; transform: rotate(-90deg); width: 300px; left: -139px; padding-top: 0px;" value="Data Selector" class="btn btn-info">\
 	            <div class="row"><div id="mg_div" class="span5 offset1">\
                     <div class="alert alert-block alert-info" style="position: relative; top: 10px; height: 110px, width: 400px; left: 100px;">\
                         <button type="button" class="close" data-dismiss="alert">×</button>\
@@ -133,9 +135,9 @@
         // populate nb selects
         widget.nb_select_refresh();
         // populate mg select
-        jQuery('#data_pick').on('shown', function () {
+        //jQuery('#data_pick').on('shown', function () {
             widget.mg_select_refresh();
-        });
+        //});
     };
 
     widget.mg_select_refresh = function () {
@@ -269,7 +271,7 @@
         var url = widget.nb_server+'/'+uuid;
         console.log(url);
         var li_elem  = '<li class="active"><a data-toggle="tab" href="#'+uuid+'_tab">'+name+'</a></li>';
-        var div_elem = '<div id="'+uuid+'_tab" class="tab-pane active"><iframe id="'+uuid+'" src="'+url+'" width="935" height="750">Your Browser does not support iFrames</iframe></div>';
+        var div_elem = '<div id="'+uuid+'_tab" class="tab-pane active"><iframe id="'+uuid+'" src="'+url+'" width="95%" height="750">Your Browser does not support iFrames</iframe></div>';
         jQuery('#tab_list').children('.active').removeClass('active');
         jQuery('#tab_div').children('.active').removeClass('active');
         jQuery('#tab_list').append(li_elem);
