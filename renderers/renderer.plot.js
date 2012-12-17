@@ -50,7 +50,6 @@
             version: "1.0",
             requires: [ "jquery.svg.js", "jquery.svggraph.js" ],
             defaults: {
-		'type': 'pie', // [ column, stackedColumn, row, stackedRow, line, pie ]
 		'title': 'Functions',
 		'title_color': 'black',
 		'default_line_color': 'black',
@@ -74,10 +73,14 @@
 
 	    // get the target div
 	    var target = renderer.settings.target;
-	    target.innerHTML = "<div id='plot_div"+renderer.index+"'></div>";
+	    var index = 0;
+	    while (document.getElementById('plot_div'+index)) {
+		    index++;
+	    }
+	    target.innerHTML = "<div id='plot_div"+index+"'></div>";
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
-	    
-	    jQuery('#plot_div'+renderer.index).svg({onLoad: renderer.drawImage});
+	    jQuery('#plot_div'+index).svg();
+	    Retina.RendererInstances.plot[index].drawImage(jQuery('#plot_div'+index).svg('get'));
 	    
 	    return renderer;
 	},
@@ -111,13 +114,13 @@
 			   '#51A351', // green
 			   '#F89406', // yellow
 			   '#2F96B4', // lightblue
-			   '#bd2fa6', // purple 
+			   '#bd2fa6'  // purple 
 			 ];
 
 	    svg.plot.noDraw().title(renderer.settings.title, renderer.settings.title_color);
 	    for (i=0;i<renderer.settings.data.length;i++) {
-		var d = renderer.settings.data[i];
-		svg.plot.noDraw().addFunction(d.name, d.function, d.color || colors[i] || renderer.settings.default_line_color, d.lineWidth || renderer.settings.default_line_width);
+		    var d = renderer.settings.data[i];
+		    svg.plot.noDraw().addFunction(d.name, d['function'], d.color || colors[i] || renderer.settings.default_line_color, d.lineWidth || renderer.settings.default_line_width);
 	    }
 	    svg.plot.noDraw().format('white', 'gray'). 
 		gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
@@ -131,15 +134,17 @@
 	    var plotLegend = 0;
 	    if (renderer.settings.show_legend) {
 		switch (renderer.settings.legend_position) {
-		case 'left': plotLegend = 1; 
-		    break;
-		case 'right': plotLegend = 2;
-		    break;
-		case 'top': plotLegend = 3;
-		    break;
-		case 'bottom': plotLegend = 4;
-		    break;
-		};
+		    case 'left': plotLegend = 1; 
+		        break;
+		    case 'right': plotLegend = 2;
+		        break;
+		    case 'top': plotLegend = 3;
+		        break;
+		    case 'bottom': plotLegend = 4;
+		        break;
+		    default: plotLegend = 1;
+		        break;
+		}
 	    }
 	    svg.plot.noDraw(). 
 		legend.show(plotLegend).area(legendAreas[plotLegend]).end(). 
