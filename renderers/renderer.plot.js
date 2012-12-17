@@ -134,15 +134,17 @@
 	    var plotLegend = 0;
 	    if (renderer.settings.show_legend) {
 		switch (renderer.settings.legend_position) {
-		case 'left': plotLegend = 1; 
-		    break;
-		case 'right': plotLegend = 2;
-		    break;
-		case 'top': plotLegend = 3;
-		    break;
-		case 'bottom': plotLegend = 4;
-		    break;
-		};
+		    case 'left': plotLegend = 1; 
+		        break;
+		    case 'right': plotLegend = 2;
+		        break;
+		    case 'top': plotLegend = 3;
+		        break;
+		    case 'bottom': plotLegend = 4;
+		        break;
+		    default: plotLegend = 1;
+		        break;
+		}
 	    }
 	    svg.plot.noDraw(). 
 		legend.show(plotLegend).area(legendAreas[plotLegend]).end(). 
