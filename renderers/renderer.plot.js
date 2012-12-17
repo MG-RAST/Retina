@@ -50,7 +50,6 @@
             version: "1.0",
             requires: [ "jquery.svg.js", "jquery.svggraph.js" ],
             defaults: {
-		'type': 'pie', // [ column, stackedColumn, row, stackedRow, line, pie ]
 		'title': 'Functions',
 		'title_color': 'black',
 		'default_line_color': 'black',
@@ -74,10 +73,14 @@
 
 	    // get the target div
 	    var target = renderer.settings.target;
-	    target.innerHTML = "<div id='plot_div"+renderer.index+"'></div>";
+	    var index = 0;
+	    while (document.getElementById('plot_div'+index)) {
+		    index++;
+	    }
+	    target.innerHTML = "<div id='plot_div"+index+"'></div>";
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
-	    
-	    jQuery('#plot_div'+renderer.index).svg({onLoad: renderer.drawImage});
+	    jQuery('#plot_div'+index).svg();
+	    Retina.RendererInstances.plot[index].drawImage(jQuery('#plot_div'+index).svg('get'));
 	    
 	    return renderer;
 	},
