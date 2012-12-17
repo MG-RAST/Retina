@@ -114,13 +114,13 @@
 			   '#51A351', // green
 			   '#F89406', // yellow
 			   '#2F96B4', // lightblue
-			   '#bd2fa6', // purple 
+			   '#bd2fa6'  // purple 
 			 ];
 
 	    svg.plot.noDraw().title(renderer.settings.title, renderer.settings.title_color);
 	    for (i=0;i<renderer.settings.data.length;i++) {
-		var d = renderer.settings.data[i];
-		svg.plot.noDraw().addFunction(d.name, d.function, d.color || colors[i] || renderer.settings.default_line_color, d.lineWidth || renderer.settings.default_line_width);
+		    var d = renderer.settings.data[i];
+		    svg.plot.noDraw().addFunction(d.name, d['function'], d.color || colors[i] || renderer.settings.default_line_color, d.lineWidth || renderer.settings.default_line_width);
 	    }
 	    svg.plot.noDraw().format('white', 'gray'). 
 		gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
