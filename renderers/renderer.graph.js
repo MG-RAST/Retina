@@ -37,7 +37,7 @@
       List of the labels at the ticks of the x-axis.
 
   x_labels_rotation (STRING)
-      A string representing the number of degrees to rotate the labels on the x-axis. Default is 300.
+      A string representing the number of degrees to rotate the labels on the x-axis. Default is 0.
 
   y_labels (ARRAY of STRING)
       List of the labels at the ticks of the y-axis. If no list is passed will use the y-valus.
@@ -112,7 +112,7 @@
 		'x_title_color': 'black',
 		'y_title_color': 'black',
 		'x_labels': [],
-		'x_labels_rotation': "300",
+		'x_labels_rotation': null,
 		'y_labels': [],
 		'x_tick_interval': 0,
 		'y_tick_interval': 30,
