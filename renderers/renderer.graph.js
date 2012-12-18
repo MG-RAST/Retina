@@ -150,6 +150,10 @@
 	    if (event == 'click') {
 		var num = parseInt(this.parentElement.className.baseVal.substr(this.parentElement.className.baseVal.search(/\d+/)));
 		svg.graph.options({ explode: [ num ], explodeDist: 15 });
+
+		if (typeof(renderer.settings.onclick) == "function") {
+		    renderer.settings.onclick(title, value, event);
+		}
 	    }
 	},
 	drawImage: function (svg) {
@@ -202,7 +206,6 @@
 		svg.graph.xAxis.labelRotation = renderer.settings.x_labels_rotation;
 		svg.graph.xAxis.labels(renderer.settings.x_labels);
 	    }
-	    console.log(svg.graph);
 	    svg.graph.yAxis.
 		title(renderer.settings.y_title, renderer.settings.y_title_color).
 		ticks(parseInt(max / renderer.settings.y_labeled_tick_interval), parseInt(max / renderer.settings.y_tick_interval));
