@@ -20,8 +20,8 @@
 		    x_title: 'Year',
 		    show_legend: true,
 		    x_labels_rotation: null,
-		    onclick: function (title, value, label, item) {
-			alert("You clicked the "+label+" bar of the "+title+" series, which has a value of "+value);
+		    onclick: function (params) {
+			alert("You clicked the "+params.label+" bar of the "+params.series+" series, which has a value of "+params.value);
 		    },
 		    y_title: 'Percentage' }).render();
 	    });
