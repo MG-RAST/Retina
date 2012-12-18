@@ -13,7 +13,7 @@
         row
         stackedRow
         line
-      Default is pie.
+      Default is column.
 
   title (STRING)
       Title string written at the top of the graph
@@ -36,6 +36,9 @@
   x_labels (ARRAY of STRING)
       List of the labels at the ticks of the x-axis.
 
+  x_labels_rotation (STRING)
+      A string representing the number of degrees to rotate the labels on the x-axis. Default is 300.
+
   y_labels (ARRAY of STRING)
       List of the labels at the ticks of the y-axis. If no list is passed will use the y-valus.
 
@@ -43,13 +46,13 @@
       Determines how many ticks are actually drawn on the x-axis. Default is 0.
 
   y_tick_interval (INT)
-      Determines how many ticks are actually drawn on the y-axis. Default is 1.
+      Determines how many ticks are actually drawn on the y-axis. Default is 30.
   
   x_labeled_tick_interval (INT)
       Determines which ticks on the x-axis get labels. Default is 1.
 
   y_labeled_tick_interval (INT)
-      Determines which ticks on the y-axis get labels. Default is 10.
+      The number of y-axis ticks that get labels. Default is 5.
 
   default_line_color (CSS Color Value)
       Determines the color of lines if not specified for an individual line. Default is black.
@@ -66,6 +69,12 @@
         right
         top
         bottom
+
+  chartArea (ARRAY of FLOAT)
+     The values passed correspond to the left, top, right and bottom margin of the chart area respectively. The position is relative to the top left corner of the containing div. Values less than 1 are interpreted as fractions. Values greater than 1 are interpreted as absolute pixel values.
+
+  legendArea (ARRAY of FLOAT)
+      If this parameter is set, the legend_position parameter will not be used. Instead pass an array of floats. The values correspond to the left, top, right and bottom margin of the legend area respectively. The position is relative to the top left corner of the containing div. Values less than 1 are interpreted as fractions. Values greater than 1 are interpreted as absolute pixel values.
   
   width (INT)
       The width of the graph in pixel (including legend).
@@ -86,7 +95,7 @@
             version: "1.0",
             requires: [ "jquery.svg.js", "jquery.svggraph.js" ],
             defaults: {
-		'type': 'pie', // [ column, stackedColumn, row, stackedRow, line, pie ]
+		'type': 'column', // [ column, stackedColumn, row, stackedRow, line, pie ]
 		'title': '',
 		'title_color': 'black',
 		'x_title': '',
@@ -94,11 +103,12 @@
 		'x_title_color': 'black',
 		'y_title_color': 'black',
 		'x_labels': [],
+		'x_labels_rotation': "300",
 		'y_labels': [],
 		'x_tick_interval': 0,
-		'y_tick_interval': 5,
+		'y_tick_interval': 30,
 		'x_labeled_tick_interval': 1,
-		'y_labeled_tick_interval': 10,
+		'y_labeled_tick_interval': 5,
 		'default_line_color': 'black',
 		'default_line_width': 1,
 		'show_legend': false,
@@ -121,10 +131,7 @@
 
 	    // get the target div
 	    var target = renderer.settings.target;
-	    var index = 0;
-	    while (document.getElementById('graph_div'+index)) {
-		index++;
-	    }
+	    var index = renderer.index;
 	    target.innerHTML = "<div id='graph_div"+index+"'></div>";
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
 	    jQuery('#graph_div'+index).svg();
@@ -161,7 +168,16 @@
 
 	    var fills = [ 'url(#fadeBlue)', 'url(#fadeRed)', 'url(#fadeGreen)', 'url(#fadeYellow)', 'url(#fadeLightblue)', 'url(#fadePurple)' ];
 	    
-	    var defs = svg.defs(); 
+	    var defs = svg.defs();
+
+	    var max = 0;
+	    for (i=0; i<renderer.settings.data.length; i++) {
+		for (h=0; h<renderer.settings.data[i].data.length; h++) {
+		    if (renderer.settings.data[i].data[h] > max) {
+			max = renderer.settings.data[i].data[h];
+		    }
+		}
+	    }
 	    
 	    svg.linearGradient(defs, 'fadeRed', [[0, '#EE5F5B'], [1, '#BD362F']]); 
 	    svg.linearGradient(defs, 'fadeBlue', [[0, '#0088CC'], [1, '#0044CC']]); 
@@ -183,10 +199,15 @@
 		ticks(renderer.settings.x_labeled_tick_interval, renderer.settings.x_tick_interval).
 		scale(0, 3);
 	    if (renderer.settings.x_labels.length) {
-		svg.graph.xAxis.labels(renderer.settings.x_labels); 
+		svg.graph.xAxis.labelRotation = renderer.settings.x_labels_rotation;
+		svg.graph.xAxis.labels(renderer.settings.x_labels);
 	    }
-	    svg.graph.yAxis.title(renderer.settings.y_title, renderer.settings.y_title_color).
-		ticks(renderer.settings.y_labeled_tick_interval, renderer.settings.y_tick_interval);
+	    console.log(svg.graph);
+	    svg.graph.yAxis.
+		title(renderer.settings.y_title, renderer.settings.y_title_color).
+		ticks(parseInt(max / renderer.settings.y_labeled_tick_interval), parseInt(max / renderer.settings.y_tick_interval));
+	    svg.graph.yAxis._scale.max = max;
+
 	    if (renderer.settings.y_labels.length) {
 		svg.graph.xAxis.labels(renderer.settings.y_labels); 
 	    }
@@ -211,11 +232,11 @@
 	    svg.graph.status(Retina.RendererInstances.graph[renderer.index].hover);
 
 	    svg.graph.noDraw(). 
-		legend.show(chartLegend).area(legendAreas[chartLegend]).end();
+		legend.show(renderer.settings.show_legend).area(renderer.settings.legendArea ? renderer.settings.legenArea : legendAreas[chartLegend]).end();
 	    for (i=0; i< renderer.settings.data.length; i++) {
 		svg.graph.noDraw().series(i).format(renderer.settings.data[i].fill || fills[i]).end();
 	    }
-	    svg.graph.noDraw().area(chartAreas[chartLegend]).
+	    svg.graph.noDraw().area(renderer.settings.chartArea ? renderer.settings.chartArea : chartAreas[chartLegend]).
 		type(chartType, chartOptions).redraw();
 	}
     });
