@@ -9,20 +9,23 @@
 	<script src="js/bootstrap.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 	<script>
-    stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
-	Retina.init( { library_resource: "./" } ).then( function () {
-	    Retina.add_renderer({"name": "graph", "resource": "./renderers/",  "filename": "renderer.graph.js" });
+	Retina.init( { library_resource: "js/" } ).then( function () {
+	    Retina.add_renderer({"name": "graph", "resource": "renderers/",  "filename": "renderer.graph.js" });
 	    Retina.load_renderer("graph").then( function () {
-		Retina.Renderer.graph.render( {
+		Retina.Renderer.create("graph", {
 		    target: document.getElementById('target'),
-		    data: Retina.Renderer.graph.exampleData(),
+		    data: Retina.RendererInstances.graph[0].exampleData(),
 		    title: "Browser Usage",
-		    x_labels: [ "2005", "2006", "2007", "2008" ],
+		    x_labels: [ "2004", "2005", "2006", "2007" ],
 		    x_title: 'Year',
-		    y_title: 'Percentage' });
+		    show_legend: true,
+		    x_labels_rotation: null,
+		    onclick: function (title, value, label, item) {
+			alert("You clicked the "+label+" bar of the "+title+" series, which has a value of "+value);
+		    },
+		    y_title: 'Percentage' }).render();
 	    });
 	});
-    });
 	</script>
   </head>
 
@@ -30,14 +33,14 @@
     
     <div class="container" style="margin-top: 100px;">
       <h2>Graph Demo</h2>
-      <select onchange="Retina.RendererInstances['graph'][0].render({type: this.options[this.selectedIndex].value});">
-	<option>pie</option>
+      <select onchange="Retina.RendererInstances['graph'][1].settings.type=this.options[this.selectedIndex].value;Retina.RendererInstances['graph'][1].render();">
 	<option>column</option>
+	<option>pie</option>
 	<option>stackedColumn</option>
 	<option>row</option>
 	<option>stackedRow</option>
       </select>
-      <div id='target'></div>
+      <div id='target' style='border: 1px dotted black;'></div>
     </div>
 
   </body>
