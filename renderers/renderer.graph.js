@@ -85,6 +85,12 @@
   data (ARRAY of OBJECT)
       List of data series. Each series has a name and a data attribute. The data attribute is a list of y-values for the series.
 
+  onclick (FUNCTION)
+      The passed function will be called when a bar / pie slice is clicked. It will receive the parameters
+        title - the title of the bar
+        value - the value of the bar
+        label - the label of the bar
+        item  - the svg element that was clicked
 */
 (function () {
     var renderer = Retina.Renderer.extend({
@@ -152,7 +158,14 @@
 		svg.graph.options({ explode: [ num ], explodeDist: 15 });
 
 		if (typeof(renderer.settings.onclick) == "function") {
-		    renderer.settings.onclick(title, value, event);
+		    var label = "";
+		    for (i=0;i<this.parentElement.children.length;i++) {
+			if (this.parentElement.children[i] === this) {
+			    label = svg.graph.xAxis.labels().labels[i];
+			    break;
+			}
+		    }
+		    renderer.settings.onclick(title, value, label, this);
 		}
 	    }
 	},
