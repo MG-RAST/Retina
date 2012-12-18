@@ -86,11 +86,14 @@
       List of data series. Each series has a name and a data attribute. The data attribute is a list of y-values for the series.
 
   onclick (FUNCTION)
-      The passed function will be called when a bar / pie slice is clicked. It will receive the parameters
-        title - the title of the bar
-        value - the value of the bar
-        label - the label of the bar
-        item  - the svg element that was clicked
+      The passed function will be called when a bar / pie slice is clicked. It will receive an object with the attributes
+        series - the name of the series this bar belongs to
+        value  - the value of the bar
+        label  - the label of the bar
+        item   - the svg element that was clicked
+        index  - the zero based index of this bar within its series
+        series_index - the zero based index of this series
+
 */
 (function () {
     var renderer = Retina.Renderer.extend({
@@ -159,13 +162,14 @@
 
 		if (typeof(renderer.settings.onclick) == "function") {
 		    var label = "";
+		    var i;
 		    for (i=0;i<this.parentElement.children.length;i++) {
 			if (this.parentElement.children[i] === this) {
 			    label = svg.graph.xAxis.labels().labels[i];
 			    break;
 			}
 		    }
-		    renderer.settings.onclick(title, value, label, this);
+		    renderer.settings.onclick({series: title, value: value, label: label, item: this, index: i, series_index: num });
 		}
 	    }
 	},
