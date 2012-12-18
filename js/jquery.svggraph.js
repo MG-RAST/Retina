@@ -5,12 +5,12 @@
    MIT (http://dev.jquery.com/browser/trunk/jquery/MIT-LICENSE.txt) licenses.
    Please attribute the author if you use it. */
 
-(function($) { // Hide scope, no $ conflict
+(function(jQuery) { // Hide scope, no $ conflict
 
-$.svg.addExtension('graph', SVGGraph);
+jQuery.svg.addExtension('graph', SVGGraph);
 
 // Singleton primary SVG graphing interface
-$.svg.graphing = new SVGGraphing();
+jQuery.svg.graphing = new SVGGraphing();
 
 function SVGGraphing() {
 	this.regional = [];
@@ -18,7 +18,7 @@ function SVGGraphing() {
 	this.region = this.regional[''];
 }
 
-$.extend(SVGGraphing.prototype, {
+jQuery.extend(SVGGraphing.prototype, {
 	_chartTypes: [],
 
 	/* Add a new chart rendering type to the package.
@@ -42,8 +42,8 @@ $.extend(SVGGraphing.prototype, {
 function SVGGraph(wrapper) {
 	this._wrapper = wrapper; // The attached SVG wrapper object
 	this._drawNow = false; // True for immediate update, false to wait for redraw call
-	for (var id in $.svg.graphing._chartTypes) {
-		this._chartType = $.svg.graphing._chartTypes[id]; // Use first graph renderer
+	for (var id in jQuery.svg.graphing._chartTypes) {
+		this._chartType = jQuery.svg.graphing._chartTypes[id]; // Use first graph renderer
 		break;
 	}
 	this._chartOptions = {}; // Extra options for the graph type
@@ -67,7 +67,7 @@ function SVGGraph(wrapper) {
 	this._drawNow = true;
 }
 
-$.extend(SVGGraph.prototype, {
+jQuery.extend(SVGGraph.prototype, {
 
 	/* Useful indexes. */
 	X: 0,
@@ -80,7 +80,7 @@ $.extend(SVGGraph.prototype, {
 	B: 3,
 
 	/* Standard percentage axis. */
-	_percentageAxis: new SVGGraphAxis(this, $.svg.graphing.region.percentageText, 0, 100, 10, 0),
+	_percentageAxis: new SVGGraphAxis(this, jQuery.svg.graphing.region.percentageText, 0, 100, 10, 0),
 
 	/* Set or retrieve the container for the graph.
 	   @param  cont  (SVG element) the container for the graph
@@ -95,7 +95,7 @@ $.extend(SVGGraph.prototype, {
 	},
 
 	/* Set or retrieve the type of chart to be rendered.
-	   See $.svg.graphing.getChartTypes() for the list of available types.
+	   See jQuery.svg.graphing.getChartTypes() for the list of available types.
 	   @param  id       (string) the ID of the chart type
 	   @param  options  (object) additional settings for this chart type (optional)
 	   @return  (SVGGraph) this graph object or
@@ -106,7 +106,7 @@ $.extend(SVGGraph.prototype, {
 	},
 
 	/* Set or retrieve the type of chart to be rendered.
-	   See $.svg.graphing.getChartTypes() for the list of available types.
+	   See jQuery.svg.graphing.getChartTypes() for the list of available types.
 	   @param  id       (string) the ID of the chart type
 	   @param  options  (object) additional settings for this chart type (optional)
 	   @return  (SVGGraph) this graph object or
@@ -115,10 +115,10 @@ $.extend(SVGGraph.prototype, {
 		if (arguments.length == 0) {
 			return this._chartType;
 		}
-		var chartType = $.svg.graphing._chartTypes[id];
+		var chartType = jQuery.svg.graphing._chartTypes[id];
 		if (chartType) {
 			this._chartType = chartType;
-			this._chartOptions = $.extend({}, options || {});
+			this._chartOptions = jQuery.extend({}, options || {});
 		}
 		this._drawGraph();
 		return this;
@@ -141,7 +141,7 @@ $.extend(SVGGraph.prototype, {
 		if (arguments.length == 0) {
 			return this._chartOptions;
 		}
-		this._chartOptions = $.extend({}, options);
+		this._chartOptions = jQuery.extend({}, options);
 		this._drawGraph();
 		return this;
 	},
@@ -171,7 +171,7 @@ $.extend(SVGGraph.prototype, {
 			settings = stroke;
 			stroke = null;
 		}
-		this._chartFormat = $.extend({fill: fill},
+		this._chartFormat = jQuery.extend({fill: fill},
 			(stroke ? {stroke: stroke} : {}), settings || {});
 		this._drawGraph();
 		return this;
@@ -251,7 +251,7 @@ $.extend(SVGGraph.prototype, {
 			colour = null;
 		}
 		this._title = {value: value, offset: offset || this._title.offset,
-			settings: $.extend({textAnchor: 'middle'},
+			settings: jQuery.extend({textAnchor: 'middle'},
 			(colour ? {fill: colour} : {}), settings || {})};
 		this._drawGraph();
 		return this;
@@ -421,7 +421,7 @@ $.extend(SVGGraph.prototype, {
 		}
 		if (this.yAxis) {
 			if (this.yAxis._title) {
-				this._wrapper.text(this._chartCont, 0, 0, this.yAxis._title, $.extend({textAnchor: 'middle',
+				this._wrapper.text(this._chartCont, 0, 0, this.yAxis._title, jQuery.extend({textAnchor: 'middle',
 					transform: 'translate(' + (dims[this.X] - this.yAxis._titleOffset) + ',' +
 					(dims[this.Y] + dims[this.H] / 2) + ') rotate(-90)'}, this.yAxis._titleFormat || {}));
 			}
@@ -438,7 +438,7 @@ $.extend(SVGGraph.prototype, {
 		}
 		if (this.y2Axis) {
 			if (this.y2Axis._title) {
-				this._wrapper.text(this._chartCont, 0, 0, this.y2Axis._title, $.extend({textAnchor: 'middle',
+				this._wrapper.text(this._chartCont, 0, 0, this.y2Axis._title, jQuery.extend({textAnchor: 'middle',
 					transform: 'translate(' + (dims[this.X] + dims[this.W] + this.y2Axis._titleOffset) +
 					',' + (dims[this.Y] + dims[this.H] / 2) + ') rotate(-90)'}, this.y2Axis._titleFormat || {}));
 			}
@@ -456,8 +456,8 @@ $.extend(SVGGraph.prototype, {
 	   @param  y2    (number) ending y-coodinate for the axis */
 	_drawAxis: function(axis, id, x1, y1, x2, y2) {
 		var horiz = (y1 == y2);
-		var gl = this._wrapper.group(this._chartCont, $.extend({class_: id}, axis._lineFormat));
-		var gt = this._wrapper.group(this._chartCont, $.extend({class_: id + 'Labels',
+		var gl = this._wrapper.group(this._chartCont, jQuery.extend({class_: id}, axis._lineFormat));
+		var gt = this._wrapper.group(this._chartCont, jQuery.extend({class_: id + 'Labels',
 			textAnchor: (horiz ? 'middle' : 'end')}, axis._labelFormat));
 		this._wrapper.line(gl, x1, y1, x2, y2);
 		if (axis._ticks.major) {
@@ -506,7 +506,7 @@ $.extend(SVGGraph.prototype, {
 	/* Retrieve the standard percentage axis.
 	   @return  (SVGGraphAxis) percentage axis */
 	_getPercentageAxis: function() {
-		this._percentageAxis._title = $.svg.graphing.region.percentageText;
+		this._percentageAxis._title = jQuery.svg.graphing.region.percentageText;
 		return this._percentageAxis;
 	},
 
@@ -552,9 +552,9 @@ $.extend(SVGGraph.prototype, {
 	_showStatus: function(elem, label, value) {
 		var status = this._onstatus;
 		if (this._onstatus) {
-		    $(elem).hover(function() { status.apply(this, [label, value, 'mouseover']); },
+		    jQuery(elem).hover(function() { status.apply(this, [label, value, 'mouseover']); },
 				  function() { status.apply(this, ['', 0, 'mouseout']); });
-		    $(elem).click(function() { status.apply(this, [label, value, 'click']); });
+		    jQuery(elem).click(function() { status.apply(this, [label, value, 'click']); });
 
 		}
 	}
@@ -597,7 +597,7 @@ function SVGGraphSeries(graph, name, values, fill, stroke, strokeWidth, settings
 	this._settings = settings || {}; // Additional formatting settings for the series
 }
 
-$.extend(SVGGraphSeries.prototype, {
+jQuery.extend(SVGGraphSeries.prototype, {
 
 	/* Set or retrieve the name for this series.
 	   @param  name    (string) the series' name
@@ -640,7 +640,7 @@ $.extend(SVGGraphSeries.prototype, {
 	            (object) formatting settings (if no parameters) */
 	format: function(fill, stroke, strokeWidth, settings) {
 		if (arguments.length == 0) {
-			return $.extend({fill: this._fill, stroke: this._stroke,
+			return jQuery.extend({fill: this._fill, stroke: this._stroke,
 				strokeWidth: this._strokeWidth}, this._settings);
 		}
 		if (typeof stroke != 'string') {
@@ -655,7 +655,7 @@ $.extend(SVGGraphSeries.prototype, {
 		this._fill = fill || this._fill;
 		this._stroke = stroke || this._stroke;
 		this._strokeWidth = strokeWidth || this._strokeWidth;
-		$.extend(this._settings, settings || {});
+		jQuery.extend(this._settings, settings || {});
 		this._graph._drawGraph();
 		return this;
 	},
@@ -687,7 +687,7 @@ function SVGGraphAxis(graph, title, min, max, major, minor) {
 	this._crossAt = 0; // Where this axis crosses the other one
 }
 
-$.extend(SVGGraphAxis.prototype, {
+jQuery.extend(SVGGraphAxis.prototype, {
 
 	/* Set or retrieve the scale for this axis.
 	   @param  min  (number) the minimum value shown
@@ -751,7 +751,7 @@ $.extend(SVGGraphAxis.prototype, {
 		this._title = title;
 		this._titleOffset = (offset != null ? offset : this._titleOffset);
 		if (colour || format) {
-			this._titleFormat = $.extend(format || {}, (colour ? {fill: colour} : {}));
+			this._titleFormat = jQuery.extend(format || {}, (colour ? {fill: colour} : {}));
 		}
 		this._graph._drawGraph();
 		return this;
@@ -773,7 +773,7 @@ $.extend(SVGGraphAxis.prototype, {
 		}
 		this._labels = labels;
 		if (colour || format) {
-			this._labelFormat = $.extend(format || {}, (colour ? {fill: colour} : {}));
+			this._labelFormat = jQuery.extend(format || {}, (colour ? {fill: colour} : {}));
 		}
 		this._graph._drawGraph();
 		return this;
@@ -793,7 +793,7 @@ $.extend(SVGGraphAxis.prototype, {
 			settings = width;
 			width = null;
 		}
-		$.extend(this._lineFormat, {stroke: colour},
+		jQuery.extend(this._lineFormat, {stroke: colour},
 			(width ? {strokeWidth: width} : {}), settings || {});
 		this._graph._drawGraph();
 		return this;
@@ -820,7 +820,7 @@ function SVGGraphLegend(graph, bgSettings, textSettings) {
 	this._textSettings = textSettings || {}; // Additional formatting settings for the text
 }
 
-$.extend(SVGGraphLegend.prototype, {
+jQuery.extend(SVGGraphLegend.prototype, {
 
 	/* Set or retrieve whether the legend should be shown.
 	   @param  show  (boolean) true to display it, false to hide it
@@ -897,7 +897,7 @@ var barOptions = ['barWidth (number) - the width of each bar',
 function SVGColumnChart() {
 }
 
-$.extend(SVGColumnChart.prototype, {
+jQuery.extend(SVGColumnChart.prototype, {
 
 	/* Retrieve the display title for this chart type.
 	   @return  the title */
@@ -942,7 +942,7 @@ $.extend(SVGColumnChart.prototype, {
 	_drawSeries: function(graph, cur, numSer, barWidth, barGap, dims, xScale, yScale) {
 		var series = graph._series[cur];
 		var g = graph._wrapper.group(this._chart,
-			$.extend({class_: 'series' + cur, fill: series._fill, stroke: series._stroke,
+			jQuery.extend({class_: 'series' + cur, fill: series._fill, stroke: series._stroke,
 			strokeWidth: series._strokeWidth}, series._settings || {}));
 		for (var i = 0; i < series._values.length; i++) {
 			var r = graph._wrapper.rect(g,
@@ -959,11 +959,12 @@ $.extend(SVGColumnChart.prototype, {
 		if (axis._title) {
 			graph._wrapper.text(graph._chartCont, dims[graph.X] + dims[graph.W] / 2,
 				dims[graph.Y] + dims[graph.H] + axis._titleOffset,
-				axis._title, $.extend({textAnchor: 'middle'}, axis._titleFormat || {}));
+				axis._title, jQuery.extend({textAnchor: 'middle'}, axis._titleFormat || {}));
 		}
-		var gl = graph._wrapper.group(graph._chartCont, $.extend({class_: 'xAxis'}, axis._lineFormat));
-		var gt = graph._wrapper.group(graph._chartCont, $.extend({class_: 'xAxisLabels',
-			textAnchor: 'middle'}, axis._labelFormat));
+		var gl = graph._wrapper.group(graph._chartCont, jQuery.extend({class_: 'xAxis'}, axis._lineFormat));
+	    var labelTextAnchor = axis.labelRotation ? "end" : "middle";
+		var gt = graph._wrapper.group(graph._chartCont, jQuery.extend({class_: 'xAxisLabels',
+			textAnchor: labelTextAnchor}, axis._labelFormat));
 		graph._wrapper.line(gl, dims[graph.X], dims[graph.Y] + dims[graph.H],
 			dims[graph.X] + dims[graph.W], dims[graph.Y] + dims[graph.H]);
 		if (axis._ticks.major) {
@@ -976,7 +977,7 @@ $.extend(SVGColumnChart.prototype, {
 			for (var i = 0; i < numVal; i++) {
 				var x = dims[graph.X] + xScale * (barGap / 2 + (i + 0.5) * (numSer * barWidth + barGap));
 				graph._wrapper.text(gt, x, dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size,
-					(axis._labels ? axis._labels[i] : '' + i));
+						    (axis._labels ? axis._labels[i] : '' + i), (axis.labelRotation ? { transform: "rotate("+axis.labelRotation+", "+x+", "+(dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size)+")"} : null));
 			}
 		}
 	}
@@ -988,7 +989,7 @@ $.extend(SVGColumnChart.prototype, {
 function SVGStackedColumnChart() {
 }
 
-$.extend(SVGStackedColumnChart.prototype, {
+jQuery.extend(SVGStackedColumnChart.prototype, {
 
 	/* Retrieve the display title for this chart type.
 	   @return  the title */
@@ -1026,12 +1027,12 @@ $.extend(SVGStackedColumnChart.prototype, {
 		this._chart = graph._wrapper.group(graph._chartCont, {class_: 'chart'});
 		this._drawColumns(graph, numSer, numVal, barWidth, barGap, dims, xScale, yScale);
 		graph._drawTitle();
-		graph._wrapper.text(graph._chartCont, 0, 0, $.svg.graphing.region.percentageText,
-			$.extend({textAnchor: 'middle', transform: 'translate(' +
+		graph._wrapper.text(graph._chartCont, 0, 0, jQuery.svg.graphing.region.percentageText,
+			jQuery.extend({textAnchor: 'middle', transform: 'translate(' +
 			(dims[graph.X] - graph.yAxis._titleOffset) + ',' +
 			(dims[graph.Y] + dims[graph.H] / 2) + ') rotate(-90)'}, graph.yAxis._titleFormat || {}));
-		var pAxis = $.extend({}, graph._getPercentageAxis());
-		$.extend(pAxis._labelFormat, graph.yAxis._labelFormat || {});
+		var pAxis = jQuery.extend({}, graph._getPercentageAxis());
+		jQuery.extend(pAxis._labelFormat, graph.yAxis._labelFormat || {});
 		graph._drawAxis(pAxis, 'yAxis', dims[graph.X], dims[graph.Y],
 			dims[graph.X], dims[graph.Y] + dims[graph.H]);
 		this._drawXAxis(graph, numVal, barWidth, barGap, dims, xScale);
@@ -1048,7 +1049,7 @@ $.extend(SVGStackedColumnChart.prototype, {
 		for (var s = 0; s < numSer; s++) {
 			var series = graph._series[s];
 			var g = graph._wrapper.group(this._chart,
-				$.extend({class_: 'series' + s, fill: series._fill,
+				jQuery.extend({class_: 'series' + s, fill: series._fill,
 				stroke: series._stroke, strokeWidth: series._strokeWidth},
 				series._settings || {}));
 			for (var i = 0; i < series._values.length; i++) {
@@ -1069,10 +1070,10 @@ $.extend(SVGStackedColumnChart.prototype, {
 		if (axis._title) {
 			graph._wrapper.text(graph._chartCont, dims[graph.X] + dims[graph.W] / 2,
 				dims[graph.Y] + dims[graph.H] + axis._titleOffset,
-				axis._title, $.extend({textAnchor: 'middle'}, axis._titleFormat || {}));
+				axis._title, jQuery.extend({textAnchor: 'middle'}, axis._titleFormat || {}));
 		}
-		var gl = graph._wrapper.group(graph._chartCont, $.extend({class_: 'xAxis'}, axis._lineFormat));
-		var gt = graph._wrapper.group(graph._chartCont, $.extend({class_: 'xAxisLabels',
+		var gl = graph._wrapper.group(graph._chartCont, jQuery.extend({class_: 'xAxis'}, axis._lineFormat));
+		var gt = graph._wrapper.group(graph._chartCont, jQuery.extend({class_: 'xAxisLabels',
 			textAnchor: 'middle'}, axis._labelFormat));
 		graph._wrapper.line(gl, dims[graph.X], dims[graph.Y] + dims[graph.H],
 		dims[graph.X] + dims[graph.W], dims[graph.Y] + dims[graph.H]);
@@ -1098,7 +1099,7 @@ $.extend(SVGStackedColumnChart.prototype, {
 function SVGRowChart() {
 }
 
-$.extend(SVGRowChart.prototype, {
+jQuery.extend(SVGRowChart.prototype, {
 
 	/* Retrieve the display title for this chart type.
 	   @return  the title */
@@ -1143,7 +1144,7 @@ $.extend(SVGRowChart.prototype, {
 	_drawSeries: function(graph, cur, numSer, barWidth, barGap, dims, xScale, yScale) {
 		var series = graph._series[cur];
 		var g = graph._wrapper.group(this._chart,
-			$.extend({class_: 'series' + cur, fill: series._fill,
+			jQuery.extend({class_: 'series' + cur, fill: series._fill,
 			stroke: series._stroke, strokeWidth: series._strokeWidth},
 			series._settings || {}));
 		for (var i = 0; i < series._values.length; i++) {
@@ -1170,12 +1171,12 @@ $.extend(SVGRowChart.prototype, {
 		// Y-axis
 		var axis = graph.xAxis;
 		if (axis._title) {
-			graph._wrapper.text(graph._chartCont, 0, 0, axis._title, $.extend({textAnchor: 'middle',
+			graph._wrapper.text(graph._chartCont, 0, 0, axis._title, jQuery.extend({textAnchor: 'middle',
 				transform: 'translate(' + (dims[graph.X] - axis._titleOffset) + ',' +
 				(dims[graph.Y] + dims[graph.H] / 2) + ') rotate(-90)'}, axis._titleFormat || {}));
 		}
-		var gl = graph._wrapper.group(graph._chartCont, $.extend({class_: 'yAxis'}, axis._lineFormat));
-		var gt = graph._wrapper.group(graph._chartCont, $.extend(
+		var gl = graph._wrapper.group(graph._chartCont, jQuery.extend({class_: 'yAxis'}, axis._lineFormat));
+		var gt = graph._wrapper.group(graph._chartCont, jQuery.extend(
 			{class_: 'yAxisLabels', textAnchor: 'end'}, axis._labelFormat));
 		graph._wrapper.line(gl, dims[graph.X], dims[graph.Y], dims[graph.X], dims[graph.Y] + dims[graph.H]);
 		if (axis._ticks.major) {
@@ -1200,7 +1201,7 @@ $.extend(SVGRowChart.prototype, {
 function SVGStackedRowChart() {
 }
 
-$.extend(SVGStackedRowChart.prototype, {
+jQuery.extend(SVGStackedRowChart.prototype, {
 
 	/* Retrieve the display title for this chart type.
 	   @return  the title */
@@ -1240,10 +1241,10 @@ $.extend(SVGStackedRowChart.prototype, {
 		graph._drawTitle();
 		graph._wrapper.text(graph._chartCont, dims[graph.X] + dims[graph.W] / 2,
 			dims[graph.Y] + dims[graph.H] + graph.xAxis._titleOffset,
-			$.svg.graphing.region.percentageText,
-			$.extend({textAnchor: 'middle'}, graph.yAxis._titleFormat || {}));
-		var pAxis = $.extend({}, graph._getPercentageAxis());
-		$.extend(pAxis._labelFormat, graph.yAxis._labelFormat || {});
+			jQuery.svg.graphing.region.percentageText,
+			jQuery.extend({textAnchor: 'middle'}, graph.yAxis._titleFormat || {}));
+		var pAxis = jQuery.extend({}, graph._getPercentageAxis());
+		jQuery.extend(pAxis._labelFormat, graph.yAxis._labelFormat || {});
 		graph._drawAxis(pAxis, 'xAxis', dims[graph.X], dims[graph.Y] + dims[graph.H],
 			dims[graph.X] + dims[graph.W], dims[graph.Y] + dims[graph.H]);
 		this._drawYAxis(graph, numVal, barWidth, barGap, dims, yScale);
@@ -1260,7 +1261,7 @@ $.extend(SVGStackedRowChart.prototype, {
 		for (var s = 0; s < numSer; s++) {
 			var series = graph._series[s];
 			var g = graph._wrapper.group(this._chart,
-				$.extend({class_: 'series' + s, fill: series._fill,
+				jQuery.extend({class_: 'series' + s, fill: series._fill,
 				stroke: series._stroke, strokeWidth: series._strokeWidth},
 				series._settings || {}));
 			for (var i = 0; i < series._values.length; i++) {
@@ -1279,14 +1280,14 @@ $.extend(SVGStackedRowChart.prototype, {
 	_drawYAxis: function(graph, numVal, barWidth, barGap, dims, yScale) {
 		var axis = graph.xAxis;
 		if (axis._title) {
-			graph._wrapper.text(graph._chartCont, 0, 0, axis._title, $.extend({textAnchor: 'middle',
+			graph._wrapper.text(graph._chartCont, 0, 0, axis._title, jQuery.extend({textAnchor: 'middle',
 				transform: 'translate(' + (dims[graph.X] - axis._titleOffset) + ',' +
 				(dims[graph.Y] + dims[graph.H] / 2) + ') rotate(-90)'}, axis._titleFormat || {}));
 		}
 		var gl = graph._wrapper.group(graph._chartCont,
-			$.extend({class_: 'yAxis'}, axis._lineFormat));
+			jQuery.extend({class_: 'yAxis'}, axis._lineFormat));
 		var gt = graph._wrapper.group(graph._chartCont,
-			$.extend({class_: 'yAxisLabels', textAnchor: 'end'}, axis._labelFormat));
+			jQuery.extend({class_: 'yAxisLabels', textAnchor: 'end'}, axis._labelFormat));
 		graph._wrapper.line(gl, dims[graph.X], dims[graph.Y],
 			dims[graph.X], dims[graph.Y] + dims[graph.H]);
 		if (axis._ticks.major) {
@@ -1311,7 +1312,7 @@ $.extend(SVGStackedRowChart.prototype, {
 function SVGLineChart() {
 }
 
-$.extend(SVGLineChart.prototype, {
+jQuery.extend(SVGLineChart.prototype, {
 
 	/* Retrieve the display title for this chart type.
 	   @return  the title */
@@ -1362,7 +1363,7 @@ $.extend(SVGLineChart.prototype, {
 			}
 		}
 		var p = graph._wrapper.path(this._chart, path,
-			$.extend({id: 'series' + cur, fill: 'none', stroke: series._stroke,
+			jQuery.extend({id: 'series' + cur, fill: 'none', stroke: series._stroke,
 			strokeWidth: series._strokeWidth}, series._settings || {}));
 		graph._showStatus(p, series._name, 0);
 	}
@@ -1374,7 +1375,7 @@ $.extend(SVGLineChart.prototype, {
 function SVGPieChart() {
 }
 
-$.extend(SVGPieChart.prototype, {
+jQuery.extend(SVGPieChart.prototype, {
 
 	_options: ['explode (number or number[]) - indexes of sections to explode out of the pie',
 		'explodeDist (number) - the distance to move an exploded section',
@@ -1422,7 +1423,7 @@ $.extend(SVGPieChart.prototype, {
 		var xBase = (dims[graph.W] - (numVal * pieGap) - pieGap) / numVal / 2;
 		var yBase = dims[graph.H] / 2;
 		var radius = Math.min(xBase, yBase) - (explode.length > 0 ? explodeDist : 0);
-		var gt = graph._wrapper.group(graph._chartCont, $.extend(
+		var gt = graph._wrapper.group(graph._chartCont, jQuery.extend(
 			{class_: 'xAxisLabels', textAnchor: 'middle'}, graph.xAxis._labelFormat));
 		var gl = [];
 		for (var i = 0; i < numVal; i++) {
@@ -1432,7 +1433,7 @@ $.extend(SVGPieChart.prototype, {
 			for (var j = 0; j < numSer; j++) {
 				var series = graph._series[j];
 				if (i == 0) {
-					gl[j] = graph._wrapper.group(this._chart, $.extend({class_: 'series' + j,
+					gl[j] = graph._wrapper.group(this._chart, jQuery.extend({class_: 'series' + j,
 						fill: series._fill, stroke: series._stroke,
 						strokeWidth: series._strokeWidth}, series._settings || {}));
 				}
@@ -1474,11 +1475,11 @@ function isArray(a) {
 }
 
 // Basic chart types
-$.svg.graphing.addChartType('column', new SVGColumnChart());
-$.svg.graphing.addChartType('stackedColumn', new SVGStackedColumnChart());
-$.svg.graphing.addChartType('row', new SVGRowChart());
-$.svg.graphing.addChartType('stackedRow', new SVGStackedRowChart());
-$.svg.graphing.addChartType('line', new SVGLineChart());
-$.svg.graphing.addChartType('pie', new SVGPieChart());
+jQuery.svg.graphing.addChartType('column', new SVGColumnChart());
+jQuery.svg.graphing.addChartType('stackedColumn', new SVGStackedColumnChart());
+jQuery.svg.graphing.addChartType('row', new SVGRowChart());
+jQuery.svg.graphing.addChartType('stackedRow', new SVGStackedRowChart());
+jQuery.svg.graphing.addChartType('line', new SVGLineChart());
+jQuery.svg.graphing.addChartType('pie', new SVGPieChart());
 
 })(jQuery)
