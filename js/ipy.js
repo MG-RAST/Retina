@@ -10,21 +10,25 @@
         if (index == undefined) {
             index = IPython.notebook.get_selected_index();
         }
-	    return IPython.notebook.get_cell(index).get_text();
+	return IPython.notebook.get_cell(index).get_text();
     }
 
     ipy.write_cell = function (index, text) {
         if (index == undefined) {
             index = IPython.notebook.get_selected_index();
         }
+	if (IPython.notebook.get_cell(index) == null) {
+	    ipy.add_cell(null, null, 'bottom').set_text(text);
+	} else {
 	    IPython.notebook.get_cell(index).set_text(text);
+	}
     }
 
     ipy.append_to_cell = function (index, text) {
         if (index == undefined) {
             index = IPython.notebook.get_selected_index();
         }
-	    IPython.notebook.get_cell(index).set_text(IPython.notebook.get_cell(index).get_text()+"\n"+text);
+	IPython.notebook.get_cell(index).set_text(IPython.notebook.get_cell(index).get_text()+"\n"+text);
     }
 
     ipy.createHTML = function () {
@@ -40,10 +44,10 @@
     // default position is below given index or selected
     // return index of added cell
     ipy.add_cell = function (index, type, position) {
-	    if (type == undefined) {
-	        type = 'code';
-	    }
-	    var cell = undefined;
+	if (type == undefined) {
+	    type = 'code';
+	}
+	var cell = undefined;
         if (position == 'above') {
             cell = IPython.notebook.insert_cell_above(type, index);
         } else if (position == 'bottom') {
