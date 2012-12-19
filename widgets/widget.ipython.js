@@ -70,7 +70,7 @@
 	pull_btn.setAttribute('style', "margin-left: 20px; margin-top: 20px; margin-bottom: 20px;");
 	pull_btn.setAttribute('value', 'load statistical data');
 	pull_btn.addEventListener('click', function(event){
-	    var command = "# initializing api url\napi = 'http://api.metagenomics.anl.gov/api2.cgi'\n\n# retrieving statistical data\nstats_json = ! wget -q -O - '\$api/metagenome_statistics/\$metagenome_id?verbosity=verbose'\n\n# converting json data to python\nstats_data = json.loads( stats_json[0] )";
+	    var command = "# initializing api url\napi = 'http://api.metagenomics.anl.gov/api2.cgi'\n\n# retrieving statistical data\nstats_json = ! wget -q -O - '\$api/metagenome_statistics/\$metagenome_id?verbosity=verbose'\n\n# converting json data to python\nstats_data = json.loads( stats_json[0] )\n\n# get the ncbi tree\nncbi_data_json = ! wget -q -O - 'http://api.metagenomics.anl.gov/api2.cgi/m5nr/hierarchy?source=NCBI'\n\n# convert json data to python\nncbi_data = json.loads( ncbi_data_json[0] )\n\n# create phylum -> domain mapping\nphylum_domain_mapping = {}\nfor k, v in ncbi_data.iteritems():\n\tphylum_domain_mapping[v[1]] = v[0]";
 	    widget.transfer(command, 1);
 	});
 	leftside.appendChild(pull_btn);
@@ -113,7 +113,7 @@
 	    widget.transfer(command, 4);
 	    command = "domain = {'series':'Eukaryota'}";
 	    widget.transfer(command, 5);
-	    command = "# selecting data\nsub_data = stats_data['taxonomy']['order']\ntitle = 'order distribution for all ' + domain['series']\n\n# formatting data\nsub_graph_data = []\nfor item in sub_data:\n\tsub_graph_data.append({'name': item[0], 'data': [int(item[1])]})\n\n# calling the visualization function for subselection\nretinalib.graph(target='2', btype=type, data=sub_graph_data, title=title, x_labels=xlabels, show_legend=True)";
+	    command = "# selecting data\nsub_data = stats_data['taxonomy']['phylum']\nsubtitle = 'phylum distribution for all ' + domain['series']\n\n# formatting data\nsub_graph_data = []\nfor item in sub_data:\n\tif item[0] in phylum_domain_mapping:\n\t\tif (phylum_domain_mapping[item[0]] == domain['series']):\n\t\t\tsub_graph_data.append({'name': item[0], 'data': [int(item[1])]})\n\n# calling the visualization function for subselection\nretinalib.graph(target='2', btype='column', data=sub_graph_data, title=subtitle, x_labels=xlabels, show_legend=True, x_title='')";
 	    widget.transfer(command, 6);
 	    stm.send_message('myframe', "IPython.notebook.execute_all_cells();", 'action');
 	});
