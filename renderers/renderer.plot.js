@@ -48,7 +48,7 @@
 	    title: "Plot",
             author: "Tobias Paczian",
             version: "1.0",
-            requires: [ "jquery.svg.js", "jquery.svggraph.js" ],
+            requires: [ "jquery.svg.js" ],
             defaults: {
 		'title': 'Functions',
 		'title_color': 'black',
