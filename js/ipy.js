@@ -18,10 +18,9 @@
             index = IPython.notebook.get_selected_index();
         }
 	if (IPython.notebook.get_cell(index) == null) {
-	    ipy.add_cell(null, null, 'bottom').set_text(text);
-	} else {
-	    IPython.notebook.get_cell(index).set_text(text);
+	    index = ipy.add_cell(null, null, 'bottom');
 	}
+	IPython.notebook.get_cell(index).set_text(text);
     }
 
     ipy.append_to_cell = function (index, text) {
