@@ -9,12 +9,12 @@
 	<script src="js/bootstrap.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 	<script>
-	Retina.init( { library_resource: "./" } ).then( function () {
-	    Retina.add_renderer({"name": "plot", "resource": "./renderers/",  "filename": "renderer.plot.js" });
+	Retina.init( { library_resource: "js/" } ).then( function () {
+	    Retina.add_renderer({"name": "plot", "resource": "renderers/",  "filename": "renderer.plot.js" });
 	    Retina.load_renderer("plot").then( function () {
 		Retina.Renderer.create("plot", {
 		    target: document.getElementById('target'),
-		    data: Retina.Renderer.plot.exampleData() }).render();
+		    data: Retina.RendererInstances.plot[0].exampleData() }).render();
 	    });
 	});
 	</script>
