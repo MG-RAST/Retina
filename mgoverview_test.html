@@ -7,13 +7,14 @@
 	<script src="js/stm.js"></script>
 	<script src="js/retina.js"></script>
 	<script src="js/bootstrap.min.js"></script>
+	<script src="js/rgbcolor.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 	<script>
-    stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
+    stm.init('http://dunkirk.mcs.anl.gov/~tharriso/mgrast/api2.cgi').then(function() {
 	Retina.init( { library_resource: "js/" } ).then( function () {
 	    Retina.add_widget({"name": "metagenome_overview", "resource": "widgets/",  "filename": "widget.metagenome_overview.js" });
 	    Retina.load_widget("metagenome_overview").then( function () {
-		Retina.Widget.metagenome_overview.create({ target: document.getElementById("content"), id: "mgm4441137.3" });
+		    Retina.Widget.metagenome_overview.create({ target: document.getElementById("content"), id: "mgm4441681.3" });
 	    });
 	});
     });
