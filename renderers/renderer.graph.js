@@ -102,7 +102,7 @@
 	    title: "Graph",
             author: "Tobias Paczian",
             version: "1.0",
-            requires: [ "jquery.svg.js", "jquery.svggraph.js" ],
+            requires: [ "jquery.svg.js" ],
             defaults: {
 		'type': 'column', // [ column, stackedColumn, row, stackedRow, line, pie ]
 		'title': '',
@@ -169,7 +169,7 @@
 			    break;
 			}
 		    }
-		    renderer.settings.onclick({series: title, value: value, label: label, item: this, index: i, series_index: num });
+		    renderer.settings.onclick({series: title, value: value, label: label, item: this, index: i, series_index: num - 1 });
 		}
 	    }
 	},
