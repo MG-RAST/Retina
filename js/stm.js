@@ -77,7 +77,7 @@
 
 	// send out the data
 	frame.postMessage({ 'type': type, 'data': data }, stm.TargetOrigin);
-    }
+    };
 
     // get / set a repository, or get all repos if no argument is passed
     stm.repository = function (name, value) {
@@ -89,8 +89,8 @@
 	} else {
 	    return stm.DataRepositories;
 	}
-    }
-    stm.repositories = function () { return stm.repository(); }
+    };
+    stm.repositories = function () { return stm.repository(); };
     
     // set up / reset the DataHandler, adding initial repositories
     stm.init = function (repo) {
@@ -106,19 +106,6 @@
 	    return stm.add_repository(repo);
 	}
     };
-
-    // get a repository, a repository attribute or the list of all repositories
-    stm.repository = function (name, value) {
-	if (typeof value !== 'undefined' &&
-	    typeof name  !== 'undefined' ) {
-	    return stm.DataRepositories[name] = value;
-	} else if (typeof name !== 'undefined') {
-	    return stm.DataRepositories[name];
-	} else {
-	    return stm.DataRepositories;
-	}
-    }
-    stm.repositories = function () { return stm.repository(); }
     
     // generic data loader
     // given a DOM id, interprets the innerHTML of the element as JSON data and loads it into the DataStore
@@ -365,7 +352,7 @@
 	var magnitude = "B";
 	if (size > 999) {
 	    size = size / 1024;
-	    magnitude = "KB"
+	    magnitude = "KB";
 	}
 	if (size > 999) {
 	    size = size / 1024;
