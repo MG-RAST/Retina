@@ -135,6 +135,18 @@
 	while (new Date() < ms){}
     }
 
+    // get date string from ISO8601 timestamp
+    Retina.date_string = function (timestamp) {
+        var date = new Date(timestamp);
+        return date.toLocaleString();
+    };
+    
+    // awsome code i found to produce RFC4122 complient UUID v4
+    Retina.uuidv4 = function(a,b) {
+        for (b=a=''; a++<36; b+=a*51&52?(a^15?8^Math.random()*(a^20?16:4):4).toString(16):'-');
+        return b;
+    };
+
     Number.prototype.formatString = function(c, d, t) {
 	var n = this, c = isNaN(c = Math.abs(c)) ? 0 : c, d = d == undefined ? "." : d, t = t == undefined ? "," : t, s = n < 0 ? "-" : "", i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", j = (j = i.length) > 3 ? j % 3 : 0;
 	return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
@@ -145,6 +157,7 @@
      */
     var Widget = Retina.Widget = {};
     Widget.extend = function (spec) {
+	var widget = jQuery.extend(true, {}, Widget);
 	spec = (spec || {});
 	var about;
 	switch (typeof spec.about) {
@@ -156,8 +169,8 @@
 	if (spec.setup && typeof spec.setup !== 'function') {
 	    throw "setup() must be a function returning a string.";
 	}
+	jQuery.extend(widget, spec);
 	
-	var widget = Retina.extend({}, spec);
 	Retina.extend(widget, {
 	    target: function (target) {
 		widget.targetElement = target;
@@ -166,38 +179,39 @@
 	    loadRenderer: function (args) {
 		return Retina.load_renderer(args);
 	    },
-	    create: function (element, args) {
-		var widgetInstance = {};
-		Retina.extend(widgetInstance, widget);
-		var promises = widgetInstance.setup(args);
-		if (!jQuery.isArray(promises)) {
-		    throw "setup() needs to return an array";
-		}
-		jQuery.when.apply(this, promises).then(function () {
-		    widgetInstance.display(element, args);
-		});
-		if (widgetInstance.about.name) {
-		    if (typeof(Retina.WidgetInstances[widgetInstance.about.name]) == 'undefined') {
-			Retina.WidgetInstances[widgetInstance.about.name] = [];
-		    }
-		    widgetInstance.index = Retina.WidgetInstances[widgetInstance.about.name].length;
-		    Retina.WidgetInstances[widgetInstance.about.name].push(widgetInstance);
-		} else {
-		    alert('invalid widget structure, missing name');
-		    return;
-		}
-		return widgetInstance;
-	    },
 	    setup: function (args) { return [] },
 	    display: function () {},
 	    getJSON: Retina.getJSON
 	});
-	Retina.extend(widget, Widget);
-	if (about.name) {
-	    Widget[about.name] = widget;
+	if (widget.about.name) {
+	    if (typeof(Retina.WidgetInstances[widget.about.name]) == 'undefined') {
+		Retina.WidgetInstances[widget.about.name] = [];
+	    }
+	    widget.index = Retina.WidgetInstances[widget.about.name].length;
+	    Retina.WidgetInstances[widget.about.name].push(widget);
+	} else {
+	    alert('called invalid renderer, missing about.name');
+	    return null;
 	}
 	return widget;
     };
+
+    Widget.create = function (element, args) {
+	var widgetInstance = jQuery.extend(true, {}, Retina.WidgetInstances[element][0]);
+	widgetInstance.index = Retina.WidgetInstances[element].length;
+	jQuery.extend(true, widgetInstance, args);
+	Retina.WidgetInstances[element].push(widgetInstance);
+	
+	var promises = widgetInstance.setup(args);
+	if (!jQuery.isArray(promises)) {
+	    throw "setup() needs to return an array";
+	}
+	jQuery.when.apply(this, promises).then(function () {
+	    widgetInstance.display(args);
+	});
+	
+	return widgetInstance;
+    }
     
     /* ===================================================
      * Retina.Renderer
@@ -357,7 +371,7 @@
 	    var widget_data = available_widgets[widget];
 	    var script_url = widget_data.resource + widget_data.filename;
 	    jQuery.getScript(script_url).then(function() {
-		var requires = Retina.Widget[widget].about.requires;
+		var requires = Retina.WidgetInstances[widget][0].about.requires;
 		for (var i=0; i<requires.length; i++) {
 		    promises.push(Retina.load_library(requires[i]));
 		}
