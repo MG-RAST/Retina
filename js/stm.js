@@ -10,6 +10,7 @@
     stm.DataRepositoriesCount = 0;
     stm.SourceOrigin = "*";
     stm.TargetOrigin = "*";
+    stm.Authentication = null;
     
 
     // receive messages sent from other frames
@@ -288,7 +289,7 @@
 	
 	var base_url = repo.url;
 	base_url += "/" + type + id + query_params;
-	var xhr = new XMLHttpRequest();
+	var xhr = new XMLHttpRequest(); 
 	xhr.addEventListener("progress", updateProgress, false);
 	if ("withCredentials" in xhr) {
 	    xhr.open('GET', base_url, true);
@@ -326,6 +327,10 @@
 	    console.log("data retrieval was aborted");
 	    return;
 	};
+
+	if (stm.Authentication) {
+	    xhr.setRequestHeader('AUTH', stm.Authentication);
+	}
 	
 	var progressIndicator = document.getElementById('progressIndicator');
 	if (progressIndicator) {

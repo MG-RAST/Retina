@@ -9,9 +9,9 @@
     });
     
     widget.setup = function () {
-	return [ Retina.add_renderer({"name": "listselect", "resource": "./renderers/",  "filename": "renderer.listselect.js" }),
+	return [ Retina.add_renderer({"name": "listselect", "resource": "renderers/",  "filename": "renderer.listselect.js" }),
 		 Retina.load_renderer("listselect"),
-		 Retina.add_renderer({"name": "graph", "resource": "./renderers/",  "filename": "renderer.graph.js" }),
+		 Retina.add_renderer({"name": "graph", "resource": "renderers/",  "filename": "renderer.graph.js" }),
 		 Retina.load_renderer("graph"),
 	         stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 1 } })
 	       ];
@@ -70,7 +70,7 @@
 	pull_btn.setAttribute('style', "margin-left: 20px; margin-top: 20px; margin-bottom: 20px;");
 	pull_btn.setAttribute('value', 'load statistical data');
 	pull_btn.addEventListener('click', function(event){
-	    var command = "# initializing api url\napi = 'http://api.metagenomics.anl.gov/api2.cgi'\n\n# retrieving statistical data\nstats_json = ! wget -q -O - '\$api/metagenome_statistics/\$metagenome_id'\n\n# converting json data to python\nstats_data = json.loads( stats_json[0] )";
+	    var command = "# initializing api url\napi = 'http://api.metagenomics.anl.gov/api2.cgi'\n\n# retrieving statistical data\nstats_json = ! wget -q -O - '\$api/metagenome_statistics/\$metagenome_id?verbosity=verbose'\n\n# converting json data to python\nstats_data = json.loads( stats_json[0] )\n\n# get the ncbi tree\nncbi_data_json = ! wget -q -O - 'http://api.metagenomics.anl.gov/api2.cgi/m5nr/hierarchy?source=NCBI'\n\n# convert json data to python\nncbi_data = json.loads( ncbi_data_json[0] )\n\n# create phylum -> domain mapping\nphylum_domain_mapping = {}\nfor k, v in ncbi_data.iteritems():\n\tphylum_domain_mapping[v[1]] = v[0]";
 	    widget.transfer(command, 1);
 	});
 	leftside.appendChild(pull_btn);
@@ -79,13 +79,11 @@
 	info_title.innerHTML = "<h3>select a statistical info to display</h3>";
 	
 	var info_sel = document.createElement('select');
-	info_sel.innerHTML = "<option>- please select -</option><option>domain distribution</option><option>sequence distribution</option>";
+	info_sel.innerHTML = "<option>- please select -</option><option>taxonomy</option>";
 	info_sel.addEventListener('change', function(event) {
 	    var command = "";
-	    if (this.options[this.selectedIndex].value == 'domain distribution') {
-		command = "# selecting domain data\ndata = stats_data['domain']\ntitle = 'domain distribution'";
-	    } else {
-		command = "# selecting similarity data\ndata = stats_data['sims']\ntitle = 'sequence distribution'";
+	    if (this.options[this.selectedIndex].value == 'taxonomy') {
+		command = "# selecting taxonomic data\ndata = stats_data['taxonomy']['domain']\ntitle = 'domain distribution'";
 	    }
 	    command += "\n\n# formatting data\ngraph_data = []\nfor item in data:\n\tgraph_data.append({'name': item[0], 'data': [int(item[1])]})";
 	    widget.transfer(command, 2);
@@ -111,8 +109,12 @@
 	doit.setAttribute('type', 'button');
 	doit.setAttribute('value', 'show result');
 	doit.addEventListener('click', function(event){
-	    var command = "# initializing renderer\nretinalib = retina.Retina()\nxlabels = [ ' ' ]\n\n# calling the visualization function\nretinalib.barchart(btype=type, data=json.dumps(graph_data), title=title, x_labels=json.dumps(xlabels))";
+	    var command = "# initializing renderer\nretinalib = retina.Retina()\nxlabels = [ ' ' ]\n\n# calling the visualization function\nretinalib.graph(btype=type, data=graph_data, title=title, x_labels=xlabels, show_legend=True, onclick='domain')";
 	    widget.transfer(command, 4);
+	    command = "domain = {'series':'Eukaryota'}";
+	    widget.transfer(command, 5);
+	    command = "# selecting data\nsub_data = stats_data['taxonomy']['phylum']\nsubtitle = 'phylum distribution for all ' + domain['series']\n\n# formatting data\nsub_graph_data = []\nfor item in sub_data:\n\tif item[0] in phylum_domain_mapping:\n\t\tif (phylum_domain_mapping[item[0]] == domain['series']):\n\t\t\tsub_graph_data.append({'name': item[0], 'data': [int(item[1])]})\n\n# calling the visualization function for subselection\nretinalib.graph(target='2', btype='column', data=sub_graph_data, title=subtitle, x_labels=xlabels, show_legend=True, x_title='')";
+	    widget.transfer(command, 6);
 	    stm.send_message('myframe', "IPython.notebook.execute_all_cells();", 'action');
 	});
 
@@ -125,7 +127,7 @@
 
 	// right side
 	var iframe = document.createElement('iframe');
-	iframe.setAttribute('src', "http://140.221.84.122:8888/3698432d-4d82-4e12-a654-35d9f3fc8dc5");
+	iframe.setAttribute('src', "http://140.221.84.122:8888/c5e1a956-a173-446b-9009-e3ace1d8af99");
 	iframe.setAttribute('width', '100%');
 	iframe.setAttribute('height', '750px;');
 	iframe.setAttribute('id', 'myframe');
