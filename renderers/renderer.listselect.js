@@ -167,7 +167,7 @@
 		button_left.addEventListener('click', function () {
 		    for (x=0; x<result_list.options.length; x++) {
 			if (result_list.options[x].selected) {
-			    delete result_list.options[result_list.options[x].value];			
+			    delete Retina.RendererInstances.listselect[index].settings.selection[result_list.options[x].value];			
 			}
 		    }
 		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list);
