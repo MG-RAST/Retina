@@ -13,7 +13,7 @@ stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
     Retina.init( { library_resource: "js/" } ).then( function () {
 	Retina.add_widget({"name": "ipython", "resource": "widgets/",  "filename": "widget.ipython.js" });
 	Retina.load_widget("ipython").then( function () {
-	     Retina.Widget.ipython.create({target: document.getElementById("target")});
+	     Retina.Widget.create('ipython', {target: document.getElementById("target")});
 	});
     });
 });
