@@ -9,7 +9,6 @@
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui.min.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="js/selectBoxIt.js"></script>
     
     <!--basic javascript files-->
     <script type="text/javascript" src="js/stm.js"></script>
@@ -17,7 +16,6 @@
     
     <!--style-->
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/selectBoxIt.css">
     
     <!--initialization-->
     <script type="text/javascript">
@@ -26,7 +24,7 @@
       	    Retina.add_renderer({"name": "listselect", "resource": "renderers/", "filename": "renderer.listselect.js"});
 	        Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
       	    Retina.load_widget("NotebookDashboard").then( function () {
-		        Retina.Widget.NotebookDashboard.create("dashboard", "nb_iframe");
+		        Retina.Widget.create('NotebookDashboard', "nb_iframe");
 	        });
       	});
     });

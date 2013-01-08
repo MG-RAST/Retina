@@ -4,7 +4,7 @@
                 title: "Metagenome Overview Widget",
                 name: "metagenome_overview",
                 author: "Tobias Paczian",
-                requires: [ ]
+                requires: [ "rgbcolor.js" ]
         }
     });
     

@@ -76,7 +76,7 @@
                     <p>Enter name of new notebook:<input id="new_nb_name" style="margin-left:10px;" type="text" value=""></input></p>\
                 </div><div class="modal-footer">\
                     <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>\
-                    <button class="btn btn-success" data-dismiss="modal" onclick="Retina.Widget.NotebookDashboard.new_nb_click()">Launch</button>\
+                    <button class="btn btn-success" data-dismiss="modal" onclick="Retina.Widget.NotebookDashboard.new_nb_click();">Launch</button>\
                 </div>\
             </div><div id="del_nb_modal" class="modal hide fade" role="dialog">\
                 <div class="modal-header">\
@@ -86,7 +86,7 @@
                     <p>Do you wish to delete the selected notebook?</p>\
                 </div><div class="modal-footer">\
                     <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">No</button>\
-                    <button class="btn btn-success" data-dismiss="modal" onclick="Retina.Widget.NotebookDashboard.del_nb_click()">Yes</button>\
+                    <button class="btn btn-success" data-dismiss="modal" onclick="Retina.Widget.NotebookDashboard.del_nb_click();">Yes</button>\
                 </div>\
             </div><div id="ver_nb_modal" class="modal hide fade" role="dialog">\
                 <div class="modal-header">\
@@ -96,12 +96,12 @@
                     <p>Enter name for copy of notebook \'<span id=ver_name_old></span>\':<input id="ver_name_new" style="margin-left:10px;" type="text" value=""></input></p>\
                 </div><div class="modal-footer">\
                     <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>\
-                    <button class="btn btn-success" data-dismiss="modal" aria-hidden="true">Launch</button>\
+                    <button class="btn btn-success" data-dismiss="modal" onclick="Retina.Widget.NotebookDashboard.ver_launch_click();">Launch</button>\
                 </div>\
             </div>';
         iframe_html = '<div class="tabbable" style="margin-top: 15px; margin-left: 15px;">\
-            <ul id="tab_list" class="nav nav-tabs"><li class="hide"><a data-toggle="tab" href="#hidden_dash">Ipython Dashboard</a></li></ul>\
-            <div id="tab_div" class="tab-content"><div id="hidden_dash" class="tab-pane hide"><iframe id="ipython_dash" src="'+widget.nb_server+'" width="95%" height="750"></iframe></div>\
+            <ul id="tab_list" class="nav nav-tabs"><li class="show"><a data-toggle="tab" href="#hidden_dash">Ipython Dashboard</a></li></ul>\
+            <div id="tab_div" class="tab-content"><div id="hidden_dash" class="tab-pane show"><iframe id="ipython_dash" src="'+widget.nb_server+'" width="95%" height="750"></iframe></div>\
             </div>';
         jQuery('#'+dash_div).html(dash_html);
         jQuery('#'+iframe_div).html(iframe_html);
@@ -155,7 +155,7 @@
 
     // populate nb listselect with newest version of each notebook, empty version listselect
     widget.nb_select_refresh = function () {
-        // get notebooks from api        
+        // get notebooks from api
 	    stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
 	        widget.nb_selected = [];
 	        var snbs = widget.nb_sort();
@@ -165,7 +165,6 @@
             widget.ver_list.render();
             jQuery('#dash_head').css('display','inline');
             jQuery('#dash_butt').css('display','inline');
-            widget.ipy_refresh();
         });
     };
 
@@ -201,15 +200,18 @@
             alert("No notebook is selected");
             return;
         }
-        var nb_set = widget.sorted_nbs[sel_nb[0]];        
+        var nb_set = widget.sorted_nbs[sel_nb[0]];    
+        console.log([sel_nb[1], nb_set[0].id]);
         if (sel_nb[1] == nb_set[0].id) {
             var has_uuid = jQuery('#'+sel_nb[0]);
             if (has_uuid.length > 0) {
                 alert('Notebook '+nb_set[0].name+' ('+sel_nb[0]+') is already open');
                 return;
             }
-            widget.nb_create_tab(sel_nb[0], nb_set[0].name);
             widget.nb_select_refresh();
+            widget.ipy_refresh().then(function () {
+                widget.nb_create_tab(sel_nb[0], nb_set[0].name);
+            });
             return;
         } else {
             for (var i in nb_set) {
@@ -219,24 +221,28 @@
                     jQuery('#ver_name_old').html(nb_set[i].name );
                     jQuery('#ver_name_new').val(new_name);
                     jQuery('#ver_nb_modal').modal('show');
-                    new_name = jQuery('#ver_name_new').val();
-                    if (! new_name) {
-                        alert("Please enter a new name for notebook copy.");
-                        return;
-                    } else {
-                        stm.get_objects({"type": "notebook", "id": nb_set[i].id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
-                            widget.ipy_refresh();
-                            widget.nb_create_tab(new_uuid, new_name);
-                            widget.nb_select_refresh();
-                            return;
-                        });
-                    }
+                    return;
                 }
             }
         }
         alert("Error launching notebook. Please try again.");
         widget.nb_select_refresh();
-        return;
+    };
+
+    widget.ver_launch_click = function () {
+        var sel_nb   = widget.nb_selected;
+        var new_name = jQuery('#ver_name_new').val();
+        var new_uuid = widget.uuidv4();
+        if (! new_name) {
+            alert("Please enter a new name for notebook copy.");
+        } else {
+            stm.get_objects({"type": "notebook", "id": sel_nb[1]+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
+                widget.nb_select_refresh();
+                widget.ipy_refresh().then(function () {
+                    widget.nb_create_tab(new_uuid, new_name);
+                });
+            });
+        }
     };
 
     widget.new_nb_click = function () {
@@ -244,9 +250,10 @@
         var new_name = jQuery('#new_nb_name').val();
         if (new_name && widget.nb_template) {
             stm.get_objects({"type": "notebook", "id": widget.nb_template+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
-                widget.ipy_refresh();
-                widget.nb_create_tab(new_uuid, new_name);
                 widget.nb_select_refresh();
+                widget.ipy_refresh().then(function () {
+                    widget.nb_create_tab(new_uuid, new_name);
+                });
             });
         } else {
             alert("Error creating notebook. Please try again.");
@@ -263,6 +270,7 @@
         alert("Currently notebook deletion is not supported.");
         jQuery('#del_nb_modal').modal('hide');
         widget.nb_select_refresh();
+        widget.ipy_refresh();
     };
 
     widget.nb_create_tab = function (uuid, name) {
@@ -279,18 +287,28 @@
     widget.nb_save = function () {
         var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
         if (curr_iframe.length > 0) {
-            stm.send_message(curr_iframe[0].id, 'ipy.notebook_save();', 'action');
-            widget.ipy_refresh();
-            alert("Notebook "+widget.sorted_nbs[curr_iframe[0].id][0].name+" has been saved.");
+            widget.ipy_save(curr_iframe[0].id).then(function() {
+                widget.ipy_refresh().then(function() {
+                    alert("Notebook "+widget.sorted_nbs[curr_iframe[0].id][0].name+" has been saved.");
+                });
+            });
         } else {
-            alert("No notebook is currently selected.")
+            alert("No notebook is currently selected.");
         }
     };
     
+    widget.ipy_save = function (frame) {
+        var promise = jQuery.Deferred();
+        stm.send_message(frame, 'ipy.notebook_save();', 'action');
+        promise.resolve();
+        return promise;
+    };
+    
     widget.ipy_refresh = function () {
-        stm.send_message('ipython_dash', 'ipy.notebook_refresh();', 'action').then(function () {
-            return;
-        });
+        var promise = jQuery.Deferred();
+        stm.send_message('ipython_dash', 'ipy.notebook_refresh();', 'action');
+        promise.resolve();
+        return promise;
     };
 
     widget.transfer = function (iframe, cell, data, append) {
