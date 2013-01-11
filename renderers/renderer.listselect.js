@@ -63,7 +63,8 @@
 		'target': null,
 		'sort': false,
 		'multiple': false, 
-		'no_button': false },
+		'no_button': false,
+		'style': "" },
 	},
 	exampleData: function () {
 	    return { };
@@ -82,7 +83,7 @@
 	    } else {
 	        tstyle += '286px;';
 	    }
-	    target.setAttribute('style', tstyle);
+	    target.setAttribute('style', tstyle+renderer.settings.style);
 	    target.innerHTML = "";
 
 	    // initialize filter attribute
@@ -96,7 +97,7 @@
 		selection_list.setAttribute('multiple', '');
 	    }
 	    selection_list.setAttribute('size', renderer.settings.rows);
-	    renderer.redrawSelection(selection_list);
+	    renderer.redrawSelection(selection_list, index);
 
 	    // create a filter box
 	    var filter = document.createElement('div');
@@ -110,10 +111,10 @@
 	    filter_input.setAttribute('value', renderer.settings.filter_value);
 	    filter_input.addEventListener('keyup', function (event) {
 		if (event.keyCode == 13) {
-		    Retina.RendererInstances.listselect[index].addBreadcrumb();
+		    Retina.RendererInstances.listselect[index].addBreadcrumb(index);
 		}
 		Retina.RendererInstances.listselect[index].settings.filter_value = filter_input.value;
-		Retina.RendererInstances.listselect[index].redrawSelection(selection_list);
+		Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
 	    });
 	    var filter_select = document.createElement('button');
 	    filter_select.setAttribute('class', 'btn dropdown-toggle');
@@ -144,7 +145,7 @@
 		bc_button.setAttribute('name', i);
 		bc_button.innerHTML = renderer.settings.filter_breadcrumbs[i][0]+": "+renderer.settings.filter_breadcrumbs[i][1]+' <span style="font-size: 11px; color: gray;">x</span>';
 		bc_button.addEventListener('click', function (event) {
-		    Retina.RendererInstances.listselect[index].removeBreadcrumb(this);
+		    Retina.RendererInstances.listselect[index].removeBreadcrumb(this, index);
 		});
 		filter_breadcrumbs.appendChild(bc_button);
 	    }
@@ -156,7 +157,7 @@
 		var result_list = document.createElement('select');
 		result_list.setAttribute('multiple', '');
 		result_list.setAttribute('size', renderer.settings.rows);
-		renderer.redrawResultlist(result_list);
+		renderer.redrawResultlist(result_list, index);
 		
 		// create the action buttons
 		var button_span = document.createElement('span');
@@ -170,8 +171,8 @@
 			    delete Retina.RendererInstances.listselect[index].settings.selection[result_list.options[x].value];			
 			}
 		    }
-		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list);
-		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list);
+		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list, index);
+		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
 		});
 		var button_right = document.createElement('a');
 		button_right.setAttribute('class', 'btn btn-small');
@@ -183,16 +184,16 @@
 			    Retina.RendererInstances.listselect[index].settings.selection[selection_list.options[x].value] = 1;
 			}
 		    }
-		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list);
-		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list);
+		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list, index);
+		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
 		});
 		var button_x = document.createElement('a');
 		button_x.setAttribute('class', 'btn btn-small');
 		button_x.innerHTML = '<i class="icon-remove"></i>';
 		button_x.addEventListener('click', function () {
 		    Retina.RendererInstances.listselect[index].settings.selection = {};
-		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list);
-		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list);
+		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list, index);
+		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
 		});
 		button_span.appendChild(button_left);
 		button_span.appendChild(button_x);
@@ -238,7 +239,8 @@
 	    }
 	},
 	// add a breadcrumb to the list
-	addBreadcrumb: function () {
+	addBreadcrumb: function (index) {
+	    renderer = Retina.RendererInstances.listselect[index];
 	    if (renderer.settings.filter_value != "") {
 		renderer.settings.filter_breadcrumbs.push([renderer.settings.filter_attribute, renderer.settings.filter_value]);
 		renderer.settings.filter_value = "";
@@ -247,13 +249,15 @@
 	    }
 	},
 	// remove a breadcrumb from the list
-	removeBreadcrumb: function (button) {
+	removeBreadcrumb: function (button, index) {
+	    renderer = Retina.RendererInstances.listselect[index];
 	    renderer.settings.filter_breadcrumbs.splice(button.name, 1);
 	    renderer.settings.filter_value = '';
 	    renderer.render();
 	},
 	// redraw the result list (right)
-	redrawResultlist: function (result_list) {  
+	redrawResultlist: function (result_list, index) {  
+	    renderer = Retina.RendererInstances.listselect[index];
 	    var result_list_array = [];
 	    for (i=0; i<renderer.settings.data.length; i++) {
 		if (renderer.settings.selection[renderer.settings.data[i][renderer.settings.value]]) {
@@ -270,17 +274,18 @@
 	    result_list.innerHTML = result_list_string;
 	},
 	// redraw the selection list (left)
-	redrawSelection: function (selection_list) {
+	redrawSelection: function (selection_list, index) {
+	    renderer = Retina.RendererInstances.listselect[index];
 	    // initialize the filter
 	    renderer.settings.filtered_data = renderer.settings.data;
 
 	    // apply all filter breadcrumbs
 	    for (i=0; i<renderer.settings.filter_breadcrumbs.length; i++) {
-		renderer.settings.filtered_data = renderer.filter({ data: renderer.settings.filtered_data, value: renderer.settings.filter_breadcrumbs[i][1], type: renderer.settings.filter_type, attribute: renderer.settings.filter_breadcrumbs[i][0] });
+		renderer.settings.filtered_data = renderer.filter({ data: renderer.settings.filtered_data, value: renderer.settings.filter_breadcrumbs[i][1], type: renderer.settings.filter_type, attribute: renderer.settings.filter_breadcrumbs[i][0] }, index);
 	    }
 
 	    // filter the list with the current filter
-	    renderer.settings.filtered_data = renderer.filter({ data: renderer.settings.filtered_data, value: renderer.settings.filter_value, type: renderer.settings.filter_type, attribute: renderer.settings.filter_attribute });
+	    renderer.settings.filtered_data = renderer.filter({ data: renderer.settings.filtered_data, value: renderer.settings.filter_value, type: renderer.settings.filter_type, attribute: renderer.settings.filter_attribute }, index);
 
 	    // sort the list
 	    if (renderer.settings.sort) {
@@ -299,7 +304,8 @@
 	    return;
 	},
 	// filter the data according to all breadcrumbs and the current filter
-	filter: function(settings) {
+	filter: function(settings, index) {
+	    renderer = Retina.RendererInstances.listselect[index];
 	    var results = [];
 	    for (x=0;x<settings.data.length;x++) {
 		if (typeof(renderer.settings.selection[x]) == 'undefined') {
