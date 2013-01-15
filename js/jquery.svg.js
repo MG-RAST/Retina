@@ -2881,6 +2881,7 @@ function SVGPlot(wrapper) {
 	this._gridlines = []; // The formatting of the x- and y-gridlines
 	this._equalXY = true; // True for equal-sized x- and y-units, false to fill available space
 	this._functions = []; // The functions to be plotted, each is an object
+    this.plotPoints = []; // The points to be plotted
 	this._onstatus = null; // The callback function for status updates
 	this._uuid = new Date().getTime();
 	this._plotCont = this._wrapper.svg(0, 0, 0, 0, {class_: 'svg-plot'}); // The main container for the plot
@@ -3108,6 +3109,9 @@ jQuery.extend(SVGPlot.prototype, {
 		for (var i = 0; i < this._functions.length; i++) {
 			this._plotFunction(this._functions[i], i);
 		}
+	    if (this.plotPoints.length) {
+		this._plotPoints(this.plotPoints);
+	    }
 		this._drawTitle();
 		this._drawLegend();
 	},
@@ -3216,13 +3220,13 @@ jQuery.extend(SVGPlot.prototype, {
 				var len = (cur == major ? size : size / 2);
 				var xy = (horiz ? cur - axis._scale.min : axis._scale.max - cur) *
 					scales[horiz ? 0 : 1] + (horiz ? dims[this.X] : dims[this.Y]);
-				this._wrapper.line(gl, (horiz ? xy : zero + len * offsets[0]),
+				this._wrapper.line(this._plotCont, (horiz ? xy : zero + len * offsets[0]),
 					(horiz ? zero + len * offsets[0] : xy),
 					(horiz ? xy : zero + len * offsets[1]),
 					(horiz ? zero + len * offsets[1] : xy));
 				if (cur == major && cur != 0) {
-					this._wrapper.text(gt, (horiz ? xy : zero - size),
-						(horiz ? zero - size : xy), '' + cur);
+					this._wrapper.text(this._plotCont, (horiz ? xy : zero - size),
+						(horiz ? zero + size + 12 : xy), '' + cur);
 				}
 				major += (cur == major ? axis._ticks.major : 0);
 				minor += (cur == minor ? axis._ticks.minor : 0);
@@ -3267,7 +3271,33 @@ jQuery.extend(SVGPlot.prototype, {
 			strokeWidth: fn._strokeWidth}, fn._settings || {}));
 		this._showStatus(p, fn._name);
 	},
-
+    
+    /* Plot a list of points */
+    _plotPoints: function(points) {
+	var scales = this._getScales();
+	var dims = this._getDims();
+	var zerox = dims[0] + parseInt(dims[2] / 2);
+	var zeroy = dims[1] + parseInt(dims[3] / 2);
+	var psettings = { size: 6, shape: 'circle', 'filled': false, color: 'black' };
+	for (i=0;i<points.length;i++) {
+	    var p = points[i];
+	    jQuery.extend(psettings, p);
+	    switch (p.shape) {
+	    case 'circle':
+		this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
+		break;
+	    case 'square':
+		this._wrapper.rect(this._plot, p.x * scales[0] + zerox - (p.size / 2), zeroy - (p.y * scales[1]) - (p.size / 2), p.size, p.size, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
+		break;
+	    case 'triangle':
+		this._wrapper.polygon(this._plot, [ [ p.x * scales[0] + zerox - (p.size / 2), zeroy - (p.y * scales[1]) - (p.size / 2) ],
+						    [ p.x * scales[0] + zerox + (p.size / 2), zeroy - (p.y * scales[1]) - (p.size / 2) ],
+						    [ p.x * scales[0] + zerox, zeroy - (p.y * scales[1]) + (p.size / 2) ] ], { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
+		break;
+	    }
+	}
+    },
+    
 	/* Draw the plot title - centred. */
 	_drawTitle: function() {
 		this._wrapper.text(this._plotCont, this._getValue(this._plotCont, 'width') / 2,
