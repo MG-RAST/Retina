@@ -147,6 +147,17 @@
         return b;
     };
 
+    Retina.findPos = function (obj) {
+	var curleft = curtop = 0;
+	if (obj.offsetParent) {
+	    do {
+		curleft += obj.offsetLeft;
+		curtop += obj.offsetTop;
+	    } while (obj = obj.offsetParent);
+	}
+	return [curleft,curtop];
+    }
+
     Number.prototype.formatString = function(c, d, t) {
 	var n = this, c = isNaN(c = Math.abs(c)) ? 0 : c, d = d == undefined ? "." : d, t = t == undefined ? "," : t, s = n < 0 ? "-" : "", i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", j = (j = i.length) > 3 ? j % 3 : 0;
 	return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
@@ -172,10 +183,6 @@
 	jQuery.extend(widget, spec);
 	
 	Retina.extend(widget, {
-	    target: function (target) {
-		widget.targetElement = target;
-		return widget;
-	    },
 	    loadRenderer: function (args) {
 		return Retina.load_renderer(args);
 	    },
@@ -201,14 +208,8 @@
 	widgetInstance.index = Retina.WidgetInstances[element].length;
 	jQuery.extend(true, widgetInstance, args);
 	Retina.WidgetInstances[element].push(widgetInstance);
-	
-	var promises = widgetInstance.setup(args);
-	if (!jQuery.isArray(promises)) {
-	    throw "setup() needs to return an array";
-	}
-	jQuery.when.apply(this, promises).then(function () {
-	    widgetInstance.display(args);
-	});
+
+	widgetInstance.display(args);
 	
 	return widgetInstance;
     }
@@ -349,7 +350,7 @@
 		}
 	    });
 	}
-	
+
 	return promise;
     };
     
@@ -374,6 +375,10 @@
 		var requires = Retina.WidgetInstances[widget][0].about.requires;
 		for (var i=0; i<requires.length; i++) {
 		    promises.push(Retina.load_library(requires[i]));
+		}
+		var setup = Retina.WidgetInstances[widget][0].setup();
+		for (var i=0; i<setup.length; i++) {
+		    promises.push(setup[i]);
 		}
 		
 		jQuery.when.apply(this, promises).then(function() {
