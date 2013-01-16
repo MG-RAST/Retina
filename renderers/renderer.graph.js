@@ -71,10 +71,10 @@
         bottom
 
   chartArea (ARRAY of FLOAT)
-     The values passed correspond to the left, top, right and bottom margin of the chart area respectively. The position is relative to the top left corner of the containing div. Values less than 1 are interpreted as fractions. Values greater than 1 are interpreted as absolute pixel values.
+     The values passed correspond to the left, top, width and height of the chart area respectively. The position is relative to the top left corner of the containing div. Values less than 1 are interpreted as fractions. Values greater than 1 are interpreted as absolute pixel values. Note that the labels are drawn to the left and bottom of these margins.
 
   legendArea (ARRAY of FLOAT)
-      If this parameter is set, the legend_position parameter will not be used. Instead pass an array of floats. The values correspond to the left, top, right and bottom margin of the legend area respectively. The position is relative to the top left corner of the containing div. Values less than 1 are interpreted as fractions. Values greater than 1 are interpreted as absolute pixel values.
+      If this parameter is set, the legend_position parameter will not be used. Instead pass an array of floats. The values correspond to the left, top, width and height of the legend area respectively. The position is relative to the top left corner of the containing div. Values less than 1 are interpreted as fractions. Values greater than 1 are interpreted as absolute pixel values.
   
   width (INT)
       The width of the graph in pixel (including legend).
@@ -129,7 +129,7 @@
 	},
 	exampleData: function () {
 	    return [ { "name": 'IE', "data": [95, 91, 78, 66] },
-		     { "name": 'Netscape', "data": [3, 12, 18, 18] },
+		     { "name": 'Netscape is one browser, but we might want another', "data": [3, 12, 18, 18] },
 		     { "name": 'Firefox', "data": [0, 4, 8, 9] },
 		     { "name": 'Chrome', "data": [0, 8, 18, 22] },
 		     { "name": 'Gecko', "data": [1, 2, 3, 33] } ];
@@ -142,7 +142,7 @@
 	    var target = renderer.settings.target;
 	    var index = renderer.index;
 	    target.innerHTML = "<div id='graph_div"+index+"'></div>";
-	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
+	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px; border: 1px solid blue;");
 	    jQuery('#graph_div'+index).svg();
 	    Retina.RendererInstances.graph[index].drawImage(jQuery('#graph_div'+index).svg('get'));
 	    
@@ -252,7 +252,7 @@
 	    svg.graph.status(Retina.RendererInstances.graph[renderer.index].hover);
 
 	    svg.graph.noDraw(). 
-		legend.show(renderer.settings.show_legend).area(renderer.settings.legendArea ? renderer.settings.legenArea : legendAreas[chartLegend]).end();
+		legend.show(renderer.settings.show_legend).area(renderer.settings.legendArea ? renderer.settings.legendArea : legendAreas[chartLegend]).end();
 	    for (i=0; i< renderer.settings.data.length; i++) {
 		svg.graph.noDraw().series(i).format(renderer.settings.data[i].fill || fills[i]).end();
 	    }
