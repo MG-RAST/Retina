@@ -1916,7 +1916,7 @@ jQuery.extend(SVGGraph.prototype, {
 		var dims = this._getDims(this.legend._area);
 		this._wrapper.rect(g, dims[this.X], dims[this.Y], dims[this.W], dims[this.H],
 			this.legend._bgSettings);
-		var horiz =  dims[this.W] > dims[this.H];
+	    var horiz = false;// dims[this.W] > dims[this.H];
 		var numSer = this._series.length;
 		var offset = (horiz ? dims[this.W] : dims[this.H]) / numSer;
 		var xBase = dims[this.X] + 5;
@@ -3313,7 +3313,7 @@ jQuery.extend(SVGPlot.prototype, {
 		var dims = this._getDims(this.legend._area);
 		this._wrapper.rect(g, dims[this.X], dims[this.Y], dims[this.W], dims[this.H],
 			this.legend._bgSettings);
-		var horiz =  dims[this.W] > dims[this.H];
+	    var horiz = false;// dims[this.W] > dims[this.H];
 		var numFn = this._functions.length;
 		var offset = (horiz ? dims[this.W] : dims[this.H]) / numFn;
 		var xBase = dims[this.X] + 5;
