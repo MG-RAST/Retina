@@ -3410,7 +3410,7 @@ jQuery.extend(SVGPlot.prototype, {
 	var psettings = { size: 6, shape: 'circle', 'filled': false, color: 'black' };
 	for (i=0;i<points.length;i++) {
 	    var p = points[i];
-	    jQuery.extend(p, psettings);
+	    jQuery.extend(psettings, p);
 	    switch (p.shape) {
 	    case 'circle':
 		this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
