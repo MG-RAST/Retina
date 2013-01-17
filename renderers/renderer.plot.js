@@ -54,50 +54,40 @@
 		'title_color': 'black',
 		'default_line_color': 'black',
 		'default_line_width': 1,
-		'show_legend': true,
+		'show_legend': false,//true,
 		'legend_position': 'left',
 		'width': 800,
 		'height': 400,
+		'x_min': 0,
+		'x_max': 100,
+		'y_min': 0,
+		'y_max': 100,
 		'data': [ ] }
 	},
 	exampleData: function () {
-	    return [ { "name": 'Sine', "function": Math.sin },
-		     { "name": 'Cosine', "function": Math.cos },
-		     { "name": 'Decaying', "function": renderer.decay },
-		     { "name": 'Square', "function": renderer.square, "lineWidth": 3 }
-	    ];
+	    return [ ];
         },
-
+	
 	render: function () {
 	    renderer = this;
-
+	    
 	    // get the target div
 	    var target = renderer.settings.target;
 	    var index = 0;
 	    while (document.getElementById('plot_div'+index)) {
-		    index++;
+		index++;
 	    }
 	    target.innerHTML = "<div id='plot_div"+index+"'></div>";
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
 	    jQuery('#plot_div'+index).svg();
-	    Retina.RendererInstances.plot[index].drawImage(jQuery('#plot_div'+index).svg('get'));
+	    Retina.RendererInstances.plot[renderer.index].drawImage(jQuery('#plot_div'+index).svg('get'), renderer.index);
 	    
 	    return renderer;
 	},
-
-	square: function (x) {
-	    return x * x;
-	},
-
-	decay: function (x) { 
-	    return Math.exp(-0.4 * x) * Math.sin(x); 
-	},
-
-	drawImage: function (svg) {
-
-	    var plotZooms   = [ [ -2, 2, -1.5, 1.5 ],
-				[ -10, 10, -10, 10 ],
-				[ -20, 20, -10, 10 ] ]; 
+	
+	drawImage: function (svg, index) {
+	    renderer = Retina.RendererInstances.plot[index];
+	    
 	    var chartAreas  = [ [ 0.1, 0.1, 0.95, 0.9 ],
 				[ 0.2, 0.1, 0.95, 0.9 ],
 				[ 0.1, 0.1, 0.8, 0.9 ],
@@ -116,41 +106,40 @@
 			   '#2F96B4', // lightblue
 			   '#bd2fa6'  // purple 
 			 ];
-
+	    
 	    svg.plot.noDraw().title(renderer.settings.title, renderer.settings.title_color);
 	    for (i=0;i<renderer.settings.data.length;i++) {
-		    var d = renderer.settings.data[i];
-		    svg.plot.noDraw().addFunction(d.name, d['function'], d.color || colors[i] || renderer.settings.default_line_color, d.lineWidth || renderer.settings.default_line_width);
+		var d = renderer.settings.data[i];
 	    }
-	    svg.plot.noDraw().format('white', 'gray'). 
-		gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
-	    svg.plot.xAxis.scale(-1, 3.5).ticks(10, 1); 
-	    svg.plot.yAxis.scale(-1.5, 1.5).ticks(2, 1); 
-	    svg.plot.legend.settings({fill: 'white', 
-				      stroke: 'gray'});
-
-	    var plotZoom = 2; 
-	    var plotEqual = 1; 
+	    
+	    svg.plot.plotPoints = [ { x: -8, y: -10, size: 6, filled: true, color: 'blue', shape: 'circle' },
+				    { x: 5, y: 5, size: 6, filled: false, color: 'red', shape: 'square' },
+				    { x: 15, y: 5, size: 6, filled: false, color: 'orange', shape: 'triangle' } ];
+	    svg.plot.connected = true;
+	    
+	    svg.plot.noDraw().format('white', 'gray').gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
+	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max).ticks(parseInt((renderer.settings.x_max - renderer.settings.x_min) / 10), parseInt((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw'); 
+	    svg.plot.yAxis.scale(renderer.settings.y_min, renderer.settings.y_max).ticks(parseInt((renderer.settings.y_max - renderer.settings.y_min) / 10), parseInt((renderer.settings.y_max - renderer.settings.y_min) / 5), 8, 'sw'); 
+	    svg.plot.legend.settings({fill: 'white', stroke: 'gray'});
+	    
 	    var plotLegend = 0;
 	    if (renderer.settings.show_legend) {
 		switch (renderer.settings.legend_position) {
-		    case 'left': plotLegend = 1; 
-		        break;
-		    case 'right': plotLegend = 2;
-		        break;
-		    case 'top': plotLegend = 3;
-		        break;
-		    case 'bottom': plotLegend = 4;
-		        break;
-		    default: plotLegend = 1;
-		        break;
+		case 'left': plotLegend = 1; 
+		    break;
+		case 'right': plotLegend = 2;
+		    break;
+		case 'top': plotLegend = 3;
+		    break;
+		case 'bottom': plotLegend = 4;
+		    break;
+		default: plotLegend = 1;
+		    break;
 		}
 	    }
 	    svg.plot.noDraw(). 
-		legend.show(plotLegend).area(legendAreas[plotLegend]).end(). 
-		xAxis.scale(plotZooms[plotZoom][0], plotZooms[plotZoom][1]).end(). 
-		yAxis.scale(plotZooms[plotZoom][2], plotZooms[plotZoom][3]).end(). 
-		area(chartAreas[plotLegend]).equalXY(plotEqual).redraw(); 
+		legend.show(plotLegend).area(legendAreas[plotLegend]).end().
+		area(chartAreas[plotLegend]).redraw();
 	}
     });
 }).call(this);

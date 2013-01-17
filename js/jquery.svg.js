@@ -2978,6 +2978,7 @@ jQuery.svg.graphing.addChartType('row', new SVGRowChart());
 jQuery.svg.graphing.addChartType('stackedRow', new SVGStackedRowChart());
 jQuery.svg.graphing.addChartType('line', new SVGLineChart());
 jQuery.svg.graphing.addChartType('pie', new SVGPieChart());
+jQuery.svg.graphing.addChartType('stackedArea', new SVGStackedAreaChart());
 
 jQuery.svg.addExtension('plot', SVGPlot);
 
@@ -3343,7 +3344,7 @@ jQuery.extend(SVGPlot.prototype, {
 					(horiz ? zero + len * offsets[1] : xy));
 				if (cur == major && cur != 0) {
 					this._wrapper.text(this._plotCont, (horiz ? xy : zero - size),
-						(horiz ? zero + size + 12 : xy), '' + cur);
+							   (horiz ? zero + size + 12 : xy + (size / 2)), '' + cur, { textAnchor: (horiz ? 'middle' : 'end')});
 				}
 				major += (cur == major ? axis._ticks.major : 0);
 				minor += (cur == minor ? axis._ticks.minor : 0);
