@@ -115,7 +115,7 @@
 	    svg.plot.plotPoints = [ { x: -8, y: -10, size: 6, filled: true, color: 'blue', shape: 'circle' },
 				    { x: 5, y: 5, size: 6, filled: false, color: 'red', shape: 'square' },
 				    { x: 15, y: 5, size: 6, filled: false, color: 'orange', shape: 'triangle' } ];
-	    svg.plot.connected = true;
+	    svg.plot.connected = false;
 	    
 	    svg.plot.noDraw().format('white', 'gray').gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
 	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max).ticks(parseInt((renderer.settings.x_max - renderer.settings.x_min) / 10), parseInt((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw'); 
