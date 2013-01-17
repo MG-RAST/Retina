@@ -2531,30 +2531,41 @@ jQuery.extend(SVGStackedAreaChart.prototype, {
 		graph._drawLegend();
 	},
 
-	/* Plot all of the areas. */
-	_drawAreas: function(graph, numSer, numVal, dims, xScale, yScale) {
-		var totals = graph._getTotals();
-		var accum = [];
-		for (var i = 0; i < numVal; i++) {
-			accum[i] = 0;
+    /* Plot all of the areas. */
+    _drawAreas: function(graph, numSer, numVal, dims, xScale, yScale) {
+	var totals = graph._getTotals();
+	var accum = [];
+	for (var i = 0; i < numVal; i++) {
+	    accum[i] = 0;
+	}
+	var paths = [];
+	for (var s = 0; s < numSer; s++) {
+	    paths[s] = "";
+	    var series = graph._series[s];
+	    for (var i = 0; i < series._values.length; i++) {
+		accum[i] += series._values[i];
+		paths[s] += (i==0) ? "M" : "L";
+		paths[s] += (dims[graph.X] + xScale * i) + "," + (dims[graph.Y] + yScale * (totals[i] - accum[i]) / totals[i]);
+		if (i == series._values.length - 1) {
+		    paths[s] += "L" + (dims[graph.X] + xScale * (i+1)) + "," + (dims[graph.Y] + yScale * (totals[i] - accum[i]) / totals[i]);
 		}
-		for (var s = 0; s < numSer; s++) {
-			var series = graph._series[s];
-			var g = graph._wrapper.group(this._chart,
-				jQuery.extend({class_: 'series' + s, fill: series._fill,
-				stroke: series._stroke, strokeWidth: series._strokeWidth},
-				series._settings || {}));
-			for (var i = 0; i < series._values.length; i++) {
-				accum[i] += series._values[i];
-				var r = graph._wrapper.rect(g,
-					dims[graph.X] + xScale * i,
-					dims[graph.Y] + yScale * (totals[i] - accum[i]) / totals[i],
-					xScale, yScale * series._values[i] / totals[i]);
-				graph._showStatus(r, series._name,
-					roundNumber(series._values[i] / totals[i] * 100, 2));
-			}
+	    }
+	    if (s==0) {
+		paths[s] += "L"+(dims[graph.X] + xScale * series._values.length)+","+(dims[graph.Y] + dims[graph.H])+"L"+dims[graph.X]+","+(dims[graph.Y] + dims[graph.H]);
+	    } else {
+		for (var i = series._values.length - 1; i > -1 ; i--) {
+		    if (i == series._values.length - 1) {
+			paths[s] += "L" + (dims[graph.X] + xScale * (i+1)) + "," + (dims[graph.Y] + yScale * (totals[i] - accum[i] + series._values[i]) / totals[i]);
+		    }
+		    paths[s] += "L"+(dims[graph.X] + xScale * i) + "," + (dims[graph.Y] + yScale * (totals[i] - accum[i] + series._values[i]) / totals[i]);
 		}
-	},
+	    }
+	}
+	for (i=0;i<paths.length;i++) {
+	    var series = graph._series[i];
+	    graph._wrapper.path(this._chart, paths[i], { fill: series._fill, stroke: series._stroke, strokeWidth: series._strokeWidth});
+	}
+    },
 
 	/* Draw the x-axis and its ticks. */
 	_drawXAxis: function(graph, numVal, dims, xScale) {

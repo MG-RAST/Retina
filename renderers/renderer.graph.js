@@ -13,6 +13,7 @@
         row
         stackedRow
         line
+	stackedArea
       Default is column.
 
   title (STRING)
@@ -104,7 +105,7 @@
             version: "1.0",
             requires: [ "jquery.svg.js" ],
             defaults: {
-		'type': 'column', // [ column, stackedColumn, row, stackedRow, line, pie ]
+		'type': 'column', // [ column, stackedColumn, row, stackedRow, line, pie, stackedArea ]
 		'title': '',
 		'title_color': 'black',
 		'x_title': '',
