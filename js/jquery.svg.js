@@ -2479,6 +2479,114 @@ jQuery.extend(SVGStackedColumnChart.prototype, {
 
 //------------------------------------------------------------------------------
 
+/* Draw a stacked column bar chart. */
+function SVGStackedAreaChart() {
+}
+
+jQuery.extend(SVGStackedAreaChart.prototype, {
+
+	/* Retrieve the display title for this chart type.
+	   @return  the title */
+	title: function() {
+		return 'Stacked area chart';
+	},
+
+	/* Retrieve a description of this chart type.
+	   @return  its description */
+	description: function() {
+		return 'Compare sets of values as areas showing ' +
+			'relative contributions to the whole for each category.';
+	},
+
+	/* Retrieve a list of the options that may be set for this chart type.
+	   @return  options list */
+	options: function() {
+		return barOptions;
+	},
+
+	/* Actually draw the graph in this type's style.
+	   @param  graph  (object) the SVGGraph object */
+	drawGraph: function(graph) {
+		var bg = graph._drawChartBackground(true, true);
+		var dims = graph._getDims();
+		if (graph._gridlines[0] && graph.xAxis._ticks.major) {
+			graph._drawGridlines(bg, graph._getPercentageAxis(), true, dims, graph._gridlines[0]);
+		}
+		var numSer = graph._series.length;
+		var numVal = (numSer ? (graph._series[0])._values.length : 0);
+		var xScale = dims[graph.W] / numVal;
+		var yScale = dims[graph.H];
+		this._chart = graph._wrapper.group(graph._chartCont, {class_: 'chart'});
+		this._drawAreas(graph, numSer, numVal, dims, xScale, yScale);
+		graph._drawTitle();
+		graph._wrapper.text(graph._chartCont, 0, 0, jQuery.svg.graphing.region.percentageText,
+			jQuery.extend({textAnchor: 'middle', transform: 'translate(' +
+			(dims[graph.X] - graph.yAxis._titleOffset) + ',' +
+			(dims[graph.Y] + dims[graph.H] / 2) + ') rotate(-90)'}, graph.yAxis._titleFormat || {}));
+		var pAxis = jQuery.extend({}, graph._getPercentageAxis());
+		jQuery.extend(pAxis._labelFormat, graph.yAxis._labelFormat || {});
+		graph._drawAxis(pAxis, 'yAxis', dims[graph.X], dims[graph.Y],
+			dims[graph.X], dims[graph.Y] + dims[graph.H]);
+		this._drawXAxis(graph, numVal, dims, xScale);
+		graph._drawLegend();
+	},
+
+	/* Plot all of the areas. */
+	_drawAreas: function(graph, numSer, numVal, dims, xScale, yScale) {
+		var totals = graph._getTotals();
+		var accum = [];
+		for (var i = 0; i < numVal; i++) {
+			accum[i] = 0;
+		}
+		for (var s = 0; s < numSer; s++) {
+			var series = graph._series[s];
+			var g = graph._wrapper.group(this._chart,
+				jQuery.extend({class_: 'series' + s, fill: series._fill,
+				stroke: series._stroke, strokeWidth: series._strokeWidth},
+				series._settings || {}));
+			for (var i = 0; i < series._values.length; i++) {
+				accum[i] += series._values[i];
+				var r = graph._wrapper.rect(g,
+					dims[graph.X] + xScale * i,
+					dims[graph.Y] + yScale * (totals[i] - accum[i]) / totals[i],
+					xScale, yScale * series._values[i] / totals[i]);
+				graph._showStatus(r, series._name,
+					roundNumber(series._values[i] / totals[i] * 100, 2));
+			}
+		}
+	},
+
+	/* Draw the x-axis and its ticks. */
+	_drawXAxis: function(graph, numVal, dims, xScale) {
+		var axis = graph.xAxis;
+		if (axis._title) {
+			graph._wrapper.text(graph._chartCont, dims[graph.X] + dims[graph.W] / 2,
+				dims[graph.Y] + dims[graph.H] + axis._titleOffset,
+				axis._title, jQuery.extend({textAnchor: 'middle'}, axis._titleFormat || {}));
+		}
+		var gl = graph._wrapper.group(graph._chartCont, jQuery.extend({class_: 'xAxis'}, axis._lineFormat));
+		var gt = graph._wrapper.group(graph._chartCont, jQuery.extend({class_: 'xAxisLabels',
+			textAnchor: 'middle'}, axis._labelFormat));
+		graph._wrapper.line(gl, dims[graph.X], dims[graph.Y] + dims[graph.H],
+		dims[graph.X] + dims[graph.W], dims[graph.Y] + dims[graph.H]);
+		if (axis._ticks.major) {
+			var offsets = graph._getTickOffsets(axis, true);
+			for (var i = 1; i < numVal; i++) {
+				var x = dims[graph.X] + xScale * i;
+				graph._wrapper.line(gl, x, dims[graph.Y] + dims[graph.H] + offsets[0] * axis._ticks.size,
+					x, dims[graph.Y] + dims[graph.H] + offsets[1] * axis._ticks.size);
+			}
+			for (var i = 0; i < numVal; i++) {
+			    var x = dims[graph.X] + xScale * (i + 0.5);
+			    graph._wrapper.text(gt, x, dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size,
+						(axis._labels ? axis._labels[i] : '' + i));
+			}
+		}
+	}
+});
+
+//------------------------------------------------------------------------------
+
 /* Draw a standard grouped row bar chart. */
 function SVGRowChart() {
 }
@@ -2736,6 +2844,7 @@ jQuery.extend(SVGLineChart.prototype, {
 	_drawSeries: function(graph, cur, dims, xScale, yScale) {
 		var series = graph._series[cur];
 		var path = graph._wrapper.createPath();
+	    var circles = [];
 		for (var i = 0; i < series._values.length; i++) {
 			var x = dims[graph.X] + i * xScale;
 			var y = dims[graph.Y] + (graph.yAxis._scale.max - series._values[i]) * yScale;
@@ -2745,11 +2854,15 @@ jQuery.extend(SVGLineChart.prototype, {
 			else {
 				path.line(x, y);
 			}
+		    circles.push( [ x, y ]);
 		}
 		var p = graph._wrapper.path(this._chart, path,
 			jQuery.extend({id: 'series' + cur, fill: 'none', stroke: series._stroke,
 			strokeWidth: series._strokeWidth}, series._settings || {}));
-		graph._showStatus(p, series._name, 0);
+	    for (i=0;i<circles.length;i++) {
+		var c = graph._wrapper.circle(this._chart, circles[i][0], circles[i][1], 4, { fill: 'white', strokeWidth: 2, stroke: series._stroke, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
+		graph._showStatus(c, series._name, series._values[i]);
+	    }
 	}
 });
 
@@ -3110,7 +3223,11 @@ jQuery.extend(SVGPlot.prototype, {
 			this._plotFunction(this._functions[i], i);
 		}
 	    if (this.plotPoints.length) {
-		this._plotPoints(this.plotPoints);
+		if (this.connected) {
+		    this._plotConnectedPoints(this.plotPoints);
+		} else {
+		    this._plotPoints(this.plotPoints);
+		}
 	    }
 		this._drawTitle();
 		this._drawLegend();
@@ -3281,7 +3398,7 @@ jQuery.extend(SVGPlot.prototype, {
 	var psettings = { size: 6, shape: 'circle', 'filled': false, color: 'black' };
 	for (i=0;i<points.length;i++) {
 	    var p = points[i];
-	    jQuery.extend(psettings, p);
+	    jQuery.extend(p, psettings);
 	    switch (p.shape) {
 	    case 'circle':
 		this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
@@ -3295,6 +3412,23 @@ jQuery.extend(SVGPlot.prototype, {
 						    [ p.x * scales[0] + zerox, zeroy - (p.y * scales[1]) + (p.size / 2) ] ], { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
 		break;
 	    }
+	}
+    },
+
+    /* Plot a list of points */
+    _plotConnectedPoints: function(points) {
+	var scales = this._getScales();
+	var dims = this._getDims();
+	var zerox = dims[0] + parseInt(dims[2] / 2);
+	var zeroy = dims[1] + parseInt(dims[3] / 2);
+	var psettings = { size: 8, shape: 'circle', line: 'blue', fill: 'black' };
+	for (i=0;i<points.length;i++) {
+	    var p = points[i];
+	    jQuery.extend(p, psettings);
+	    if (i>0) {
+		this._wrapper.line(this._plot, points[i-1].x * scales[0] + zerox, zeroy - (points[i-1].y * scales[1]), p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), { strokeWidth: 2, stroke: 'blue' });
+	    }
+	    this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.fill, strokeWidth: 2, stroke: p.line, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
 	}
     },
     

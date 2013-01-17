@@ -17,13 +17,14 @@
 		    data: Retina.RendererInstances.graph[0].exampleData(),
 		    title: "Browser Usage",
 		    x_labels: [ "2004", "2005", "2006", "2007" ],
-		    x_title: 'Year',
+		    x_title: '',
 		    show_legend: true,
-		    x_labels_rotation: null,
+		    x_labels_rotation: "-90",
+		    type: "line",
 		    onclick: function (params) {
 			alert("You clicked the "+params.label+" bar of the "+params.series+" series, which has a value of "+params.value);
 		    },
-		    y_title: 'Percentage' }).render();
+		    y_title: '' }).render();
 	    });
 	});
 	</script>
@@ -34,13 +35,14 @@
     <div class="container" style="margin-top: 100px;">
       <h2>Graph Demo</h2>
       <select onchange="Retina.RendererInstances['graph'][1].settings.type=this.options[this.selectedIndex].value;Retina.RendererInstances['graph'][1].render();">
+	<option>line</option>
 	<option>column</option>
 	<option>pie</option>
 	<option>stackedColumn</option>
 	<option>row</option>
 	<option>stackedRow</option>
       </select>
-      <div id='target' style='border: 1px dotted black;'></div>
+      <div id='target'></div>
     </div>
 
   </body>

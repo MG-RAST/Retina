@@ -129,7 +129,7 @@
 	},
 	exampleData: function () {
 	    return [ { "name": 'IE', "data": [95, 91, 78, 66] },
-		     { "name": 'Netscape is one browser, but we might want another', "data": [3, 12, 18, 18] },
+		     { "name": 'Netscape', "data": [3, 12, 18, 18] },
 		     { "name": 'Firefox', "data": [0, 4, 8, 9] },
 		     { "name": 'Chrome', "data": [0, 8, 18, 22] },
 		     { "name": 'Gecko', "data": [1, 2, 3, 33] } ];
@@ -142,7 +142,7 @@
 	    var target = renderer.settings.target;
 	    var index = renderer.index;
 	    target.innerHTML = "<div id='graph_div"+index+"'></div>";
-	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px; border: 1px solid blue;");
+	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
 	    jQuery('#graph_div'+index).svg();
 	    Retina.RendererInstances.graph[index].drawImage(jQuery('#graph_div'+index).svg('get'));
 	    
@@ -165,6 +165,9 @@
 		    var i;
 		    for (i=0;i<this.parentElement.children.length;i++) {
 			if (this.parentElement.children[i] === this) {
+			    if (this.getAttribute('r')) {
+				i--;
+			    }
 			    label = svg.graph.xAxis.labels().labels[i];
 			    break;
 			}
@@ -188,6 +191,14 @@
 				[ 0.2, 0.9, 0.8, 0.995   ] ]; // bottom
 
 	    var fills = [ 'url(#fadeBlue)', 'url(#fadeRed)', 'url(#fadeGreen)', 'url(#fadeYellow)', 'url(#fadeLightblue)', 'url(#fadePurple)' ];
+	    
+	    var colors = [ '#0044CC', // blue
+			   '#BD362F', // red
+			   '#51A351', // green
+			   '#F89406', // yellow
+			   '#2F96B4', // lightblue
+			   '#bd2fa6'  // purple 
+			 ];
 	    
 	    var defs = svg.defs();
 
@@ -213,7 +224,7 @@
 	    }
 
 	    for (i=0;i<renderer.settings.data.length;i++) {
-		svg.graph.noDraw().addSeries( renderer.settings.data[i].name, renderer.settings.data[i].data, null, renderer.settings.data[i].lineColor || renderer.settings.default_line_color, renderer.settings.data[i].lineWidth || renderer.settings.default_line_width);
+		svg.graph.noDraw().addSeries( renderer.settings.data[i].name, renderer.settings.data[i].data, null, renderer.settings.data[i].lineColor || colors[i], renderer.settings.data[i].lineWidth || renderer.settings.default_line_width);
 	    }
 	    
 	    svg.graph.xAxis.title(renderer.settings.x_title, renderer.settings.x_title_color).
