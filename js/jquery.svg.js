@@ -3019,9 +3019,9 @@ function SVGPlot(wrapper) {
 	this._plotCont = this._wrapper.svg(0, 0, 0, 0, {class_: 'svg-plot'}); // The main container for the plot
 	
 	this.xAxis = new SVGPlotAxis(this); // The main x-axis
-	this.xAxis.title('X', 20);
+	this.xAxis.title('', 40);
 	this.yAxis = new SVGPlotAxis(this); // The main y-axis
-	this.yAxis.title('Y', 20);
+	this.yAxis.title('', 40);
 	this.legend = new SVGPlotLegend(this); // The plot legend
 	this._drawNow = true;
 }
@@ -3143,7 +3143,7 @@ jQuery.extend(SVGPlot.prototype, {
 			colour = null;
 		}
 		this._title = {value: value, offset: offset || this._title.offset,
-			settings: jQuery.extend({textAnchor: 'middle'},
+			       settings: jQuery.extend({textAnchor: 'middle', fontSize: '15px' },
 			(colour ? {fill: colour} : {}), settings || {})};
 		this._drawPlot();
 		return this;
@@ -3370,17 +3370,20 @@ jQuery.extend(SVGPlot.prototype, {
 				minor += (cur == minor ? axis._ticks.minor : 0);
 			}
 		}
-		if (axis._title) {
-			if (horiz) {
-				this._wrapper.text(this._plotCont, dims[this.X] - axis._titleOffset,
-					zero, axis._title, jQuery.extend({textAnchor: 'end'}, axis._titleFormat || {}));
-			}
-			else {
-				this._wrapper.text(this._plotCont, zero,
-					dims[this.Y] + dims[this.H] + axis._titleOffset,
-					axis._title, jQuery.extend({textAnchor : 'middle'}, axis._titleFormat || {}));
-			}
+	    if (axis._title) {
+		if (horiz) {
+		    this._wrapper.text(this._plotCont, dims[this.X] + dims[this.W] / 2,
+				       dims[this.Y] + dims[this.H] + axis._titleOffset,
+				       axis._title, axis._titleFormat);
+		} else {
+		    this._wrapper.text(this._plotCont,
+				       0,
+				       0,
+				       axis._title,
+				       jQuery.extend({textAnchor: 'middle', transform: 'translate(' + (dims[this.X] - axis._titleOffset) + ',' + (dims[this.Y] + dims[this.H] / 2) + ') rotate(-90)'}, axis._titleFormat || {}));
+			
 		}
+	    }
 	},
 
 	/* Plot an individual function. */
@@ -3654,9 +3657,9 @@ function identity(x) {
 function SVGPlotAxis(plot, title, min, max, major, minor) {
 	this._plot = plot; // The owning plot
 	this._title = title || ''; // The plot's title
-	this._titleFormat = {}; // Formatting settings for the title
+    this._titleFormat = { textAnchor: 'middle' }; // Formatting settings for the title
 	this._titleOffset = 0; // The offset for positioning the title
-	this._labelFormat = {}; // Formatting settings for the labels
+    this._labelFormat = { }; // Formatting settings for the labels
 	this._lineFormat = {stroke: 'black', strokeWidth: 1}; // Formatting settings for the axis lines
 	this._ticks = {major: major || 10, minor: minor || 0, size: 10, position: 'both'}; // Tick mark options
 	this._scale = {min: min || 0, max: max || 100}; // Axis scale settings

@@ -47,6 +47,24 @@
         right
         top
         bottom
+
+  x_min (FLOAT)
+      minimum x value
+
+  y_min (FLOAT)
+      minimum y value
+
+  x_max (FLOAT)
+      maximim x value
+
+  y_max (FLOAT)
+      maximum y value
+
+  x_title (STRING)
+      title of the x axis
+
+  y_title (STRING)
+      title of the y axis
   
 */
 (function () {
@@ -73,6 +91,8 @@
 		'x_max': 100,
 		'y_min': 0,
 		'y_max': 100,
+		'x_title': '',
+		'y_title': '',
 		'data': [ ] }
 	},
 	exampleData: function () {
@@ -130,7 +150,7 @@
 			   '#bd2fa6'  // purple 
 			 ];
 	    
-	    svg.plot.noDraw().title(renderer.settings.title, renderer.settings.title_color);
+	    svg.plot.noDraw().title(renderer.settings.title, null, renderer.settings.title_color, renderer.settings.title_settings);
 	    for (i=0;i<renderer.settings.data.length;i++) {
 		var d = renderer.settings.data[i];
 	    }
@@ -141,8 +161,8 @@
 	    svg.plot.series = renderer.settings.data.series;
 
 	    svg.plot.noDraw().format('white', 'gray').gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
-	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max).ticks(parseInt((renderer.settings.x_max - renderer.settings.x_min) / 10), parseInt((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw'); 
-	    svg.plot.yAxis.scale(renderer.settings.y_min, renderer.settings.y_max).ticks(parseInt((renderer.settings.y_max - renderer.settings.y_min) / 10), parseInt((renderer.settings.y_max - renderer.settings.y_min) / 5), 8, 'sw'); 
+	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max).ticks(parseInt((renderer.settings.x_max - renderer.settings.x_min) / 10), parseInt((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw').title(renderer.settings.x_title); 
+	    svg.plot.yAxis.scale(renderer.settings.y_min, renderer.settings.y_max).ticks(parseInt((renderer.settings.y_max - renderer.settings.y_min) / 10), parseInt((renderer.settings.y_max - renderer.settings.y_min) / 5), 8, 'sw').title(renderer.settings.y_title);
 	    svg.plot.legend.settings({fill: 'white', stroke: 'gray'});
 	    
 	    var plotLegend = 0;
