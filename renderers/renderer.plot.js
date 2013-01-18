@@ -23,12 +23,20 @@
   height (INT)
       The height of the graph in pixel (including legend).
 
-  data (ARRAY of OBJECT)
-      List of data objects with the attributes
-         name
-         function
-         lineColor
-         lineWidth
+  show_dots (BOOLEAN)
+      display circles at the data points (for connected mode only)
+
+  connected (BOOLEAN)
+      connect the dots. This will disable the shape attribute of the series.
+
+  data (OBJECT)
+      series (OBJECT)
+        name (STRING) - name of the series
+	color (CSS Color value) - color of the series
+	shape [ 'cicrle', 'triangle', 'square' ] - shape of the points (connected==false only)
+      points (ARRAY of OBJECT)
+        x (FLOAT) - x coordinate
+	y (FLOAT) - y coordinate
 
   show_legend (BOOLEAN)
       Turns the display of the legend on / off. Default ist true.
@@ -50,12 +58,15 @@
             version: "1.0",
             requires: [ "jquery.svg.js" ],
             defaults: {
-		'title': 'Functions',
+		'title': '',
 		'title_color': 'black',
 		'default_line_color': 'black',
 		'default_line_width': 1,
-		'show_legend': false,//true,
+		'show_legend': true,
 		'legend_position': 'left',
+		'series': [],
+		'connected': true,
+		'show_dots': true,
 		'width': 800,
 		'height': 400,
 		'x_min': 0,
@@ -65,7 +76,19 @@
 		'data': [ ] }
 	},
 	exampleData: function () {
-	    return [ ];
+	    return { series: [ { name: "cool", color: 'blue', shape: 'circle' },
+			       { name: "uncool", color: 'red', shape: 'square' },
+			       { name: "semi-cool", color: 'orange', shape: 'triangle' } ],
+		     points: [ [ { x: 0,  y: 1 },
+				 { x: 5,  y: 5  },
+				 { x: 15, y: 15  } ],
+			       [ { x: 0,  y: 0 },
+				 { x: 25,  y: 35  },
+				 { x: 35, y: 100  } ],
+			       [ { x: 8,  y: 100 },
+				 { x: 49,  y: 50  },
+				 { x: 150, y: 0  } ]
+			     ] };
         },
 	
 	render: function () {
@@ -112,11 +135,11 @@
 		var d = renderer.settings.data[i];
 	    }
 	    
-	    svg.plot.plotPoints = [ { x: -8, y: -10, size: 6, filled: true, color: 'blue', shape: 'circle' },
-				    { x: 5, y: 5, size: 6, filled: false, color: 'red', shape: 'square' },
-				    { x: 15, y: 5, size: 6, filled: false, color: 'orange', shape: 'triangle' } ];
-	    svg.plot.connected = false;
-	    
+	    svg.plot.plotPoints = renderer.settings.data.points;
+	    svg.plot.connected = renderer.settings.connected;
+	    svg.plot.showDots = renderer.settings.show_dots;
+	    svg.plot.series = renderer.settings.data.series;
+
 	    svg.plot.noDraw().format('white', 'gray').gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
 	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max).ticks(parseInt((renderer.settings.x_max - renderer.settings.x_min) / 10), parseInt((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw'); 
 	    svg.plot.yAxis.scale(renderer.settings.y_min, renderer.settings.y_max).ticks(parseInt((renderer.settings.y_max - renderer.settings.y_min) / 10), parseInt((renderer.settings.y_max - renderer.settings.y_min) / 5), 8, 'sw'); 

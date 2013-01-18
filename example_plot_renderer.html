@@ -14,7 +14,11 @@
 	    Retina.load_renderer("plot").then( function () {
 		Retina.Renderer.create("plot", {
 		    target: document.getElementById('target'),
-		    data: Retina.RendererInstances.plot[0].exampleData() }).render();
+		    data: Retina.RendererInstances.plot[0].exampleData(),
+		    show_dots: true,
+		    x_max: 200,
+		    connected: true
+		}).render();
 	    });
 	});
 	</script>

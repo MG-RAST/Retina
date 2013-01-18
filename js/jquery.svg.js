@@ -2525,7 +2525,7 @@ jQuery.extend(SVGStackedAreaChart.prototype, {
 			(dims[graph.Y] + dims[graph.H] / 2) + ') rotate(-90)'}, graph.yAxis._titleFormat || {}));
 		var pAxis = jQuery.extend({}, graph._getPercentageAxis());
 		jQuery.extend(pAxis._labelFormat, graph.yAxis._labelFormat || {});
-		graph._drawAxis(pAxis, 'yAxis', dims[graph.X], dims[graph.Y],
+	        graph._drawAxis(pAxis, 'yAxis', dims[graph.X], dims[graph.Y],
 			dims[graph.X], dims[graph.Y] + dims[graph.H]);
 		this._drawXAxis(graph, numVal, dims, xScale);
 		graph._drawLegend();
@@ -2580,14 +2580,21 @@ jQuery.extend(SVGStackedAreaChart.prototype, {
 			textAnchor: 'middle'}, axis._labelFormat));
 		graph._wrapper.line(gl, dims[graph.X], dims[graph.Y] + dims[graph.H],
 		dims[graph.X] + dims[graph.W], dims[graph.Y] + dims[graph.H]);
+	    
 		if (axis._ticks.major) {
 			var offsets = graph._getTickOffsets(axis, true);
 			for (var i = 1; i < numVal; i++) {
+			    if (i % axis._ticks.major > 0) {
+				continue;
+			    }
 				var x = dims[graph.X] + xScale * i;
 				graph._wrapper.line(gl, x, dims[graph.Y] + dims[graph.H] + offsets[0] * axis._ticks.size,
 					x, dims[graph.Y] + dims[graph.H] + offsets[1] * axis._ticks.size);
 			}
 			for (var i = 0; i < numVal; i++) {
+			    if (i % axis._ticks.major > 0) {
+				continue;
+			    }
 			    var x = dims[graph.X] + xScale * (i + 0.5);
 			    graph._wrapper.text(gt, x, dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size,
 						(axis._labels ? axis._labels[i] : '' + i));
@@ -3235,10 +3242,12 @@ jQuery.extend(SVGPlot.prototype, {
 			this._plotFunction(this._functions[i], i);
 		}
 	    if (this.plotPoints.length) {
-		if (this.connected) {
-		    this._plotConnectedPoints(this.plotPoints);
-		} else {
-		    this._plotPoints(this.plotPoints);
+		for (var i = 0; i < this.plotPoints.length; i++) {
+		    if (this.connected) {
+			this._plotConnectedPoints(this.plotPoints[i], i);
+		    } else {
+			this._plotPoints(this.plotPoints[i], i);
+		    }
 		}
 	    }
 		this._drawTitle();
@@ -3402,15 +3411,15 @@ jQuery.extend(SVGPlot.prototype, {
 	},
     
     /* Plot a list of points */
-    _plotPoints: function(points) {
+    _plotPoints: function(points, series) {
 	var scales = this._getScales();
 	var dims = this._getDims();
-	var zerox = dims[0] + parseInt(dims[2] / 2);
-	var zeroy = dims[1] + parseInt(dims[3] / 2);
-	var psettings = { size: 6, shape: 'circle', 'filled': false, color: 'black' };
+	var zerox = dims[0];
+	var zeroy = dims[1] + dims[3];
+	var psettings = { size: 6, shape: this.series[series].shape, 'filled': this.series[series].filled || false, color: this.series[series].color };
 	for (i=0;i<points.length;i++) {
 	    var p = points[i];
-	    jQuery.extend(psettings, p);
+	    jQuery.extend(p, psettings);
 	    switch (p.shape) {
 	    case 'circle':
 		this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
@@ -3428,19 +3437,21 @@ jQuery.extend(SVGPlot.prototype, {
     },
 
     /* Plot a list of points */
-    _plotConnectedPoints: function(points) {
+    _plotConnectedPoints: function(points, series) {
 	var scales = this._getScales();
 	var dims = this._getDims();
-	var zerox = dims[0] + parseInt(dims[2] / 2);
-	var zeroy = dims[1] + parseInt(dims[3] / 2);
-	var psettings = { size: 8, shape: 'circle', line: 'blue', fill: 'black' };
+	var zerox = dims[0];
+	var zeroy = dims[1] + dims[3];
+	var psettings = { size: 8, shape: this.series[series].shape, line: this.series[series].color || 'blue', fill: this.series[series].fillColor || 'black' };
 	for (i=0;i<points.length;i++) {
 	    var p = points[i];
 	    jQuery.extend(p, psettings);
 	    if (i>0) {
-		this._wrapper.line(this._plot, points[i-1].x * scales[0] + zerox, zeroy - (points[i-1].y * scales[1]), p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), { strokeWidth: 2, stroke: 'blue' });
+		this._wrapper.line(this._plot, points[i-1].x * scales[0] + zerox, zeroy - (points[i-1].y * scales[1]), p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), { strokeWidth: 2, stroke: this.series[series].color || 'blue' });
 	    }
-	    this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.fill, strokeWidth: 2, stroke: p.line, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
+	    if (this.showDots) {
+		this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.fill, strokeWidth: 2, stroke: p.line, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
+	    }
 	}
     },
     
@@ -3457,20 +3468,20 @@ jQuery.extend(SVGPlot.prototype, {
 		}
 		var g = this._wrapper.group(this._plotCont, {class_: 'legend'});
 		var dims = this._getDims(this.legend._area);
-		this._wrapper.rect(g, dims[this.X], dims[this.Y], dims[this.W], dims[this.H],
-			this.legend._bgSettings);
+		//this._wrapper.rect(g, dims[this.X], dims[this.Y], dims[this.W], dims[this.H],
+		//	this.legend._bgSettings);
 	    var horiz = false;// dims[this.W] > dims[this.H];
-		var numFn = this._functions.length;
+		var numFn = this._functions.length || this.series.length;
 		var offset = (horiz ? dims[this.W] : dims[this.H]) / numFn;
 		var xBase = dims[this.X] + 5;
 		var yBase = dims[this.Y] + ((horiz ? dims[this.H] : offset) + this.legend._sampleSize) / 2;
 		for (var i = 0; i < numFn; i++) {
-			var fn = this._functions[i];
+		    var fn = this._functions.lenth ? this._functions[i] : this.series[i];
 			this._wrapper.rect(g, xBase + (horiz ? i * offset : 0),
 				yBase + (horiz ? 0 : i * offset) - this.legend._sampleSize,
-				this.legend._sampleSize, this.legend._sampleSize, {fill: fn._stroke});
+					   this.legend._sampleSize, this.legend._sampleSize, {fill: fn._stroke ? fn._stroke : fn.color });
 			this._wrapper.text(g, xBase + (horiz ? i * offset : 0) + this.legend._sampleSize + 5,
-				yBase + (horiz ? 0 : i * offset), fn._name, this.legend._textSettings);
+					   yBase + (horiz ? 0 : i * offset), fn._name ? fn._name : fn.name, this.legend._textSettings);
 		}
 	},
 
