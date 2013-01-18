@@ -2525,7 +2525,7 @@ jQuery.extend(SVGStackedAreaChart.prototype, {
 			(dims[graph.Y] + dims[graph.H] / 2) + ') rotate(-90)'}, graph.yAxis._titleFormat || {}));
 		var pAxis = jQuery.extend({}, graph._getPercentageAxis());
 		jQuery.extend(pAxis._labelFormat, graph.yAxis._labelFormat || {});
-		graph._drawAxis(pAxis, 'yAxis', dims[graph.X], dims[graph.Y],
+	        graph._drawAxis(pAxis, 'yAxis', dims[graph.X], dims[graph.Y],
 			dims[graph.X], dims[graph.Y] + dims[graph.H]);
 		this._drawXAxis(graph, numVal, dims, xScale);
 		graph._drawLegend();
@@ -2580,14 +2580,21 @@ jQuery.extend(SVGStackedAreaChart.prototype, {
 			textAnchor: 'middle'}, axis._labelFormat));
 		graph._wrapper.line(gl, dims[graph.X], dims[graph.Y] + dims[graph.H],
 		dims[graph.X] + dims[graph.W], dims[graph.Y] + dims[graph.H]);
+	    
 		if (axis._ticks.major) {
 			var offsets = graph._getTickOffsets(axis, true);
 			for (var i = 1; i < numVal; i++) {
+			    if (i % axis._ticks.major > 0) {
+				continue;
+			    }
 				var x = dims[graph.X] + xScale * i;
 				graph._wrapper.line(gl, x, dims[graph.Y] + dims[graph.H] + offsets[0] * axis._ticks.size,
 					x, dims[graph.Y] + dims[graph.H] + offsets[1] * axis._ticks.size);
 			}
 			for (var i = 0; i < numVal; i++) {
+			    if (i % axis._ticks.major > 0) {
+				continue;
+			    }
 			    var x = dims[graph.X] + xScale * (i + 0.5);
 			    graph._wrapper.text(gt, x, dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size,
 						(axis._labels ? axis._labels[i] : '' + i));
@@ -3012,9 +3019,9 @@ function SVGPlot(wrapper) {
 	this._plotCont = this._wrapper.svg(0, 0, 0, 0, {class_: 'svg-plot'}); // The main container for the plot
 	
 	this.xAxis = new SVGPlotAxis(this); // The main x-axis
-	this.xAxis.title('X', 20);
+	this.xAxis.title('', 40);
 	this.yAxis = new SVGPlotAxis(this); // The main y-axis
-	this.yAxis.title('Y', 20);
+	this.yAxis.title('', 40);
 	this.legend = new SVGPlotLegend(this); // The plot legend
 	this._drawNow = true;
 }
@@ -3136,7 +3143,7 @@ jQuery.extend(SVGPlot.prototype, {
 			colour = null;
 		}
 		this._title = {value: value, offset: offset || this._title.offset,
-			settings: jQuery.extend({textAnchor: 'middle'},
+			       settings: jQuery.extend({textAnchor: 'middle', fontSize: '15px' },
 			(colour ? {fill: colour} : {}), settings || {})};
 		this._drawPlot();
 		return this;
@@ -3235,10 +3242,12 @@ jQuery.extend(SVGPlot.prototype, {
 			this._plotFunction(this._functions[i], i);
 		}
 	    if (this.plotPoints.length) {
-		if (this.connected) {
-		    this._plotConnectedPoints(this.plotPoints);
-		} else {
-		    this._plotPoints(this.plotPoints);
+		for (var i = 0; i < this.plotPoints.length; i++) {
+		    if (this.connected) {
+			this._plotConnectedPoints(this.plotPoints[i], i);
+		    } else {
+			this._plotPoints(this.plotPoints[i], i);
+		    }
 		}
 	    }
 		this._drawTitle();
@@ -3361,17 +3370,20 @@ jQuery.extend(SVGPlot.prototype, {
 				minor += (cur == minor ? axis._ticks.minor : 0);
 			}
 		}
-		if (axis._title) {
-			if (horiz) {
-				this._wrapper.text(this._plotCont, dims[this.X] - axis._titleOffset,
-					zero, axis._title, jQuery.extend({textAnchor: 'end'}, axis._titleFormat || {}));
-			}
-			else {
-				this._wrapper.text(this._plotCont, zero,
-					dims[this.Y] + dims[this.H] + axis._titleOffset,
-					axis._title, jQuery.extend({textAnchor : 'middle'}, axis._titleFormat || {}));
-			}
+	    if (axis._title) {
+		if (horiz) {
+		    this._wrapper.text(this._plotCont, dims[this.X] + dims[this.W] / 2,
+				       dims[this.Y] + dims[this.H] + axis._titleOffset,
+				       axis._title, axis._titleFormat);
+		} else {
+		    this._wrapper.text(this._plotCont,
+				       0,
+				       0,
+				       axis._title,
+				       jQuery.extend({textAnchor: 'middle', transform: 'translate(' + (dims[this.X] - axis._titleOffset) + ',' + (dims[this.Y] + dims[this.H] / 2) + ') rotate(-90)'}, axis._titleFormat || {}));
+			
 		}
+	    }
 	},
 
 	/* Plot an individual function. */
@@ -3402,15 +3414,15 @@ jQuery.extend(SVGPlot.prototype, {
 	},
     
     /* Plot a list of points */
-    _plotPoints: function(points) {
+    _plotPoints: function(points, series) {
 	var scales = this._getScales();
 	var dims = this._getDims();
-	var zerox = dims[0] + parseInt(dims[2] / 2);
-	var zeroy = dims[1] + parseInt(dims[3] / 2);
-	var psettings = { size: 6, shape: 'circle', 'filled': false, color: 'black' };
+	var zerox = dims[0];
+	var zeroy = dims[1] + dims[3];
+	var psettings = { size: 6, shape: this.series[series].shape, 'filled': this.series[series].filled || false, color: this.series[series].color };
 	for (i=0;i<points.length;i++) {
 	    var p = points[i];
-	    jQuery.extend(psettings, p);
+	    jQuery.extend(p, psettings);
 	    switch (p.shape) {
 	    case 'circle':
 		this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
@@ -3428,19 +3440,21 @@ jQuery.extend(SVGPlot.prototype, {
     },
 
     /* Plot a list of points */
-    _plotConnectedPoints: function(points) {
+    _plotConnectedPoints: function(points, series) {
 	var scales = this._getScales();
 	var dims = this._getDims();
-	var zerox = dims[0] + parseInt(dims[2] / 2);
-	var zeroy = dims[1] + parseInt(dims[3] / 2);
-	var psettings = { size: 8, shape: 'circle', line: 'blue', fill: 'black' };
+	var zerox = dims[0];
+	var zeroy = dims[1] + dims[3];
+	var psettings = { size: 8, shape: this.series[series].shape, line: this.series[series].color || 'blue', fill: this.series[series].fillColor || 'black' };
 	for (i=0;i<points.length;i++) {
 	    var p = points[i];
 	    jQuery.extend(p, psettings);
 	    if (i>0) {
-		this._wrapper.line(this._plot, points[i-1].x * scales[0] + zerox, zeroy - (points[i-1].y * scales[1]), p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), { strokeWidth: 2, stroke: 'blue' });
+		this._wrapper.line(this._plot, points[i-1].x * scales[0] + zerox, zeroy - (points[i-1].y * scales[1]), p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), { strokeWidth: 2, stroke: this.series[series].color || 'blue' });
 	    }
-	    this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.fill, strokeWidth: 2, stroke: p.line, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
+	    if (this.showDots) {
+		this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.fill, strokeWidth: 2, stroke: p.line, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
+	    }
 	}
     },
     
@@ -3457,20 +3471,20 @@ jQuery.extend(SVGPlot.prototype, {
 		}
 		var g = this._wrapper.group(this._plotCont, {class_: 'legend'});
 		var dims = this._getDims(this.legend._area);
-		this._wrapper.rect(g, dims[this.X], dims[this.Y], dims[this.W], dims[this.H],
-			this.legend._bgSettings);
+		//this._wrapper.rect(g, dims[this.X], dims[this.Y], dims[this.W], dims[this.H],
+		//	this.legend._bgSettings);
 	    var horiz = false;// dims[this.W] > dims[this.H];
-		var numFn = this._functions.length;
+		var numFn = this._functions.length || this.series.length;
 		var offset = (horiz ? dims[this.W] : dims[this.H]) / numFn;
 		var xBase = dims[this.X] + 5;
 		var yBase = dims[this.Y] + ((horiz ? dims[this.H] : offset) + this.legend._sampleSize) / 2;
 		for (var i = 0; i < numFn; i++) {
-			var fn = this._functions[i];
+		    var fn = this._functions.lenth ? this._functions[i] : this.series[i];
 			this._wrapper.rect(g, xBase + (horiz ? i * offset : 0),
 				yBase + (horiz ? 0 : i * offset) - this.legend._sampleSize,
-				this.legend._sampleSize, this.legend._sampleSize, {fill: fn._stroke});
+					   this.legend._sampleSize, this.legend._sampleSize, {fill: fn._stroke ? fn._stroke : fn.color });
 			this._wrapper.text(g, xBase + (horiz ? i * offset : 0) + this.legend._sampleSize + 5,
-				yBase + (horiz ? 0 : i * offset), fn._name, this.legend._textSettings);
+					   yBase + (horiz ? 0 : i * offset), fn._name ? fn._name : fn.name, this.legend._textSettings);
 		}
 	},
 
@@ -3643,9 +3657,9 @@ function identity(x) {
 function SVGPlotAxis(plot, title, min, max, major, minor) {
 	this._plot = plot; // The owning plot
 	this._title = title || ''; // The plot's title
-	this._titleFormat = {}; // Formatting settings for the title
+    this._titleFormat = { textAnchor: 'middle' }; // Formatting settings for the title
 	this._titleOffset = 0; // The offset for positioning the title
-	this._labelFormat = {}; // Formatting settings for the labels
+    this._labelFormat = { }; // Formatting settings for the labels
 	this._lineFormat = {stroke: 'black', strokeWidth: 1}; // Formatting settings for the axis lines
 	this._ticks = {major: major || 10, minor: minor || 0, size: 10, position: 'both'}; // Tick mark options
 	this._scale = {min: min || 0, max: max || 100}; // Axis scale settings
