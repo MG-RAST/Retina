@@ -88,6 +88,7 @@
 		'filter': { },
 		'hide_options': false,
 		'filter_changed': false,
+		'editable': {},
 		'target': 'table_space',
 		'data': 'exampleData()'
 	    },
@@ -535,6 +536,48 @@
 		      if (! renderer.settings.invisible_columns[h]) {
 			  var tinner_cell = document.createElement("td");
 			  tinner_cell.innerHTML = disp[i][header[h]];
+			  if (renderer.settings.editable[h]) {
+			      tinner_cell.addEventListener('click', function(e) {
+				  e = e || window.event;
+				  var ot = e.originalTarget || e.srcElement;
+				  var clicked_row_index;
+				  var clicked_cell_index;
+				  for (var x=0;x<ot.parentNode.children.length;x++) {
+				      if (ot.parentNode.children[x] == ot) {
+					  clicked_cell_index = x;
+				      }				      
+				  }
+				  for (var y=0;y<ot.parentNode.parentNode.children.length;y++) {
+				      if (ot.parentNode.parentNode.children[y] == ot.parentNode) {
+					  clicked_row_index = y + offset;
+					  break;
+				      }
+				  }
+
+				  var edit = document.createElement('input');
+				  edit.setAttribute('type', 'text');
+				  edit.setAttribute('value', Retina.RendererInstances.table[index].settings.tdata[clicked_row_index][header[clicked_cell_index]]);
+				  edit.addEventListener('keypress', function(e) {
+				      e = e || window.event;
+				      if (e.keyCode == 13) {
+					  Retina.RendererInstances.table[index].settings.tdata[clicked_row_index][header[clicked_cell_index]] = edit.value;
+					  Retina.RendererInstances.table[index].render();
+				      }
+				  });
+				  edit.addEventListener('blur', function() {
+				      Retina.RendererInstances.table[index].render();
+				  });
+				  ot.innerHTML = "";
+				  ot.appendChild(edit);
+				  edit.focus();
+				  if (typeof edit.selectionStart == "number") {
+				      edit.selectionStart = 0;
+				      edit.selectionEnd = edit.value.length;
+				  } else if (typeof document.selection != "undefined") {
+				      document.selection.createRange().text = edit.value;
+				  }
+			      });
+			  }
 			  tinner_row.appendChild(tinner_cell);
 		      }
 		  }
