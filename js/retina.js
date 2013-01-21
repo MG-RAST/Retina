@@ -42,22 +42,24 @@
 	var libraryResource = settings.library_resource;
 	if (libraryResource) {
 	    library_resource = libraryResource;
-
-	    // adjust bootstrap to the library location
-	    var cssRuleCode = document.all ? 'rules' : 'cssRules'; // account for IE and FF
-	    var styles = document.styleSheets;
-	    for (i=0;i<styles.length;i++) {
-	    	if (styles[i].href && styles[i].href.indexOf('bootstrap.min.css') > -1) {
-	    	    for (h=0; h<styles[i][cssRuleCode].length; h++) {
-	    		if (styles[i][cssRuleCode][h].selectorText == '[class^="icon-"], [class*=" icon-"]') {
-	    		    styles[i][cssRuleCode][h].style.backgroundImage = "url('"+libraryResource+"../../images/glyphicons-halflings.png')";
+	    
+	    if (libraryResource.match(/^http\:\/\/raw.github.com/)) {
+		// adjust bootstrap to the library location
+		var cssRuleCode = document.all ? 'rules' : 'cssRules'; // account for IE and FF
+		var styles = document.styleSheets;
+		for (i=0;i<styles.length;i++) {
+	    	    if (styles[i].href && styles[i].href.indexOf('bootstrap.min.css') > -1) {
+	    		for (h=0; h<styles[i][cssRuleCode].length; h++) {
+	    		    if (styles[i][cssRuleCode][h].selectorText == '[class^="icon-"], [class*=" icon-"]') {
+	    			styles[i][cssRuleCode][h].style.backgroundImage = "url('http://raw.github.com/MG-RAST/Retina/master/images/glyphicons-halflings.png')";
+	    		    }
+	    		    if (styles[i][cssRuleCode][h].selectorText == '.icon-white') {
+	    			styles[i][cssRuleCode][h].style.backgroundImage = "url('http://raw.github.com/MG-RAST/Retina/master/images/glyphicons-halflings-white.png')";
+	    		    }
 	    		}
-	    		if (styles[i][cssRuleCode][h].selectorText == '.icon-white') {
-	    		    styles[i][cssRuleCode][h].style.backgroundImage = "url('"+libraryResource+"../../images/glyphicons-halflings-white.png')";
-	    		}
+	    		break;
 	    	    }
-	    	    break;
-	    	}
+		}
 	    }
 	}
 
