@@ -41,6 +41,9 @@
   filter_autodetect_select_max (INT)
       Maximum number of distinct entries in a column that will still autodetec the column filter as a select box. Default is 10.
 
+  editable (HASH of BOOLEAN)
+      The key of the hash is the column index. If set to true, clicking a cell in this column will display an input field allowing to change the content of the cell.
+
   sort_autodetect (BOOLEAN)
       If set to true will try to detect which sorttype is appropriate for each column. Default is false.
 
