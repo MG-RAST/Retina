@@ -47,7 +47,7 @@
 	    var cssRuleCode = document.all ? 'rules' : 'cssRules'; // account for IE and FF
 	    var styles = document.styleSheets;
 	    for (i=0;i<styles.length;i++) {
-	    	if (styles[i].href.indexOf('bootstrap.min.css') > -1) {
+	    	if (styles[i].href && styles[i].href.indexOf('bootstrap.min.css') > -1) {
 	    	    for (h=0; h<styles[i][cssRuleCode].length; h++) {
 	    		if (styles[i][cssRuleCode][h].selectorText == '[class^="icon-"], [class*=" icon-"]') {
 	    		    styles[i][cssRuleCode][h].style.backgroundImage = "url('"+libraryResource+"../../images/glyphicons-halflings.png')";
