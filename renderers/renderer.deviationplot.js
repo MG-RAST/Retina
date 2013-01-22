@@ -21,7 +21,7 @@
 		'data': [ ] }
 	},
 	exampleData: function () {
-	    return [ 432.74, 519.87, 250.20, 358.14, 278.04, 356.20 ];
+	    return [ 358.14, 519.87, 250.20, 432.74, 278.04, 356.20, 1000, 1, 500, 520, 510, 450, 480, 500, 500, 500, 500 ];
         },
 	
 	render: function () {
@@ -67,8 +67,6 @@
 	drawImage: function (svg, index) {
 	    renderer = Retina.RendererInstances.deviationplot[index];
 
-	    console.log(renderer);
-	    	    
 	    var colors = { 'darkblue': '#8caad8',
 			   'mediumblue': '#a8bfe2',
 			   'lightblue': '#d9e3f2',
@@ -77,38 +75,38 @@
 			   'mark': '#ff0000' };
 	    
 	    var padding = parseInt(renderer.settings.height / 4);
-	    var factor = (renderer.settings.max - renderer.settings.min) /  renderer.settings.width;
+	    var factor = renderer.settings.width / (renderer.settings.max - renderer.settings.min);
 	    
 	    // main rectangle
 	    svg.rect(1, padding, renderer.settings.width - 2, renderer.settings.height - (padding * 2), 0, 0, {fill: colors['lightblue'], stroke: colors['darkblue'], strokeWidth: 2});
 	    
 	    // 2 std dv
-	    svg.rect((renderer.settings.mean - (2 * renderer.settings.stdv)) * factor, padding, 4 * renderer.settings.stdv * factor, renderer.settings.height - (padding * 2), 0, 0, {fill: colors['mediumblue'], stroke: colors['border'], strokeWidth: 2});
+	    svg.rect(((renderer.settings.mean - (2 * renderer.settings.stdv)) - renderer.settings.min) * factor, padding, 4 * renderer.settings.stdv * factor, renderer.settings.height - (padding * 2), 0, 0, {fill: colors['mediumblue'], stroke: colors['border'], strokeWidth: 2});
 	    
 	    // std dv
-	    svg.rect((renderer.settings.mean - renderer.settings.stdv) * factor, padding, 2 * renderer.settings.stdv * factor, renderer.settings.height - (padding * 2), 0, 0, {fill: colors['darkblue'], stroke: colors['border'], strokeWidth: 2});
+	    svg.rect(((renderer.settings.mean - renderer.settings.stdv) - renderer.settings.min) * factor, padding, 2 * renderer.settings.stdv * factor, renderer.settings.height - (padding * 2), 0, 0, {fill: colors['darkblue'], stroke: colors['border'], strokeWidth: 2});
 	    
 	    // mean
-	    svg.line(renderer.settings.mean * factor, padding, renderer.settings.mean * factor, renderer.settings.height - padding, { strokeWidth: 2, strokeDashArray: "6,2", stroke: colors['mean'] }); 
+	    svg.line((renderer.settings.mean - renderer.settings.min) * factor, padding, (renderer.settings.mean - renderer.settings.min) * factor, renderer.settings.height - padding, { strokeWidth: 2, strokeDashArray: "6,2", stroke: colors['mean'] }); 
 	    
 	    // mark
-	    svg.line(renderer.settings.val * factor, padding, renderer.settings.val * factor, renderer.settings.height - padding, { stroke: colors['mark'], strokeWidth: 2, title: renderer.settings.val });
-	    svg.circle(renderer.settings.val * factor, padding - 6, 3, { stroke: colors['mark'], fill: colors['mark'], title: renderer.settings.val });
+	    svg.line((renderer.settings.val - renderer.settings.min) * factor, padding, (renderer.settings.val - renderer.settings.min) * factor, renderer.settings.height - padding, { stroke: colors['mark'], strokeWidth: 2, title: renderer.settings.val });
+	    svg.circle((renderer.settings.val - renderer.settings.min) * factor, padding - 6, 3, { stroke: colors['mark'], fill: colors['mark'], title: renderer.settings.val });
 	    
 	    // 2 σ -
-	    svg.text((renderer.settings.mean - (2 * renderer.settings.stdv)) * factor, padding - 5, "2σ", { fontSize: '10px', textAnchor: 'middle' });
+	    svg.text(((renderer.settings.mean - (2 * renderer.settings.stdv)) - renderer.settings.min) * factor, padding - 5, "2σ", { fontSize: '10px', textAnchor: 'middle' });
 	    
 	    // σ -
-	    svg.text((renderer.settings.mean - renderer.settings.stdv) * factor, padding - 5, "σ", { fontSize: '10px', textAnchor: 'middle' });
+	    svg.text(((renderer.settings.mean - renderer.settings.stdv) - renderer.settings.min) * factor, padding - 5, "σ", { fontSize: '10px', textAnchor: 'middle' });
 	    
 	    // μ
-	    svg.text(renderer.settings.mean * factor, padding - 5, "μ", { fontSize: '10px', textAnchor: 'middle' });
+	    svg.text((renderer.settings.mean - renderer.settings.min) * factor, padding - 5, "μ", { fontSize: '10px', textAnchor: 'middle' });
 	    
 	    // σ +
-	    svg.text((renderer.settings.mean + renderer.settings.stdv) * factor, padding - 5, "σ", { fontSize: '10px', textAnchor: 'middle' });
+	    svg.text(((renderer.settings.mean + renderer.settings.stdv) - renderer.settings.min) * factor, padding - 5, "σ", { fontSize: '10px', textAnchor: 'middle' });
 	    
 	    // 2 σ +
-	    svg.text((renderer.settings.mean + (2 * renderer.settings.stdv)) * factor, padding - 5, "2σ", { fontSize: '10px', textAnchor: 'middle' });
+	    svg.text(((renderer.settings.mean + (2 * renderer.settings.stdv)) - renderer.settings.min) * factor, padding - 5, "2σ", { fontSize: '10px', textAnchor: 'middle' });
 	    
 	    // min
 	    svg.text(0, renderer.settings.height - padding + 12, renderer.settings.min.formatString(2), { fontSize: '10px' });
@@ -117,7 +115,7 @@
 	    svg.text(renderer.settings.width, renderer.settings.height - padding + 12, renderer.settings.max.formatString(2), { fontSize: '10px', textAnchor: 'end' });
 	    
 	    // mean
-	    svg.text(renderer.settings.mean * factor, renderer.settings.height - padding + 12, renderer.settings.mean.formatString(2), { fontSize: '10px', textAnchor: 'middle' });
+	    svg.text((renderer.settings.mean - renderer.settings.min) * factor, renderer.settings.height - padding + 12, renderer.settings.mean.formatString(2), { fontSize: '10px', textAnchor: 'middle' });
 	    
 	}
     });
