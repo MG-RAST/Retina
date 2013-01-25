@@ -48,7 +48,7 @@
 	    frame = document.getElementById(frame);
 	}
 
-	if (! (window.parent === window)) {
+	if (! (frame.parent === frame)) {
 	    // check if frame is an iframe
 	    if (typeof(frame.contentWindow) !== 'undefined') {
 		frame = frame.contentWindow;	    
