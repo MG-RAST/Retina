@@ -21,6 +21,8 @@
     // dict of notebook uuid: [ notebook_objs ]
     // notebook_objs is list of notebooks with same uuid sorted by datetime (lates first)
     widget.sorted_nbs = {};
+
+    widget.template = 'http://140.221.84.122:8888/9ea99de4-2374-4ffc-959d-b94e2639dd59';
     
     // these are listselect renderers for notebooks, versions, and metagenomes
     widget.nb_list  = undefined;
@@ -45,18 +47,18 @@
 	var iframe_div = params.notebook;
         // populate divs with html
 	dash_html = '\
-	        <span style="margin-left:10px;"></span>\
-	        <button style="width: 150px; display: none;" id="nbdash_toggle_button" onclick="this.style.display=\'none\';document.getElementById(\'nb_dash\').style.display=\'\';" style="display:none;margin-left:20px;" type="button" class="btn btn-info">Notebook Dashboard</button>\
-                <button style="width: 150px;" id="dataselect_toggle_button" onclick="this.style.display=\'none\';document.getElementById(\'data_pick\').style.display=\'\';" style="margin-left:20px;" type="button" class="btn btn-info">Data Selector</button>\
-                <button style="width: 150px;" id="visual_toggle_button" onclick="this.style.display=\'none\';document.getElementById(\'visual\').style.display=\'\';window.location=\'#vis_scroll\';window.scrollBy(0,-28);" style="margin-left:20px;" type="button" class="btn btn-info">Visual</button>\
+                <div class="btn-group" data-toggle="buttons-radio">\
+                   <button style="width: 150px; margin-left: 20px;" id="nbdash_toggle_button" onclick="if(document.getElementById(\'nb_dash\').style.display==\'none\'){document.getElementById(\'nb_dash\').style.display=\'\';document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';}" class="btn btn-info active">Notebook Dashboard</button>\
+                   <button style="width: 150px;" id="dataselect_toggle_button" onclick="if(document.getElementById(\'data_pick\').style.display==\'none\'){document.getElementById(\'data_pick\').style.display=\'\';document.getElementById(\'nb_dash\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';}" type="button" class="btn btn-info">Data Selector</button>\
+                   <button style="width: 150px;" id="visual_toggle_button" onclick="if(document.getElementById(\'visual\').style.display==\'none\'){document.getElementById(\'visual\').style.display=\'\';stm.send_message(\'ipython_dash\', \'ipy.createHTML();\', \'action\');document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'nb_dash\').style.display=\'none\';}" type="button" class="btn btn-info">Visual</button>\
+                </div>\
             </div></div>\
-	        <div id="nb_dash" style="margin-top: 1px; height: 300px; border-bottom: 1px dotted; border-top: 1px dotted;">\
-                <input type="button" id="nbdash_off_button" onclick="document.getElementById(\'nbdash_toggle_button\').style.display=\'\';document.getElementById(\'nb_dash\').style.display=\'none\';" style="border-radius: 0 0 0 0;position: relative; top: 139px; transform: rotate(-90deg); width: 300px; left: -139px; padding-top: 0px;" value="Notebook Dashboard" class="btn btn-info">\
+	        <div id="nb_dash" style="margin-top: 5px; height: 300px; border-bottom: 1px dotted; border-top: 1px dotted;">\
 	            <div class="row" id="dash_head" style="display: none;">\
 	                <div class="span3 offset1"><h4 style="margin-bottom: 5px;">Select Notebook</h4></div>\
 	                <div class="span3 offset1"><h4 style="margin-bottom: 5px;">Select Version</h4></div>\
 	            </div><div class="row">\
-	                <div id="nb_div" class="span3 offset1"></div>\
+	                <div style="margin-left: 10px;"><div id="nb_div" class="span3"></div></div>\
 	                <div id="version_div" class="span3 offset1"></div>\
 	                <div class="span2 offset1"><table id="dash_butt" style="display: none;">\
 	                    <tr><td><button type="button" class="btn btn-success" style="width: 135px" onclick="Retina.WidgetInstances.NotebookDashboard['+widget.index+'].nb_launch_click();document.getElementById(\'nbdash_off_button\').click();">Launch Notebook</button></td></tr>\
@@ -67,13 +69,11 @@
 	                </table></div>\
 	            </div>\
 	        </div>\
-                <div id="data_pick" style="display: none; height: 300px; margin-top: 1px;border-bottom: 1px dotted; border-top: 1px dotted;">\
-                    <input type="button" onclick="document.getElementById(\'dataselect_toggle_button\').style.display=\'\';document.getElementById(\'data_pick\').style.display=\'none\';" style="border-radius: 0 0 0 0;position: relative; top: 139px; transform: rotate(-90deg); width: 300px; left: -139px; padding-top: 0px;" value="Data Selector" class="btn btn-info">\
+                <div id="data_pick" style="display: none; height: 300px; margin-top: 5px;border-bottom: 1px dotted; border-top: 1px dotted;">\
 	            <div id="data_selector_div"></div>\
-	        </div><a name="vis_scroll">\
-                <div id="visual" style="display: none; height: 850px; margin-top: 1px;border-bottom: 1px dotted; border-top: 1px dotted;">\
-                   <input type="button" onclick="document.getElementById(\'visual_toggle_button\').style.display=\'\';document.getElementById(\'visual\').style.display=\'none\';" style="border-radius: 0 0 0 0;position: relative; top: 139px; transform: rotate(-90deg); width: 300px; left: -139px; padding-top: 0px;" value="Visual" class="btn btn-info">\
-	            <div id="visual_div"></div>\
+	        </div>\
+                <div id="visual" style="display: none; height: 850px; margin-top: 5px;border-bottom: 1px dotted; border-top: 1px dotted;">\
+	            <div id="result"></div>\
 	        </div>\
                 <div id="new_nb_modal" class="modal hide fade" role="dialog">\
                 <div class="modal-header">\
@@ -107,8 +107,8 @@
                 </div>\
             </div>';
         iframe_html = '<div class="tabbable" style="margin-top: 15px; margin-left: 15px;">\
-            <ul id="tab_list" class="nav nav-tabs"><li class="show"><a data-toggle="tab" href="#hidden_dash">Ipython Dashboard</a></li></ul>\
-            <div id="tab_div" class="tab-content"><div id="hidden_dash" class="tab-pane show"><iframe id="ipython_dash" src="'+widget.nb_server+'" width="95%" height="750"></iframe></div>\
+            <ul id="tab_list" class="nav nav-tabs"><li class="show"><a data-toggle="tab" href="#hidden_dash">IPython</a></li></ul>\
+            <div id="tab_div" class="tab-content"><div id="hidden_dash" class="tab-pane active"><iframe id="ipython_dash" src="'+widget.template+'" width="95%" height="750"></iframe></div>\
             </div>';
         jQuery('#'+dash_div).html(dash_html);
         jQuery('#'+iframe_div).html(iframe_html);
