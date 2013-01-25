@@ -48,9 +48,9 @@
         // populate divs with html
 	dash_html = '\
                 <div class="btn-group" data-toggle="buttons-radio">\
-                   <button style="width: 150px; margin-left: 20px;" id="nbdash_toggle_button" onclick="if(document.getElementById(\'nb_dash\').style.display==\'none\'){document.getElementById(\'nb_dash\').style.display=\'\';document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';}" class="btn btn-info active">Notebook Dashboard</button>\
-                   <button style="width: 150px;" id="dataselect_toggle_button" onclick="if(document.getElementById(\'data_pick\').style.display==\'none\'){document.getElementById(\'data_pick\').style.display=\'\';document.getElementById(\'nb_dash\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';}" type="button" class="btn btn-info">Data Selector</button>\
-                   <button style="width: 150px;" id="visual_toggle_button" onclick="if(document.getElementById(\'visual\').style.display==\'none\'){document.getElementById(\'visual\').style.display=\'\';stm.send_message(\'ipython_dash\', \'ipy.createHTML();\', \'action\');document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'nb_dash\').style.display=\'none\';}" type="button" class="btn btn-info">Visual</button>\
+                   <button style="width: 150px; margin-left: 20px;" id="nbdash_toggle_button" onclick="if(document.getElementById(\'nb_dash\').style.display==\'none\'){document.getElementById(\'nb_dash\').style.display=\'\';document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'\';}" class="btn btn-info active">Notebook Dashboard</button>\
+                   <button style="width: 150px;" id="dataselect_toggle_button" onclick="if(document.getElementById(\'data_pick\').style.display==\'none\'){document.getElementById(\'data_pick\').style.display=\'\';document.getElementById(\'nb_dash\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'\';}" type="button" class="btn btn-info">Data Selector</button>\
+                   <button style="width: 150px;" id="visual_toggle_button" onclick="if(document.getElementById(\'visual\').style.display==\'none\'){document.getElementById(\'visual\').style.display=\'\';stm.send_message(\'ipython_dash\', \'ipy.createHTML();\', \'action\');document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'nb_dash\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'none\';}" type="button" class="btn btn-info">Visual</button>\
                 </div>\
             </div></div>\
 	        <div id="nb_dash" style="margin-top: 5px; height: 300px; border-bottom: 1px dotted; border-top: 1px dotted;">\
@@ -73,7 +73,7 @@
 	            <div id="data_selector_div"></div>\
 	        </div>\
                 <div id="visual" style="display: none; height: 850px; margin-top: 5px;border-bottom: 1px dotted; border-top: 1px dotted;">\
-	            <div id="result"></div>\
+	            <div id="result" style="margin-left: 10px;"></div>\
 	        </div>\
                 <div id="new_nb_modal" class="modal hide fade" role="dialog">\
                 <div class="modal-header">\
@@ -106,7 +106,7 @@
                     <button class="btn btn-success" data-dismiss="modal" onclick="Retina.Widget.NotebookDashboard.ver_launch_click();">Launch</button>\
                 </div>\
             </div>';
-        iframe_html = '<div class="tabbable" style="margin-top: 15px; margin-left: 15px;">\
+        iframe_html = '<div class="tabbable" style="margin-top: 15px; margin-left: 15px;" id="ipython_iframe">\
             <ul id="tab_list" class="nav nav-tabs"><li class="show"><a data-toggle="tab" href="#hidden_dash">IPython</a></li></ul>\
             <div id="tab_div" class="tab-content"><div id="hidden_dash" class="tab-pane active"><iframe id="ipython_dash" src="'+widget.template+'" width="95%" height="750"></iframe></div>\
             </div>';
