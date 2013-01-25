@@ -47,11 +47,14 @@
 	if (typeof(frame) == 'string') {
 	    frame = document.getElementById(frame);
 	}
-	// check if frame is an iframe
-	if (typeof(frame.contentWindow) !== 'undefined') {
-	    frame = frame.contentWindow;	    
+
+	if (! (window.parent === window)) {
+	    // check if frame is an iframe
+	    if (typeof(frame.contentWindow) !== 'undefined') {
+		frame = frame.contentWindow;	    
+	    }
 	}
-	
+
 	// check if frame is now a window object
 	if (typeof(frame.postMessage) == 'undefined') {
 	    alert('invalid target object');
@@ -231,30 +234,6 @@
 	    }
 	}
     };
-
-    stm.dump = function () {
-	var dstring = "";
-	dstring += "<pre>{";
-	for (i in stm.DataStore) {
-	    if (stm.DataStore.hasOwnProperty(i)) {
-		dstring += '"'+i+'":[';
-		for (h in stm.DataStore[i]) {
-		    if (stm.DataStore[i].hasOwnProperty(h)) {
-			dstring += JSON.stringify(stm.DataStore[i][h]);
-			dstring += ",";
-		    }
-		}
-		dstring = dstring.slice(0,-1);
-		dstring += "],";
-	    }
-	}
-	dstring = dstring.slice(0,-1);
-	dstring += "}</pre>";
-	var w = window.open('', 'session dump');
-	var d = w.document.open();
-	d.write(dstring);
-	d.close();
-    };
     
     // client side data requestor
     // initiates data retrieval from a resource, saving callback functions /
@@ -314,6 +293,7 @@
 	    } else {
 		stm.load_data({ "data": JSON.parse(xhr.responseText), "type": type });
 	    }
+
 	    promise.resolve();
 	};
 	
@@ -428,4 +408,31 @@
 	    stm.DataStore[type] = null;
 	}
     };
+
+    // session dumping
+    stm.dump = function () {
+	var dstring = "";
+	dstring += "{";
+	for (i in stm.DataStore) {
+	    if (stm.DataStore.hasOwnProperty(i)) {
+		dstring += '"'+i+'":[';
+		for (h in stm.DataStore[i]) {
+		    if (stm.DataStore[i].hasOwnProperty(h)) {
+			dstring += JSON.stringify(stm.DataStore[i][h]);
+			dstring += ",";
+		    }
+		}
+		dstring = dstring.slice(0,-1);
+		dstring += "],";
+	    }
+	}
+	dstring = dstring.slice(0,-1);
+	dstring += "}";
+	var w = window.open('', '_blank', '');
+	w.document.open();
+	w.document.write(dstring);
+	w.document.close();
+	w.document.title = "session.dump";
+    };
+
 }).call(this);
