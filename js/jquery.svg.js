@@ -3011,7 +3011,7 @@ function SVGPlot(wrapper) {
 		// > 1 in pixels, <= 1 as proportion
 	this._areaFormat = {fill: 'none', stroke: 'black'}; // The formatting for the plot area
 	this._gridlines = []; // The formatting of the x- and y-gridlines
-	this._equalXY = true; // True for equal-sized x- and y-units, false to fill available space
+	this._equalXY = false; // True for equal-sized x- and y-units, false to fill available space
 	this._functions = []; // The functions to be plotted, each is an object
     this.plotPoints = []; // The points to be plotted
 	this._onstatus = null; // The callback function for status updates

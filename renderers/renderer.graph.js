@@ -22,6 +22,9 @@
   title_color (CSS Color Value)
       Color of the title text. Default is black.
 
+  title_settings (SVG settings object)
+      SVG settings for the title.
+
   x_title (STRING)
       Title written below the x-axis.
 
@@ -108,6 +111,7 @@
 		'type': 'column', // [ column, stackedColumn, row, stackedRow, line, pie, stackedArea ]
 		'title': '',
 		'title_color': 'black',
+		'title_settings': { fontSize: '15px' },
 		'x_title': '',
 		'y_title': '',
 		'x_title_color': 'black',
@@ -225,7 +229,7 @@
 	    }
 
 	    for (i=0;i<renderer.settings.data.length;i++) {
-		svg.graph.noDraw().addSeries( renderer.settings.data[i].name, renderer.settings.data[i].data, null, renderer.settings.data[i].lineColor || colors[i], renderer.settings.data[i].lineWidth || renderer.settings.default_line_width);
+		svg.graph.noDraw().addSeries( renderer.settings.data[i].name, renderer.settings.data[i].data, null, renderer.settings.data[i].lineColor || 'white', renderer.settings.data[i].lineWidth || renderer.settings.default_line_width);
 	    }
 	    
 	    svg.graph.xAxis.title(renderer.settings.x_title, renderer.settings.x_title_color).

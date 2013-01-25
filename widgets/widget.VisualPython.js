@@ -15,17 +15,23 @@
 	return [ this.loadRenderer("listselect"),
 		 this.loadRenderer("graph"),
 		 this.loadRenderer("table"),
-	         stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 1 } })
+	         stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 10 } })
 	       ];
     };
 
     widget.cellnum = 0;
     
+    widget.transfer = function (data, n) {
+	var command = "\\n"+data.replace(/'/g, '"').replace(/"/g, "!!").replace(/\n/g, "\\n");
+	var msgstring = 'ipy.append_to_cell('+n+', \''+command+'\');';
+	stm.send_message('ipython_dash', msgstring, 'action');
+    };
+
     widget.display = function (params) {	
 	
 	// get the content div
 	var content = params.target;
-	content.setAttribute('style', "margin-top: -20px; margin-left: 40px;");
+	content.setAttribute('style', "margin-top: 5px;margin-left: 10px;");
 
 	// create a tab menu
 	var ul = document.createElement('ul');
@@ -43,23 +49,45 @@
 	// metagenome select
 	var mg_sel = document.createElement('li');
 	mg_sel.setAttribute('class', 'active');
-	mg_sel.innerHTML = '<a href="#single_mg_select" data-toggle="tab">metagenome select</a>';
+	mg_sel.innerHTML = '<a href="#single_mg_select" data-toggle="tab">object select</a>';
 	ul.appendChild(mg_sel);
 
 	var mg_div = document.createElement('div');
 	mg_div.setAttribute('class', 'tab-pane active');
 	mg_div.setAttribute('id', 'single_mg_select');
 	var ls = document.createElement('div');
-	mg_div.appendChild(ls);
+	var ls_container = document.createElement('div');
+	ls_container.appendChild(ls);
+	ls_container.setAttribute('style', 'float: left;');
+	mg_div.appendChild(ls_container);
 	div.appendChild(mg_div);
+
+	var control_mg = document.createElement('div');
+	control_mg.setAttribute('style', 'float: left; margin-left: 20px;');
+	mg_div.appendChild(control_mg);
+
+	control_mg.innerHTML = '<table style="text-align: left; margin-top: 10px;">\
+<tr><th style="width: 120px;">variable name</th><td><input type="text" id="mg_variable_name" value="object_id" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>target cell</th><td><select id="mg_target_cell" style="margin-bottom: 0px;"><option>current</option><option>append new</option></select></td></tr>\
+<tr><th>stored attribute</th><td><select id="mg_attribute_select" style="margin-bottom: 0px;"><option>ID</option><option>name</option></select></td></tr>\
+<tr><th>cell content</th><td><select id="mg_content_handling" style="margin-bottom: 0px;"><option>replace</option><option>append</option></select></td></tr>\
+<tr><th style="vertical-align: top;">comment</th><td><textarea>the id of the object to load data for</textarea></td></tr>\
+</table>';
+
+	var metagenome_data = [];
+	for (i in stm.DataStore["metagenome"]) {
+	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
+		metagenome_data.push( { "name": stm.DataStore["metagenome"][i]["name"], "id": i, "project": (stm.DataStore["metagenome"][i].metadata && stm.DataStore["metagenome"][i].metadata.project && stm.DataStore["metagenome"][i].metadata.project.name) ? stm.DataStore["metagenome"][i].metadata.project.name : "-",  "biome": (stm.DataStore["metagenome"][i].metadata && stm.DataStore["metagenome"][i].metadata.env_package && stm.DataStore["metagenome"][i].metadata.env_package.type) ? stm.DataStore["metagenome"][i].metadata.env_package.type : "-", "type": "metagenome", "pi": "-" });
+	    }
+	}
 
 	widget.mg_select = Retina.Renderer.create('listselect', {
 	    target: ls,
 	    multiple: false,
-	    data: [],
+	    data: metagenome_data,
 	    value: "id",
 	    label: "name",
-	    filter: [ "name", "id", "biome", "project",  "pi" ],
+	    filter: [ "name", "id", "biome", "project",  "pi", "type" ],
 	    callback: function (data) {
 		var senddata = "# the user selected the metagenome "+stm.DataStore.metagenome[data].name+"\nmetagenome_id = '" + data + "'";
 		widget.transfer(senddata, 0);
@@ -69,20 +97,35 @@
 
 	// multiple metagenome select
 	var mg_sel_multi = document.createElement('li');
-	mg_sel_multi.innerHTML = '<a href="#multi_mg_select" data-toggle="tab">metagenome multiselect</a>';
+	mg_sel_multi.innerHTML = '<a href="#multi_mg_select" data-toggle="tab">object multiselect</a>';
 	ul.appendChild(mg_sel_multi);
 
 	var mg_multi_div = document.createElement('div');
 	mg_multi_div.setAttribute('class', 'tab-pane');
 	mg_multi_div.setAttribute('id', 'multi_mg_select');
 	var ls_multi = document.createElement('div');
-	mg_multi_div.appendChild(ls_multi);
+	var ls_multi_container = document.createElement('div');
+	ls_multi_container.setAttribute('style', 'float: left;');
+	ls_multi_container.appendChild(ls_multi);
+	mg_multi_div.appendChild(ls_multi_container);
 	div.appendChild(mg_multi_div);
+
+	var control_mg_multi = document.createElement('div');
+	control_mg_multi.setAttribute('style', 'float: left; margin-left: 20px;');
+	mg_multi_div.appendChild(control_mg_multi);
+
+	control_mg_multi.innerHTML = '<table style="text-align: left; margin-top: 50px;">\
+<tr><th style="width: 120px;">variable name</th><td><input type="text" id="mg_multi_variable_name" value="metagenomes" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>target cell</th><td><select id="mg_multi_target_cell" style="margin-bottom: 0px;"><option>current</option><option>append new</option></select></td></tr>\
+<tr><th>stored attribute</th><td><select id="mg_multi_attribute_select" style="margin-bottom: 0px;"><option>ID</option><option>name</option></select></td></tr>\
+<tr><th>cell content</th><td><select id="mg_multi_content_handling" style="margin-bottom: 0px;"><option>replace</option><option>append</option></select></td></tr>\
+</table>';
+
 
 	widget.mg_multi_select = Retina.Renderer.create('listselect', {
 	    target: ls_multi,
 	    multiple: true,
-	    data: [],
+	    data: metagenome_data,
 	    value: "id",
 	    label: "name",
 	    filter: [ "name", "id", "biome", "project",  "pi" ],
@@ -182,13 +225,7 @@
 	div.appendChild(spatial_div);
 
     };
-    
-    widget.transfer = function (data, n) {
-	var command = data.replace(/'/g, '"').replace(/"/g, "!!").replace(/\n/g, "\\n").replace(/\t/g, "\\t");
-	var msgstring = 'ipy.write_cell('+n+', \''+command+'\');';
-	stm.send_message('myframe', msgstring, 'action');
-    };
-    
+        
     widget.loadSelector = function () {
 	var metagenome_data = [];
 	for (i in stm.DataStore["metagenome"]) {
