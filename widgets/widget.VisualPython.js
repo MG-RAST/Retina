@@ -190,7 +190,7 @@
 	var data_div = document.createElement('div');
 	data_div.setAttribute('class', 'tab-pane');
 	data_div.setAttribute('id', 'data');
-	data_div.innerHTML = "<h3>insert data selector UI here</h3>";
+	data_div.innerHTML = "<h3>data selector UI in development</h3>";
 	div.appendChild(data_div);
 
 	// paragraph UI
@@ -201,7 +201,7 @@
 	var paragraph_div = document.createElement('div');
 	paragraph_div.setAttribute('class', 'tab-pane');
 	paragraph_div.setAttribute('id', 'paragraph');
-	paragraph_div.innerHTML = "<h3>insert paragraph UI here</h3>";
+	paragraph_div.innerHTML = "<h3>paragraph UI in development</h3>";
 	div.appendChild(paragraph_div);
 
 	// table UI
@@ -212,7 +212,7 @@
 	var table_div = document.createElement('div');
 	table_div.setAttribute('class', 'tab-pane');
 	table_div.setAttribute('id', 'table');
-	table_div.innerHTML = "<h3>insert table UI here</h3>";
+	table_div.innerHTML = "<h3>table UI in development</h3>";
 	div.appendChild(table_div);
 
 	// manhatten plot UI
@@ -223,7 +223,7 @@
 	var manplot_div = document.createElement('div');
 	manplot_div.setAttribute('class', 'tab-pane');
 	manplot_div.setAttribute('id', 'manplot');
-	manplot_div.innerHTML = "<h3>insert manhatten plot UI here</h3>";
+	manplot_div.innerHTML = "<h3>manhatten plot UI in development</h3>";
 	div.appendChild(manplot_div);
 
 	// heatmap UI
@@ -247,7 +247,7 @@
 	heat_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	heat_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
 	heat_button.addEventListener('click', function(){
-	    var senddata = "Ipy.RETINA.heatmap(target='"+document.getElementById('heat_target').value+"', data="+document.getElementById('heat_data').value+", tree_height="+document.getElementById('heat_tree_height').value+", tree_width="+document.getElementById('heat_tree_width').value+", legend_width='"+document.getElementById('heat_legend_width').value+"', legend_height='"+document.getElementById('heat_legend_height').value+"', min_cell_height='"+document.getElementById('heat_min_cell_height').value+"')";
+	    var senddata = "Ipy.RETINA.heatmap(target='"+document.getElementById('heat_target').value+"', data="+document.getElementById('heat_data').value+", tree_height="+document.getElementById('heat_tree_height').value+", tree_width="+document.getElementById('heat_tree_width').value+", legend_width="+document.getElementById('heat_legend_width').value+", legend_height="+document.getElementById('heat_legend_height').value+", min_cell_height="+document.getElementById('heat_min_cell_height').value+")";
 	    widget.transfer(senddata, false);
 	});
 	heatmap_div.appendChild(heat_button);
@@ -294,8 +294,30 @@
 	var spatial_div = document.createElement('div');
 	spatial_div.setAttribute('class', 'tab-pane');
 	spatial_div.setAttribute('id', 'spatial');
-	spatial_div.innerHTML = "<h3>insert spatial map UI here</h3>";
+	spatial_div.innerHTML = "<h3>spatial map UI in development</h3>";
 	div.appendChild(spatial_div);
+
+	// boxplot map UI
+	var boxplot_sel = document.createElement('li');
+	boxplot_sel.innerHTML = '<a href="#boxplot" data-toggle="tab">boxplot</a>';
+	ul.appendChild(boxplot_sel);
+
+	var boxplot_div = document.createElement('div');
+	boxplot_div.setAttribute('class', 'tab-pane');
+	boxplot_div.setAttribute('id', 'boxplot');
+	boxplot_div.innerHTML = "<h3>boxplot UI in development</h3>";
+	div.appendChild(boxplot_div);
+
+	// deviationplot UI
+	var deviationplot_sel = document.createElement('li');
+	deviationplot_sel.innerHTML = '<a href="#deviationplot" data-toggle="tab">deviationplot</a>';
+	ul.appendChild(deviationplot_sel);
+
+	var deviationplot_div = document.createElement('div');
+	deviationplot_div.setAttribute('class', 'tab-pane');
+	deviationplot_div.setAttribute('id', 'deviationplot');
+	deviationplot_div.innerHTML = "<h3>deviationplot UI in development</h3>";
+	div.appendChild(deviationplot_div);
 
     };
         
