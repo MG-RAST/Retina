@@ -46,7 +46,7 @@
         1 based indices of the original row order. This converts the original order (rows) into the one ordered by distance.
      coldend (array of array of float)
         distance matrix for the columns
-     rowdend
+     rowdend (array of array of float)
         distance matrix for the rows
      data (array of array of float)
         normalized value matrix
