@@ -38,7 +38,7 @@
             version: "1.0",
             requires: [],
             defaults: {
-		'width': 'span12',
+		'width': '940',
 		'data': '',
 		'title_color': 'black',
 		'header_color': 'black',
