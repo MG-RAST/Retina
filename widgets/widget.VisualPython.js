@@ -283,7 +283,7 @@
 
 	// heatmap UI
 	var heatmap_sel = document.createElement('li');
-	heatmap_sel.innerHTML = '<a href="#heatmap" data-toggle="tab">heatmap</a>';
+	heatmap_sel.innerHTML = '<a href="#heatmap" data-toggle="tab"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_heatmap.png">heatmap</a>';
 	vis_ul.appendChild(heatmap_sel);
 
 	var heatmap_div = document.createElement('div');
@@ -310,7 +310,7 @@
 
 	// plot UI
 	var plot_sel = document.createElement('li');
-	plot_sel.innerHTML = '<a href="#plot" data-toggle="tab"><i class="icon-picture" style="margin-right: 5px;"></i>plot</a>';
+	plot_sel.innerHTML = '<a href="#plot" data-toggle="tab"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_plot.png">plot</a>';
 	vis_ul.appendChild(plot_sel);
 
 	var plot_div = document.createElement('div');
@@ -343,7 +343,7 @@
 
 	// boxplot map UI
 	var boxplot_sel = document.createElement('li');
-	boxplot_sel.innerHTML = '<a href="#boxplot" data-toggle="tab">boxplot</a>';
+	boxplot_sel.innerHTML = '<a href="#boxplot" data-toggle="tab"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_boxplot.png">boxplot</a>';
 	vis_ul.appendChild(boxplot_sel);
 
 	var boxplot_div = document.createElement('div');
