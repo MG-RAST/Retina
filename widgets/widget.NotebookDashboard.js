@@ -3,17 +3,17 @@
         about: {
             title: "Notebook Dashboard Widget",
             name: "NotebookDashboard",
-	    version: 1,
+	        version: 1,
             author: "Travis Harrison",
             requires: [ ]
         }
     });
     
     // ipython notebook server ip
-    widget.nb_server = 'http://140.221.84.122:8888';
+    widget.nb_server = 'http://140.221.92.53:7051';
     
-    // shock id of templatenotebook
-    widget.nb_template = '79ef9280-12d0-4cb9-9ae0-55d4a77bfa35';
+    // shock id of template notebook
+    widget.nb_template = '0a191d8d-8582-4377-8038-91a2dce3eb2e';
     
     // current selected notebook [ uuid (notebook), id (shock) ]
     widget.nb_selected = [];
@@ -21,8 +21,6 @@
     // dict of notebook uuid: [ notebook_objs ]
     // notebook_objs is list of notebooks with same uuid sorted by datetime (lates first)
     widget.sorted_nbs = {};
-
-    widget.template = 'http://140.221.84.122:8888/9ea99de4-2374-4ffc-959d-b94e2639dd59';
     
     // these are listselect renderers for notebooks, versions, and metagenomes
     widget.nb_list  = undefined;
@@ -35,7 +33,7 @@
     // which would make the table renderer available to use before the display function is called
     // you can add multiple comma separated promises
     widget.setup = function () {
-	return [ this.loadRenderer('listselect') ];
+	    return [ this.loadRenderer('listselect') ];
     };
     
     // this will be called whenever the widget is displayed
@@ -45,7 +43,7 @@
 	widget = this;
 	var dash_div = params.target;
 	var iframe_div = params.notebook;
-        // populate divs with html
+    // populate divs with html
 	dash_html = '\
                 <div class="btn-group" data-toggle="buttons-radio">\
                    <button style="width: 150px; margin-left: 20px;" id="nbdash_toggle_button" onclick="if(document.getElementById(\'nb_dash\').style.display==\'none\'){document.getElementById(\'nb_dash\').style.display=\'\';document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'\';}" class="btn btn-info active">Notebook Dashboard</button>\
@@ -108,15 +106,15 @@
             </div>';
         iframe_html = '<div class="tabbable" style="margin-top: 15px; margin-left: 15px;" id="ipython_iframe">\
             <ul id="tab_list" class="nav nav-tabs"><li class="show"><a data-toggle="tab" href="#hidden_dash">IPython</a></li></ul>\
-            <div id="tab_div" class="tab-content"><div id="hidden_dash" class="tab-pane active"><iframe id="ipython_dash" src="'+widget.template+'" width="95%" height="750"></iframe></div>\
+            <div id="tab_div" class="tab-content"><div id="hidden_dash" class="tab-pane active"><iframe id="ipython_dash" src="'+widget.nb_server+'" width="95%" height="750"></iframe></div>\
             </div>';
         jQuery('#'+dash_div).html(dash_html);
         jQuery('#'+iframe_div).html(iframe_html);
 	
-	Retina.Widget.create('VisualPython', { target: document.getElementById('data_selector_div') });
+	    Retina.Widget.create('VisualPython', { target: document.getElementById('data_selector_div') });
 
-	// create empty renderers
-	var index = widget.index;
+	    // create empty renderers
+	    var index = widget.index;
         widget.nb_list = Retina.Renderer.create('listselect', { "target": document.getElementById('nb_div'),
 								"data": [],
 								"value": 'uuid',
@@ -136,7 +134,7 @@
 							       });
 	
         // populate nb selects
-	widget.nb_select_refresh();
+	    widget.nb_select_refresh();
     };
     
     // populate nb listselect with newest version of each notebook, empty version listselect
@@ -144,7 +142,7 @@
 
 	var index = widget.index;
 
-        // get notebooks from api        
+    // get notebooks from api        
 	stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
 	    Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
 	    var snbs = Retina.WidgetInstances.NotebookDashboard[index].nb_sort();
@@ -235,11 +233,11 @@
                 Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh();
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh().then(function () {
                     Retina.WidgetInstances.NotebookDashboard[index].nb_create_tab(new_uuid, new_name);
-		});
+		        });
             });
         } else {
             alert("Error creating notebook. Please try again.");
-	    Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh();
+	        Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh();
         }
     };
     
