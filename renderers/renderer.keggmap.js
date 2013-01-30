@@ -39,7 +39,7 @@
 	    
 	    if (renderer.settings.image == null) {
 		var image = document.createElement('img');
-		image.setAttribute('src', 'keggmap.png');
+		image.setAttribute('src', 'images/keggmap.png');
 		image.addEventListener('load', function(event){event.target.nextSibling.style.top=event.target.offsetTop+"px";});
 		target.appendChild(image);
 		renderer.settings.image = image;
