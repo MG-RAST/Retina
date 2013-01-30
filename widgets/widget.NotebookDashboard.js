@@ -21,6 +21,8 @@
     // dict of notebook uuid: [ notebook_objs ]
     // notebook_objs is list of notebooks with same uuid sorted by datetime (lates first)
     widget.sorted_nbs = {};
+
+    widget.template = 'http://140.221.84.122:8888/81a79607-4127-4f13-b844-2badaf2d852b';
     
     // these are listselect renderers for notebooks, versions, and metagenomes
     widget.nb_list  = undefined;
@@ -46,9 +48,9 @@
     // populate divs with html
 	dash_html = '\
                 <div class="btn-group" data-toggle="buttons-radio">\
-                   <button style="width: 150px; margin-left: 20px;" id="nbdash_toggle_button" onclick="if(document.getElementById(\'nb_dash\').style.display==\'none\'){document.getElementById(\'nb_dash\').style.display=\'\';document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'\';}" class="btn btn-info active">Notebook Dashboard</button>\
-                   <button style="width: 150px;" id="dataselect_toggle_button" onclick="if(document.getElementById(\'data_pick\').style.display==\'none\'){document.getElementById(\'data_pick\').style.display=\'\';document.getElementById(\'nb_dash\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'\';}" type="button" class="btn btn-info">Data Selector</button>\
-                   <button style="width: 150px;" id="visual_toggle_button" onclick="if(document.getElementById(\'visual\').style.display==\'none\'){document.getElementById(\'visual\').style.display=\'\';stm.send_message(\'ipython_dash\', \'ipy.createHTML();\', \'action\');document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'nb_dash\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'none\';}" type="button" class="btn btn-info">Visual</button>\
+                   <button style="width: 150px; margin-left: 20px;" id="nbdash_toggle_button" onclick="if(document.getElementById(\'nb_dash\').style.display==\'none\'){document.getElementById(\'nb_dash\').style.display=\'\';document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'\';}" class="btn btn-info active">Notebook Select</button>\
+                   <button style="width: 150px;" id="dataselect_toggle_button" onclick="if(document.getElementById(\'data_pick\').style.display==\'none\'){document.getElementById(\'data_pick\').style.display=\'\';document.getElementById(\'nb_dash\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'\';}" type="button" class="btn btn-info">Notebook Editor</button>\
+                   <button style="width: 150px;" id="visual_toggle_button" onclick="if(document.getElementById(\'visual\').style.display==\'none\'){document.getElementById(\'visual\').style.display=\'\';stm.send_message(\'ipython_dash\', \'ipy.createHTML();\', \'action\');document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'nb_dash\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'none\';}" type="button" class="btn btn-info">Analysis Results</button>\
                 </div>\
             </div></div>\
 	        <div id="nb_dash" style="margin-top: 5px; height: 300px; border-bottom: 1px dotted; border-top: 1px dotted;">\
@@ -71,7 +73,7 @@
 	            <div id="data_selector_div"></div>\
 	        </div>\
                 <div id="visual" style="display: none; height: 850px; margin-top: 5px;border-bottom: 1px dotted; border-top: 1px dotted;">\
-	            <div id="result" style="margin-left: 10px;"></div>\
+	            <div id="result" style="margin-left: 10px;"><h3 style="position: relative; top: 200px; left: 25%;">your analysis currently has no results</h3></div>\
 	        </div>\
                 <div id="new_nb_modal" class="modal hide fade" role="dialog">\
                 <div class="modal-header">\

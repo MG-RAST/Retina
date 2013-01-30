@@ -46,6 +46,17 @@
 	content.appendChild(ul);
 	content.appendChild(div);
 
+	// data load / convert
+	var data_sel = document.createElement('li');
+	data_sel.innerHTML = '<a href="#data" data-toggle="tab">data loader</a>';
+	ul.appendChild(data_sel);
+
+	var data_div = document.createElement('div');
+	data_div.setAttribute('class', 'tab-pane');
+	data_div.setAttribute('id', 'data');
+	data_div.innerHTML = "<h3>data selector UI in development</h3>";
+	div.appendChild(data_div);
+
 	// metagenome select
 	var mg_sel = document.createElement('li');
 	mg_sel.setAttribute('class', 'active');
@@ -149,6 +160,56 @@
 	});
 	widget.mg_multi_select.render();
 
+	// paragraph UI
+	var paragraph_sel = document.createElement('li');
+	paragraph_sel.innerHTML = '<a href="#paragraph" data-toggle="tab">text writer</a>';
+	ul.appendChild(paragraph_sel);
+
+	var paragraph_div = document.createElement('div');
+	widget.currentParagraph = [];
+	paragraph_div.setAttribute('class', 'tab-pane');
+	paragraph_div.setAttribute('id', 'paragraph');
+	paragraph_div.innerHTML = '<table>\
+<tr>\
+ <td>\
+  <div class="btn-toolbar">\
+   <div class="btn-group" data-toggle="buttons-radio">\
+     <button type="button" class="btn active" style="font-weight: bold;" title="title" id="paragraph_t">T</button>\
+     <button type="button" class="btn" style="font-weight: bold;" title="header" id="paragraph_h">H</button>\
+     <button type="button" class="btn" style="font-weight: bold;" title="paragraph" id="paragraph_p">P</button>\
+   </div>\
+   <div class="btn-group">\
+    <button type="button" class="btn" style="margin-left: 70px;" onclick="document.getElementById(\'paragraph_text\').value = \'\';" title="clear text"><i class="icon-trash"></i></button>\
+    <button type="button" class="btn" onclick="Retina.WidgetInstances.VisualPython[0].paragraph(\'replace\');" title="replace paragraph"><i class="icon-refresh"></i></button>\
+    <button type="button" class="btn" onclick="Retina.WidgetInstances.VisualPython[0].paragraph(\'add\');" title="add paragraph"><i class="icon-plus"></i></button>\
+   </div>\
+  </div>\
+  <textarea style="width: 275px; height: 175px;" id="paragraph_text"></textarea>\
+ </td>\
+ <td style="padding-left: 20px;">\
+  <div class="btn-toolbar">\
+   <div class="btn-group">\
+    <button type="button" class="btn" onclick="if(confirm(\'Do you really want to delete ALL paragraphs from the list?\')){Retina.WidgetInstances.VisualPython[0].paragraph(\'delete_all\');}" title="delete all paragraphs"><i class="icon-trash"></i></button>\
+    <button type="button" class="btn" onclick="if(confirm(\'Do you really want to delete the selected paragraph from the list?\')){Retina.WidgetInstances.VisualPython[0].paragraph(\'delete\');}" title="delete selected paragraph"><i class="icon-remove"></i></button>\
+    <button type="button" class="btn" onclick="Retina.WidgetInstances.VisualPython[0].paragraph(\'edit\');" title="edit paragraph"><i class="icon-edit"></i></button>\
+   </div>\
+   <div class="btn-group">\
+    <button type="button" class="btn btn-success" style="margin-left: 70px;" title="create IPython command" onclick="Retina.WidgetInstances.VisualPython[0].paragraph(\'submit\');"><i class="icon-ok"></i></button>\
+   </div>\
+  </div>\
+  <select multiple size=11 id="paragraph_list"></select>\
+ </td>\
+ <td style="padding-left: 20px; vertical-align: top;">\
+  <table style="text-align: left; margin-top: 50px;">\
+   <tr><th style="width: 100px;">target</th><td><input type="text" value="paragraph_1" id="paragraph_target"></td></tr>\
+   <tr><th>cell content</th><td><select id="para_content_handling" style="margin-bottom: 0px;"><option>append</option><option>replace</option></select></td></tr>\
+   <tr><th style="vertical-align: top;">comment</th><td><textarea id="para_comment">introductory paragraph</textarea></td></tr>\
+  </table>\
+ </td>\
+</tr>\
+</table>';
+	div.appendChild(paragraph_div);
+
 	// chart UI
 	var chart_sel = document.createElement('li');
 	chart_sel.innerHTML = '<a href="#chart" data-toggle="tab">bar-/pie-chart</a>';
@@ -182,49 +243,16 @@
 	});
 	chart_div.appendChild(graph_button);
 
-	// data load / convert
-	var data_sel = document.createElement('li');
-	data_sel.innerHTML = '<a href="#data" data-toggle="tab">data loader</a>';
-	ul.appendChild(data_sel);
+	// // table UI
+	// var table_sel = document.createElement('li');
+	// table_sel.innerHTML = '<a href="#table" data-toggle="tab">table</a>';
+	// ul.appendChild(table_sel);
 
-	var data_div = document.createElement('div');
-	data_div.setAttribute('class', 'tab-pane');
-	data_div.setAttribute('id', 'data');
-	data_div.innerHTML = "<h3>data selector UI in development</h3>";
-	div.appendChild(data_div);
-
-	// paragraph UI
-	var paragraph_sel = document.createElement('li');
-	paragraph_sel.innerHTML = '<a href="#paragraph" data-toggle="tab">text writer</a>';
-	ul.appendChild(paragraph_sel);
-
-	var paragraph_div = document.createElement('div');
-	paragraph_div.setAttribute('class', 'tab-pane');
-	paragraph_div.setAttribute('id', 'paragraph');
-	paragraph_div.innerHTML = "<h3>paragraph UI in development</h3>";
-	div.appendChild(paragraph_div);
-
-	// table UI
-	var table_sel = document.createElement('li');
-	table_sel.innerHTML = '<a href="#table" data-toggle="tab">table</a>';
-	ul.appendChild(table_sel);
-
-	var table_div = document.createElement('div');
-	table_div.setAttribute('class', 'tab-pane');
-	table_div.setAttribute('id', 'table');
-	table_div.innerHTML = "<h3>table UI in development</h3>";
-	div.appendChild(table_div);
-
-	// manhatten plot UI
-	var manplot_sel = document.createElement('li');
-	manplot_sel.innerHTML = '<a href="#manplot" data-toggle="tab">manhatten plot</a>';
-	ul.appendChild(manplot_sel);
-
-	var manplot_div = document.createElement('div');
-	manplot_div.setAttribute('class', 'tab-pane');
-	manplot_div.setAttribute('id', 'manplot');
-	manplot_div.innerHTML = "<h3>manhatten plot UI in development</h3>";
-	div.appendChild(manplot_div);
+	// var table_div = document.createElement('div');
+	// table_div.setAttribute('class', 'tab-pane');
+	// table_div.setAttribute('id', 'table');
+	// table_div.innerHTML = "<h3>table UI in development</h3>";
+	// div.appendChild(table_div);
 
 	// heatmap UI
 	var heatmap_sel = document.createElement('li');
@@ -286,17 +314,6 @@
 	plot_div.appendChild(plot_button);
 	div.appendChild(plot_div);
 
-	// spatial map UI
-	var spatial_sel = document.createElement('li');
-	spatial_sel.innerHTML = '<a href="#spatial" data-toggle="tab">spatial map</a>';
-	ul.appendChild(spatial_sel);
-
-	var spatial_div = document.createElement('div');
-	spatial_div.setAttribute('class', 'tab-pane');
-	spatial_div.setAttribute('id', 'spatial');
-	spatial_div.innerHTML = "<h3>spatial map UI in development</h3>";
-	div.appendChild(spatial_div);
-
 	// boxplot map UI
 	var boxplot_sel = document.createElement('li');
 	boxplot_sel.innerHTML = '<a href="#boxplot" data-toggle="tab">boxplot</a>';
@@ -305,7 +322,20 @@
 	var boxplot_div = document.createElement('div');
 	boxplot_div.setAttribute('class', 'tab-pane');
 	boxplot_div.setAttribute('id', 'boxplot');
-	boxplot_div.innerHTML = "<h3>boxplot UI in development</h3>";
+	boxplot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
+<tr><th>height</th><td><input type="text" id="boxplot_height" style="margin-bottom: 0px;" value="350"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="boxplot_data" value="boxplot_data" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>width</th><td><input type="text" id="boxplot_width" value="150" style="margin-bottom: 0px;"></td><th>target name</th><td><input type="text" id="boxplot_target" value="boxplot_1" style="margin-bottom: 0px;"></td></tr>\
+</table>';
+
+	var boxplot_button = document.createElement('button');
+	boxplot_button.setAttribute('class', 'btn btn-success');
+	boxplot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
+	boxplot_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
+	boxplot_button.addEventListener('click', function(){
+	    var senddata = "Ipy.RETINA.boxplot(target='"+document.getElementById('boxplot_target').value+"', data="+document.getElementById('boxplot_data').value+", height="+document.getElementById('boxplot_height').value+", width="+document.getElementById('boxplot_width').value+")";
+	    widget.transfer(senddata, false);
+	});
+	boxplot_div.appendChild(boxplot_button);
 	div.appendChild(boxplot_div);
 
 	// deviationplot UI
@@ -316,9 +346,115 @@
 	var deviationplot_div = document.createElement('div');
 	deviationplot_div.setAttribute('class', 'tab-pane');
 	deviationplot_div.setAttribute('id', 'deviationplot');
-	deviationplot_div.innerHTML = "<h3>deviationplot UI in development</h3>";
+	deviationplot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
+<tr><th>height</th><td><input type="text" id="deviationplot_height" style="margin-bottom: 0px;" value="80"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="deviationplot_data" value="deviationplot_data" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>width</th><td><input type="text" id="deviationplot_width" value="400" style="margin-bottom: 0px;"></td><th>target name</th><td><input type="text" id="deviationplot_target" value="deviationplot_1" style="margin-bottom: 0px;"></td></tr>\
+</table>';
+
+	var deviationplot_button = document.createElement('button');
+	deviationplot_button.setAttribute('class', 'btn btn-success');
+	deviationplot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
+	deviationplot_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
+	deviationplot_button.addEventListener('click', function(){
+	    var senddata = "Ipy.RETINA.deviationplot(target='"+document.getElementById('deviationplot_target').value+"', data="+document.getElementById('deviationplot_data').value+", height="+document.getElementById('deviationplot_height').value+", width="+document.getElementById('deviationplot_width').value+")";
+	    widget.transfer(senddata, false);
+	});
+	deviationplot_div.appendChild(deviationplot_button);
 	div.appendChild(deviationplot_div);
 
+	// // manhatten plot UI
+	// var manplot_sel = document.createElement('li');
+	// manplot_sel.innerHTML = '<a href="#manplot" data-toggle="tab">manhatten plot</a>';
+	// ul.appendChild(manplot_sel);
+
+	// var manplot_div = document.createElement('div');
+	// manplot_div.setAttribute('class', 'tab-pane');
+	// manplot_div.setAttribute('id', 'manplot');
+	// manplot_div.innerHTML = "<h3>manhatten plot UI in development</h3>";
+	// div.appendChild(manplot_div);
+
+	// // spatial map UI
+	// var spatial_sel = document.createElement('li');
+	// spatial_sel.innerHTML = '<a href="#spatial" data-toggle="tab">spatial map</a>';
+	// ul.appendChild(spatial_sel);
+
+	// var spatial_div = document.createElement('div');
+	// spatial_div.setAttribute('class', 'tab-pane');
+	// spatial_div.setAttribute('id', 'spatial');
+	// spatial_div.innerHTML = "<h3>spatial map UI in development</h3>";
+	// div.appendChild(spatial_div);
+    };
+
+    widget.paragraph = function (command) {
+	widget = Retina.WidgetInstances.VisualPython[0];
+	var sel = document.getElementById('paragraph_list');
+	var txt = document.getElementById('paragraph_text');
+    	switch (command) {
+    	case 'add':
+	    var para = { "title": txt.value };
+	    var type = "T";
+	    if (document.getElementById('paragraph_h').className == 'btn active') {
+		type = "H";
+		para = { "header": txt.value };
+	    } else if (document.getElementById('paragraph_p').className == 'btn active') {
+		type = "P";
+		para = { "p": txt.value };
+	    }
+	    sel.options[sel.options.length] = new Option(type+": "+txt.value, type+": "+txt.value);
+	    widget.currentParagraph.push(para);
+    	    break;
+    	case 'delete':
+	    if (sel.selectedIndex > -1) {
+		widget.currentParagraph.splice(sel.selectedIndex, 1);
+		sel.remove(sel.selectedIndex);
+	    }
+    	    break;
+    	case 'edit':
+	    if (sel.selectedIndex > -1) {
+    		var hash = widget.currentParagraph[sel.selectedIndex];
+		var val;
+		if (hash.hasOwnProperty('header')) {
+		    document.getElementById('paragraph_h').click();
+		    val = hash.header;
+		} else if (hash.hasOwnProperty('title')) {
+		    document.getElementById('paragraph_t').click();
+		    val = hash.title;
+		} else {
+		    document.getElementById('paragraph_p').click();
+		    val = hash.p;
+		}
+		txt.value = val;
+	    }
+    	    break;
+	case 'replace':
+	    if (sel.selectedIndex > -1) {
+		var para = { "title": txt.value };
+		var type = "T";
+		if (document.getElementById('paragraph_h').className == 'btn active') {
+		    type = "H";
+		    para = { "header": txt.value };
+		} else if (document.getElementById('paragraph_p').className == 'btn active') {
+		    type = "P";
+		    para = { "p": txt.value };
+		}
+		widget.currentParagraph[sel.selectedIndex] = para;
+		sel.options[sel.selectedIndex] = new Option(type+": "+txt.value, type+": "+txt.value);
+	    }
+	    break;
+	case 'delete_all':
+	    sel.options.length = 0;
+	    widget.currentParagraph = [];
+	    break;
+    	case 'submit':
+    	    var senddata = "";
+	    if (document.getElementById('para_comment').value) {
+		senddata += "# " + document.getElementById('para_comment').value.split(/\n/).join("\n# ") + "\n";
+	    }
+	    senddata += "Ipy.RETINA.paragraph(target='"+document.getElementById('paragraph_target').value+"', data="+JSON.stringify(widget.currentParagraph)+")";
+
+	    widget.transfer(senddata, (document.getElementById('para_content_handling').options[document.getElementById('para_content_handling').selectedIndex].value == 'replace'));
+    	    break;
+    	}
     };
         
     widget.loadSelector = function () {
