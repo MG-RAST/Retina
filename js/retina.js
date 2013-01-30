@@ -462,4 +462,17 @@
 	throw error;
     }
 
+    /* create an image from an svg  */
+    Retina.svg2png = function (source, target, width, height) {
+	Retina.load_library('canvg.js').then( function () {
+	    var svg = source.innerHTML;
+	    svg = svg.replace(/:/, "");
+	    svg = svg.replace(/xlink:/g, "");
+	    var canvas = document.createElement('canvas');
+	    canvas.setAttribute("width", width+"px");
+	    canvas.setAttribute("height", height+"px");
+	    target.appendChild(canvas);
+	    canvg(canvas, svg);
+	} );
+    }
 }).call(this);

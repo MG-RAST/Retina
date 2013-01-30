@@ -1,0 +1,41 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Experimental Design Wizard</title>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/stm.js"></script>
+    <script src="js/retina.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <script>
+    stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
+	Retina.init( { library_resource: "js/" } ).then( function () {
+	    Retina.add_widget({"name": "wizard", "resource": "widgets/",  "filename": "widget.wizard.js" });
+	    Retina.load_widget("wizard").then( function () {
+		Retina.Widget.create('wizard', { target: document.getElementById('content') });
+	    });
+	});
+    });
+    </script>
+  </head>
+  <body>    
+    
+    <div class="navbar">
+      <img src="images/KbaseLogoTransparent.gif">
+      <div class="navbar-inner" style="border-radius: 0px;">
+	<div class="container">
+          <a style="color: white; cursor: default;" href="#" class="brand">Experimental Design Wizard</a>
+	  <ul class="nav" style="float: right;">
+	    <li>
+	      <a>
+		<i class="icon-user icon-white"></i>
+		<span >paczian</span>
+	      </a>
+	    </li>
+	  </ul>
+	</div>
+      </div>
+    </div>
+    <div id="content" style="padding-bottom: 100px; padding-left: 10px; padding-right: 10px;"></div>
+</html>
