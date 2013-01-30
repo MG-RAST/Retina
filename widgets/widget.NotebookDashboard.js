@@ -47,13 +47,9 @@
 	var iframe_div = params.notebook;
     // populate divs with html
 	dash_html = '\
-                <div class="btn-group" data-toggle="buttons-radio">\
-                   <button style="width: 150px; margin-left: 20px;" id="nbdash_toggle_button" onclick="if(document.getElementById(\'nb_dash\').style.display==\'none\'){document.getElementById(\'nb_dash\').style.display=\'\';document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'\';}" class="btn btn-info active">Notebook Select</button>\
-                   <button style="width: 150px;" id="dataselect_toggle_button" onclick="if(document.getElementById(\'data_pick\').style.display==\'none\'){document.getElementById(\'data_pick\').style.display=\'\';document.getElementById(\'nb_dash\').style.display=\'none\';document.getElementById(\'visual\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'\';}" type="button" class="btn btn-info">Notebook Editor</button>\
-                   <button style="width: 150px;" id="visual_toggle_button" onclick="if(document.getElementById(\'visual\').style.display==\'none\'){document.getElementById(\'visual\').style.display=\'\';stm.send_message(\'ipython_dash\', \'ipy.createHTML();\', \'action\');document.getElementById(\'data_pick\').style.display=\'none\';document.getElementById(\'nb_dash\').style.display=\'none\';document.getElementById(\'ipython_iframe\').style.display=\'none\';}" type="button" class="btn btn-info">Analysis Results</button>\
-                </div>\
-            </div></div>\
-	        <div id="nb_dash" style="margin-top: 5px; height: 300px; border-bottom: 1px dotted; border-top: 1px dotted;">\
+                   <button style="width: 150px; width: 150px; position: absolute; top: 60px; right: 55px;" data-toggle="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" type="button" class="btn">Analysis Builder</button>\
+                   <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[0].export_visual();" title="show results in new window" style="position: absolute; top: 60px; right: 10px;"><i class="icon-eye-open icon-white"></i></button>\
+	        <div id="nb_dash" style="margin-top: 5px; height: 300px; border-bottom: 1px dotted; display: none;">\
 	            <div class="row" id="dash_head" style="display: none;">\
 	                <div class="span3 offset1"><h4 style="margin-bottom: 5px;">Select Notebook</h4></div>\
 	                <div class="span3 offset1"><h4 style="margin-bottom: 5px;">Select Version</h4></div>\
@@ -69,7 +65,7 @@
 	                </table></div>\
 	            </div>\
 	        </div>\
-                <div id="data_pick" style="display: none; height: 300px; margin-top: 5px;border-bottom: 1px dotted; border-top: 1px dotted;">\
+                <div id="data_pick" style="display: none; height: 315px; margin-top: 5px;">\
 	            <div id="data_selector_div"></div>\
 	        </div>\
                 <div id="visual" style="display: none; height: 850px; margin-top: 5px;border-bottom: 1px dotted; border-top: 1px dotted;">\
@@ -337,5 +333,22 @@
         });
 	
         return latest_nbs;
+    };
+    
+    widget.export_visual = function (tried) {
+	if (! tried) {
+	    stm.send_message('ipython_dash', 'ipy.createHTML();', 'action');
+	    setTimeout("Retina.WidgetInstances.NotebookDashboard[0].export_visual(true)", 1000);
+	} else {	
+	    if (document.getElementById('result').innerHTML == "") {
+		alert("There is no content to show.");
+	    } else {
+		var w = window.open('', '_blank', '');
+		w.document.open();
+		w.document.write("<html><head><title>Notebook Analysis Result</title><link rel='stylesheet' type='text/css' href='css/bootstrap.min.css'><style>body div { margin-bottom: 30px; }</style></head><body class='container' style='margin-top: 50px;'></body></html>");
+		w.document.body.innerHTML = document.getElementById('result').innerHTML;
+		w.document.close();
+	    }
+	}
     };
 })();

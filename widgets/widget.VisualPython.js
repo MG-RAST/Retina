@@ -31,59 +31,23 @@
 	
 	// get the content div
 	var content = params.target;
-	content.setAttribute('style', "margin-top: 5px;margin-left: 10px;");
+	content.setAttribute('style', "margin-top: 5px; margin-left: 10px;");
+	content.setAttribute('class', "tabbable tabs-left");
 
 	// create a tab menu
 	var ul = document.createElement('ul');
 	ul.setAttribute('class', 'nav nav-tabs')
-	ul.setAttribute('style', "margin-bottom: 10px;");
-	ul.setAttribute('id', 'actiontab');
+	ul.setAttribute('style', "margin-top: 35px; margin-right: -1px; height: 280px;");
 
 	// create the div-container
 	var div = document.createElement('div');
 	div.setAttribute('class', 'tab-content');
+	div.setAttribute('style', 'height: 315px; border-bottom: 1px solid #DDDDDD;');
 
 	content.appendChild(ul);
 	content.appendChild(div);
 
-	// data load / convert
-	var data_sel = document.createElement('li');
-	data_sel.innerHTML = '<a href="#data" data-toggle="tab">data loader</a>';
-	ul.appendChild(data_sel);
-
-	var data_div = document.createElement('div');
-	data_div.setAttribute('class', 'tab-pane');
-	data_div.setAttribute('id', 'data');
-	data_div.innerHTML = "<h3>data selector UI in development</h3>";
-	div.appendChild(data_div);
-
-	// metagenome select
-	var mg_sel = document.createElement('li');
-	mg_sel.setAttribute('class', 'active');
-	mg_sel.innerHTML = '<a href="#single_mg_select" data-toggle="tab">object select</a>';
-	ul.appendChild(mg_sel);
-
-	var mg_div = document.createElement('div');
-	mg_div.setAttribute('class', 'tab-pane active');
-	mg_div.setAttribute('id', 'single_mg_select');
-	var ls = document.createElement('div');
-	var ls_container = document.createElement('div');
-	ls_container.appendChild(ls);
-	ls_container.setAttribute('style', 'float: left;');
-	mg_div.appendChild(ls_container);
-	div.appendChild(mg_div);
-
-	var control_mg = document.createElement('div');
-	control_mg.setAttribute('style', 'float: left; margin-left: 20px;');
-	mg_div.appendChild(control_mg);
-
-	control_mg.innerHTML = '<table style="text-align: left; margin-top: 10px;">\
-<tr><th style="width: 120px;">variable name</th><td><input type="text" id="mg_variable_name" value="object_id" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>stored attribute</th><td><select id="mg_attribute_select" style="margin-bottom: 0px;"><option>id</option><option>name</option></select></td></tr>\
-<tr><th>cell content</th><td><select id="mg_content_handling" style="margin-bottom: 0px;"><option>append</option><option>replace</option></select></td></tr>\
-<tr><th style="vertical-align: top;">comment</th><td><textarea id="mg_comment">the id of the object to load data for</textarea></td></tr>\
-</table>';
-
+	// get the data for the metagenome select
 	var metagenome_data = [];
 	for (i in stm.DataStore["metagenome"]) {
 	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
@@ -91,52 +55,61 @@
 	    }
 	}
 
-	widget.mg_select = Retina.Renderer.create('listselect', {
-	    target: ls,
-	    multiple: false,
-	    data: metagenome_data,
-	    value: "id",
-	    label: "name",
-	    filter: [ "name", "id", "biome", "project", "type" ],
-	    callback: function (data) {
-		var senddata = "";
-		if (document.getElementById('mg_comment').value) {
-		    senddata += "# " + document.getElementById('mg_comment').value.split(/\n/).join("\n# ") + "\n";
-		}
-		senddata += document.getElementById('mg_variable_name').value + " = '" + stm.DataStore.metagenome[data][document.getElementById('mg_attribute_select').options[document.getElementById('mg_attribute_select').selectedIndex].value] + "'";
-		widget.transfer(senddata, (document.getElementById('mg_content_handling').options[document.getElementById('mg_content_handling').selectedIndex].value == 'replace'));
-	    }
-	});
-	widget.mg_select.render();
+	// sample select
+	var sample_select = document.createElement('li');
+	sample_select.setAttribute('class', 'active');
+	sample_select.innerHTML = '<a href="#sample_select" data-toggle="tab">'+widget.number(1)+'select samples</a>';
+	ul.appendChild(sample_select);
 
-	// multiple metagenome select
-	var mg_sel_multi = document.createElement('li');
-	mg_sel_multi.innerHTML = '<a href="#multi_mg_select" data-toggle="tab">object multiselect</a>';
-	ul.appendChild(mg_sel_multi);
+	var sample_select_div = document.createElement('div');
+	sample_select_div.setAttribute('class', 'tab-pane active');
+	sample_select_div.setAttribute('id', 'sample_select');
 
-	var mg_multi_div = document.createElement('div');
-	mg_multi_div.setAttribute('class', 'tab-pane');
-	mg_multi_div.setAttribute('id', 'multi_mg_select');
-	var ls_multi = document.createElement('div');
+	var sample_select_ul = document.createElement('ul');
+	sample_select_ul.setAttribute('class', 'nav nav-tabs')
+	sample_select_ul.setAttribute('style', "margin-bottom: 10px;");
+
+	var sample_select_disp = document.createElement('div');
+	sample_select_disp.setAttribute('class', 'tab-content');
+
+	var sample_select_li = document.createElement('li');
+	sample_select_li.setAttribute('class', 'active');
+	sample_select_li.innerHTML = '<a href="#sample_select_li" data-toggle="tab">select the samples you want to analyze</a>';
+	sample_select_ul.appendChild(sample_select_li);
+
+	var sample_select_disp_div = document.createElement('div');
+	sample_select_disp_div.setAttribute('class', 'tab-pane active');
+	sample_select_disp_div.setAttribute('id', 'sample_select_li');
+	sample_select_disp_div.setAttribute('style', 'padding-top: 10px');
+	sample_select_disp.appendChild(sample_select_disp_div);
+
 	var ls_multi_container = document.createElement('div');
-	ls_multi_container.setAttribute('style', 'float: left;');
+	ls_multi_container.setAttribute('style', 'float: left; margin-left: 20px;');
+
+	var ls_multi = document.createElement('div');
 	ls_multi_container.appendChild(ls_multi);
-	mg_multi_div.appendChild(ls_multi_container);
-	div.appendChild(mg_multi_div);
 
-	var control_mg_multi = document.createElement('div');
-	control_mg_multi.setAttribute('style', 'float: left; margin-left: 20px;');
-	mg_multi_div.appendChild(control_mg_multi);
+	sample_select_disp_div.appendChild(ls_multi_container);
 
-	control_mg_multi.innerHTML = '<table style="text-align: left; margin-top: 10px;">\
+	sample_select_disp.appendChild(sample_select_disp_div);
+
+	sample_select_div.appendChild(sample_select_ul);
+	sample_select_div.appendChild(sample_select_disp);
+
+	div.appendChild(sample_select_div);
+
+	var control_sample_select = document.createElement('div');
+	control_sample_select.setAttribute('style', 'float: left; margin-left: 20px;');
+	sample_select_disp_div.appendChild(control_sample_select);
+
+	control_sample_select.innerHTML = '<table style="text-align: left; margin-top: 10px;">\
 <tr><th style="width: 120px;">variable name</th><td><input type="text" id="mg_multi_variable_name" value="object_ids" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>stored attribute</th><td><select id="mg_multi_attribute_select" style="margin-bottom: 0px;"><option>id</option><option>name</option></select></td></tr>\
-<tr><th>cell content</th><td><select id="mg_multi_content_handling" style="margin-bottom: 0px;"><option>append</option><option>replace</option></select></td></tr>\
-<tr><th style="vertical-align: top;">comment</th><td><textarea id="mg_multi_comment">the ids of the objects to load data for</textarea></td></tr>\
+<tr><th>stored attribute</th><td><select id="sample_select_attribute_select" style="margin-bottom: 0px;"><option>id</option><option>name</option></select></td></tr>\
+<tr><th>cell content</th><td><select id="sample_select_content_handling" style="margin-bottom: 0px;"><option>append</option><option>replace</option></select></td></tr>\
+<tr><th style="vertical-align: top;">comment</th><td><textarea id="sample_select_comment">the ids of the objects to load data for</textarea></td></tr>\
 </table>';
 
-
-	widget.mg_multi_select = Retina.Renderer.create('listselect', {
+	widget.sample_select = Retina.Renderer.create('listselect', {
 	    target: ls_multi,
 	    multiple: true,
 	    data: metagenome_data,
@@ -145,29 +118,83 @@
 	    filter: [ "name", "id", "biome", "project", "type" ],
 	    callback: function (data) {
 		var senddata = "";
-		if (document.getElementById('mg_multi_comment').value) {
-		    senddata += "# " + document.getElementById('mg_multi_comment').value.split(/\n/).join("\n# ") + "\n";
+		if (document.getElementById('sample_select_comment').value) {
+		    senddata += "# " + document.getElementById('sample_select_comment').value.split(/\n/).join("\n# ") + "\n";
 		}
-		senddata += document.getElementById('mg_multi_variable_name').value + " = [ ";
+		senddata += document.getElementById('sample_select_variable_name').value + " = [ ";
 		var sd = [];
 		for (i=0;i<data.length;i++) {
-		    sd.push("'" + stm.DataStore.metagenome[data[i]][document.getElementById('mg_multi_attribute_select').options[document.getElementById('mg_multi_attribute_select').selectedIndex].value] + "'");
+		    sd.push("'" + stm.DataStore.metagenome[data[i]][document.getElementById('sample_select_attribute_select').options[document.getElementById('sample_select_attribute_select').selectedIndex].value] + "'");
 		}
 		senddata += sd.join(", ");
 		senddata += " ]";
-		widget.transfer(senddata, (document.getElementById('mg_multi_content_handling').options[document.getElementById('mg_multi_content_handling').selectedIndex].value == 'replace'));
+		widget.transfer(senddata, (document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value == 'replace'));
 	    }
 	});
-	widget.mg_multi_select.render();
+	widget.sample_select.render();
+
+	// data load / convert
+	var data_sel = document.createElement('li');
+	data_sel.innerHTML = '<a href="#data" data-toggle="tab">'+widget.number(2)+'select data</a>';
+	ul.appendChild(data_sel);
+
+	var data_div = document.createElement('div');
+	data_div.setAttribute('class', 'tab-pane');
+	data_div.setAttribute('id', 'data');
+
+	var data_ul = document.createElement('ul');
+	data_ul.setAttribute('class', 'nav nav-tabs')
+	data_ul.setAttribute('style', "margin-bottom: 10px;");
+
+	var data_disp = document.createElement('div');
+	data_disp.setAttribute('class', 'tab-content');
+	data_disp.setAttribute('style', 'padding-left: 15px;');
+
+	data_div.appendChild(data_ul);
+	data_div.appendChild(data_disp);
+
+	var data_li = document.createElement('li');
+	data_li.setAttribute('class', 'active');
+	data_li.innerHTML = '<a href="#data_li" data-toggle="tab">select the data you want to analyze</a>';
+	data_ul.appendChild(data_li);
+
+	var data_disp_div = document.createElement('div');
+	data_disp_div.setAttribute('class', 'tab-pane active');
+	data_disp_div.setAttribute('id', 'data_li');
+	data_disp_div.innerHTML = "<h3>Select Data</h3>";
+
+	div.appendChild(data_div);
+
+	// visualizations
+	var vis_sel = document.createElement('li');
+	vis_sel.innerHTML = '<a href="#vis" data-toggle="tab">'+widget.number(3)+'select visualization</a>';
+	ul.appendChild(vis_sel);
+
+	var vis_div = document.createElement('div');
+	vis_div.setAttribute('class', 'tab-pane');
+	vis_div.setAttribute('id', 'vis');
+	div.appendChild(vis_div);
+
+	var vis_ul = document.createElement('ul');
+	vis_ul.setAttribute('class', 'nav nav-tabs')
+	vis_ul.setAttribute('style', "margin-bottom: 10px;");
+
+	var vis_disp = document.createElement('div');
+	vis_disp.setAttribute('class', 'tab-content');
+	vis_disp.setAttribute('style', 'padding-left: 15px;');
+
+	vis_div.appendChild(vis_ul);
+	vis_div.appendChild(vis_disp);
 
 	// paragraph UI
 	var paragraph_sel = document.createElement('li');
-	paragraph_sel.innerHTML = '<a href="#paragraph" data-toggle="tab">text writer</a>';
-	ul.appendChild(paragraph_sel);
+	paragraph_sel.setAttribute('class', 'active');
+	paragraph_sel.innerHTML = '<a href="#paragraph" data-toggle="tab"><i class="icon-align-center" style="margin-right: 5px;"></i>text writer</a>';
+	vis_ul.appendChild(paragraph_sel);
 
 	var paragraph_div = document.createElement('div');
 	widget.currentParagraph = [];
-	paragraph_div.setAttribute('class', 'tab-pane');
+	paragraph_div.setAttribute('class', 'tab-pane active');
 	paragraph_div.setAttribute('id', 'paragraph');
 	paragraph_div.innerHTML = '<table>\
 <tr>\
@@ -194,7 +221,7 @@
     <button type="button" class="btn" onclick="Retina.WidgetInstances.VisualPython[0].paragraph(\'edit\');" title="edit paragraph"><i class="icon-edit"></i></button>\
    </div>\
    <div class="btn-group">\
-    <button type="button" class="btn btn-success" style="margin-left: 70px;" title="create IPython command" onclick="Retina.WidgetInstances.VisualPython[0].paragraph(\'submit\');"><i class="icon-ok"></i></button>\
+    <button type="button" class="btn btn-success" style="margin-left: 70px;" title="create IPython command" onclick="Retina.WidgetInstances.VisualPython[0].paragraph(\'submit\');"><i class="icon-ok icon-white"></i></button>\
    </div>\
   </div>\
   <select multiple size=11 id="paragraph_list"></select>\
@@ -208,12 +235,12 @@
  </td>\
 </tr>\
 </table>';
-	div.appendChild(paragraph_div);
+	vis_disp.appendChild(paragraph_div);
 
 	// chart UI
 	var chart_sel = document.createElement('li');
-	chart_sel.innerHTML = '<a href="#chart" data-toggle="tab">bar-/pie-chart</a>';
-	ul.appendChild(chart_sel);
+	chart_sel.innerHTML = '<a href="#chart" data-toggle="tab"><i class="icon-signal" style="margin-right: 5px;"></i>bar-/pie-chart</a>';
+	vis_ul.appendChild(chart_sel);
 
 	var chart_div = document.createElement('div');
 	chart_div.setAttribute('class', 'tab-pane');
@@ -225,7 +252,7 @@
 <tr><th>y-axis title</th><td><input type="text" id="graph_y_title" value="Y" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>legend position</th><td><select id="graph_legend_position" style="margin-bottom: 0px;"><option>left</option><option>right</option><option>none</option></select></td></tr>\
 </table>';
-	div.appendChild(chart_div);
+	vis_disp.appendChild(chart_div);
 
 	var graph_button = document.createElement('button');
 	graph_button.setAttribute('class', 'btn btn-success');
@@ -246,18 +273,18 @@
 	// // table UI
 	// var table_sel = document.createElement('li');
 	// table_sel.innerHTML = '<a href="#table" data-toggle="tab">table</a>';
-	// ul.appendChild(table_sel);
+	// vis_ul.appendChild(table_sel);
 
 	// var table_div = document.createElement('div');
 	// table_div.setAttribute('class', 'tab-pane');
 	// table_div.setAttribute('id', 'table');
 	// table_div.innerHTML = "<h3>table UI in development</h3>";
-	// div.appendChild(table_div);
+	// vis_disp.appendChild(table_div);
 
 	// heatmap UI
 	var heatmap_sel = document.createElement('li');
-	heatmap_sel.innerHTML = '<a href="#heatmap" data-toggle="tab">heatmap</a>';
-	ul.appendChild(heatmap_sel);
+	heatmap_sel.innerHTML = '<a href="#heatmap" data-toggle="tab"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_heatmap.png">heatmap</a>';
+	vis_ul.appendChild(heatmap_sel);
 
 	var heatmap_div = document.createElement('div');
 	heatmap_div.setAttribute('class', 'tab-pane');
@@ -279,12 +306,12 @@
 	    widget.transfer(senddata, false);
 	});
 	heatmap_div.appendChild(heat_button);
-	div.appendChild(heatmap_div);
+	vis_disp.appendChild(heatmap_div);
 
 	// plot UI
 	var plot_sel = document.createElement('li');
-	plot_sel.innerHTML = '<a href="#plot" data-toggle="tab">plot</a>';
-	ul.appendChild(plot_sel);
+	plot_sel.innerHTML = '<a href="#plot" data-toggle="tab"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_plot.png">plot</a>';
+	vis_ul.appendChild(plot_sel);
 
 	var plot_div = document.createElement('div');
 	plot_div.setAttribute('class', 'tab-pane');
@@ -312,12 +339,12 @@
 	    widget.transfer(senddata, false);
 	});
 	plot_div.appendChild(plot_button);
-	div.appendChild(plot_div);
+	vis_disp.appendChild(plot_div);
 
 	// boxplot map UI
 	var boxplot_sel = document.createElement('li');
-	boxplot_sel.innerHTML = '<a href="#boxplot" data-toggle="tab">boxplot</a>';
-	ul.appendChild(boxplot_sel);
+	boxplot_sel.innerHTML = '<a href="#boxplot" data-toggle="tab"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_boxplot.png">boxplot</a>';
+	vis_ul.appendChild(boxplot_sel);
 
 	var boxplot_div = document.createElement('div');
 	boxplot_div.setAttribute('class', 'tab-pane');
@@ -336,12 +363,12 @@
 	    widget.transfer(senddata, false);
 	});
 	boxplot_div.appendChild(boxplot_button);
-	div.appendChild(boxplot_div);
+	vis_disp.appendChild(boxplot_div);
 
 	// deviationplot UI
 	var deviationplot_sel = document.createElement('li');
-	deviationplot_sel.innerHTML = '<a href="#deviationplot" data-toggle="tab">deviationplot</a>';
-	ul.appendChild(deviationplot_sel);
+	deviationplot_sel.innerHTML = '<a href="#deviationplot" data-toggle="tab"><i class="icon-tasks" style="margin-right: 5px;"></i>deviationplot</a>';
+	vis_ul.appendChild(deviationplot_sel);
 
 	var deviationplot_div = document.createElement('div');
 	deviationplot_div.setAttribute('class', 'tab-pane');
@@ -360,12 +387,12 @@
 	    widget.transfer(senddata, false);
 	});
 	deviationplot_div.appendChild(deviationplot_button);
-	div.appendChild(deviationplot_div);
+	vis_disp.appendChild(deviationplot_div);
 
 	// // manhatten plot UI
 	// var manplot_sel = document.createElement('li');
 	// manplot_sel.innerHTML = '<a href="#manplot" data-toggle="tab">manhatten plot</a>';
-	// ul.appendChild(manplot_sel);
+	// vis_ul.appendChild(manplot_sel);
 
 	// var manplot_div = document.createElement('div');
 	// manplot_div.setAttribute('class', 'tab-pane');
@@ -376,7 +403,7 @@
 	// // spatial map UI
 	// var spatial_sel = document.createElement('li');
 	// spatial_sel.innerHTML = '<a href="#spatial" data-toggle="tab">spatial map</a>';
-	// ul.appendChild(spatial_sel);
+	// vis_ul.appendChild(spatial_sel);
 
 	// var spatial_div = document.createElement('div');
 	// spatial_div.setAttribute('class', 'tab-pane');
@@ -480,6 +507,10 @@
 
 	widget.mg_select.settings.data = metagenome_data;
 	widget.mg_select.render();
+    };
+
+    widget.number = function (number) {
+	return '<p style="font-size: 16px; float: left; font-weight: bold; height: 18px; text-align: center; vertical-align: middle; margin-right: 8px; border: 5px solid #0088CC; width: 18px; border-radius: 14px 14px 14px 14px; position: relative; bottom: 5px; right: 9px;">'+number+'</p>'
     };
     
 })();
