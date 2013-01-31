@@ -21,19 +21,19 @@
     <script type="text/javascript">
     jQuery(function () {
       	stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
-	    Retina.init({ library_resource: "js/" });
+	        Retina.init({ library_resource: "js/" });
       	    Retina.add_renderer({"name": "listselect", "resource": "renderers/", "filename": "renderer.listselect.js"});
       	    Retina.add_renderer({"name": "graph", "resource": "renderers/", "filename": "renderer.graph.js"});
       	    Retina.add_renderer({"name": "table", "resource": "renderers/", "filename": "renderer.table.js"});
       	    Retina.add_renderer({"name": "paragraph", "resource": "renderers/", "filename": "renderer.paragraph.js"});
-	    Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
-	    Retina.add_widget({"name": "VisualPython", "resource": "widgets/", "filename": "widget.VisualPython.js"});
+	        Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
+	        Retina.add_widget({"name": "VisualPython", "resource": "widgets/", "filename": "widget.VisualPython.js"});
 
-      	    Retina.load_widget("NotebookDashboard").then( function () {
-		Retina.load_widget("VisualPython").then( function () {
-		    Retina.Widget.create('NotebookDashboard', { target: "dashboard", notebook: "nb_iframe" });	
-		});
-	    });
+      	    Retina.load_widget("NotebookDashboard").then(function () {
+		        Retina.load_widget("VisualPython").then(function () {
+		            Retina.Widget.create('NotebookDashboard', { target: "dashboard", notebook: "nb_iframe" });	
+		        });
+	        });
       	});
     });
     </script>
@@ -50,7 +50,6 @@
 	    </div>
       </div>
     </div>
-    
     <div id="dashboard"><p style="position: relative; top: 200px; left: 40%;"><img src="images/loading.gif"> initializing</p></div>
     <div id="nb_iframe" style="margin-top: 18px;"></div>
   </body>

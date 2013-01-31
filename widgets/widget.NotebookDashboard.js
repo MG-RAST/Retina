@@ -22,8 +22,6 @@
     // notebook_objs is list of notebooks with same uuid sorted by datetime (lates first)
     widget.sorted_nbs = {};
 
-    widget.template = 'http://140.221.84.122:8888/81a79607-4127-4f13-b844-2badaf2d852b';
-    
     // these are listselect renderers for notebooks, versions, and metagenomes
     widget.nb_primary_list = undefined;
     widget.nb_copy_list = undefined;
@@ -174,6 +172,7 @@
         widget.nb_selected = [uuid, snbs[0].id];
         widget.nb_ver_list.settings.data = snbs;
         widget.nb_ver_list.render();
+        jQuery('#new_copy_name').val(snbs[0].name+" copy");
     };
     
     // update nb_selected with selected version
@@ -201,11 +200,11 @@
             return;
         }
         Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
-        Retina.WidgetInstances.NotebookDashboard[index].nb_create_tab(index, this_nb.uuid, this_nb.name);
+        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+this_nb.uuid+"','"+this_nb.name+"')", 1000);
     };
 
     widget.copy_launch_click = function (index) {
-        var sel_nb   = Retina.WidgetInstances.NotebookDashboard[index].nb_selected;
+        var sel_nb = Retina.WidgetInstances.NotebookDashboard[index].nb_selected;
         if (sel_nb.length == 0) {
             alert("No notebook is selected");
             return;
@@ -217,7 +216,7 @@
         } else {
             stm.get_objects({"type": "notebook", "id": sel_nb[1]+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
-                Retina.WidgetInstances.NotebookDashboard[index].nb_create_tab(index, new_uuid, new_name);
+                setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name+"')", 1000);
             });
         }
     };
@@ -232,7 +231,7 @@
         } else {
             stm.get_objects({"type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
-                Retina.WidgetInstances.NotebookDashboard[index].nb_create_tab(index, new_uuid, new_name);
+                setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name+"')", 1000);
             });
         }
     };
@@ -251,12 +250,14 @@
     };
 
     widget.nb_close_tab = function (uuid) {
-	jQuery('#'+uuid+'_tab').remove();
-	jQuery('#'+uuid+'_li').remove();
+        stm.send_message(uuid, 'ipy.notebook_save();', 'action');
+        stm.send_message(uuid, 'ipy.notebook_terminate();', 'action');
+	    jQuery('#'+uuid+'_tab').remove();
+	    jQuery('#'+uuid+'_li').remove();
     };
 
     widget.ipy_refresh = function () {
-        setTimeout("stm.send_message('ipython_dash', 'ipy.notebook_refresh();', 'action')", 3000);
+        stm.send_message('ipython_dash', 'ipy.notebook_refresh();', 'action');
     };
 
     widget.transfer = function (iframe, cell, data, append) {
@@ -300,21 +301,21 @@
     };
 
     widget.export_visual = function (index, tried) {
-	if (! tried) {
-	    var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
-	    var iframe_id = curr_iframe[0].id
-	    stm.send_message(iframe_id, 'ipy.createHTML();', 'action');
-	    setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].export_visual("+index+", true)", 1000);
-	} else {	
-	    if (document.getElementById('result').innerHTML == "") {
-		alert("There is no content to show.");
-	    } else {
-		var w = window.open('', '_blank', '');
-		w.document.open();
-		w.document.write("<html><head><title>Notebook Analysis Result</title><link rel='stylesheet' type='text/css' href='css/bootstrap.min.css'><style>body div { margin-bottom: 30px; }</style></head><body class='container' style='margin-top: 50px;'></body></html>");
-		w.document.body.innerHTML = document.getElementById('result').innerHTML;
-		w.document.close();
+	    if (! tried) {
+	        var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
+	        var iframe_id = curr_iframe[0].id;
+	        stm.send_message(iframe_id, 'ipy.createHTML();', 'action');
+	        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].export_visual("+index+", true)", 1000);
+	    } else {	
+	        if (document.getElementById('result').innerHTML == "") {
+		        alert("There is no content to show.");
+	        } else {
+		        var w = window.open('', '_blank', '');
+		        w.document.open();
+		        w.document.write("<html><head><title>Notebook Analysis Result</title><link rel='stylesheet' type='text/css' href='css/bootstrap.min.css'><style>body div { margin-bottom: 30px; }</style></head><body class='container' style='margin-top: 50px;'></body></html>");
+		        w.document.body.innerHTML = document.getElementById('result').innerHTML;
+		        w.document.close();
+	        }
 	    }
-	}
     };
 })();
