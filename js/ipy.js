@@ -35,7 +35,7 @@
     };
 
     ipy.createHTML = function () {
-	    var cells = document.getElementsByClassName('output_subarea');
+	    var cells = document.getElementsByClassName('output_html');
 	    var html = "";
 	    for (i=0;i<cells.length;i++) {
 	        html += cells[i].innerHTML;
@@ -68,15 +68,21 @@
         if ((index !== undefined) && (index >= 0)) {
             IPython.notebook.select(index);
         }
-        IPython.execute_selected_cell();
+        IPython.notebook.execute_selected_cell();
     };
     
     ipy.notebook_refresh = function () {
-        IPython.notebook_list.load_list();
+        // try and click the ipython dashboard button
+        document.getElementById('refresh_notebook_list').click();
+        //IPython.notebook_list.load_list();
     };
     
     ipy.notebook_save = function () {
         IPython.notebook.save_notebook();
+    };
+    
+    ipy.notebook_terminate = function () {
+        IPython.notebook.kill_kernel();
     };
     
 }).call(this);
