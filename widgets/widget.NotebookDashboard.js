@@ -13,7 +13,7 @@
     widget.nb_server = 'http://140.221.92.53:7051';
     
     // shock id of template notebook
-    widget.nb_template = '0a191d8d-8582-4377-8038-91a2dce3eb2e';
+    widget.nb_template = '833c9591-eedb-4c1a-931c-f109cbc6acc8';
     
     // current selected notebook [ uuid (notebook), id (shock) ]
     widget.nb_selected = [];
@@ -247,17 +247,17 @@
         jQuery('#tab_div').children('.active').removeClass('active');
         jQuery('#selector_tab').before(li_elem);
         jQuery('#tab_div').append(div_elem);
+        setTimeout("stm.send_message('"+uuid+"', 'IPython.notebook.select(0);IPython.notebook.execute_selected_cell();', 'action')", 3000);
     };
 
     widget.nb_close_tab = function (uuid) {
         stm.send_message(uuid, 'ipy.notebook_save();', 'action');
         stm.send_message(uuid, 'ipy.notebook_terminate();', 'action');
-	    jQuery('#'+uuid+'_tab').remove();
-	    jQuery('#'+uuid+'_li').remove();
+        setTimeout("jQuery('#"+uuid+"_tab').remove();jQuery('#"+uuid+"_li').remove();", 1000);
     };
 
     widget.ipy_refresh = function () {
-        stm.send_message('ipython_dash', 'ipy.notebook_refresh();', 'action');
+        stm.send_message('ipython_dash', 'IPython.notebook_list.load_list();', 'action');
     };
 
     widget.transfer = function (iframe, cell, data, append) {

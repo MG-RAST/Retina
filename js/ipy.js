@@ -71,12 +71,6 @@
         IPython.notebook.execute_selected_cell();
     };
     
-    ipy.notebook_refresh = function () {
-        // try and click the ipython dashboard button
-        document.getElementById('refresh_notebook_list').click();
-        //IPython.notebook_list.load_list();
-    };
-    
     ipy.notebook_save = function () {
         IPython.notebook.save_notebook();
     };
