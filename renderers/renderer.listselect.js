@@ -64,6 +64,7 @@
 		'sort': false,
 		'multiple': false, 
 		'no_button': false,
+		'extra_wide': false,
 		'style': "" },
 	},
 	exampleData: function () {
@@ -77,9 +78,9 @@
 	    var target = renderer.settings.target;
 	    var tstyle = 'background-image: linear-gradient(to bottom, #FAFAFA, #F2F2F2); background-repeat: repeat-x; border: 1px solid #D4D4D4; border-radius: 4px 4px 4px 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067); padding-left: 10px; padding-top: 10px; width: ';
 	    if (renderer.settings.multiple) {
-		    tstyle += '600px;';
+		tstyle += renderer.settings.extra_wide ? '800px;' : '600px;';
 	    } else if (renderer.settings.no_button) {
-		    tstyle += '256px;';
+		tstyle += '256px;';
 	    } else {
 	        tstyle += '286px;';
 	    }
@@ -93,6 +94,9 @@
 
 	    // get the selection list
 	    var selection_list = document.createElement('select');
+	    if (renderer.settings.extra_wide) {
+		selection_list.setAttribute('style', 'width: 415px');
+	    }
 	    if (renderer.settings.multiple) {
 		selection_list.setAttribute('multiple', '');
 	    }
@@ -105,7 +109,7 @@
 	    filter_grp.setAttribute('class', 'btn-group');
 	    var filter_input = document.createElement('input');
 	    filter_input.setAttribute('type', 'text');
-	    filter_input.setAttribute('class', 'span2');
+	    filter_input.setAttribute('class', renderer.settings.extra_wide ? 'span3' : 'span2');
 	    filter_input.setAttribute('style', 'float: left;');
 	    filter_input.setAttribute('placeholder', 'Enter filter');
 	    filter_input.setAttribute('value', renderer.settings.filter_value);
@@ -118,12 +122,12 @@
 	    });
 	    var filter_select = document.createElement('button');
 	    filter_select.setAttribute('class', 'btn dropdown-toggle');
-	    filter_select.setAttribute('style', 'width: 85px; text-align: right;');
+	    filter_select.setAttribute('style', (renderer.settings.extra_wide ? 'width: 195px;' : 'width: 85px;') + ' text-align: right;');
 	    filter_select.setAttribute('data-toggle', 'dropdown');
 	    filter_select.innerHTML = renderer.settings.filter_attribute + ' <span class="caret"></span>';
 	    var filter_list = document.createElement('ul');
 	    filter_list.setAttribute('class', 'dropdown-menu');
-	    filter_list.setAttribute('style', 'left: 58px;');
+	    filter_list.setAttribute('style', renderer.settings.extra_wide ? 'left: 252px;' : 'left: 58px;');
 	    var filter_string = '';
 	    for (i=0; i<renderer.settings.filter.length; i++) {
 		filter_string += '<li><a onclick="Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_value=\'\';Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_attribute=this.innerHTML.slice(0, -1);Retina.RendererInstances[\'listselect\']['+renderer.index+'].render();" style="cursor: pointer;">'+renderer.settings.filter[i]+' </a></li>';
