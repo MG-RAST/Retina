@@ -14,7 +14,7 @@
         if (index == undefined) {
             index = IPython.notebook.get_selected_index();
         }
-	return IPython.notebook.get_cell(index).get_text();
+	    return IPython.notebook.get_cell(index).get_text();
     };
 
     ipy.write_cell = function (index, text) {
@@ -47,10 +47,10 @@
     // default position is below given index or selected
     // return index of added cell
     ipy.add_cell = function (index, type, position) {
-	if (type == undefined) {
-	    type = 'code';
-	}
-	var cell = undefined;
+	    if (type == undefined) {
+	        type = 'code';
+	    }
+	    var cell = undefined;
         if (position == 'above') {
             cell = IPython.notebook.insert_cell_above(type, index);
         } else if (position == 'bottom') {
@@ -72,11 +72,17 @@
     };
     
     ipy.notebook_refresh = function () {
-        IPython.notebook_list.load_list();
+        // try and click the ipython dashboard button
+        document.getElementById('refresh_notebook_list').click();
+        //IPython.notebook_list.load_list();
     };
     
     ipy.notebook_save = function () {
         IPython.notebook.save_notebook();
+    };
+    
+    ipy.notebook_terminate = function () {
+        IPython.notebook.kill_kernel();
     };
     
 }).call(this);
