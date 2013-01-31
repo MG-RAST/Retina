@@ -8,23 +8,36 @@
         }
     });
     
-    widget.mg_select = null;
-    widget.mg_multi_select = null;
+    widget.loaded_ids = {};
 
     widget.setup = function () {
 	return [ this.loadRenderer("listselect"),
 		 this.loadRenderer("graph"),
 		 this.loadRenderer("table"),
-	         stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 10 } })
+	         stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 100 } })
 	       ];
     };
 
     widget.cellnum = 0;
     
-    widget.transfer = function (data, overwrite) {
+    widget.transfer = function (data, cell_handling) {
 	var command = data.replace(/'/g, '"').replace(/"/g, "!!").replace(/\n/g, "\\n");
-	var msgstring = 'ipy.'+(overwrite ? 'write' : 'append_to')+'_cell(null, \''+command+'\');';
-	stm.send_message('ipython_dash', msgstring, 'action');
+	var msgstring = '';
+	if (cell_handling == 'create new cell') {
+	    msgstring += 'if (ipy.read_cell() == \'\') { ipy.write_cell(null, \''+command+'\'); } else { ';
+	    msgstring += 'ipy.write_cell(ipy.add_cell(), \''+command+'\'); }';
+	} else if (cell_handling == 'replace current cell') {
+	    msgstring += 'ipy.write_cell(null, \''+command+'\');';
+	} else if (cell_handling == 'append to current cell') {
+	    msgstring += 'ipy.append_to_cell(null, \''+command+'\');';
+	} else {
+	    msgstring += 'if (ipy.read_cell() == \'\') { ipy.write_cell(null, \''+command+'\'); } else { ';
+	    msgstring += 'ipy.write_cell(ipy.add_cell(), \''+command+'\'); }';
+	}
+	msgstring += "IPython.notebook.execute_selected_cell();";
+	var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
+	var iframe_id = curr_iframe[0].id;
+	stm.send_message(iframe_id, msgstring, 'action');
     };
 
     widget.display = function (params) {	
@@ -51,7 +64,50 @@
 	var metagenome_data = [];
 	for (i in stm.DataStore["metagenome"]) {
 	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
-		metagenome_data.push( { "name": stm.DataStore["metagenome"][i]["name"], "id": i, "project": (stm.DataStore["metagenome"][i].metadata && stm.DataStore["metagenome"][i].metadata.project && stm.DataStore["metagenome"][i].metadata.project.name) ? stm.DataStore["metagenome"][i].metadata.project.name : "-",  "biome": (stm.DataStore["metagenome"][i].metadata && stm.DataStore["metagenome"][i].metadata.env_package && stm.DataStore["metagenome"][i].metadata.env_package.type) ? stm.DataStore["metagenome"][i].metadata.env_package.type : "-", "type": "metagenome", "pi": "-" });
+		var md = { "name": stm.DataStore["metagenome"][i]["name"],
+			   "id": i,
+			   "project": "-",
+			   "type": "metagenome",
+			   "lat/long": "-",
+			   "location": "-",
+			   "collection date": "-",
+			   "biome": "-",
+			   "feature": "-",
+			   "material": "-",
+			   "package": "-",
+			   "sequencing method": "-" };
+		if (stm.DataStore["metagenome"][i].metadata) {
+		    if (stm.DataStore["metagenome"][i].metadata.project && stm.DataStore["metagenome"][i].metadata.project.name) {
+			md.project = stm.DataStore["metagenome"][i].metadata.project.name;
+		    }
+		    if (stm.DataStore["metagenome"][i].metadata.sample && stm.DataStore["metagenome"][i].metadata.sample.data) {
+			if (stm.DataStore["metagenome"][i].metadata.sample.data.latitude && stm.DataStore["metagenome"][i].metadata.sample.data.longitude) {
+			    md["lat/long"] = stm.DataStore["metagenome"][i].metadata.sample.data.latitude + ", " + stm.DataStore["metagenome"][i].metadata.sample.data.longitude;
+			}
+			if (stm.DataStore["metagenome"][i].metadata.sample.data.country && stm.DataStore["metagenome"][i].metadata.sample.data.location) {
+			    md["location"] = stm.DataStore["metagenome"][i].metadata.sample.data.location + ", " + stm.DataStore["metagenome"][i].metadata.sample.data.country;
+			}
+			if (stm.DataStore["metagenome"][i].metadata.sample.data.collection_date) {
+			    md["collection date"] = stm.DataStore["metagenome"][i].metadata.sample.data.collection_date;
+			}
+			if (stm.DataStore["metagenome"][i].metadata.sample.data.biome) {
+			    md["biome"] = stm.DataStore["metagenome"][i].metadata.sample.data.biome;
+			}
+			if (stm.DataStore["metagenome"][i].metadata.sample.data.feature) {
+			    md["feature"] = stm.DataStore["metagenome"][i].metadata.sample.data.feature;
+			}
+			if (stm.DataStore["metagenome"][i].metadata.sample.data.material) {
+			    md["material"] = stm.DataStore["metagenome"][i].metadata.sample.data.material;
+			}
+		    }
+		    if (stm.DataStore["metagenome"][i].metadata.env_package && stm.DataStore["metagenome"][i].metadata.env_package.name) {
+			md["package"] = stm.DataStore["metagenome"][i].metadata.env_package.name;
+		    }
+		    if (stm.DataStore["metagenome"][i].metadata.library && stm.DataStore["metagenome"][i].metadata.library.data && stm.DataStore["metagenome"][i].metadata.library.data.seq_meth) {
+			md["sequencing method"] = stm.DataStore["metagenome"][i].metadata.library.data.seq_meth;
+		    }
+		}
+		metagenome_data.push( md );
 	    }
 	}
 
@@ -103,9 +159,8 @@
 	sample_select_disp_div.appendChild(control_sample_select);
 
 	control_sample_select.innerHTML = '<table style="text-align: left; margin-top: 10px;">\
-<tr><th style="width: 120px;">variable name</th><td><input type="text" id="mg_multi_variable_name" value="object_ids" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>stored attribute</th><td><select id="sample_select_attribute_select" style="margin-bottom: 0px;"><option>id</option><option>name</option></select></td></tr>\
-<tr><th>cell content</th><td><select id="sample_select_content_handling" style="margin-bottom: 0px;"><option>append</option><option>replace</option></select></td></tr>\
+<tr><th style="width: 120px;">variable name</th><td><input type="text" id="sample_select_variable_name" value="metagenome_ids" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>cell content</th><td><select id="sample_select_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th style="vertical-align: top;">comment</th><td><textarea id="sample_select_comment">the ids of the objects to load data for</textarea></td></tr>\
 </table>';
 
@@ -115,7 +170,8 @@
 	    data: metagenome_data,
 	    value: "id",
 	    label: "name",
-	    filter: [ "name", "id", "biome", "project", "type" ],
+	    extra_wide: true,
+	    filter: [ "name", "id", "project", "type", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method" ],
 	    callback: function (data) {
 		var senddata = "";
 		if (document.getElementById('sample_select_comment').value) {
@@ -123,12 +179,26 @@
 		}
 		senddata += document.getElementById('sample_select_variable_name').value + " = [ ";
 		var sd = [];
+		var id2pos = [];
+		var name2pos = [];
 		for (i=0;i<data.length;i++) {
-		    sd.push("'" + stm.DataStore.metagenome[data[i]][document.getElementById('sample_select_attribute_select').options[document.getElementById('sample_select_attribute_select').selectedIndex].value] + "'");
+		    Retina.WidgetInstances.VisualPython[0].loaded_ids[data[i]] = true;
+		    id2pos.push("'" + data[i] + "': " + i);
+		    name2pos.push("'" + stm.DataStore.metagenome[data[i]].name + "': " + i);
+		    sd.push("'" + data[i] + "'");
 		}
 		senddata += sd.join(", ");
-		senddata += " ]";
-		widget.transfer(senddata, (document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value == 'replace'));
+		senddata += " ]\n";
+		senddata += document.getElementById('sample_select_variable_name').value + "_id2pos = { ";
+		senddata += id2pos.join(", ");
+		senddata += " }\n";
+		senddata += document.getElementById('sample_select_variable_name').value + "_name2pos = { ";
+		senddata += name2pos.join(", ");
+		senddata += " }\n\n";
+//		senddata += "abundance_profiles = AnalysisSet(ids="+document.getElementById('sample_select_variable_name').value+")\n";
+		senddata += "metagenomes = []\nfor id in "+document.getElementById('sample_select_variable_name').value+":\n\tmetagenomes.append(Metagenome(id))\n";
+		widget.transfer(senddata, document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value);
+		document.getElementById('data_li').innerHTML = Retina.WidgetInstances.VisualPython[0].get_data_tab();
 	    }
 	});
 	widget.sample_select.render();
@@ -161,7 +231,8 @@
 	var data_disp_div = document.createElement('div');
 	data_disp_div.setAttribute('class', 'tab-pane active');
 	data_disp_div.setAttribute('id', 'data_li');
-	data_disp_div.innerHTML = "<h3>Select Data</h3>";
+	data_disp_div.innerHTML = widget.get_data_tab();
+	data_disp.appendChild(data_disp_div);
 
 	div.appendChild(data_div);
 
@@ -229,7 +300,7 @@
  <td style="padding-left: 20px; vertical-align: top;">\
   <table style="text-align: left; margin-top: 50px;">\
    <tr><th style="width: 100px;">target</th><td><input type="text" value="paragraph_1" id="paragraph_target"></td></tr>\
-   <tr><th>cell content</th><td><select id="para_content_handling" style="margin-bottom: 0px;"><option>append</option><option>replace</option></select></td></tr>\
+   <tr><th>cell content</th><td><select id="para_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
    <tr><th style="vertical-align: top;">comment</th><td><textarea id="para_comment">introductory paragraph</textarea></td></tr>\
   </table>\
  </td>\
@@ -479,7 +550,7 @@
 	    }
 	    senddata += "Ipy.RETINA.paragraph(target='"+document.getElementById('paragraph_target').value+"', data="+JSON.stringify(widget.currentParagraph)+")";
 
-	    widget.transfer(senddata, (document.getElementById('para_content_handling').options[document.getElementById('para_content_handling').selectedIndex].value == 'replace'));
+	    widget.transfer(senddata, document.getElementById('para_content_handling').options[document.getElementById('para_content_handling').selectedIndex].value);
     	    break;
     	}
     };
@@ -512,5 +583,62 @@
     widget.number = function (number) {
 	return '<p style="font-size: 16px; float: left; font-weight: bold; height: 18px; text-align: center; vertical-align: middle; margin-right: 8px; border: 5px solid #0088CC; width: 18px; border-radius: 14px 14px 14px 14px; position: relative; bottom: 5px; right: 9px;">'+number+'</p>'
     };
+
+    widget.create_data = function () {
+	var senddata = "";
+	if (document.getElementById('data_comment').value) {
+	    senddata += "# " + document.getElementById('data_comment').value.split(/\n/).join("\n# ") + "\n";
+	}
+	senddata += document.getElementById('data_variable_name').value + " = [ ]\n";
+	var data = document.getElementById('data_sample_select').options;
+	for (i=0;i<data.length;i++) {
+	    if (data[i].selected) {
+		senddata += document.getElementById('data_variable_name').value + ".append(metagenomes["+document.getElementById('sample_select_variable_name').value+"_id2pos['"+data[i].value+"']].stats['sequence_stats']['alpha_diversity_shannon'])\n";
+	    }
+	}
+
+	widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
+    };
+
+    widget.get_data_tab = function () {
+	widget = Retina.WidgetInstances.VisualPython[0];
+	var html = "<table style='text-align: left;'>\
+<tr style='vertical-align: top;'><th style='padding-bottom: 15px;'>select samples</th><th>select data type</th><th>select transformation</th><th>select target</th><td rowspan=2 style='vertical-align: bottom;'><button type='button' class='btn btn-success' style='margin-left: 30px;' title='create IPython command' onclick='Retina.WidgetInstances.VisualPython[0].create_data();'><i class='icon-ok icon-white'></i></button></td></tr>\
+<tr style='vertical-align: top;'><td style='padding-right: 20px;'><select multiple size=10 id='data_sample_select'>";
+	for (i in widget.loaded_ids) {
+	    html += "<option value='"+i+"'>"+stm.DataStore.metagenome[i].name+"</option>";
+	}
+	html += "</select></td><td style='padding-right: 20px;'><table><select><option>statistics</option><option>abundance</option></select><br>\
+<select>\
+  <option>ontology</option>\
+  <option>taxonomy</option>\
+  <option>rarefaction</option>\
+  <option>gc histogram</option>\
+  <option>length histogram</option>\
+  <option>sequence stats</option>\
+</select><br>\
+<select>\
+  <option>NOG</option>\
+  <option>COG</option>\
+  <option>KO</option>\
+  <option>Subsystems</option>\
+</select>\
+</table>\
+</td><td style='padding-right: 20px;'>\
+<table>\
+<tr><th style='width: 120px;'>normalize</th><td><input type='checkbox' checked id='data_normalize' style=''></td></tr>\
+<tr><th style='width: 120px;'>format</th><td><select style='margin-bottom: 0px;'><option>matrix</option></select></td></tr>\
+</table>\
+</td><td>\
+<table>\
+<tr><th style='width: 120px;'>variable name</th><td><input type='text' id='data_variable_name' value='data_1' style='margin-bottom: 0px;'></td></tr>\
+<tr><th>cell content</th><td><select id='data_content_handling' style='margin-bottom: 0px;'><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th style='vertical-align: top;'>comment</th><td><textarea id='data_comment'>my data subselection</textarea></td></tr>\
+</table>\
+</td></tr>\
+</table>";
+
+	return html;
+    }
     
 })();

@@ -53,9 +53,7 @@
             <div id="data_pick" style="display: none; height: 315px; margin-top: 5px;">\
 	            <div id="data_selector_div"></div>\
 	        </div>\
-            <div id="visual" style="display: none; height: 850px; margin-top: 5px;border-bottom: 1px dotted; border-top: 1px dotted;">\
-	            <div id="result" style="margin-left: 10px;"><h3 style="position: relative; top: 200px; left: 25%;">your analysis currently has no results</h3></div>\
-	        </div>\
+	        <div id="result" style="display: none;"><h3 style="position: relative; top: 200px; left: 25%;">your analysis currently has no results</h3></div>\
 	        <div id="nb_select_modal" class="modal show fade" role="dialog" style="width: 590px; margin: -250px 0 0 -295px;">\
                 <div class="modal-header">\
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>\
@@ -243,15 +241,18 @@
         // create html
         var url = Retina.WidgetInstances.NotebookDashboard[index].nb_server+'/'+uuid;
         console.log(url);
-        var li_elem  = '<li class="active"><a data-toggle="tab" href="#'+uuid+'_tab">'+name+'</a></li>';
+        var li_elem  = '<li class="active" id="'+uuid+'_li"><a data-toggle="tab" href="#'+uuid+'_tab">'+name+'<i class="icon-remove" onclick="if(confirm(\'really close this notebook?\')){Retina.WidgetInstances.NotebookDashboard['+index+'].nb_close_tab(\''+uuid+'\');}" style="position: relative; left: 5px; bottom: 4px;"></a></li>';
         var div_elem = '<div id="'+uuid+'_tab" class="tab-pane active"><iframe id="'+uuid+'" src="'+url+'" width="95%" height="750">Your Browser does not support iFrames</iframe></div>';
         // add tab
         jQuery('#tab_list').children('.active').removeClass('active');
         jQuery('#tab_div').children('.active').removeClass('active');
         jQuery('#selector_tab').before(li_elem);
         jQuery('#tab_div').append(div_elem);
-        // execute first cell
-        stm.send_message(uuid, 'ipy.execute_cell(0);', 'action');
+    };
+
+    widget.nb_close_tab = function (uuid) {
+	jQuery('#'+uuid+'_tab').remove();
+	jQuery('#'+uuid+'_li').remove();
     };
 
     widget.ipy_refresh = function () {
@@ -299,18 +300,21 @@
     };
 
     widget.export_visual = function (index, tried) {
-	    if (! tried) {
-	        stm.send_message('ipython_dash', 'ipy.createHTML();', 'action');
-	        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].export_visual("+index+", true)", 1000);
-	    } else {	
-	        if (document.getElementById('result').innerHTML == "") {
-		        alert("There is no content to show.");
-	        } else {
-		        var w = window.open('', '_blank', '');
-		        w.document.open();
-		        w.document.write("<html><head><title>Notebook Analysis Result</title><link rel='stylesheet' type='text/css' href='css/bootstrap.min.css'><style>body div { margin-bottom: 30px; }</style></head><body class='container' style='margin-top: 50px;'></body></html>");
-		        w.document.body.innerHTML = document.getElementById('result').innerHTML;
-	        }
+	if (! tried) {
+	    var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
+	    var iframe_id = curr_iframe[0].id
+	    stm.send_message(iframe_id, 'ipy.createHTML();', 'action');
+	    setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].export_visual("+index+", true)", 1000);
+	} else {	
+	    if (document.getElementById('result').innerHTML == "") {
+		alert("There is no content to show.");
+	    } else {
+		var w = window.open('', '_blank', '');
+		w.document.open();
+		w.document.write("<html><head><title>Notebook Analysis Result</title><link rel='stylesheet' type='text/css' href='css/bootstrap.min.css'><style>body div { margin-bottom: 30px; }</style></head><body class='container' style='margin-top: 50px;'></body></html>");
+		w.document.body.innerHTML = document.getElementById('result').innerHTML;
+		w.document.close();
 	    }
+	}
     };
 })();
