@@ -13,7 +13,7 @@
     widget.nb_server = 'http://140.221.92.53:7051';
     
     // shock id of template notebook
-    widget.nb_template = '0a191d8d-8582-4377-8038-91a2dce3eb2e';
+    widget.nb_template = '833c9591-eedb-4c1a-931c-f109cbc6acc8';
     
     // current selected notebook [ uuid (notebook), id (shock) ]
     widget.nb_selected = [];
