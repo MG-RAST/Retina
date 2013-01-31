@@ -13,7 +13,7 @@
     widget.nb_server = 'http://140.221.92.53:7051';
     
     // shock id of template notebook
-    widget.nb_template = '833c9591-eedb-4c1a-931c-f109cbc6acc8';
+    widget.nb_template = 'ae9f993e-f8d2-4317-9bdd-70e815029668';
     
     // current selected notebook [ uuid (notebook), id (shock) ]
     widget.nb_selected = [];
@@ -231,7 +231,7 @@
         } else {
             stm.get_objects({"type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
-                setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name+"')", 1000);
+                setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name+"')", 2000);
             });
         }
     };
