@@ -11,10 +11,11 @@
     widget.loaded_ids = {};
 
     widget.setup = function () {
+	stm.Authentication = "VfefQv3xjSusda76X4j8BmGMi";
 	return [ this.loadRenderer("listselect"),
 		 this.loadRenderer("graph"),
 		 this.loadRenderer("table"),
-	         stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 100 } })
+	         stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 12000 } })
 	       ];
     };
 
