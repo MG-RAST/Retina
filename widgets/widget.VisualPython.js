@@ -159,9 +159,9 @@
 	sample_select_disp_div.appendChild(control_sample_select);
 
 	control_sample_select.innerHTML = '<table style="text-align: left; margin-top: 10px;">\
-<tr><th style="width: 120px;">variable name</th><td><input type="text" id="sample_select_variable_name" value="metagenome_ids" style="margin-bottom: 0px;"></td></tr>\
+<tr><th style="width: 120px;">variable name</th><td><input type="text" id="sample_select_variable_name" value="metagenomes" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>cell content</th><td><select id="sample_select_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
-<tr><th style="vertical-align: top;">comment</th><td><textarea id="sample_select_comment">the ids of the objects to load data for</textarea></td></tr>\
+<tr><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="sample_select_comment">the variable to hold the metagenome data</textarea></td></tr>\
 </table>';
 
 	widget.sample_select = Retina.Renderer.create('listselect', {
@@ -177,26 +177,12 @@
 		if (document.getElementById('sample_select_comment').value) {
 		    senddata += "# " + document.getElementById('sample_select_comment').value.split(/\n/).join("\n# ") + "\n";
 		}
-		senddata += document.getElementById('sample_select_variable_name').value + " = [ ";
 		var sd = [];
-		var id2pos = [];
-		var name2pos = [];
 		for (i=0;i<data.length;i++) {
 		    Retina.WidgetInstances.VisualPython[0].loaded_ids[data[i]] = true;
-		    id2pos.push("'" + data[i] + "': " + i);
-		    name2pos.push("'" + stm.DataStore.metagenome[data[i]].name + "': " + i);
 		    sd.push("'" + data[i] + "'");
 		}
-		senddata += sd.join(", ");
-		senddata += " ]\n";
-		senddata += document.getElementById('sample_select_variable_name').value + "_id2pos = { ";
-		senddata += id2pos.join(", ");
-		senddata += " }\n";
-		senddata += document.getElementById('sample_select_variable_name').value + "_name2pos = { ";
-		senddata += name2pos.join(", ");
-		senddata += " }\n\n";
-//		senddata += "abundance_profiles = AnalysisSet(ids="+document.getElementById('sample_select_variable_name').value+")\n";
-		senddata += "metagenomes = []\nfor id in "+document.getElementById('sample_select_variable_name').value+":\n\tmetagenomes.append(Metagenome(id))\n";
+		senddata += document.getElementById('sample_select_variable_name').value + " = { 'statistics': Collection(mgids=["+sd.join(", ")+"]),\n\t\t\t\t'abundances': AnalysisSet(ids=["+sd.join(", ")+"]) }\n";
 		widget.transfer(senddata, document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value);
 		document.getElementById('data_li').innerHTML = Retina.WidgetInstances.VisualPython[0].get_data_tab();
 	    }
@@ -299,9 +285,8 @@
  </td>\
  <td style="padding-left: 20px; vertical-align: top;">\
   <table style="text-align: left; margin-top: 50px;">\
-   <tr><th style="width: 100px;">target</th><td><input type="text" value="paragraph_1" id="paragraph_target"></td></tr>\
    <tr><th>cell content</th><td><select id="para_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
-   <tr><th style="vertical-align: top;">comment</th><td><textarea id="para_comment">introductory paragraph</textarea></td></tr>\
+   <tr><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="para_comment">introductory paragraph</textarea></td></tr>\
   </table>\
  </td>\
 </tr>\
@@ -317,9 +302,9 @@
 	chart_div.setAttribute('class', 'tab-pane');
 	chart_div.setAttribute('id', 'chart');
 	chart_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>type</th><td><select id="graph_type" style="margin-bottom: 0px;"><option>column</option><option>stackedColumn</option><option>row</option><option>stackedRow</option><option>line</option><option>pie</option><option>stackedArea</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="graph_data" value="graph_data" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>title</th><td><input type="text" id="graph_title" value="Graph 1" style="margin-bottom: 0px;"></td><th>target name</th><td><input type="text" id="graph_target" value="graph_1" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>x-axis title</th><td><input type="text" id="graph_x_title" value="X" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>type</th><td><select id="graph_type" style="margin-bottom: 0px;"><option>column</option><option>stackedColumn</option><option>row</option><option>stackedRow</option><option>line</option><option>pie</option><option>stackedArea</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="graph_data" value="data_1" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>title</th><td><input type="text" id="graph_title" value="Graph 1" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="graph_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th>x-axis title</th><td><input type="text" id="graph_x_title" value="X" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="graph_comment"></textarea></td</tr>\
 <tr><th>y-axis title</th><td><input type="text" id="graph_y_title" value="Y" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>legend position</th><td><select id="graph_legend_position" style="margin-bottom: 0px;"><option>left</option><option>right</option><option>none</option></select></td></tr>\
 </table>';
@@ -330,13 +315,7 @@
 	graph_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	graph_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
 	graph_button.addEventListener('click', function(){
-	    var senddata = "Ipy.RETINA.graph(target='"+document.getElementById('graph_target').value+"', data="+document.getElementById('graph_data').value+", btype='"+document.getElementById('graph_type').options[document.getElementById('graph_type').selectedIndex].value+"', title='"+document.getElementById('graph_title').value+"', x_title='"+document.getElementById('graph_x_title').value+"', y_title='"+document.getElementById('graph_y_title').value+"', ";
-	    var lpos = document.getElementById('graph_legend_position').options[document.getElementById('graph_legend_position').selectedIndex].value;
-	    if (lpos == 'none') {
-		senddata += "show_legend=False)";
-	    } else {
-		senddata += "show_legend=True, legend_position='"+lpos+"')";
-	    }
+	    var senddata = "Ipy.RETINA.graph(**"+document.getElementById('graph_data').value+")";
 	    widget.transfer(senddata, false);
 	});
 	chart_div.appendChild(graph_button);
@@ -361,9 +340,9 @@
 	heatmap_div.setAttribute('class', 'tab-pane');
 	heatmap_div.setAttribute('id', 'heatmap');
 	heatmap_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>tree height</th><td><input type="text" id="heat_tree_height" style="margin-bottom: 0px;" value="50"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="heat_data" value="heatmap_data" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>tree width</th><td><input type="text" id="heat_tree_width" value="50" style="margin-bottom: 0px;"></td><th>target name</th><td><input type="text" id="heat_target" value="heatmap_1" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>legend height</th><td><input type="text" id="heat_legend_height" value="250" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>tree height</th><td><input type="text" id="heat_tree_height" style="margin-bottom: 0px;" value="50"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="heat_data" value="data_1" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>tree width</th><td><input type="text" id="heat_tree_width" value="50" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="heat_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th>legend height</th><td><input type="text" id="heat_legend_height" value="250" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="heat_comment"></textarea></td></tr>\
 <tr><th>legend width</th><td><input type="text" id="heat_legend_width" value="250" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>minimum cell height</th><td><input type="text" id="heat_min_cell_height" value="19" style="margin-bottom: 0px;"></td></tr>\
 </table>';
@@ -371,9 +350,9 @@
 	var heat_button = document.createElement('button');
 	heat_button.setAttribute('class', 'btn btn-success');
 	heat_button.innerHTML = "<i class='icon-ok icon-white'></i>";
-	heat_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
+	heat_button.setAttribute('style', 'position: relative; left: 700px;');
 	heat_button.addEventListener('click', function(){
-	    var senddata = "Ipy.RETINA.heatmap(target='"+document.getElementById('heat_target').value+"', data="+document.getElementById('heat_data').value+", tree_height="+document.getElementById('heat_tree_height').value+", tree_width="+document.getElementById('heat_tree_width').value+", legend_width="+document.getElementById('heat_legend_width').value+", legend_height="+document.getElementById('heat_legend_height').value+", min_cell_height="+document.getElementById('heat_min_cell_height').value+")";
+	    var senddata = "Ipy.RETINA.heatmap(data="+document.getElementById('heat_data').value+", tree_height="+document.getElementById('heat_tree_height').value+", tree_width="+document.getElementById('heat_tree_width').value+", legend_width="+document.getElementById('heat_legend_width').value+", legend_height="+document.getElementById('heat_legend_height').value+", min_cell_height="+document.getElementById('heat_min_cell_height').value+")";
 	    widget.transfer(senddata, false);
 	});
 	heatmap_div.appendChild(heat_button);
@@ -388,19 +367,19 @@
 	plot_div.setAttribute('class', 'tab-pane');
 	plot_div.setAttribute('id', 'plot');
 	plot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>connected</th><td><select id="plot_connected" style="margin-bottom: 0px;"><option value="True">yes</option><option value="False">no</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="plot_data" value="plot_data" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>title</th><td><input type="text" id="plot_title" value="Plot 1" style="margin-bottom: 0px;"></td><th>target name</th><td><input type="text" id="plot_target" value="plot_1" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>x-axis maximum value</th><td><input type="text" id="plot_x_max" value="100" style="margin-bottom: 0px;"></td><th>show dots</th><td><select id="plot_dots" style="margin-bottom: 0px;"><option value="True">yes</option><option value="False">no</option></select></td></tr>\
-<tr><th>y-axis maximum value</th><td><input type="text" id="plot_y_max" value="100" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>connected</th><td><select id="plot_connected" style="margin-bottom: 0px;"><option value="True">yes</option><option value="False">no</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="plot_data" value="data_1" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>title</th><td><input type="text" id="plot_title" value="Plot 1" style="margin-bottom: 0px;"></td><th>show dots</th><td><select id="plot_dots" style="margin-bottom: 0px;"><option value="True">yes</option><option value="False">no</option></select></td></tr>\
+<tr><th>x-axis maximum value</th><td><input type="text" id="plot_x_max" value="100" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="plot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th>y-axis maximum value</th><td><input type="text" id="plot_y_max" value="100" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="plot_comment"></textarea></td></tr>\
 <tr><th>legend position</th><td><select id="graph_legend_position" style="margin-bottom: 0px;"><option>left</option><option>right</option><option>none</option></select></td></tr>\
 </table>';
 
 	var plot_button = document.createElement('button');
 	plot_button.setAttribute('class', 'btn btn-success');
 	plot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
-	plot_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
+	plot_button.setAttribute('style', 'position: relative; left: 700px;');
 	plot_button.addEventListener('click', function(){
-	    var senddata = "Ipy.RETINA.plot(target='"+document.getElementById('plot_target').value+"', data="+document.getElementById('plot_data').value+", show_dots="+document.getElementById('plot_dots').options[document.getElementById('plot_dots').selectedIndex].value+", connected="+document.getElementById('plot_connected').options[document.getElementById('plot_connected').selectedIndex].value+", title='"+document.getElementById('plot_title').value+"', x_max='"+document.getElementById('plot_x_max').value+"', y_max='"+document.getElementById('plot_y_max').value+"', ";
+	    var senddata = "Ipy.RETINA.plot(data="+document.getElementById('plot_data').value+", show_dots="+document.getElementById('plot_dots').options[document.getElementById('plot_dots').selectedIndex].value+", connected="+document.getElementById('plot_connected').options[document.getElementById('plot_connected').selectedIndex].value+", title='"+document.getElementById('plot_title').value+"', x_max='"+document.getElementById('plot_x_max').value+"', y_max='"+document.getElementById('plot_y_max').value+"', ";
 	    var lpos = document.getElementById('graph_legend_position').options[document.getElementById('graph_legend_position').selectedIndex].value;
 	    if (lpos == 'none') {
 		senddata += "show_legend=False)";
@@ -421,8 +400,9 @@
 	boxplot_div.setAttribute('class', 'tab-pane');
 	boxplot_div.setAttribute('id', 'boxplot');
 	boxplot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>height</th><td><input type="text" id="boxplot_height" style="margin-bottom: 0px;" value="350"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="boxplot_data" value="boxplot_data" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>width</th><td><input type="text" id="boxplot_width" value="150" style="margin-bottom: 0px;"></td><th>target name</th><td><input type="text" id="boxplot_target" value="boxplot_1" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>height</th><td><input type="text" id="boxplot_height" style="margin-bottom: 0px;" value="350"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="boxplot_data" value="data_1" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>width</th><td><input type="text" id="boxplot_width" value="150" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="boxplot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th></th><td></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="boxplot_comment">introductory paragraph</textarea></td></tr>\
 </table>';
 
 	var boxplot_button = document.createElement('button');
@@ -430,7 +410,7 @@
 	boxplot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	boxplot_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
 	boxplot_button.addEventListener('click', function(){
-	    var senddata = "Ipy.RETINA.boxplot(target='"+document.getElementById('boxplot_target').value+"', data="+document.getElementById('boxplot_data').value+", height="+document.getElementById('boxplot_height').value+", width="+document.getElementById('boxplot_width').value+")";
+	    var senddata = "Ipy.RETINA.boxplot(data="+document.getElementById('boxplot_data').value+", height="+document.getElementById('boxplot_height').value+", width="+document.getElementById('boxplot_width').value+")";
 	    widget.transfer(senddata, false);
 	});
 	boxplot_div.appendChild(boxplot_button);
@@ -445,8 +425,9 @@
 	deviationplot_div.setAttribute('class', 'tab-pane');
 	deviationplot_div.setAttribute('id', 'deviationplot');
 	deviationplot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>height</th><td><input type="text" id="deviationplot_height" style="margin-bottom: 0px;" value="80"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="deviationplot_data" value="deviationplot_data" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>width</th><td><input type="text" id="deviationplot_width" value="400" style="margin-bottom: 0px;"></td><th>target name</th><td><input type="text" id="deviationplot_target" value="deviationplot_1" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>height</th><td><input type="text" id="deviationplot_height" style="margin-bottom: 0px;" value="80"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="deviationplot_data" value="data_1" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>width</th><td><input type="text" id="deviationplot_width" value="400" style="margin-bottom: 0px;"></td></td><th>cell content</th><td><select id="deviationplot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th></th><td></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="deviationplot_comment">introductory paragraph</textarea></td></tr>\
 </table>';
 
 	var deviationplot_button = document.createElement('button');
@@ -454,7 +435,7 @@
 	deviationplot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	deviationplot_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
 	deviationplot_button.addEventListener('click', function(){
-	    var senddata = "Ipy.RETINA.deviationplot(target='"+document.getElementById('deviationplot_target').value+"', data="+document.getElementById('deviationplot_data').value+", height="+document.getElementById('deviationplot_height').value+", width="+document.getElementById('deviationplot_width').value+")";
+	    var senddata = "Ipy.RETINA.deviationplot(data="+document.getElementById('deviationplot_data').value+", height="+document.getElementById('deviationplot_height').value+", width="+document.getElementById('deviationplot_width').value+")";
 	    widget.transfer(senddata, false);
 	});
 	deviationplot_div.appendChild(deviationplot_button);
@@ -548,7 +529,7 @@
 	    if (document.getElementById('para_comment').value) {
 		senddata += "# " + document.getElementById('para_comment').value.split(/\n/).join("\n# ") + "\n";
 	    }
-	    senddata += "Ipy.RETINA.paragraph(target='"+document.getElementById('paragraph_target').value+"', data="+JSON.stringify(widget.currentParagraph)+")";
+	    senddata += "Ipy.RETINA.paragraph(data="+JSON.stringify(widget.currentParagraph)+")";
 
 	    widget.transfer(senddata, document.getElementById('para_content_handling').options[document.getElementById('para_content_handling').selectedIndex].value);
     	    break;
@@ -589,13 +570,15 @@
 	if (document.getElementById('data_comment').value) {
 	    senddata += "# " + document.getElementById('data_comment').value.split(/\n/).join("\n# ") + "\n";
 	}
-	senddata += document.getElementById('data_variable_name').value + " = [ ]\n";
+	var sd = [];
 	var data = document.getElementById('data_sample_select').options;
 	for (i=0;i<data.length;i++) {
 	    if (data[i].selected) {
-		senddata += document.getElementById('data_variable_name').value + ".append(metagenomes["+document.getElementById('sample_select_variable_name').value+"_id2pos['"+data[i].value+"']].stats['sequence_stats']['alpha_diversity_shannon'])\n";
+		sd.push("'"+data[i].value+"'");
 	    }
 	}
+	senddata += document.getElementById('sample_select_variable_name').value + "['abundances'].set_display_mgs(ids=["+sd.join(", ")+"])\n";
+	senddata += document.getElementById('data_variable_name').value + " = "+document.getElementById('sample_select_variable_name').value+"['abundances'].domain['abundance'].barchart(arg_list=True)";
 
 	widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
     };
@@ -608,26 +591,18 @@
 	for (i in widget.loaded_ids) {
 	    html += "<option value='"+i+"'>"+stm.DataStore.metagenome[i].name+"</option>";
 	}
-	html += "</select></td><td style='padding-right: 20px;'><table><select><option>statistics</option><option>abundance</option></select><br>\
+	html += "</select></td><td style='padding-right: 20px;'><table><select><option>abundance</option></select><br>\
 <select>\
-  <option>ontology</option>\
   <option>taxonomy</option>\
-  <option>rarefaction</option>\
-  <option>gc histogram</option>\
-  <option>length histogram</option>\
-  <option>sequence stats</option>\
 </select><br>\
 <select>\
-  <option>NOG</option>\
-  <option>COG</option>\
-  <option>KO</option>\
-  <option>Subsystems</option>\
+  <option>M5NR</option>\
 </select>\
 </table>\
 </td><td style='padding-right: 20px;'>\
 <table>\
-<tr><th style='width: 120px;'>normalize</th><td><input type='checkbox' checked id='data_normalize' style=''></td></tr>\
-<tr><th style='width: 120px;'>format</th><td><select style='margin-bottom: 0px;'><option>matrix</option></select></td></tr>\
+<tr><th style='width: 120px;'>normalize</th><td><input type='checkbox' id='data_normalize' checked style=''></td></tr>\
+<tr><th style='width: 120px;'>format</th><td><select style='margin-bottom: 0px;'><option>chart</option></select></td></tr>\
 </table>\
 </td><td>\
 <table>\
