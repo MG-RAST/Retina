@@ -14,7 +14,7 @@
     
 
     // receive messages sent from other frames
-    window.addEventListener("message", receiveMessage, false);
+    //window.addEventListener("message", receiveMessage, false);
     function receiveMessage(event) {
 
 	// do not caputre the event if the allowed origin does not match
