@@ -11,7 +11,6 @@
     widget.loaded_ids = {};
 
     widget.setup = function () {
-	stm.Authentication = "VfefQv3xjSusda76X4j8BmGMi";
 	return [ this.loadRenderer("listselect"),
 		 this.loadRenderer("graph"),
 		 this.loadRenderer("table"),
@@ -51,12 +50,12 @@
 	// create a tab menu
 	var ul = document.createElement('ul');
 	ul.setAttribute('class', 'nav nav-tabs')
-	ul.setAttribute('style', "margin-top: 35px; margin-right: -1px; height: 280px;");
+	ul.setAttribute('style', "margin-top: 35px; margin-right: -1px; height: 360px;");
 
 	// create the div-container
 	var div = document.createElement('div');
 	div.setAttribute('class', 'tab-content');
-	div.setAttribute('style', 'height: 370px; border-bottom: 1px solid #DDDDDD;');
+	div.setAttribute('style', 'height: 395px; border-bottom: 1px solid #DDDDDD;');
 
 	content.appendChild(ul);
 	content.appendChild(div);
@@ -592,12 +591,21 @@
 	for (i in widget.loaded_ids) {
 	    html += "<option value='"+i+"' selected>"+stm.DataStore.metagenome[i].name+"</option>";
 	}
-	html += "</select></td><td style='padding-right: 20px;'><table><select><option>abundance</option></select><br>\
+	html += "</select></td><td style='padding-right: 20px;'><table>\
 <select>\
-  <option>taxonomy</option>\
+  <option>abundance</option>\
+  <option>statistics</option>\
 </select><br>\
 <select>\
+  <option>taxonomy</option>\
+  <option>ontology</option>\
+</select><br>\
+<select>\
+  <option>GenBank</option>\
+  <option>SEED</option>\
   <option>M5NR</option>\
+  <option>Subsystems</option>\
+  <option>KO</option>\
 </select>\
 </table>\
 </td><td style='padding-right: 20px;'>\
