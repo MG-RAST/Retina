@@ -15,7 +15,7 @@
 	return [ this.loadRenderer("listselect"),
 		 this.loadRenderer("graph"),
 		 this.loadRenderer("table"),
-	         stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 12000 } })
+	         stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 120 } })
 	       ];
     };
 
@@ -56,7 +56,7 @@
 	// create the div-container
 	var div = document.createElement('div');
 	div.setAttribute('class', 'tab-content');
-	div.setAttribute('style', 'height: 315px; border-bottom: 1px solid #DDDDDD;');
+	div.setAttribute('style', 'height: 370px; border-bottom: 1px solid #DDDDDD;');
 
 	content.appendChild(ul);
 	content.appendChild(div);
@@ -590,7 +590,7 @@
 <tr style='vertical-align: top;'><th style='padding-bottom: 15px;'>select samples</th><th>select data type</th><th>select transformation</th><th>select target</th><td rowspan=2 style='vertical-align: bottom;'><button type='button' class='btn btn-success' style='margin-left: 30px;' title='create IPython command' onclick='Retina.WidgetInstances.VisualPython[0].create_data();'><i class='icon-ok icon-white'></i></button></td></tr>\
 <tr style='vertical-align: top;'><td style='padding-right: 20px;'><select multiple size=10 id='data_sample_select'>";
 	for (i in widget.loaded_ids) {
-	    html += "<option value='"+i+"'>"+stm.DataStore.metagenome[i].name+"</option>";
+	    html += "<option value='"+i+"' selected>"+stm.DataStore.metagenome[i].name+"</option>";
 	}
 	html += "</select></td><td style='padding-right: 20px;'><table><select><option>abundance</option></select><br>\
 <select>\
