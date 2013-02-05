@@ -17,7 +17,7 @@
 		 this.loadRenderer("listselect"),
 		 this.loadRenderer("graph"),
 		 this.loadRenderer("table"),
-	         stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 0 } })
+	         stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 100 } })
 	       ];
     };
 
