@@ -3,7 +3,7 @@
         about: {
             title: "Notebook Dashboard Widget",
             name: "NotebookDashboard",
-	        version: 1,
+	    version: 1,
             author: "Travis Harrison",
             requires: [ ]
         }
@@ -34,7 +34,8 @@
     // which would make the table renderer available to use before the display function is called
     // you can add multiple comma separated promises
     widget.setup = function () {
-	    return [ this.loadRenderer('listselect') ];
+	return [ Retina.add_renderer({"name": "listselect", "resource": "renderers/", "filename": "renderer.listselect.js"}),
+		 this.loadRenderer('listselect') ];
     };
     
     // this will be called whenever the widget is displayed
@@ -138,9 +139,9 @@
     // populate nb listselect with newest version of each notebook, empty version listselect
     widget.nb_select_refresh = function (index) {
         // get notebooks from api    
-	    stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
-	        Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
-	        var snbs = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
+	stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
+	    Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
+	    var snbs = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
             Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.settings.data = snbs;
             Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.render();
             Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.settings.data = snbs;
