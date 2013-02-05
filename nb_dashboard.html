@@ -21,19 +21,15 @@
     <script type="text/javascript">
     jQuery(function () {
       	stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
-	        Retina.init({ library_resource: "js/" });
-      	    Retina.add_renderer({"name": "listselect", "resource": "renderers/", "filename": "renderer.listselect.js"});
-      	    Retina.add_renderer({"name": "graph", "resource": "renderers/", "filename": "renderer.graph.js"});
-      	    Retina.add_renderer({"name": "table", "resource": "renderers/", "filename": "renderer.table.js"});
-      	    Retina.add_renderer({"name": "paragraph", "resource": "renderers/", "filename": "renderer.paragraph.js"});
-	        Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
-	        Retina.add_widget({"name": "VisualPython", "resource": "widgets/", "filename": "widget.VisualPython.js"});
-
+	    Retina.init({ library_resource: "js/" });
+	    Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
+	    Retina.add_widget({"name": "VisualPython", "resource": "widgets/", "filename": "widget.VisualPython.js"});
+	    
       	    Retina.load_widget("NotebookDashboard").then(function () {
-		        Retina.load_widget("VisualPython").then(function () {
-		            Retina.Widget.create('NotebookDashboard', { target: "dashboard", notebook: "nb_iframe" });	
-		        });
-	        });
+		Retina.load_widget("VisualPython").then(function () {
+		    Retina.Widget.create('NotebookDashboard', { target: "dashboard", notebook: "nb_iframe" });	
+		});
+	    });
       	});
     });
     </script>
@@ -43,14 +39,14 @@
   <body style="margin-top: 60px;">
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
-	    <div class="container" style="width: 100%; padding-left: 10px;">
+	<div class="container" style="width: 100%; padding-left: 10px;">
           <img src="images/KbaseLogoTransparent.gif" style="float: left; background: white; margin-left: -10px; height: 55px;">
-    	  <a class="brand" href="#" style="color: white; cursor:
-    default; margin-top: 8px; margin-left: 30px;">iPyNB - The KBase iPython Notebook</a>
-	    </div>
+    	  <a class="brand" href="#" style="color: white; cursor: default; margin-top: 8px; margin-left: 30px;">iPyNB - The KBase iPython Notebook</a>
+	  <p style="float: right; right:16px; top: 11px; position: relative;cursor: pointer;" onclick="if(document.getElementById('login_name').innerHTML ==''){jQuery('#loginModal').modal('show');}else{if(confirm('do you really want to log out?')){Retina.WidgetInstances.NotebookDashboard[0].perform_logout();}}"><i class="icon-user icon-white" style="margin-right: 5px;"></i><span  id="login_name_span"><input type="button" class="btn" value="login" style="position:relative; bottom: 2px;" onclick="jQuery('#loginModal').modal('show');"></span><span id="login_name"></span></p>
+	</div>
       </div>
     </div>
-    <div id="dashboard"><p style="position: relative; top: 200px; left: 40%;"><img src="images/loading.gif"> initializing</p></div>
+    <div id="dashboard"><p style="position: absolute; top: 200px; left: 40%;"><img src="images/loading.gif"> initializing</p></div>
     <div id="nb_iframe" style="margin-top: 18px;"></div>
   </body>
 </html>
