@@ -380,6 +380,9 @@
     widget.perform_logout = function () {
 	document.getElementById('login_name_span').style.display = "";
 	document.getElementById('login_name').innerHTML = "";
+	var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
+	var iframe_id = curr_iframe[0].id;
+	stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.auth=None", {}, {});' , 'action');
     };
 
 })();
