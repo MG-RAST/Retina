@@ -3,7 +3,7 @@
         about: {
             title: "Notebook Dashboard Widget",
             name: "NotebookDashboard",
-	        version: 1,
+	    version: 1,
             author: "Travis Harrison",
             requires: [ ]
         }
@@ -34,25 +34,59 @@
     // which would make the table renderer available to use before the display function is called
     // you can add multiple comma separated promises
     widget.setup = function () {
-	    return [ this.loadRenderer('listselect') ];
+	return [ Retina.add_renderer({"name": "listselect", "resource": "renderers/", "filename": "renderer.listselect.js"}),
+		 this.loadRenderer('listselect') ];
     };
     
     // this will be called whenever the widget is displayed
     // the params should at least contain a space in the DOM for the widget to render to
     // if the widget is visual
     widget.display = function (params) {
-	    widget = this;
-	    var index = widget.index;
-	    var dash_div = params.target;
-	    var iframe_div = params.notebook;
-	    var dash_html = '\
+	widget = this;
+	var index = widget.index;
+	var dash_div = params.target;
+	var iframe_div = params.notebook;
+	var dash_html = '\
 	        <button style="width: 150px; width: 150px; position: absolute; top: 60px; right: 55px;" data-toggle="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" type="button" class="btn">Analysis Builder</button>\
             <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].export_visual('+index+');" title="show results in new window" style="position: absolute; top: 60px; right: 10px;"><i class="icon-eye-open icon-white"></i></button>\
             <div id="data_pick" style="display: none; height: 395px; margin-top: 5px;">\
 	            <div id="data_selector_div"></div>\
 	        </div>\
 	        <div id="result" style="display: none;"><h3 style="position: relative; top: 200px; left: 25%;">your analysis currently has no results</h3></div>\
-	        <div id="nb_select_modal" class="modal show fade" role="dialog" style="width: 590px; margin: -250px 0 0 -295px;">\
+\
+	        <div id="loginModal" class="modal show fade" tabindex="-1" style="width: 400px;" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">\
+	          <div class="modal-header">\
+	            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="jQuery(\'#nb_select_modal\').modal(\'show\');">×</button>\
+	            <h3 id="loginModalLabel">Authenticate to KBase</h3>\
+	          </div>\
+	          <div class="modal-body">\
+	            <p>Enter your KBase credentials.</p>\
+                    <div id="failure"></div>\
+                    <table>\
+                      <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">login</th><td><input type="text" id="login"></td></tr>\
+                      <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">password</th><td><input type="password" id="password"></td></tr>\
+                    </table>\
+	          </div>\
+	          <div class="modal-footer">\
+	            <button class="btn btn-danger pull-left" data-dismiss="modal" aria-hidden="true" onclick="jQuery(\'#nb_select_modal\').modal(\'show\');">cancel</button>\
+	            <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[0].perform_login();">log in</button>\
+	          </div>\
+	        </div>\
+\
+	        <div id="msgModal" class="modal hide fade" tabindex="-1" style="width: 400px;" role="dialog" aria-labelledby="msgModalLabel" aria-hidden="true">\
+	          <div class="modal-header">\
+	            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="jQuery(\'#nb_select_modal\').modal(\'show\');">×</button>\
+	            <h3 id="msgModalLabel">Login Information</h3>\
+	          </div>\
+	          <div class="modal-body">\
+	            <p>You have successfully logged in.</p>\
+	          </div>\
+	          <div class="modal-footer">\
+	            <button class="btn btn-success" aria-hidden="true" data-dismiss="modal" onclick="jQuery(\'#nb_select_modal\').modal(\'show\');">OK</button>\
+	          </div>\
+	        </div>\
+\
+	        <div id="nb_select_modal" class="modal show fade" tabindex="-1" role="dialog" style="width: 590px; margin: -250px 0 0 -295px;">\
                 <div class="modal-header">\
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>\
                     <h3>Notebook Selector</h3>\
@@ -67,14 +101,14 @@
                             <div id="new_nb_tab" class="tab-pane active">\
                                 Enter name of new notebook:\
                                 <input id="new_nb_name" style="margin-left:10px;" type="text" value=""></input>\
-                                <div style="float:right;"><button class="btn btn-success" data-dismiss="modal" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].new_nb_click('+index+');">Launch</button></div>\
+                                <div style="float:right;"><button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].new_nb_click('+index+');">Launch</button></div>\
                             </div>\
                             <div id="start_nb_tab" class="tab-pane">\
                                 <div class="row">\
                                     <div id="nb_primary_div" class="span2"></div>\
                                     <div id="nb_primary_tbl" class="span3"></div>\
                                 </div>\
-                                <div style="float:right;"><button class="btn btn-success" style="margin-left:20px;margin-bottom:10px;" data-dismiss="modal" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_launch_click('+index+');">Launch</button></div>\
+                                <div style="float:right;"><button class="btn btn-success" style="margin-left:20px;margin-bottom:10px;" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_launch_click('+index+');">Launch</button></div>\
                             </div>\
                             <div id="copy_nb_tab" class="tab-pane">\
                                 <div class="row">\
@@ -83,7 +117,7 @@
                                 </div>\
                                 <br>Enter name for copy:\
                                 <input id="new_copy_name" style="margin-left:10px;" type="text" value=""></input>\
-                                <div style="float:right;"><button class="btn btn-success" style="margin-left:20px;margin-bottom:10px;" data-dismiss="modal" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].copy_launch_click('+index+');">Launch</button></div>\
+                                <div style="float:right;"><button class="btn btn-success" style="margin-left:20px;margin-bottom:10px;" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].copy_launch_click('+index+');">Launch</button></div>\
                             </div>\
                         </div>\
                     </div>\
@@ -102,45 +136,45 @@
         jQuery('#'+iframe_div).html(iframe_html);
 	
 	    Retina.Widget.create('VisualPython', { target: document.getElementById('data_selector_div') });
-
+	
 	    // create empty renderers
         widget.nb_primary_list = Retina.Renderer.create('listselect', { "target": document.getElementById('nb_primary_div'),
-								"data": [],
-								"value": 'uuid',
-								"filter": ['name', 'datetime', 'created', 'status'],
-								"multiple": false,
-								"no_button": true,
-								"callback": Retina.WidgetInstances.NotebookDashboard[index].display_nb_info
-		                        });
-
+									"data": [],
+									"value": 'uuid',
+									"filter": ['name', 'datetime', 'created', 'status'],
+									"multiple": false,
+									"no_button": true,
+									"callback": Retina.WidgetInstances.NotebookDashboard[index].display_nb_info
+								      });
+	
         widget.nb_copy_list = Retina.Renderer.create('listselect', { "target": document.getElementById('nb_copy_div'),
-								"data": [],
-								"value": 'uuid',
-								"filter": ['name', 'datetime', 'created', 'status'],
-								"multiple": false,
-								"no_button": true,
-								"callback": Retina.WidgetInstances.NotebookDashboard[index].nb_select_change
-							      });					      
+								     "data": [],
+								     "value": 'uuid',
+								     "filter": ['name', 'datetime', 'created', 'status'],
+								     "multiple": false,
+								     "no_button": true,
+								     "callback": Retina.WidgetInstances.NotebookDashboard[index].nb_select_change
+								   });					      
 	
         widget.nb_ver_list = Retina.Renderer.create('listselect', { "target": document.getElementById('version_div'),
-								 "data": [],
-								 "value": 'id',
-								 "filter": ['datetime', 'name', 'created', 'status'],
-								 "multiple": false,
-								 "no_button": true,
-								 "callback": Retina.WidgetInstances.NotebookDashboard[index].nb_version_change
-							       });
-		// populate nb selects
+								    "data": [],
+								    "value": 'id',
+								    "filter": ['datetime', 'name', 'created', 'status'],
+								    "multiple": false,
+								    "no_button": true,
+								    "callback": Retina.WidgetInstances.NotebookDashboard[index].nb_version_change
+								  });
+	    // populate nb selects
         widget.nb_select_refresh(index);
-        jQuery('#nb_select_modal').modal('show');
+        jQuery('#loginModal').modal('show');
     };
     
     // populate nb listselect with newest version of each notebook, empty version listselect
     widget.nb_select_refresh = function (index) {
         // get notebooks from api    
-	    stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
-	        Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
-	        var snbs = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
+	stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
+	    Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
+	    var snbs = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
             Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.settings.data = snbs;
             Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.render();
             Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.settings.data = snbs;
@@ -201,6 +235,7 @@
         }
         Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
         setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+this_nb.uuid+"','"+this_nb.name+"')", 1000);
+        jQuery('#nb_select_modal').modal('hide');
     };
 
     widget.copy_launch_click = function (index) {
@@ -217,6 +252,7 @@
             stm.get_objects({"type": "notebook", "id": sel_nb[1]+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
                 setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name+"')", 1000);
+                jQuery('#nb_select_modal').modal('hide');
             });
         }
     };
@@ -231,7 +267,9 @@
         } else {
             stm.get_objects({"type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
-                setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name+"')", 2000);
+                setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name+"')", 1000);
+                jQuery('#nb_select_modal').modal('hide');
+                document.getElementById('data_pick').style.display='';
             });
         }
     };
@@ -247,14 +285,19 @@
         jQuery('#tab_div').children('.active').removeClass('active');
         jQuery('#selector_tab').before(li_elem);
         jQuery('#tab_div').append(div_elem);
-        setTimeout("stm.send_message('"+uuid+"', 'IPython.notebook.select(0);IPython.notebook.execute_selected_cell();', 'action')", 3000);
+        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_init('"+uuid+"')", 3000);
     };
 
     widget.nb_close_tab = function (uuid) {
-        stm.send_message(uuid, 'ipy.notebook_save();', 'action');
         stm.send_message(uuid, 'ipy.notebook_terminate();', 'action');
         setTimeout("jQuery('#"+uuid+"_tab').remove();jQuery('#"+uuid+"_li').remove();", 1000);
     };
+
+    widget.nb_init = function (iframe_id) {
+        auth_msg = stm.Authorization ? "Ipy.auth='"+stm.Authorization+"'" : "Ipy.auth=None";
+        stm.send_message(iframe_id, 'IPython.notebook.select(0);IPython.notebook.execute_selected_cell();', 'action');
+        stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("'+auth_msg+'", {}, {});' , 'action');
+    }
 
     widget.ipy_refresh = function () {
         stm.send_message('ipython_dash', 'IPython.notebook_list.load_list();', 'action');
@@ -301,21 +344,53 @@
     };
 
     widget.export_visual = function (index, tried) {
-	    if (! tried) {
-	        var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
-	        var iframe_id = curr_iframe[0].id;
-	        stm.send_message(iframe_id, 'ipy.createHTML();', 'action');
-	        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].export_visual("+index+", true)", 1000);
-	    } else {	
-	        if (document.getElementById('result').innerHTML == "") {
-		        alert("There is no content to show.");
-	        } else {
-		        var w = window.open('', '_blank', '');
-		        w.document.open();
-		        w.document.write("<html><head><title>Notebook Analysis Result</title><link rel='stylesheet' type='text/css' href='css/bootstrap.min.css'><style>body div { margin-bottom: 30px; }</style></head><body class='container' style='margin-top: 50px;'></body></html>");
-		        w.document.body.innerHTML = document.getElementById('result').innerHTML;
-		        w.document.close();
-	        }
+	if (! tried) {
+	    var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
+	    var iframe_id = curr_iframe[0].id;
+	    stm.send_message(iframe_id, 'ipy.createHTML();', 'action');
+	    setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].export_visual("+index+", true)", 1000);
+	} else {	
+	    if (document.getElementById('result').innerHTML == "") {
+		alert("There is no content to show.");
+	    } else {
+		var w = window.open('', '_blank', '');
+		w.document.open();
+		w.document.write("<html><head><title>Notebook Analysis Result</title><link rel='stylesheet' type='text/css' href='css/bootstrap.min.css'><style>body div { margin-bottom: 30px; }</style></head><body class='container' style='margin-top: 50px;'></body></html>");
+		w.document.body.innerHTML = document.getElementById('result').innerHTML;
+		w.document.close();
 	    }
+	}
     };
+
+    widget.perform_login = function () {
+	    var login = document.getElementById('login').value;
+	    var pass = document.getElementById('password').value;
+	    var auth_url = "http://api.metagenomics.anl.gov/api2.cgi/?auth=kbgo4711"+Retina.Base64.encode(login+":"+pass);
+	    jQuery.get(auth_url, function(data) {
+            var d = JSON.parse(data);
+	        if (data && d && d.token) {
+		        var uname = d.token.substr(3, d.token.indexOf('|') - 3);
+		        document.getElementById('login_name_span').style.display = "none";
+		        document.getElementById('login_name').innerHTML = uname;
+		        document.getElementById('failure').innerHTML = "";
+		        stm.Authorization = d.token;
+		        jQuery('#loginModal').modal('hide');
+		        jQuery('#msgModal').modal('show');
+		        jQuery('.tab-pane').children('iframe').each(function() {
+	                stm.send_message(this.id, 'IPython.notebook.kernel.execute("Ipy.auth=\''+d.token+'\'", {}, {});' , 'action');
+                });
+	        } else {
+		        document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> Login failed.</div>';
+	        }
+	    });
+    };
+
+    widget.perform_logout = function () {
+	    document.getElementById('login_name_span').style.display = "";
+	    document.getElementById('login_name').innerHTML = "";
+	    jQuery('.tab-pane').children('iframe').each(function() {
+	        stm.send_message(this.id, 'IPython.notebook.kernel.execute("Ipy.auth=None", {}, {});' , 'action');
+        });
+    };
+
 })();
