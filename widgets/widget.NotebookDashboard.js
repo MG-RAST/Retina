@@ -69,7 +69,7 @@
 	          </div>\
 	          <div class="modal-footer">\
 	            <button class="btn btn-danger pull-left" data-dismiss="modal" aria-hidden="true" onclick="jQuery(\'#nb_select_modal\').modal(\'show\');">cancel</button>\
-	            <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[0].perform_login();">log in</button>\
+	            <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[0].perform_login('+index+');">log in</button>\
 	          </div>\
 	        </div>\
 \
@@ -285,7 +285,7 @@
         jQuery('#tab_div').children('.active').removeClass('active');
         jQuery('#selector_tab').before(li_elem);
         jQuery('#tab_div').append(div_elem);
-        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_init('"+uuid+"')", 3000);
+        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_init("+index+", '"+uuid+"')", 3000);
     };
 
     widget.nb_close_tab = function (uuid) {
@@ -293,11 +293,10 @@
         setTimeout("jQuery('#"+uuid+"_tab').remove();jQuery('#"+uuid+"_li').remove();", 1000);
     };
 
-    widget.nb_init = function (iframe_id) {
-        auth_msg = stm.Authorization ? "Ipy.auth='"+stm.Authorization+"'" : "Ipy.auth=None";
+    widget.nb_init = function (index, iframe_id) {
         stm.send_message(iframe_id, 'IPython.notebook.select(0);IPython.notebook.execute_selected_cell();', 'action');
-        stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("'+auth_msg+'", {}, {});' , 'action');
-    }
+        Retina.WidgetInstances.NotebookDashboard[index].send_auth(iframe_id, stm.Authorization);
+    };
 
     widget.ipy_refresh = function () {
         stm.send_message('ipython_dash', 'IPython.notebook_list.load_list();', 'action');
@@ -362,7 +361,18 @@
 	}
     };
 
-    widget.perform_login = function () {
+    widget.send_auth = function (iframe_id, token) {
+        if (token) {
+            var parts = token.split('|');
+            var uname = parts[0].split('=')[1];
+            var auth  = parts[1].split('=')[1];
+            stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.token=\''+token+'\'; Ipy.username=\''+uname+'\'; Ipy.auth=\''+auth+'\'", {}, {});' , 'action');
+        } else {
+            stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.token=None; Ipy.username=None; Ipy.auth=None", {}, {});' , 'action');
+        }
+    };
+
+    widget.perform_login = function (index) {
 	    var login = document.getElementById('login').value;
 	    var pass = document.getElementById('password').value;
 	    var auth_url = "http://api.metagenomics.anl.gov/api2.cgi/?auth=kbgo4711"+Retina.Base64.encode(login+":"+pass);
@@ -377,7 +387,7 @@
 		        jQuery('#loginModal').modal('hide');
 		        jQuery('#msgModal').modal('show');
 		        jQuery('.tab-pane').children('iframe').each(function() {
-	                stm.send_message(this.id, 'IPython.notebook.kernel.execute("Ipy.auth=\''+d.token+'\'", {}, {});' , 'action');
+		            Retina.WidgetInstances.NotebookDashboard[index].send_auth(this.id, d.token);
                 });
 	        } else {
 		        document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> Login failed.</div>';
@@ -389,7 +399,7 @@
 	    document.getElementById('login_name_span').style.display = "";
 	    document.getElementById('login_name').innerHTML = "";
 	    jQuery('.tab-pane').children('iframe').each(function() {
-	        stm.send_message(this.id, 'IPython.notebook.kernel.execute("Ipy.auth=None", {}, {});' , 'action');
+	        Retina.WidgetInstances.NotebookDashboard[0].send_auth(this.id, undefined);
         });
     };
 

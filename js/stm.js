@@ -283,7 +283,8 @@
 	xhr.onload = function() {
 	    var progressIndicator = document.getElementById('progressIndicator');
 	    if (progressIndicator) {
-		progressIndicator.style.display = "none";
+		document.getElementById('progressBar').innerHTML = "waiting for respose...";
+		//progressIndicator.style.display = "none";
 	    }
 	    if (params.hasOwnProperty('return_type') && params.return_type == 'text') {
 		var d = {};

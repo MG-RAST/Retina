@@ -127,7 +127,7 @@
 	    filter_select.innerHTML = renderer.settings.filter_attribute + ' <span class="caret"></span>';
 	    var filter_list = document.createElement('ul');
 	    filter_list.setAttribute('class', 'dropdown-menu');
-	    filter_list.setAttribute('style', renderer.settings.extra_wide ? 'left: 252px;' : 'left: 58px;');
+	    filter_list.setAttribute('style', renderer.settings.extra_wide ? 'left: 252px; max-height: 200px; overflow: auto;' : 'left: 58px; max-height: 200px; overflow: auto;');
 	    var filter_string = '';
 	    for (i=0; i<renderer.settings.filter.length; i++) {
 		filter_string += '<li><a onclick="Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_value=\'\';Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_attribute=this.innerHTML.slice(0, -1);Retina.RendererInstances[\'listselect\']['+renderer.index+'].render();" style="cursor: pointer;">'+renderer.settings.filter[i]+' </a></li>';
