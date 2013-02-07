@@ -199,7 +199,8 @@
 		    Retina.WidgetInstances.VisualPython[0].loaded_ids[data[i]] = true;
 		    sd.push("'" + data[i] + "'");
 		}
-		senddata += document.getElementById('sample_select_variable_name').value + " = { 'statistics': Collection(mgids=["+sd.join(", ")+"]),\n\t\t\t\t'abundances': AnalysisSet(ids=["+sd.join(", ")+"]) }\n";
+		dataname = document.getElementById('sample_select_variable_name').value
+		senddata += dataname+" = { 'statistics': get_collection(mgids=["+sd.join(", ")+"], def_name='"+dataname+"'),\n\t\t\t\t'abundances': get_analysis_set(ids=["+sd.join(", ")+"], def_name='"+dataname+"') }\n";
 		widget.transfer(senddata, document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value);
 		document.getElementById('data_li').innerHTML = Retina.WidgetInstances.VisualPython[0].get_data_tab();
 	    }
