@@ -29,7 +29,7 @@
 		// try to load the data
 		stm.load_data(data.data);
 	    } else if (type == 'action') {
-		data.data = data.data.replace(/##/g, "'").replace(/!!/g, '"');
+		data.data = data.data.replace(/##/g, "\\'").replace(/!!/g, '"');
 		eval(data.data);
 	    } else if (type == 'html') {
 		document.getElementById(data.data.target).innerHTML = data.data.data;

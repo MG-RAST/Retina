@@ -23,7 +23,7 @@
     widget.cellnum = 0;
     
     widget.transfer = function (data, cell_handling) {
-	var command = data.replace(/'/g, '"').replace(/"/g, "!!").replace(/\n/g, "\\n");
+	var command = data.replace(/'/g, "##").replace(/"/g, "!!").replace(/\n/g, "\\n");
 	var msgstring = '';
 	if (cell_handling == 'create new cell') {
 	    msgstring += 'if (ipy.read_cell() == \'\') { ipy.write_cell(null, \''+command+'\'); } else { ';
@@ -39,6 +39,7 @@
 	msgstring += "IPython.notebook.execute_selected_cell();";
 	var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
 	var iframe_id = curr_iframe[0].id;
+	console.log(iframe_id, msgstring);
 	stm.send_message(iframe_id, msgstring, 'action');
     };
 
@@ -199,8 +200,8 @@
 		    sd.push("'" + data[i] + "'");
 		}
 		senddata += "id_list = [ "+sd.join(", ")+" ]\n";
-		senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name='"+dataname+"'),\n";
-		senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, def_name='"+dataname+"') }";
+		senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name=\""+dataname+"['statistics']\"),\n";
+		senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, def_name=\""+dataname+"['abundances']\") }";
 		widget.transfer(senddata, document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value);
 		document.getElementById('data_li').innerHTML = Retina.WidgetInstances.VisualPython[0].get_data_tab();
 	    }
@@ -584,21 +585,26 @@
     };
 
     widget.create_data = function () {
-	var senddata = "";
-	if (document.getElementById('data_comment').value) {
-	    senddata += "# " + document.getElementById('data_comment').value.split(/\n/).join("\n# ") + "\n";
-	}
-	var sd = [];
-	var data = document.getElementById('data_sample_select').options;
-	for (i=0;i<data.length;i++) {
-	    if (data[i].selected) {
-		sd.push("'"+data[i].value+"'");
+	    var senddata = "";
+	    var dataname = document.getElementById('sample_select_variable_name').value;
+	    if (document.getElementById('data_comment').value) {
+	        senddata += "# " + document.getElementById('data_comment').value.split(/\n/).join("\n# ") + "\n";
 	    }
-	}
-	senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
-	senddata += document.getElementById('sample_select_variable_name').value + "['abundances'].set_display_mgs(ids=selected_ids)\n";
-	senddata += document.getElementById('data_variable_name').value + " = "+document.getElementById('sample_select_variable_name').value+"['abundances'].domain['abundance'].barchart(arg_list=True)";
-	widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
+	    var sd = [];
+	    var data = document.getElementById('data_sample_select').options;
+	    for (i=0;i<data.length;i++) {
+	        if (data[i].selected) {
+		        sd.push("'"+data[i].value+"'");
+	        }
+	    }
+	    senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
+	    senddata += document.getElementById('sample_select_variable_name').value + "['abundances'].set_display_mgs(ids=selected_ids)\n";
+	    if (document.getElementById('data_select').value == 'abundance') {
+	        senddata += document.getElementById('data_variable_name').value + " = "+document.getElementById('sample_select_variable_name').value+"['abundances'].domain['abundance'].barchart(arg_list=True)";
+        } else {
+            senddata += '';
+        }
+	    widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
     };
 
     widget.get_data_tab = function () {
@@ -610,12 +616,12 @@
 	    html += "<option value='"+i+"' selected>"+stm.DataStore.metagenome[i].name+"</option>";
 	}
 	html += "</select></td><td style='padding-right: 20px;'><table>\
-<select onchange='if(this.options[this.selectedIndex].value==\"abundance\"){document.getElementById(\"abu_span\").style.display=\"\";document.getElementById(\"stat_span\").style.display=\"none\";}else{document.getElementById(\"abu_span\").style.display=\"none\";document.getElementById(\"stat_span\").style.display=\"\"}'>\
+<select id='data_select' onchange='if(this.options[this.selectedIndex].value==\"abundance\"){document.getElementById(\"abu_span\").style.display=\"\";document.getElementById(\"stat_span\").style.display=\"none\";}else{document.getElementById(\"abu_span\").style.display=\"none\";document.getElementById(\"stat_span\").style.display=\"\"}'>\
   <option>abundance</option>\
   <option>statistics</option>\
 </select><br>\
 <span id='abu_span'>\
-<select onchange='if(this.options[this.selectedIndex].value==\"taxonomy\"){document.getElementById(\"tax_select\").style.display=\"\";document.getElementById(\"func_select\").style.display=\"none\";}else{document.getElementById(\"tax_select\").style.display=\"none\";document.getElementById(\"func_select\").style.display=\"\"}'>\
+<select id='type_select' onchange='if(this.options[this.selectedIndex].value==\"taxonomy\"){document.getElementById(\"tax_select\").style.display=\"\";document.getElementById(\"func_select\").style.display=\"none\";}else{document.getElementById(\"tax_select\").style.display=\"none\";document.getElementById(\"func_select\").style.display=\"\"}'>\
   <option>taxonomy</option>\
   <option>ontology</option>\
 </select><br>\
