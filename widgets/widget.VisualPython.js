@@ -54,7 +54,13 @@
 <p id="progressBar"></p>\
     </div>';
 	    params.target.appendChild(progress);
-	    stm.get_objects({ "type": "metagenome", "options": { "verbosity": "full", "limit": 0 } }).then(function(){Retina.WidgetInstances.VisualPython[0].display(params);});
+	    // jQuery.getJSON("http://api.metagenomics.anl.gov/genome?verbosity=full").then(function(data){
+	    // 	stm.DataStore.genome = {};
+	    // 	for (i=0;i<data.items.length;i++) {
+	    // 	    stm.DataStore.genome[data.items[i].id] = data.items[i];
+	    // 	}
+		stm.get_objects({ "type": "metagenome", "options": { "verbosity": "migs", "limit": 0 } }).then(function(){Retina.WidgetInstances.VisualPython[0].display(params);});
+//	    });
 	    return;
 	}
 	
@@ -79,52 +85,43 @@
 
 	// get the data for the metagenome select
 	var metagenome_data = [];
+	// for (i in stm.DataStore["genome"]) {
+	//     var md = { "name": stm.DataStore["genome"][i]["scientific_name"],
+	// 	       "id": i,
+	// 	       "project": "-",
+	// 	       "type": "genome",
+	// 	       "lat/long": "-",
+	// 	       "location": "-",
+	// 	       "collection date": "-",
+	// 	       "biome": "-",
+	// 	       "feature": "-",
+	// 	       "material": "-",
+	// 	       "package": "-",
+	// 	       "sequencing method": "-",
+	// 	       "domain": stm.DataStore["genome"][i]["domain"],
+	// 	       "prokaryotic": stm.DataStore["genome"][i]["prokaryotic"] ? "yes" : "no",
+	// 	       "complete": stm.DataStore["genome"][i]["complete"] ? "yes" : "no" };
+	//     metagenome_data.push( md );
+	// }
 	for (i in stm.DataStore["metagenome"]) {
 	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
 		var md = { "name": stm.DataStore["metagenome"][i]["name"],
 			   "id": i,
-			   "project": "-",
+			   "project": stm.DataStore["metagenome"][i]["project"],
 			   "type": "metagenome",
-			   "lat/long": "-",
-			   "location": "-",
-			   "collection date": "-",
-			   "biome": "-",
-			   "feature": "-",
-			   "material": "-",
-			   "package": "-",
-			   "sequencing method": "-" };
-		if (stm.DataStore["metagenome"][i].metadata) {
-		    if (stm.DataStore["metagenome"][i].metadata.project && stm.DataStore["metagenome"][i].metadata.project.name) {
-			md.project = stm.DataStore["metagenome"][i].metadata.project.name;
-		    }
-		    if (stm.DataStore["metagenome"][i].metadata.sample && stm.DataStore["metagenome"][i].metadata.sample.data) {
-			if (stm.DataStore["metagenome"][i].metadata.sample.data.latitude && stm.DataStore["metagenome"][i].metadata.sample.data.longitude) {
-			    md["lat/long"] = stm.DataStore["metagenome"][i].metadata.sample.data.latitude + ", " + stm.DataStore["metagenome"][i].metadata.sample.data.longitude;
-			}
-			if (stm.DataStore["metagenome"][i].metadata.sample.data.country && stm.DataStore["metagenome"][i].metadata.sample.data.location) {
-			    md["location"] = stm.DataStore["metagenome"][i].metadata.sample.data.location + ", " + stm.DataStore["metagenome"][i].metadata.sample.data.country;
-			}
-			if (stm.DataStore["metagenome"][i].metadata.sample.data.collection_date) {
-			    md["collection date"] = stm.DataStore["metagenome"][i].metadata.sample.data.collection_date;
-			}
-			if (stm.DataStore["metagenome"][i].metadata.sample.data.biome) {
-			    md["biome"] = stm.DataStore["metagenome"][i].metadata.sample.data.biome;
-			}
-			if (stm.DataStore["metagenome"][i].metadata.sample.data.feature) {
-			    md["feature"] = stm.DataStore["metagenome"][i].metadata.sample.data.feature;
-			}
-			if (stm.DataStore["metagenome"][i].metadata.sample.data.material) {
-			    md["material"] = stm.DataStore["metagenome"][i].metadata.sample.data.material;
-			}
-		    }
-		    if (stm.DataStore["metagenome"][i].metadata.env_package && stm.DataStore["metagenome"][i].metadata.env_package.name) {
-			md["package"] = stm.DataStore["metagenome"][i].metadata.env_package.name;
-		    }
-		    if (stm.DataStore["metagenome"][i].metadata.library && stm.DataStore["metagenome"][i].metadata.library.data && stm.DataStore["metagenome"][i].metadata.library.data.seq_meth) {
-			md["sequencing method"] = stm.DataStore["metagenome"][i].metadata.library.data.seq_meth;
-		    }
-		}
-		metagenome_data.push( md );
+			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
+			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
+			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
+			   "biome": stm.DataStore["metagenome"][i]["biome"],
+			   "feature": stm.DataStore["metagenome"][i]["feature"],
+			   "material": stm.DataStore["metagenome"][i]["material"],
+			   "package": stm.DataStore["metagenome"][i]["package"],
+			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
+//			   "domain": "-",
+//			   "prokaryotic": "-",
+//			   "complete": "-"
+			 };
+		metagenome_data.push(md);
 	    }
 	}
 
@@ -153,7 +150,7 @@
 	var sample_select_disp_div = document.createElement('div');
 	sample_select_disp_div.setAttribute('class', 'tab-pane active');
 	sample_select_disp_div.setAttribute('id', 'sample_select_li');
-	sample_select_disp_div.setAttribute('style', 'padding-top: 10px');
+	sample_select_disp_div.setAttribute('style', 'padding-top: 10px; height: 300px;');
 	sample_select_disp.appendChild(sample_select_disp_div);
 
 	var ls_multi_container = document.createElement('div');
@@ -178,7 +175,7 @@
 	control_sample_select.innerHTML = '<table style="text-align: left; margin-top: 10px;">\
 <tr><th style="width: 120px;">variable name</th><td><input type="text" id="sample_select_variable_name" value="metagenomes" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>cell content</th><td><select id="sample_select_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
-<tr><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="sample_select_comment">the variable to hold the metagenome data</textarea></td></tr>\
+<tr><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="sample_select_comment">load the initial data</textarea></td></tr>\
 </table>';
 
 	widget.sample_select = Retina.Renderer.create('listselect', {
@@ -187,8 +184,9 @@
 	    data: metagenome_data,
 	    value: "id",
 	    label: "name",
+	    sort: true,
 	    extra_wide: true,
-	    filter: [ "name", "id", "project", "type", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method" ],
+	    filter: [ "name", "id", "project", "type", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method" ], //, "domain", "prokaryotic", "complete" ],
 	    callback: function (data) {
 		var senddata = "";
 		var dataname = document.getElementById('sample_select_variable_name').value;
@@ -202,7 +200,7 @@
 		}
 		senddata += "id_list = [ "+sd.join(", ")+" ]\n";
 		senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name='"+dataname+"'),\n";
-		senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, def_name='"+dataname+"') }\n";
+		senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, def_name='"+dataname+"') }";
 		widget.transfer(senddata, document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value);
 		document.getElementById('data_li').innerHTML = Retina.WidgetInstances.VisualPython[0].get_data_tab();
 	    }
@@ -597,9 +595,9 @@
 		sd.push("'"+data[i].value+"'");
 	    }
 	}
-	senddata += document.getElementById('sample_select_variable_name').value + "['abundances'].set_display_mgs(ids=["+sd.join(", ")+"])\n";
+	senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
+	senddata += document.getElementById('sample_select_variable_name').value + "['abundances'].set_display_mgs(ids=selected_ids)\n";
 	senddata += document.getElementById('data_variable_name').value + " = "+document.getElementById('sample_select_variable_name').value+"['abundances'].domain['abundance'].barchart(arg_list=True)";
-
 	widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
     };
 
@@ -612,26 +610,47 @@
 	    html += "<option value='"+i+"' selected>"+stm.DataStore.metagenome[i].name+"</option>";
 	}
 	html += "</select></td><td style='padding-right: 20px;'><table>\
-<select>\
+<select onchange='if(this.options[this.selectedIndex].value==\"abundance\"){document.getElementById(\"abu_span\").style.display=\"\";document.getElementById(\"stat_span\").style.display=\"none\";}else{document.getElementById(\"abu_span\").style.display=\"none\";document.getElementById(\"stat_span\").style.display=\"\"}'>\
   <option>abundance</option>\
   <option>statistics</option>\
 </select><br>\
-<select>\
+<span id='abu_span'>\
+<select onchange='if(this.options[this.selectedIndex].value==\"taxonomy\"){document.getElementById(\"tax_select\").style.display=\"\";document.getElementById(\"func_select\").style.display=\"none\";}else{document.getElementById(\"tax_select\").style.display=\"none\";document.getElementById(\"func_select\").style.display=\"\"}'>\
   <option>taxonomy</option>\
   <option>ontology</option>\
 </select><br>\
-<select>\
-  <option>GenBank</option>\
-  <option>SEED</option>\
-  <option>M5NR</option>\
-  <option>Subsystems</option>\
-  <option>KO</option>\
+<select id='func_select' style='display: none;'>\
+  <option>Level 1</option>\
+  <option>Level 2</option>\
+  <option>Level 3</option>\
+  <option>Function</option>\
 </select>\
+<select id='tax_select'>\
+  <option>Domain</option>\
+  <option>Phylum</option>\
+  <option>Class</option>\
+  <option>Order</option>\
+  <option>Family</option>\
+  <option>Genus</option>\
+  <option>Species</option>\
+</select>\
+</span>\
+<span id='stat_span' style='display: none;'>\
+<select id='stat_select'>\
+  <option>rarefaction</option>\
+  <option>metadata</option>\
+  <option>alpha-diversity</option>\
+  <option>gc-content</option>\
+  <option>bp-profile</option>\
+  <option>drisee-profile</option>\
+  <option>k-mer-profile</option>\
+  <option>length-histogram</option>\
+</select>\
+</span>\
 </table>\
 </td><td style='padding-right: 20px;'>\
 <table>\
 <tr><th style='width: 120px;'>normalize</th><td><input type='checkbox' id='data_normalize' checked style=''></td></tr>\
-<tr><th style='width: 120px;'>format</th><td><select style='margin-bottom: 0px;'><option>chart</option></select></td></tr>\
 </table>\
 </td><td>\
 <table>\

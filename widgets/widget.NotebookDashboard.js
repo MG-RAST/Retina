@@ -19,7 +19,7 @@
     widget.nb_selected = [];
     
     // dict of notebook uuid: [ notebook_objs ]
-    // notebook_objs is list of notebooks with same uuid sorted by datetime (lates first)
+    // notebook_objs is list of notebooks with same uuid sorted by datetime (latest first)
     widget.sorted_nbs = {};
 
     // these are listselect renderers for notebooks, versions, and metagenomes
@@ -361,14 +361,12 @@
 	}
     };
 
-    widget.send_auth = function (iframe_id, token) {
-        if (token) {
-            var parts = token.split('|');
-            var uname = parts[0].split('=')[1];
-            var auth  = parts[1].split('=')[1];
-            stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.token=\''+token+'\'; Ipy.username=\''+uname+'\'; Ipy.auth=\''+auth+'\'", {}, {});' , 'action');
+    widget.send_auth = function (iframe_id, auth) {
+        if (auth) {
+            var uname = auth.substr(3, auth.indexOf('|') - 3);
+            stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.auth=\''+token+'\'; Ipy.username=\''+uname+'\'", {}, {});' , 'action');
         } else {
-            stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.token=None; Ipy.username=None; Ipy.auth=None", {}, {});' , 'action');
+            stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.auth=None; Ipy.username=None", {}, {});' , 'action');
         }
     };
 
