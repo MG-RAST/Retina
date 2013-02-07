@@ -14,9 +14,9 @@
 	return [ Retina.add_renderer({"name": "graph", "resource": "renderers/", "filename": "renderer.graph.js"}),
       		 Retina.add_renderer({"name": "table", "resource": "renderers/", "filename": "renderer.table.js"}),
       		 Retina.add_renderer({"name": "paragraph", "resource": "renderers/", "filename": "renderer.paragraph.js"}),
-		 this.loadRenderer("listselect"),
-		 this.loadRenderer("graph"),
-		 this.loadRenderer("table"),
+		     this.loadRenderer("listselect"),
+		     this.loadRenderer("graph"),
+		     this.loadRenderer("table")
 	       ];
     };
 
@@ -66,7 +66,7 @@
 
 	// create a tab menu
 	var ul = document.createElement('ul');
-	ul.setAttribute('class', 'nav nav-tabs')
+	ul.setAttribute('class', 'nav nav-tabs');
 	ul.setAttribute('style', "margin-top: 35px; margin-right: -1px; height: 360px;");
 
 	// create the div-container
@@ -139,7 +139,7 @@
 	sample_select_div.setAttribute('id', 'sample_select');
 
 	var sample_select_ul = document.createElement('ul');
-	sample_select_ul.setAttribute('class', 'nav nav-tabs')
+	sample_select_ul.setAttribute('class', 'nav nav-tabs');
 	sample_select_ul.setAttribute('style', "margin-bottom: 10px;");
 
 	var sample_select_disp = document.createElement('div');
@@ -191,15 +191,18 @@
 	    filter: [ "name", "id", "project", "type", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method" ],
 	    callback: function (data) {
 		var senddata = "";
+		var dataname = document.getElementById('sample_select_variable_name').value;
 		if (document.getElementById('sample_select_comment').value) {
-		    senddata += "# " + document.getElementById('sample_select_comment').value.split(/\n/).join("\n# ") + "\n";
+		    senddata += "# "+document.getElementById('sample_select_comment').value.split(/\n/).join("\n# ") + "\n";
 		}
 		var sd = [];
 		for (i=0;i<data.length;i++) {
 		    Retina.WidgetInstances.VisualPython[0].loaded_ids[data[i]] = true;
 		    sd.push("'" + data[i] + "'");
 		}
-		senddata += document.getElementById('sample_select_variable_name').value + " = { 'statistics': Collection(mgids=["+sd.join(", ")+"]),\n\t\t\t\t'abundances': AnalysisSet(ids=["+sd.join(", ")+"]) }\n";
+		senddata += "id_list = [ "+sd.join(", ")+" ]\n";
+		senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name='"+dataname+"'),\n";
+		senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, def_name='"+dataname+"') }\n";
 		widget.transfer(senddata, document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value);
 		document.getElementById('data_li').innerHTML = Retina.WidgetInstances.VisualPython[0].get_data_tab();
 	    }
@@ -216,7 +219,7 @@
 	data_div.setAttribute('id', 'data');
 
 	var data_ul = document.createElement('ul');
-	data_ul.setAttribute('class', 'nav nav-tabs')
+	data_ul.setAttribute('class', 'nav nav-tabs');
 	data_ul.setAttribute('style', "margin-bottom: 10px;");
 
 	var data_disp = document.createElement('div');
@@ -250,7 +253,7 @@
 	div.appendChild(vis_div);
 
 	var vis_ul = document.createElement('ul');
-	vis_ul.setAttribute('class', 'nav nav-tabs')
+	vis_ul.setAttribute('class', 'nav nav-tabs');
 	vis_ul.setAttribute('style', "margin-bottom: 10px;");
 
 	var vis_disp = document.createElement('div');
@@ -579,7 +582,7 @@
     };
 
     widget.number = function (number) {
-	return '<p style="font-size: 16px; float: left; font-weight: bold; height: 18px; text-align: center; vertical-align: middle; margin-right: 8px; border: 5px solid #0088CC; width: 18px; border-radius: 14px 14px 14px 14px; position: relative; bottom: 5px; right: 9px;">'+number+'</p>'
+	    return '<p style="font-size: 16px; float: left; font-weight: bold; height: 18px; text-align: center; vertical-align: middle; margin-right: 8px; border: 5px solid #0088CC; width: 18px; border-radius: 14px 14px 14px 14px; position: relative; bottom: 5px; right: 9px;">'+number+'</p>';
     };
 
     widget.create_data = function () {
@@ -640,6 +643,6 @@
 </table>";
 
 	return html;
-    }
+    };
     
 })();
