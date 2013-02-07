@@ -10,7 +10,7 @@
     });
     
     // ipython notebook server ip
-    widget.nb_server = 'http://140.221.84.122:8888';//'http://140.221.92.53:7051';
+    widget.nb_server = 'http://140.221.92.53:7051';
     
     // shock id of template notebook
     widget.nb_template = 'ae9f993e-f8d2-4317-9bdd-70e815029668';
@@ -361,14 +361,12 @@
 	}
     };
 
-    widget.send_auth = function (iframe_id, token) {
-        if (token) {
-            var parts = token.split('|');
-            var uname = parts[0].split('=')[1];
-            var auth  = parts[1].split('=')[1];
-            stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.token=\''+token+'\'; Ipy.username=\''+uname+'\'; Ipy.auth=\''+auth+'\'", {}, {});' , 'action');
+    widget.send_auth = function (iframe_id, auth) {
+        if (auth) {
+            var uname = auth.substr(3, auth.indexOf('|') - 3);
+            stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.auth=\''+token+'\'; Ipy.username=\''+uname+'\'", {}, {});' , 'action');
         } else {
-            stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.token=None; Ipy.username=None; Ipy.auth=None", {}, {});' , 'action');
+            stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.auth=None; Ipy.username=None", {}, {});' , 'action');
         }
     };
 

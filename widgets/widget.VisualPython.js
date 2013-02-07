@@ -200,7 +200,7 @@
 		}
 		senddata += "id_list = [ "+sd.join(", ")+" ]\n";
 		senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name='"+dataname+"'),\n";
-		senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, def_name='"+dataname+"') }\n";
+		senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, def_name='"+dataname+"') }";
 		widget.transfer(senddata, document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value);
 		document.getElementById('data_li').innerHTML = Retina.WidgetInstances.VisualPython[0].get_data_tab();
 	    }
@@ -595,9 +595,9 @@
 		sd.push("'"+data[i].value+"'");
 	    }
 	}
-	senddata += document.getElementById('sample_select_variable_name').value + "['abundances'].set_display_mgs(ids=["+sd.join(", ")+"])\n";
+	senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
+	senddata += document.getElementById('sample_select_variable_name').value + "['abundances'].set_display_mgs(ids=selected_ids)\n";
 	senddata += document.getElementById('data_variable_name').value + " = "+document.getElementById('sample_select_variable_name').value+"['abundances'].domain['abundance'].barchart(arg_list=True)";
-
 	widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
     };
 
