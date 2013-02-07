@@ -364,8 +364,8 @@
     widget.send_auth = function (iframe_id, token) {
         if (token) {
             var parts = token.split('|');
-            var uname = parts[0].split('=')[1]
-            var auth  = parts[1].split('=')[1]
+            var uname = parts[0].split('=')[1];
+            var auth  = parts[1].split('=')[1];
             stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.token=\''+token+'\'; Ipy.username=\''+uname+'\'; Ipy.auth=\''+auth+'\'", {}, {});' , 'action');
         } else {
             stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.token=None; Ipy.username=None; Ipy.auth=None", {}, {});' , 'action');
