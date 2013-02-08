@@ -335,7 +335,7 @@
 	graph_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
 	graph_button.addEventListener('click', function() {
 	    var senddata = "graph_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].barchart(**"+document.getElementById('graph_data').value+")\n";
-	    senddata += "graph_args.update({'btype': "+document.getElementById('graph_type').value+", 'title': "+document.getElementById('graph_title').value+", 'x_title': "+document.getElementById('graph_x_title').value+", 'y_title': "+document.getElementById('graph_y_title').value+", 'legend_position': "+document.getElementById('graph_legend_position').value+"})\n";
+	    senddata += "graph_args.update({'btype': '"+document.getElementById('graph_type').value+"', 'title': '"+document.getElementById('graph_title').value+"', 'x_title': '"+document.getElementById('graph_x_title').value+"', 'y_title': '"+document.getElementById('graph_y_title').value+"', 'legend_position': '"+document.getElementById('graph_legend_position').value+"'})\n";
 	    senddata += "Ipy.RETINA.graph(**graph_args)";
 	    widget.transfer(senddata, false);
 	});
@@ -622,7 +622,7 @@
             switch (document.getElementById('stat_select').value) {
                 case 'rarefaction':
                     // selected metagenomes - plot
-                    senddata += '';
+                    senddata += document.getElementById('data_variable_name').value+" = "+dataname+"['statistics'].plot_rarefaction(mgids=selected_ids, arg_list=True)";
                     break;
                 case 'drisee':
                     // single metagenome - plot
