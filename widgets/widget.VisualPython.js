@@ -322,6 +322,7 @@
 	chart_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
 <tr><th>type</th><td><select id="graph_type" style="margin-bottom: 0px;"><option>row</option><option>stackedRow</option><option>column</option><option>stackedColumn</option><option>line</option><option>pie</option><option>stackedArea</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="graph_data" value="'+document.getElementById('data_variable_name').value+'" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>title</th><td><input type="text" id="graph_title" value="Graph 1" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="graph_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th>width</th><td><input type="text" id="graph_width" value="900" style="margin-bottom: 0px;"></td><th>height</th><td><input type="text" id="graph_height" value="600" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>x-axis title</th><td><input type="text" id="graph_x_title" value="X" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="graph_comment"></textarea></td</tr>\
 <tr><th>y-axis title</th><td><input type="text" id="graph_y_title" value="Y" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>legend position</th><td><select id="graph_legend_position" style="margin-bottom: 0px;"><option>right</option><option>left</option><option>none</option></select></td></tr>\
@@ -334,7 +335,7 @@
 	graph_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
 	graph_button.addEventListener('click', function() {
 	    var senddata = "graph_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].barchart(**"+document.getElementById('graph_data').value+")\n";
-	    senddata += "graph_args.update({'btype': '"+document.getElementById('graph_type').value+"', 'title': '"+document.getElementById('graph_title').value+"', 'x_title': '"+document.getElementById('graph_x_title').value+"', 'y_title': '"+document.getElementById('graph_y_title').value+"', 'legend_position': '"+document.getElementById('graph_legend_position').value+"'})\n";
+	    senddata += "graph_args.update({'btype': '"+document.getElementById('graph_type').value+"', 'title': '"+document.getElementById('graph_title').value+"', 'x_title': '"+document.getElementById('graph_x_title').value+"', 'y_title': '"+document.getElementById('graph_y_title').value+"', 'legend_position': '"+document.getElementById('graph_legend_position').value+"'"+", 'height': "+document.getElementById('graph_height').value+", 'width': "+document.getElementById('graph_width').value+"})\n";
 	    senddata += "Ipy.RETINA.graph(**graph_args)";
 	    widget.transfer(senddata, false);
 	});
@@ -430,8 +431,8 @@
 	boxplot_div.setAttribute('id', 'boxplot');
 	boxplot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
 <tr><th>height</th><td><input type="text" id="boxplot_height" style="margin-bottom: 0px;" value="350"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="boxplot_data" value="'+document.getElementById('data_variable_name').value+'" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>width</th><td><input type="text" id="boxplot_width" value="150" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="boxplot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
-<tr><th></th><td></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="boxplot_comment">introductory paragraph</textarea></td></tr>\
+<tr><th>width</th><td><input type="text" id="boxplot_width" value="350" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="boxplot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th></th><td></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="boxplot_comment"></textarea></td></tr>\
 </table>';
 
 	var boxplot_button = document.createElement('button');
@@ -458,7 +459,7 @@
 	deviationplot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
 <tr><th>height</th><td><input type="text" id="deviationplot_height" style="margin-bottom: 0px;" value="80"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="deviationplot_data" value="'+document.getElementById('data_variable_name').value+'" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>width</th><td><input type="text" id="deviationplot_width" value="400" style="margin-bottom: 0px;"></td></td><th>cell content</th><td><select id="deviationplot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
-<tr><th></th><td></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="deviationplot_comment">introductory paragraph</textarea></td></tr>\
+<tr><th></th><td></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="deviationplot_comment"></textarea></td></tr>\
 </table>';
 
 	var deviationplot_button = document.createElement('button');
@@ -640,22 +641,22 @@
                 case 'alpha':
                     // single and selected metagenomes - deviationplot
                     senddata += "alpha_list = "+dataname+"['statistics'].get_stat(stat='alpha_diversity_shannon', mgid=primary_id, mgid_set=selected_ids)\n";
-                    senddata += document.getElementById('data_variable_name').value+" = {data=alpha_list}";
+                    senddata += document.getElementById('data_variable_name').value+" = { 'data': alpha_list}";
                     break;
                 case 'bp':
                     // single and selected metagenomes - deviationplot
                     senddata += "bp_list = "+dataname+"['statistics'].get_stat(stat='bp_count_raw', mgid=primary_id, mgid_set=selected_ids)\n";
-                    senddata += document.getElementById('data_variable_name').value+" = {data=bp_list}";
+                    senddata += document.getElementById('data_variable_name').value+" = { 'data': bp_list }";
                     break;
                 case 'length':
                     // single and selected metagenomes - deviationplot
                     senddata += "length_list = "+dataname+"['statistics'].get_stat(stat='average_length_raw', mgid=primary_id, mgid_set=selected_ids)\n";
-                    senddata += document.getElementById('data_variable_name').value+" = {data=length_list}";
+                    senddata += document.getElementById('data_variable_name').value+" = { 'data': length_list }";
                     break;
                 case 'gc':
                     // single and selected metagenomes - deviationplot
                     senddata += "gc_list = "+dataname+"['statistics'].get_stat(stat='average_gc_content_raw', mgid=primary_id, mgid_set=selected_ids)\n";
-                    senddata += document.getElementById('data_variable_name').value+" = {data=gc_list}";
+                    senddata += document.getElementById('data_variable_name').value+" = { 'data': gc_list }";
                     break;
                 default:
                     senddata += '';
