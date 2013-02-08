@@ -40,7 +40,6 @@
 	for (i=0;i<cells.length;i++) {
 	    html += cells[i].innerHTML;
 	}
-	console.log(window.parent);
 	stm.send_message(window.parent, { data: html, target: 'result'}, 'html');
     };
 
