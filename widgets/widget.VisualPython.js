@@ -599,73 +599,79 @@
     };
 
     widget.create_data = function () {
-	    var senddata = "";
-	    var dataname = document.getElementById('sample_select_variable_name').value;
-	    if (document.getElementById('data_comment').value) {
-	        senddata += "# " + document.getElementById('data_comment').value.split(/\n/).join("\n# ") + "\n";
+	var senddata = "";
+	var data_var = document.getElementById('data_variable_name').value;
+	document.getElementById('graph_data').value = data_var;
+	document.getElementById('heat_data').value = data_var;
+	document.getElementById('plot_data').value = data_var;
+	document.getElementById('boxplot_data').value = data_var;
+	document.getElementById('deviationplot_data').value = data_var;
+	var dataname = document.getElementById('sample_select_variable_name').value;
+	if (document.getElementById('data_comment').value) {
+	    senddata += "# " + document.getElementById('data_comment').value.split(/\n/).join("\n# ") + "\n";
+	}
+	var sd = [];
+	var data = document.getElementById('data_sample_select').options;
+	for (i=0;i<data.length;i++) {
+	    if (data[i].selected) {
+		sd.push("'"+data[i].value+"'");
 	    }
-	    var sd = [];
-	    var data = document.getElementById('data_sample_select').options;
-	    for (i=0;i<data.length;i++) {
-	        if (data[i].selected) {
-		        sd.push("'"+data[i].value+"'");
-	        }
-	    }
-	    senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
-	    if (document.getElementById('data_select').value == 'abundance') {
-	        var level = (document.getElementById('type_select').value == 'organism') ? document.getElementById('tax_select').value : document.getElementById('func_select').value;
-	        var norm  = document.getElementById('data_normalize').checked ? '1' : '0';
-	        senddata += dataname+"['abundances'].set_display_mgs(ids=selected_ids)\n";
-	        senddata += document.getElementById('data_variable_name').value+" = {'annot': '"+document.getElementById('type_select').value+"', 'level': '"+level+"', 'normalize': "+norm+", 'arg_list': True}";
+	}
+	senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
+	if (document.getElementById('data_select').value == 'abundance') {
+	    var level = (document.getElementById('type_select').value == 'organism') ? document.getElementById('tax_select').value : document.getElementById('func_select').value;
+	    var norm  = document.getElementById('data_normalize').checked ? '1' : '0';
+	    senddata += dataname+"['abundances'].set_display_mgs(ids=selected_ids)\n";
+	    senddata += document.getElementById('data_variable_name').value+" = {'annot': '"+document.getElementById('type_select').value+"', 'level': '"+level+"', 'normalize': "+norm+", 'arg_list': True}";
         } else {
             senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
             switch (document.getElementById('stat_select').value) {
-                case 'rarefaction':
-                    // selected metagenomes - plot
-                    senddata += document.getElementById('data_variable_name').value+" = "+dataname+"['statistics'].plot_rarefaction(mgids=selected_ids, arg_list=True)";
-                    break;
-                case 'drisee':
-                    // single metagenome - plot
-                    senddata += "drisee_data = Drisee(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
-                    senddata += document.getElementById('data_variable_name').value+" = drisee_data.plot(arg_list=True)";
-                    break;
-                case 'kmer':
-                    // single metagenome - plot
-                    senddata += "kmer_data = Kmer(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
-                    senddata += document.getElementById('data_variable_name').value+" = kmer_data.plot_abundance(arg_list=True)";
-                    break;
-                case 'metadata':
-                    // selected metagenomes - table
-                    senddata += document.getElementById('data_variable_name').value+" = "+dataname+"['statistics'].show_metadata(mgids=selected_ids, arg_list=True)";
-                    break;
-                case 'alpha':
-                    // single and selected metagenomes - deviationplot
-                    senddata += "alpha_list = "+dataname+"['statistics'].get_stat(stat='alpha_diversity_shannon', mgid=primary_id, mgid_set=selected_ids)\n";
-                    senddata += document.getElementById('data_variable_name').value+" = { 'data': alpha_list}";
-                    break;
-                case 'bp':
-                    // single and selected metagenomes - deviationplot
-                    senddata += "bp_list = "+dataname+"['statistics'].get_stat(stat='bp_count_raw', mgid=primary_id, mgid_set=selected_ids)\n";
-                    senddata += document.getElementById('data_variable_name').value+" = { 'data': bp_list }";
-                    break;
-                case 'length':
-                    // single and selected metagenomes - deviationplot
-                    senddata += "length_list = "+dataname+"['statistics'].get_stat(stat='average_length_raw', mgid=primary_id, mgid_set=selected_ids)\n";
-                    senddata += document.getElementById('data_variable_name').value+" = { 'data': length_list }";
-                    break;
-                case 'gc':
-                    // single and selected metagenomes - deviationplot
-                    senddata += "gc_list = "+dataname+"['statistics'].get_stat(stat='average_gc_content_raw', mgid=primary_id, mgid_set=selected_ids)\n";
-                    senddata += document.getElementById('data_variable_name').value+" = { 'data': gc_list }";
-                    break;
-                default:
-                    senddata += '';
-                    break;
+            case 'rarefaction':
+                // selected metagenomes - plot
+                senddata += document.getElementById('data_variable_name').value+" = "+dataname+"['statistics'].plot_rarefaction(mgids=selected_ids, arg_list=True)";
+                break;
+            case 'drisee':
+                // single metagenome - plot
+                senddata += "drisee_data = Drisee(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
+                senddata += document.getElementById('data_variable_name').value+" = drisee_data.plot(arg_list=True)";
+                break;
+            case 'kmer':
+                // single metagenome - plot
+                senddata += "kmer_data = Kmer(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
+                senddata += document.getElementById('data_variable_name').value+" = kmer_data.plot_abundance(arg_list=True)";
+                break;
+            case 'metadata':
+                // selected metagenomes - table
+                senddata += document.getElementById('data_variable_name').value+" = "+dataname+"['statistics'].show_metadata(mgids=selected_ids, arg_list=True)";
+                break;
+            case 'alpha':
+                // single and selected metagenomes - deviationplot
+                senddata += "alpha_list = "+dataname+"['statistics'].get_stat(stat='alpha_diversity_shannon', mgid=primary_id, mgid_set=selected_ids)\n";
+                senddata += document.getElementById('data_variable_name').value+" = { 'data': alpha_list}";
+                break;
+            case 'bp':
+                // single and selected metagenomes - deviationplot
+                senddata += "bp_list = "+dataname+"['statistics'].get_stat(stat='bp_count_raw', mgid=primary_id, mgid_set=selected_ids)\n";
+                senddata += document.getElementById('data_variable_name').value+" = { 'data': bp_list }";
+                break;
+            case 'length':
+                // single and selected metagenomes - deviationplot
+                senddata += "length_list = "+dataname+"['statistics'].get_stat(stat='average_length_raw', mgid=primary_id, mgid_set=selected_ids)\n";
+                senddata += document.getElementById('data_variable_name').value+" = { 'data': length_list }";
+                break;
+            case 'gc':
+                // single and selected metagenomes - deviationplot
+                senddata += "gc_list = "+dataname+"['statistics'].get_stat(stat='average_gc_content_raw', mgid=primary_id, mgid_set=selected_ids)\n";
+                senddata += document.getElementById('data_variable_name').value+" = { 'data': gc_list }";
+                break;
+            default:
+                senddata += '';
+                break;
             }
         }
-	    widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
+	widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
     };
-
+    
     widget.get_data_tab = function () {
 	widget = Retina.WidgetInstances.VisualPython[0];
 	var html = "<table style='text-align: left;'>\
