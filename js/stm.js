@@ -15,7 +15,7 @@
 
     // receive messages sent from other frames
     //window.addEventListener("message", receiveMessage, false);
-    function receiveMessage(event) {
+    var receiveMessage = stm.receiveMessage = function (event) {
 
 	// do not caputre the event if the allowed origin does not match
 	if (stm.SourceOrigin != '*' && event.origin !== stm.SourceOrigin) { return; }
@@ -78,11 +78,6 @@
 	    }
 
 	}
-	
-	console.log(stm.TargetOrigin);
-	console.log(type);
-	console.log(data);
-	console.log(frame);
 
 	// send out the data
 	frame.postMessage({ 'type': type, 'data': data }, stm.TargetOrigin);
