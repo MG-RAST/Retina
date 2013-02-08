@@ -78,6 +78,10 @@
 	    }
 
 	}
+	
+	console.log(stm.TargetOrigin);
+	console.log(type);
+	console.log(data);
 
 	// send out the data
 	frame.postMessage({ 'type': type, 'data': data }, stm.TargetOrigin);
