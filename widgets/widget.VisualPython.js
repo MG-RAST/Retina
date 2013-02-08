@@ -39,7 +39,7 @@
 	msgstring += "IPython.notebook.execute_selected_cell();";
 	var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
 	var iframe_id = curr_iframe[0].id;
-	console.log(iframe_id, msgstring);
+//	console.log(iframe_id, msgstring);
 	stm.send_message(iframe_id, msgstring, 'action');
     };
 

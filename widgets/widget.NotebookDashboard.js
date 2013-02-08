@@ -277,7 +277,7 @@
     widget.nb_create_tab = function (index, uuid, name) {
         // create html
         var url = Retina.WidgetInstances.NotebookDashboard[index].nb_server+'/'+uuid;
-        console.log(url);
+//        console.log(url);
         var li_elem  = '<li class="active" id="'+uuid+'_li"><a data-toggle="tab" href="#'+uuid+'_tab">'+name+'<i class="icon-remove" onclick="if(confirm(\'really close this notebook?\')){Retina.WidgetInstances.NotebookDashboard['+index+'].nb_close_tab(\''+uuid+'\');}" style="position: relative; left: 5px; bottom: 4px;"></a></li>';
         var div_elem = '<div id="'+uuid+'_tab" class="tab-pane active"><iframe id="'+uuid+'" src="'+url+'" width="95%" height="750">Your Browser does not support iFrames</iframe></div>';
         // add tab
