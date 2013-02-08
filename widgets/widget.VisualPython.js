@@ -341,16 +341,30 @@
 	});
 	chart_div.appendChild(graph_button);
 
-	// // table UI
-	// var table_sel = document.createElement('li');
-	// table_sel.innerHTML = '<a href="#table" data-toggle="tab">table</a>';
-	// vis_ul.appendChild(table_sel);
+	// table UI
+	var table_sel = document.createElement('li');
+	table_sel.innerHTML = '<a href="#table" data-toggle="tab"><i class="icon-list-alt" style="margin-right: 5px;"></i>table</a>';
+	vis_ul.appendChild(table_sel);
 
-	// var table_div = document.createElement('div');
-	// table_div.setAttribute('class', 'tab-pane');
-	// table_div.setAttribute('id', 'table');
-	// table_div.innerHTML = "<h3>table UI in development</h3>";
-	// vis_disp.appendChild(table_div);
+	var table_div = document.createElement('div');
+	table_div.setAttribute('class', 'tab-pane');
+	table_div.setAttribute('id', 'table');
+	table_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
+<tr><th>data variable</th><td><input type="text" id="table_data" value="'+document.getElementById('data_variable_name').value+'" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>cell content</th><td><select id="table_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th style="vertical-align: top;">comment</th><td><textarea id="table_comment"></textarea></td></tr>\
+</table>';
+
+	var table_button = document.createElement('button');
+	table_button.setAttribute('class', 'btn btn-success');
+	table_button.innerHTML = "<i class='icon-ok icon-white'></i>";
+	table_button.setAttribute('style', 'position: relative; left: 700px;');
+	table_button.addEventListener('click', function() {
+	    var senddata = "Ipy.RETINA.table(**"+document.getElementById('table_data').value+")";
+	    widget.transfer(senddata, false);
+	});
+	table_div.appendChild(table_button);
+	vis_disp.appendChild(table_div);
 
 	// heatmap UI
 	var heatmap_sel = document.createElement('li');
@@ -603,6 +617,7 @@
 	var data_var = document.getElementById('data_variable_name').value;
 	document.getElementById('graph_data').value = data_var;
 	document.getElementById('heat_data').value = data_var;
+	document.getElementById('table_data').value = data_var;
 	document.getElementById('plot_data').value = data_var;
 	document.getElementById('boxplot_data').value = data_var;
 	document.getElementById('deviationplot_data').value = data_var;
