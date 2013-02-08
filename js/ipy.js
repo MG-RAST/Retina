@@ -35,13 +35,13 @@
     };
 
     ipy.createHTML = function () {
-	    var cells = document.getElementsByClassName('output_html');
-	    var html = "";
-	    for (i=0;i<cells.length;i++) {
-	        html += cells[i].innerHTML;
-	    }
+	var cells = document.getElementsByClassName('output_html');
+	var html = "";
+	for (i=0;i<cells.length;i++) {
+	    html += cells[i].innerHTML;
+	}
 	console.log(window.parent);
-	    stm.send_message(window.parent, { data: html, target: 'result'}, 'html');
+	stm.send_message(window.parent, { data: html, target: 'result'}, 'html');
     };
 
     // if index undefined uses selected cells index (default of insert_cell_* functions)
