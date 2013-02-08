@@ -14,9 +14,9 @@
 	return [ Retina.add_renderer({"name": "graph", "resource": "renderers/", "filename": "renderer.graph.js"}),
       		 Retina.add_renderer({"name": "table", "resource": "renderers/", "filename": "renderer.table.js"}),
       		 Retina.add_renderer({"name": "paragraph", "resource": "renderers/", "filename": "renderer.paragraph.js"}),
-		     this.loadRenderer("listselect"),
-		     this.loadRenderer("graph"),
-		     this.loadRenderer("table")
+		 this.loadRenderer("listselect"),
+		 this.loadRenderer("graph"),
+		 this.loadRenderer("table")
 	       ];
     };
 
@@ -39,7 +39,6 @@
 	msgstring += "IPython.notebook.execute_selected_cell();";
 	var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
 	var iframe_id = curr_iframe[0].id;
-//	console.log(iframe_id, msgstring);
 	stm.send_message(iframe_id, msgstring, 'action');
     };
 
