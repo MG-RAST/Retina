@@ -23,7 +23,7 @@
     widget.cellnum = 0;
     
     widget.transfer = function (data, cell_handling) {
-	var command = data.replace(/'/g, '"').replace(/"/g, "!!").replace(/\n/g, "\\n");
+	var command = data.replace(/'/g, "##").replace(/"/g, "!!").replace(/\n/g, "\\n");
 	var msgstring = '';
 	if (cell_handling == 'create new cell') {
 	    msgstring += 'if (ipy.read_cell() == \'\') { ipy.write_cell(null, \''+command+'\'); } else { ';
@@ -39,6 +39,7 @@
 	msgstring += "IPython.notebook.execute_selected_cell();";
 	var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
 	var iframe_id = curr_iframe[0].id;
+	console.log(iframe_id, msgstring);
 	stm.send_message(iframe_id, msgstring, 'action');
     };
 
@@ -105,7 +106,7 @@
 	// }
 	for (i in stm.DataStore["metagenome"]) {
 	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
-		var md = { "name": stm.DataStore["metagenome"][i]["name"],
+		     var md = { "name": stm.DataStore["metagenome"][i]["name"],
 			   "id": i,
 			   "project": stm.DataStore["metagenome"][i]["project"],
 			   "type": "metagenome",
@@ -116,12 +117,12 @@
 			   "feature": stm.DataStore["metagenome"][i]["feature"],
 			   "material": stm.DataStore["metagenome"][i]["material"],
 			   "package": stm.DataStore["metagenome"][i]["package"],
-			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
+			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"]
 //			   "domain": "-",
 //			   "prokaryotic": "-",
 //			   "complete": "-"
 			 };
-		metagenome_data.push(md);
+		     metagenome_data.push(md);
 	    }
 	}
 
@@ -188,21 +189,21 @@
 	    extra_wide: true,
 	    filter: [ "name", "id", "project", "type", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method" ], //, "domain", "prokaryotic", "complete" ],
 	    callback: function (data) {
-		var senddata = "";
-		var dataname = document.getElementById('sample_select_variable_name').value;
-		if (document.getElementById('sample_select_comment').value) {
-		    senddata += "# "+document.getElementById('sample_select_comment').value.split(/\n/).join("\n# ") + "\n";
-		}
-		var sd = [];
-		for (i=0;i<data.length;i++) {
-		    Retina.WidgetInstances.VisualPython[0].loaded_ids[data[i]] = true;
-		    sd.push("'" + data[i] + "'");
-		}
-		senddata += "id_list = [ "+sd.join(", ")+" ]\n";
-		senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name='"+dataname+"'),\n";
-		senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, def_name='"+dataname+"') }";
-		widget.transfer(senddata, document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value);
-		document.getElementById('data_li').innerHTML = Retina.WidgetInstances.VisualPython[0].get_data_tab();
+		    var senddata = "";
+		    var dataname = document.getElementById('sample_select_variable_name').value;
+		    if (document.getElementById('sample_select_comment').value) {
+		        senddata += "# "+document.getElementById('sample_select_comment').value.split(/\n/).join("\n# ") + "\n";
+		    }
+		    var sd = [];
+		    for (i=0;i<data.length;i++) {
+		        Retina.WidgetInstances.VisualPython[0].loaded_ids[data[i]] = true;
+		        sd.push("'" + data[i] + "'");
+		    }
+		    senddata += "id_list = [ "+sd.join(", ")+" ]\n";
+		    senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name=\""+dataname+"['statistics']\"),\n";
+		    senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, method='WGS', function_source='Subsystems', def_name=\""+dataname+"['abundances']\") }";
+		    widget.transfer(senddata, document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value);
+		    document.getElementById('data_li').innerHTML = Retina.WidgetInstances.VisualPython[0].get_data_tab();
 	    }
 	});
 	widget.sample_select.render();
@@ -320,11 +321,11 @@
 	chart_div.setAttribute('class', 'tab-pane');
 	chart_div.setAttribute('id', 'chart');
 	chart_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>type</th><td><select id="graph_type" style="margin-bottom: 0px;"><option>column</option><option>stackedColumn</option><option>row</option><option>stackedRow</option><option>line</option><option>pie</option><option>stackedArea</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="graph_data" value="data_1" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>type</th><td><select id="graph_type" style="margin-bottom: 0px;"><option>row</option><option>stackedRow</option><option>column</option><option>stackedColumn</option><option>line</option><option>pie</option><option>stackedArea</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="graph_data" value="'+document.getElementById('data_variable_name').value+'" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>title</th><td><input type="text" id="graph_title" value="Graph 1" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="graph_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th>x-axis title</th><td><input type="text" id="graph_x_title" value="X" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="graph_comment"></textarea></td</tr>\
 <tr><th>y-axis title</th><td><input type="text" id="graph_y_title" value="Y" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>legend position</th><td><select id="graph_legend_position" style="margin-bottom: 0px;"><option>left</option><option>right</option><option>none</option></select></td></tr>\
+<tr><th>legend position</th><td><select id="graph_legend_position" style="margin-bottom: 0px;"><option>right</option><option>left</option><option>none</option></select></td></tr>\
 </table>';
 	vis_disp.appendChild(chart_div);
 
@@ -332,8 +333,10 @@
 	graph_button.setAttribute('class', 'btn btn-success');
 	graph_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	graph_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
-	graph_button.addEventListener('click', function(){
-	    var senddata = "Ipy.RETINA.graph(**"+document.getElementById('graph_data').value+")";
+	graph_button.addEventListener('click', function() {
+	    var senddata = "graph_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].barchart(**"+document.getElementById('graph_data').value+")\n";
+	    senddata += "graph_args.update({'btype': '"+document.getElementById('graph_type').value+"', 'title': '"+document.getElementById('graph_title').value+"', 'x_title': '"+document.getElementById('graph_x_title').value+"', 'y_title': '"+document.getElementById('graph_y_title').value+"', 'legend_position': '"+document.getElementById('graph_legend_position').value+"'})\n";
+	    senddata += "Ipy.RETINA.graph(**graph_args)";
 	    widget.transfer(senddata, false);
 	});
 	chart_div.appendChild(graph_button);
@@ -358,8 +361,8 @@
 	heatmap_div.setAttribute('class', 'tab-pane');
 	heatmap_div.setAttribute('id', 'heatmap');
 	heatmap_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>tree height</th><td><input type="text" id="heat_tree_height" style="margin-bottom: 0px;" value="50"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="heat_data" value="data_1" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>tree width</th><td><input type="text" id="heat_tree_width" value="50" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="heat_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th>tree height</th><td><input type="text" id="heat_tree_height" style="margin-bottom: 0px;" value="50"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="heat_data" value="'+document.getElementById('data_variable_name').value+'" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>tree width</th><td><input type="text" id="heat_tree_width" value="200" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="heat_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th>legend height</th><td><input type="text" id="heat_legend_height" value="250" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="heat_comment"></textarea></td></tr>\
 <tr><th>legend width</th><td><input type="text" id="heat_legend_width" value="250" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>minimum cell height</th><td><input type="text" id="heat_min_cell_height" value="19" style="margin-bottom: 0px;"></td></tr>\
@@ -369,8 +372,10 @@
 	heat_button.setAttribute('class', 'btn btn-success');
 	heat_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	heat_button.setAttribute('style', 'position: relative; left: 700px;');
-	heat_button.addEventListener('click', function(){
-	    var senddata = "Ipy.RETINA.heatmap(data="+document.getElementById('heat_data').value+", tree_height="+document.getElementById('heat_tree_height').value+", tree_width="+document.getElementById('heat_tree_width').value+", legend_width="+document.getElementById('heat_legend_width').value+", legend_height="+document.getElementById('heat_legend_height').value+", min_cell_height="+document.getElementById('heat_min_cell_height').value+")";
+	heat_button.addEventListener('click', function() {
+	    var senddata = "heatmap_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].heatmap(**"+document.getElementById('heat_data').value+")\n";
+	    senddata += "heatmap_args.update({'tree_height': "+document.getElementById('heat_tree_height').value+", 'tree_width': "+document.getElementById('heat_tree_width').value+", 'legend_width': "+document.getElementById('heat_legend_width').value+", 'legend_height': "+document.getElementById('heat_legend_height').value+", 'min_cell_height': "+document.getElementById('heat_min_cell_height').value+"})\n";
+	    senddata += "Ipy.RETINA.heatmap(**heatmap_args)";
 	    widget.transfer(senddata, false);
 	});
 	heatmap_div.appendChild(heat_button);
@@ -385,25 +390,32 @@
 	plot_div.setAttribute('class', 'tab-pane');
 	plot_div.setAttribute('id', 'plot');
 	plot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>connected</th><td><select id="plot_connected" style="margin-bottom: 0px;"><option value="True">yes</option><option value="False">no</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="plot_data" value="data_1" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>title</th><td><input type="text" id="plot_title" value="Plot 1" style="margin-bottom: 0px;"></td><th>show dots</th><td><select id="plot_dots" style="margin-bottom: 0px;"><option value="True">yes</option><option value="False">no</option></select></td></tr>\
-<tr><th>x-axis maximum value</th><td><input type="text" id="plot_x_max" value="100" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="plot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
-<tr><th>y-axis maximum value</th><td><input type="text" id="plot_y_max" value="100" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="plot_comment"></textarea></td></tr>\
-<tr><th>legend position</th><td><select id="graph_legend_position" style="margin-bottom: 0px;"><option>left</option><option>right</option><option>none</option></select></td></tr>\
+<tr><th>connected</th><td><select id="plot_connected" style="margin-bottom: 0px;"><option value="True">yes</option><option value="False">no</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="plot_data" value="'+document.getElementById('data_variable_name').value+'" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>show dots</th><td><select id="plot_dots" style="margin-bottom: 0px;"><option value="False">no</option><option value="True">yes</option></select></td><th>cell content</th><td><select id="plot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th>title</th><td><input type="text" id="plot_title" value="Plot 1" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=4><textarea id="plot_comment"></textarea></td></tr>\
+<tr><th>x-axis maximum value</th><td><input type="text" id="plot_x_max" value="auto" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>y-axis maximum value</th><td><input type="text" id="plot_y_max" value="auto" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>legend position</th><td><select id="graph_legend_position" style="margin-bottom: 0px;"><option>right</option><option>left</option><option>none</option></select></td></tr>\
 </table>';
 
 	var plot_button = document.createElement('button');
 	plot_button.setAttribute('class', 'btn btn-success');
 	plot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	plot_button.setAttribute('style', 'position: relative; left: 700px;');
-	plot_button.addEventListener('click', function(){
-	    var senddata = "Ipy.RETINA.plot(data="+document.getElementById('plot_data').value+", show_dots="+document.getElementById('plot_dots').options[document.getElementById('plot_dots').selectedIndex].value+", connected="+document.getElementById('plot_connected').options[document.getElementById('plot_connected').selectedIndex].value+", title='"+document.getElementById('plot_title').value+"', x_max='"+document.getElementById('plot_x_max').value+"', y_max='"+document.getElementById('plot_y_max').value+"', ";
-	    var lpos = document.getElementById('graph_legend_position').options[document.getElementById('graph_legend_position').selectedIndex].value;
-	    if (lpos == 'none') {
-		senddata += "show_legend=False)";
-	    } else {
-		senddata += "show_legend=True, legend_position='"+lpos+"')";
+	plot_button.addEventListener('click', function() {
+	    //var lpos = document.getElementById('graph_legend_position').options[document.getElementById('graph_legend_position').selectedIndex].value;
+	    var xmax = (document.getElementById('plot_x_max').value == 'auto') ? "" : "'x_max': "+document.getElementById('plot_x_max').value;
+	    var ymax = (document.getElementById('plot_y_max').value == 'auto') ? "" : "'y_max': "+document.getElementById('plot_y_max').value;
+	    var lpos = (document.getElementById('graph_legend_position').value == 'none') ? "'show_legend': False" : "'show_legend': True, 'legend_position': '"+document.getElementById('graph_legend_position').value+"'";
+	    var senddata = document.getElementById('plot_data').value+".update({"+lpos+", 'connected': "+document.getElementById('plot_connected').value+", 'show_dots': "+document.getElementById('plot_dots').value+", 'title': '"+document.getElementById('plot_title').value+"'";
+	    if (xmax) {
+	        senddata += ", "+xmax;
 	    }
+	    if (ymax) {
+	        senddata += ", "+ymax;
+	    }
+	    senddata += "})\n";
+	    senddata += "Ipy.RETINA.plot(**"+document.getElementById('plot_data').value+")";
 	    widget.transfer(senddata, false);
 	});
 	plot_div.appendChild(plot_button);
@@ -418,7 +430,7 @@
 	boxplot_div.setAttribute('class', 'tab-pane');
 	boxplot_div.setAttribute('id', 'boxplot');
 	boxplot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>height</th><td><input type="text" id="boxplot_height" style="margin-bottom: 0px;" value="350"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="boxplot_data" value="data_1" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>height</th><td><input type="text" id="boxplot_height" style="margin-bottom: 0px;" value="350"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="boxplot_data" value="'+document.getElementById('data_variable_name').value+'" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>width</th><td><input type="text" id="boxplot_width" value="150" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="boxplot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th></th><td></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="boxplot_comment">introductory paragraph</textarea></td></tr>\
 </table>';
@@ -427,8 +439,10 @@
 	boxplot_button.setAttribute('class', 'btn btn-success');
 	boxplot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	boxplot_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
-	boxplot_button.addEventListener('click', function(){
-	    var senddata = "Ipy.RETINA.boxplot(data="+document.getElementById('boxplot_data').value+", height="+document.getElementById('boxplot_height').value+", width="+document.getElementById('boxplot_width').value+")";
+	boxplot_button.addEventListener('click', function() {
+	    var senddata = "boxplot_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].boxplot(**"+document.getElementById('boxplot_data').value+")\n";
+	    senddata += "boxplot_args.update({'height': "+document.getElementById('boxplot_height').value+", 'width': "+document.getElementById('boxplot_width').value+"})\n";
+	    senddata += "Ipy.RETINA.boxplot(**boxplot_args)";
 	    widget.transfer(senddata, false);
 	});
 	boxplot_div.appendChild(boxplot_button);
@@ -443,7 +457,7 @@
 	deviationplot_div.setAttribute('class', 'tab-pane');
 	deviationplot_div.setAttribute('id', 'deviationplot');
 	deviationplot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>height</th><td><input type="text" id="deviationplot_height" style="margin-bottom: 0px;" value="80"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="deviationplot_data" value="data_1" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>height</th><td><input type="text" id="deviationplot_height" style="margin-bottom: 0px;" value="80"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="deviationplot_data" value="'+document.getElementById('data_variable_name').value+'" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>width</th><td><input type="text" id="deviationplot_width" value="400" style="margin-bottom: 0px;"></td></td><th>cell content</th><td><select id="deviationplot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th></th><td></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="deviationplot_comment">introductory paragraph</textarea></td></tr>\
 </table>';
@@ -452,8 +466,9 @@
 	deviationplot_button.setAttribute('class', 'btn btn-success');
 	deviationplot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	deviationplot_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
-	deviationplot_button.addEventListener('click', function(){
-	    var senddata = "Ipy.RETINA.deviationplot(data="+document.getElementById('deviationplot_data').value+", height="+document.getElementById('deviationplot_height').value+", width="+document.getElementById('deviationplot_width').value+")";
+	deviationplot_button.addEventListener('click', function() {
+	    var senddata = document.getElementById('deviationplot_data').value+".update({'height': "+document.getElementById('deviationplot_height').value+", 'width': "+document.getElementById('deviationplot_width').value+"})\n";
+	    senddata += "Ipy.RETINA.deviationplot(**"+document.getElementById('deviationplot_data').value+")";
 	    widget.transfer(senddata, false);
 	});
 	deviationplot_div.appendChild(deviationplot_button);
@@ -584,21 +599,71 @@
     };
 
     widget.create_data = function () {
-	var senddata = "";
-	if (document.getElementById('data_comment').value) {
-	    senddata += "# " + document.getElementById('data_comment').value.split(/\n/).join("\n# ") + "\n";
-	}
-	var sd = [];
-	var data = document.getElementById('data_sample_select').options;
-	for (i=0;i<data.length;i++) {
-	    if (data[i].selected) {
-		sd.push("'"+data[i].value+"'");
+	    var senddata = "";
+	    var dataname = document.getElementById('sample_select_variable_name').value;
+	    if (document.getElementById('data_comment').value) {
+	        senddata += "# " + document.getElementById('data_comment').value.split(/\n/).join("\n# ") + "\n";
 	    }
-	}
-	senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
-	senddata += document.getElementById('sample_select_variable_name').value + "['abundances'].set_display_mgs(ids=selected_ids)\n";
-	senddata += document.getElementById('data_variable_name').value + " = "+document.getElementById('sample_select_variable_name').value+"['abundances'].domain['abundance'].barchart(arg_list=True)";
-	widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
+	    var sd = [];
+	    var data = document.getElementById('data_sample_select').options;
+	    for (i=0;i<data.length;i++) {
+	        if (data[i].selected) {
+		        sd.push("'"+data[i].value+"'");
+	        }
+	    }
+	    senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
+	    if (document.getElementById('data_select').value == 'abundance') {
+	        var level = (document.getElementById('type_select').value == 'organism') ? document.getElementById('tax_select').value : document.getElementById('func_select').value;
+	        var norm  = document.getElementById('data_normalize').checked ? '1' : '0';
+	        senddata += dataname+"['abundances'].set_display_mgs(ids=selected_ids)\n";
+	        senddata += document.getElementById('data_variable_name').value+" = {'annot': '"+document.getElementById('type_select').value+"', 'level': '"+level+"', 'normalize': "+norm+", 'arg_list': True}";
+        } else {
+            senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
+            switch (document.getElementById('stat_select').value) {
+                case 'rarefaction':
+                    // selected metagenomes - plot
+                    senddata += document.getElementById('data_variable_name').value+" = "+dataname+"['statistics'].plot_rarefaction(mgids=selected_ids, arg_list=True)";
+                    break;
+                case 'drisee':
+                    // single metagenome - plot
+                    senddata += "drisee_data = Drisee(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
+                    senddata += document.getElementById('data_variable_name').value+" = drisee_data.plot(arg_list=True)";
+                    break;
+                case 'kmer':
+                    // single metagenome - plot
+                    senddata += "kmer_data = Kmer(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
+                    senddata += document.getElementById('data_variable_name').value+" = kmer_data.plot_abundance(arg_list=True)";
+                    break;
+                case 'metadata':
+                    // selected metagenomes - table
+                    senddata += document.getElementById('data_variable_name').value+" = "+dataname+"['statistics'].show_metadata(mgids=selected_ids, arg_list=True)";
+                    break;
+                case 'alpha':
+                    // single and selected metagenomes - deviationplot
+                    senddata += "alpha_list = "+dataname+"['statistics'].get_stat(stat='alpha_diversity_shannon', mgid=primary_id, mgid_set=selected_ids)\n";
+                    senddata += document.getElementById('data_variable_name').value+" = {data=alpha_list}";
+                    break;
+                case 'bp':
+                    // single and selected metagenomes - deviationplot
+                    senddata += "bp_list = "+dataname+"['statistics'].get_stat(stat='bp_count_raw', mgid=primary_id, mgid_set=selected_ids)\n";
+                    senddata += document.getElementById('data_variable_name').value+" = {data=bp_list}";
+                    break;
+                case 'length':
+                    // single and selected metagenomes - deviationplot
+                    senddata += "length_list = "+dataname+"['statistics'].get_stat(stat='average_length_raw', mgid=primary_id, mgid_set=selected_ids)\n";
+                    senddata += document.getElementById('data_variable_name').value+" = {data=length_list}";
+                    break;
+                case 'gc':
+                    // single and selected metagenomes - deviationplot
+                    senddata += "gc_list = "+dataname+"['statistics'].get_stat(stat='average_gc_content_raw', mgid=primary_id, mgid_set=selected_ids)\n";
+                    senddata += document.getElementById('data_variable_name').value+" = {data=gc_list}";
+                    break;
+                default:
+                    senddata += '';
+                    break;
+            }
+        }
+	    widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
     };
 
     widget.get_data_tab = function () {
@@ -610,42 +675,47 @@
 	    html += "<option value='"+i+"' selected>"+stm.DataStore.metagenome[i].name+"</option>";
 	}
 	html += "</select></td><td style='padding-right: 20px;'><table>\
-<select onchange='if(this.options[this.selectedIndex].value==\"abundance\"){document.getElementById(\"abu_span\").style.display=\"\";document.getElementById(\"stat_span\").style.display=\"none\";}else{document.getElementById(\"abu_span\").style.display=\"none\";document.getElementById(\"stat_span\").style.display=\"\"}'>\
+<select id='data_select' onchange='if(this.options[this.selectedIndex].value==\"abundance\"){document.getElementById(\"abu_span\").style.display=\"\";document.getElementById(\"stat_span\").style.display=\"none\";document.getElementById(\"data_variable_name\").value=\"abundance_args_1\";}else{document.getElementById(\"abu_span\").style.display=\"none\";document.getElementById(\"stat_span\").style.display=\"\";document.getElementById(\"data_variable_name\").value=\"stats_args_1\";}'>\
   <option>abundance</option>\
   <option>statistics</option>\
 </select><br>\
 <span id='abu_span'>\
-<select onchange='if(this.options[this.selectedIndex].value==\"taxonomy\"){document.getElementById(\"tax_select\").style.display=\"\";document.getElementById(\"func_select\").style.display=\"none\";}else{document.getElementById(\"tax_select\").style.display=\"none\";document.getElementById(\"func_select\").style.display=\"\"}'>\
-  <option>taxonomy</option>\
-  <option>ontology</option>\
+<select id='type_select' onchange='if(this.options[this.selectedIndex].value==\"taxonomy\"){document.getElementById(\"tax_select\").style.display=\"\";document.getElementById(\"func_select\").style.display=\"none\";}else{document.getElementById(\"tax_select\").style.display=\"none\";document.getElementById(\"func_select\").style.display=\"\"}'>\
+  <option value='organism'>Taxonomy</option>\
+  <option value='function'>Ontology</option>\
 </select><br>\
 <select id='func_select' style='display: none;'>\
-  <option>Level 1</option>\
-  <option>Level 2</option>\
-  <option>Level 3</option>\
-  <option>Function</option>\
+  <option value='level1'>Level 1</option>\
+  <option value='level2'>Level 2</option>\
+  <option value='level3'>Level 3</option>\
+  <option value='function'>Function</option>\
 </select>\
 <select id='tax_select'>\
-  <option>Domain</option>\
-  <option>Phylum</option>\
-  <option>Class</option>\
-  <option>Order</option>\
-  <option>Family</option>\
-  <option>Genus</option>\
-  <option>Species</option>\
+  <option value='domain'>Domain</option>\
+  <option value='phylum'>Phylum</option>\
+  <option value='class'>Class</option>\
+  <option value='order'>Order</option>\
+  <option value='family'>Family</option>\
+  <option value='genus'>Genus</option>\
+  <option value='species'>Species</option>\
 </select>\
 </span>\
 <span id='stat_span' style='display: none;'>\
+<select id='primary_select'>";
+    for (i in widget.loaded_ids) {
+	    html += "<option value='"+i+"'>"+stm.DataStore.metagenome[i].name+"</option>";
+	}
+	html += "</select>\
 <select id='stat_select'>\
-  <option>rarefaction</option>\
-  <option>metadata</option>\
-  <option>alpha-diversity</option>\
-  <option>gc-content</option>\
-  <option>bp-profile</option>\
-  <option>drisee-profile</option>\
-  <option>k-mer-profile</option>\
-  <option>length-histogram</option>\
-</select>\
+  <option value='rarefaction'>Rarefaction Curve</option>\
+  <option value='drisee'>DRISEE Profile</option>\
+  <option value='kmer'>k-mer Profile</option>\
+  <option value='metadata'>Metadata</option>\
+  <option value='alpha'>Alpha-Diversity</option>\
+  <option value='bp'>bp Profile</option>";
+//  <option value='length'>Length Histogram</option>\
+//  <option value='gc'>GC Histogram</option>\
+    html += "</select>\
 </span>\
 </table>\
 </td><td style='padding-right: 20px;'>\
@@ -654,13 +724,12 @@
 </table>\
 </td><td>\
 <table>\
-<tr><th style='width: 120px;'>variable name</th><td><input type='text' id='data_variable_name' value='data_1' style='margin-bottom: 0px;'></td></tr>\
+<tr><th style='width: 120px;'>variable name</th><td><input type='text' id='data_variable_name' value='abundance_args_1' style='margin-bottom: 0px;'></td></tr>\
 <tr><th>cell content</th><td><select id='data_content_handling' style='margin-bottom: 0px;'><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th style='vertical-align: top;'>comment</th><td><textarea id='data_comment'>my data subselection</textarea></td></tr>\
 </table>\
 </td></tr>\
 </table>";
-
 	return html;
     };
     

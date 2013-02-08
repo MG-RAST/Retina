@@ -364,7 +364,7 @@
     widget.send_auth = function (iframe_id, auth) {
         if (auth) {
             var uname = auth.substr(3, auth.indexOf('|') - 3);
-            stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.auth=\''+token+'\'; Ipy.username=\''+uname+'\'", {}, {});' , 'action');
+            stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.auth=\''+auth+'\'; Ipy.username=\''+uname+'\'", {}, {});' , 'action');
         } else {
             stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.auth=None; Ipy.username=None", {}, {});' , 'action');
         }
