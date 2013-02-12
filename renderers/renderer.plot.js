@@ -100,14 +100,14 @@
 			       { name: "uncool", color: 'red', shape: 'square' },
 			       { name: "semi-cool", color: 'orange', shape: 'triangle' } ],
 		     points: [ [ { x: 0,  y: 1 },
-				 { x: 5,  y: 5  },
-				 { x: 15, y: 15  } ],
+				 { x: 0.15,  y: 5  },
+				 { x: 0.5, y: 15  } ],
 			       [ { x: 0,  y: 0 },
-				 { x: 25,  y: 35  },
-				 { x: 35, y: 100  } ],
-			       [ { x: 8,  y: 100 },
-				 { x: 49,  y: 50  },
-				 { x: 150, y: 0  } ]
+				 { x: 0.25,  y: 35  },
+				 { x: 0.35, y: 100  } ],
+			       [ { x: 0.8,  y: 100 },
+				 { x: 0.49,  y: 50  },
+				 { x: 0.15, y: 0  } ]
 			     ] };
         },
 	
@@ -161,8 +161,8 @@
 	    svg.plot.series = renderer.settings.data.series;
 
 	    svg.plot.noDraw().format('white', 'gray').gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
-	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max).ticks(parseInt((renderer.settings.x_max - renderer.settings.x_min) / 10), parseInt((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw').title(renderer.settings.x_title); 
-	    svg.plot.yAxis.scale(renderer.settings.y_min, renderer.settings.y_max).ticks(parseInt((renderer.settings.y_max - renderer.settings.y_min) / 10), parseInt((renderer.settings.y_max - renderer.settings.y_min) / 5), 8, 'sw').title(renderer.settings.y_title);
+	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max).ticks(parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 10), parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw').title(renderer.settings.x_title); 
+	    svg.plot.yAxis.scale(renderer.settings.y_min, renderer.settings.y_max).ticks(parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 10), parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 5), 8, 'sw').title(renderer.settings.y_title);
 	    svg.plot.legend.settings({fill: 'white', stroke: 'gray'});
 	    
 	    var plotLegend = 0;
