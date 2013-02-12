@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Kegg Demo Page</title>
+	<script src="js/jquery.min.js"></script>
+	<script src="js/stm.js"></script>
+	<script src="js/retina.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<script>
+    stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
+	Retina.init( { library_resource: "js/" } ).then( function () {
+	    Retina.add_widget({"name": "hofmockel_kegg", "resource": "widgets/",  "filename": "widget.hofmockel_kegg.js" });
+	    Retina.load_widget("hofmockel_kegg").then( function () {
+		//Retina.Widget.create('hofmockel_kegg', { target: document.getElementById('content') });
+	    });
+	});
+    });
+	</script>
+  </head>
+  <body>
+    <input type="button" value="dump session" onclick="stm.dump();" class="btn"><input type="file" onchange="stm.file_upload(event);"><input type="button" value="start" onclick="Retina.Widget.create('hofmockel_kegg', { target: document.getElementById('content')});" class="btn">
+    <div style="margin-top: 25px; margin-left: 25px; margin-bottom: 50px;">
+      <input type="button" value="click me" onclick="Retina.svg2png(document.getElementById('kegg_map_svg_target'), document.getElementById('export'), 3695 ,  2250);">
+      <div id='content'></div>
+      <div id='export'></div>
+    </div>
+  </body>
+</html>
