@@ -3368,6 +3368,13 @@ jQuery.extend(SVGPlot.prototype, {
 				}
 				major += (cur == major ? axis._ticks.major : 0);
 				minor += (cur == minor ? axis._ticks.minor : 0);
+
+			    // fix floating point error
+			    var maj_str = major.toString();
+			    var tick_str = axis._ticks.major.toString();
+			    if (maj_str.substr(maj_str.indexOf('.')+1).length > tick_str.substr(tick_str.indexOf('.')+1).length) {
+				major = parseFloat(major.toFixed(tick_str.substr(tick_str.indexOf('.')+1).length));
+			    }
 			}
 		}
 	    if (axis._title) {

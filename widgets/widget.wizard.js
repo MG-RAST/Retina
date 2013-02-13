@@ -38,15 +38,34 @@
 	target.innerHTML = "";
 
 	if (! stm.DataStore.hasOwnProperty('metagenome')) {
-	    target.innerHTML = "<p style='position: absolute; top: 300px; left: 45%;'><img src='images/loading.gif'> initializing...</p>";
-	    stm.get_objects( { type: 'metagenome', options: { verbosity: 'full', limit: 100 } } ).then(function(){widget.display(wparams);});
+	    var progress = document.createElement('div');
+	    progress.innerHTML = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 250px; width: 400px; right: 38%;">\
+<button type="button" class="close" data-dismiss="alert">×</button>\
+<h4><img src="images/loading.gif"> Please wait...</h4>\
+<p>The data to be displayed is currently loading.</p>\
+<p id="progressBar"></p>\
+</div>';
+	    target.appendChild(progress);
+	    stm.get_objects( { type: 'metagenome', options: { verbosity: 'migs', limit: 0 } } ).then(function(){widget.display(wparams);});
 	    return;
 	}
 	
 	var metagenome_data = [];
 	for (i in stm.DataStore["metagenome"]) {
 	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
-		metagenome_data.push( { "name": stm.DataStore["metagenome"][i]["name"], "id": i, "project": (stm.DataStore["metagenome"][i].metadata && stm.DataStore["metagenome"][i].metadata.project && stm.DataStore["metagenome"][i].metadata.project.name) ? stm.DataStore["metagenome"][i].metadata.project.name : "-",  "biome": (stm.DataStore["metagenome"][i].metadata && stm.DataStore["metagenome"][i].metadata.env_package && stm.DataStore["metagenome"][i].metadata.env_package.type) ? stm.DataStore["metagenome"][i].metadata.env_package.type : "-" });
+		var md = { "name": stm.DataStore["metagenome"][i]["name"],
+			   "id": i,
+			   "project": stm.DataStore["metagenome"][i]["project"],
+			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
+			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
+			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
+			   "biome": stm.DataStore["metagenome"][i]["biome"],
+			   "feature": stm.DataStore["metagenome"][i]["feature"],
+			   "material": stm.DataStore["metagenome"][i]["material"],
+			   "package": stm.DataStore["metagenome"][i]["package"],
+			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"]
+			 };
+		metagenome_data.push(md);
 	    }
 	}
 
@@ -64,7 +83,43 @@
 	    wrapper.appendChild(title);
 	    wrapper.appendChild(select);
 
-	    title.innerHTML = "<h2>Welcome to the Experimental Design Wizard</h2><p style='width: 600px; margin-top: 20px; margin-bottom: 20px;'>This wizard will help you decide which of your samples provide the best quality, diversity and information to answer your biological questions.</p><h3 style='margin-bottom: 20px;'>select your samples</h3>";
+	    title.innerHTML = "<h2>Welcome to the Experimental Design Wizard</h2>\
+<p style='width: 600px; margin-top: 20px; margin-bottom: 20px;'>\
+This wizard was designed to help users to perform comparative analyses on the annotation results (abundance profiles) of multiple samples.<br>\
+<button type='button' class='btn btn-primary' data-toggle='collapse' data-target='#more_info' style='height: 40px; position: relative; left: 200px; margin-top: 20px;'>\
+  What can this wizard do?\
+</button>\
+</p>\
+<div id='more_info' class='collapse' style='width: 600px;'>\
+<p>The wizard will help you to<br>\
+<ul>\
+    <li>select sample for analysis (from your data as well as all available public data)</li>\
+    <li>allow you to determine if any of the samples exhibit quality issues that should preclude them from analysis</li>\
+    <li>place your samples into groups based on\
+        <ul>\
+            <li>metadata</li>\
+            <li>preliminary analyses/visualizations (e.g. PCoA and heatmap-dendrogram)</li>\
+            <li>arbitrary groupings</li>\
+            <li>see if your data benefit from normalization/standardization</li>\
+        </ul>\
+    </li>\
+    <li>perform comparative analyses</li>\
+        <ul>\
+            <li>PCoA</li>\
+            <li>heatmap-dendrogram</li>\
+        </ul>\
+    </li>\
+    <li>perform statistical analyses (to identify functions or taxa that exhibit the most significant differences\
+        <ul>\
+            <li>parametric and non-parametric tests</li>\
+            <li>control of FDR through p-value adjustment and/or q-value analysis</li>\
+        </ul>\
+    </li>\
+    <li>use statistical outputs to subselect data for more detailed analyses</li>\
+</ul>\
+</p>\
+</div>\
+<h3 style='margin-bottom: 20px;'>select your samples</h3>";
 
 	    Retina.Renderer.create("listselect", { target: select,
 						   multiple: true,
@@ -74,7 +129,7 @@
 						       widget.ids = data;
 						       widget.display(wparams);
 						   },
-						   filter: [ "name", "id", "project", "biome" ] }).render();
+						   filter: [ "name", "id", "project", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method" ] }).render();
 	}
 	
 	// we have metagenomes, show the wizard
@@ -130,7 +185,7 @@
 	    target.appendChild(layout_table);
 
 	    // create the titles
-	    titles.innerHTML = "<td><h3>select metagenome</h3></td><td><h3>sample overview table</h3></td><td style='padding-left: 10px;'><h3>select fields</h3></td>";
+	    titles.innerHTML = "<td><h3>select metagenome</h3></td><td><h3>sample overview</h3></td><td style='padding-left: 10px;'><h3>select fields</h3></td>";
 	    
 	    // create the selection table
 	    var tdata = [];
@@ -140,7 +195,7 @@
 		tdata.push([ mg.id, mg.name, mg.name, " - ", "<input type='checkbox' checked>" ]);
 		metagenome_data.push({name: mg.name, id: mg.id});
 	    }
-	    var table_data = { data: tdata, header: [ "ID", "name", "custom name", "notes", "selected" ] };
+	    var table_data = { data: tdata, header: [ "ID", "name", "custom name", "user notes", "include in analyses" ] };
 	    var tab = widget.table = Retina.Renderer.create("table", { target: table_cell,
 								       data: table_data,
 								       rows_per_page: 6,
@@ -180,7 +235,7 @@
   <div class="tabbable">\
     <ul class="nav nav-tabs" id="tab_list">\
        <li class="active"><a data-toggle="tab" href="#overview">Overview</a></li>\
-       <li><a data-toggle="tab" href="#qc">QC-Distribution</a></li>\
+       <li><a data-toggle="tab" href="#qc">Abundance Distributions</a></li>\
        <li><a data-toggle="tab" href="#pcoa">PCoA</a></li>\
        <li><a data-toggle="tab" href="#stats">Stats Builder</a></li>\
     </ul>\
@@ -350,9 +405,9 @@
 	document.getElementById('overview').innerHTML = '<h3 id="overview_header"></h3>\
 <table><tr><td><div id="stats_overview_table"></div></td><td><div id="breakdown"></div></td></tr></table>\
 <table style="width: 600px;">\
-<tr><th align=left>Alpha Diversity</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2)+'</td><td><div id="alphadiversity"></div></td></tr>\
-<tr><th align=left>Drisee</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.drisee_score_raw).formatString(2)+'</td><td><div id="drisee_dist"></div></td></tr>\
-<tr><th align=left>GC Content</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_preprocessed).formatString(2)+' %</td><td><div id="gc_dist"></div></td></tr>\
+<tr><th align=left>Alpha Diversity (Shannon Index)</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2)+'</td><td><div id="alphadiversity"></div></td></tr>\
+<tr><th align=left>Mean DRISEE error</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.drisee_score_raw).formatString(2)+'</td><td><div id="drisee_dist"></div></td></tr>\
+<tr><th align=left>Mean GC Content</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_preprocessed).formatString(2)+' %</td><td><div id="gc_dist"></div></td></tr>\
 </table>\
 <table><tr><td><div id="nuc_hist"></div></td><td><div id="drisee"></div></td></tr></table>\
 <div id="rarefaction"></div>\
@@ -364,19 +419,19 @@
 
 	// stats
 	var stats_space = document.getElementById('stats_overview_table');
-	stats_space.innerHTML = '<p style="font-size: 15px;">General Statistics</p>\
+	stats_space.innerHTML = '<p style="font-size: 15px;">Individual Sample Statistics</p>\
 <table class="table" style="width: 600px;">\
  <thead>\
   <tr><td></td><th>Upload</th><th>Post QC</th></tr>\
  </thead>\
  <tbody>\
-  <tr><th>bp count</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.bp_count_raw).formatString(0)+' bp</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.bp_count_preprocessed).formatString(0)+' bp</td></tr>\
-  <tr><th>Seqeunces Count</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_raw).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_preprocessed).formatString(0)+'</td></tr>\
-<tr><th>Mean Sequence Length</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_length_raw).formatString(0)+' bp</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_length_preprocessed).formatString(0)+' bp</td></tr>\
-  <tr><th>Mean GC Percent</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_raw).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_preprocessed).formatString(0)+'</td></tr>\
-  <tr><td></td><th>Processed (Predicted)</th><th>Alignment (Identified)</th></tr>\
-  <tr><th>Protein Features</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_processed).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_sims_aa).formatString(0)+'</td></tr>\
-  <tr><th>tRNA Features</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_processed_rna).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_sims_rna).formatString(0)+'</td></tr>\
+  <tr><th>number of base pairs</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.bp_count_raw).formatString(0)+' bp</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.bp_count_preprocessed).formatString(0)+' bp</td></tr>\
+  <tr><th>number of reads</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_raw).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_preprocessed).formatString(0)+'</td></tr>\
+<tr><th>mean read length</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_length_raw).formatString(0)+' bp</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_length_preprocessed).formatString(0)+' bp</td></tr>\
+  <tr><th>mean GC percent</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_raw).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_preprocessed).formatString(0)+'</td></tr>\
+  <tr><td></td><th>predicted features</th><th>alignment (identified)</th></tr>\
+  <tr><th>protein</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_processed).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_sims_aa).formatString(0)+'</td></tr>\
+  <tr><th>tRNA</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_processed_rna).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_sims_rna).formatString(0)+'</td></tr>\
   <tr><td></td><th colspan=2>Annotation</th></tr>\
   <tr><th>Identified Functional Categories</th><td colspan=2>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_ontology).formatString(0)+'</td></tr>\
  </tbody>\
@@ -453,7 +508,7 @@
     	    }
     	    var driseesettings = { target: document.getElementById('drisee'),
     				   data: drisee_data,
-    				   title: 'Drisee Profile',
+    				   title: 'DRISEE Error Profile',
     				   show_legend: true,
     				   legend_position: 'left',
     				   connected: true,
