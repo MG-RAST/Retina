@@ -58,7 +58,7 @@
 	    renderer.settings.div.style.height = renderer.settings.height+"px";
 
 	    if (! stm.DataStore.hasOwnProperty('keggpolydata_loaded')) {
-		jQuery.getJSON("keggdata.json", function(data) {
+		jQuery.getJSON("data/keggdata.json", function(data) {
 		    stm.DataStore.keggpolydata = data;
 		    stm.DataStore.keggpolydata_loaded = true;
 		}).then(function(){renderer.render();});
@@ -76,6 +76,8 @@
 	    var svg = jQuery('#map_div'+renderer.index).svg('get');
 	},
 	drawImage: function (svg, mg_data) {
+	    console.log(mg_data);
+	    console.log(svg);
 	    for (k=0; k<2; k++) {
 		for (i in mg_data[k]) {
 		    if (mg_data[k].hasOwnProperty(i)) {

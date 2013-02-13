@@ -524,16 +524,18 @@
 	widget = Retina.WidgetInstances.VisualPython[0];
 	var sel = document.getElementById('paragraph_list');
 	var txt = document.getElementById('paragraph_text');
+	txt_string = txt.value.replace(/"/g, "&#34;");
+	txt_string = txt_string.replace(/'/g, "&#39;");
     	switch (command) {
     	case 'add':
-	    var para = { "title": txt.value };
+	    var para = { "title": txt_string };
 	    var type = "T";
 	    if (document.getElementById('paragraph_h').className == 'btn active') {
 		type = "H";
-		para = { "header": txt.value };
+		para = { "header": txt_string };
 	    } else if (document.getElementById('paragraph_p').className == 'btn active') {
 		type = "P";
-		para = { "p": txt.value };
+		para = { "p": txt_string };
 	    }
 	    sel.options[sel.options.length] = new Option(type+": "+txt.value, type+": "+txt.value);
 	    widget.currentParagraph.push(para);
@@ -563,14 +565,14 @@
     	    break;
 	case 'replace':
 	    if (sel.selectedIndex > -1) {
-		var para = { "title": txt.value };
+		var para = { "title": txt_string };
 		var type = "T";
 		if (document.getElementById('paragraph_h').className == 'btn active') {
 		    type = "H";
-		    para = { "header": txt.value };
+		    para = { "header": txt_string };
 		} else if (document.getElementById('paragraph_p').className == 'btn active') {
 		    type = "P";
-		    para = { "p": txt.value };
+		    para = { "p": txt_string };
 		}
 		widget.currentParagraph[sel.selectedIndex] = para;
 		sel.options[sel.selectedIndex] = new Option(type+": "+txt.value, type+": "+txt.value);
@@ -585,7 +587,9 @@
 	    if (document.getElementById('para_comment').value) {
 		senddata += "# " + document.getElementById('para_comment').value.split(/\n/).join("\n# ") + "\n";
 	    }
-	    senddata += "Ipy.RETINA.paragraph(data="+JSON.stringify(widget.currentParagraph)+")";
+	    var dstring = JSON.stringify(widget.currentParagraph);
+	    dstring = dstring.replace(/\\n/g, "<br>");
+	    senddata += "Ipy.RETINA.paragraph(data="+dstring+")";
 
 	    widget.transfer(senddata, document.getElementById('para_content_handling').options[document.getElementById('para_content_handling').selectedIndex].value);
     	    break;
