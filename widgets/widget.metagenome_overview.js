@@ -53,12 +53,12 @@
 	        { type: 'piechart', data: 'NOG', category: 'ontology' },
 	        { type: 'piechart', data: 'Subsystems', category: 'ontology' },
 	        { type: 'paragraph', data: 'taxonomy_introtext' },
-	        { type: 'barchart', data: 'domain', category: 'taxonomy' },
-	        { type: 'barchart', data: 'phylum', category: 'taxonomy' },
-	        { type: 'barchart', data: 'class', category: 'taxonomy' },
-	        { type: 'barchart', data: 'order', category: 'taxonomy' },
-	        { type: 'barchart', data: 'family', category: 'taxonomy' },
-	        { type: 'barchart', data: 'genus', category: 'taxonomy' }
+	        { type: 'piechart', data: 'domain', category: 'taxonomy' },
+	        { type: 'piechart', data: 'phylum', category: 'taxonomy' },
+	        { type: 'piechart', data: 'class', category: 'taxonomy' },
+	        { type: 'piechart', data: 'order', category: 'taxonomy' },
+	        { type: 'piechart', data: 'family', category: 'taxonomy' },
+	        { type: 'piechart', data: 'genus', category: 'taxonomy' }
 	    ];
 	
 	    // iterate over the outputs
@@ -237,7 +237,8 @@
     };
     
     widget.ontology_introtext = function(mg, mg_stats) {
-	    return { data: [ { header: "Functional Category Hits Distribution" },
+	    return { style: "clear: both",
+	             data: [ { header: "Functional Category Hits Distribution" },
 			             { p: "The pie charts below illustrate the distribution of functional categories for COGs, KOs, NOGs, and Subsystems at the highest level supported by these functional hierarchies. Each slice indicates the percentage of reads with predicted protein functions annotated to the category for the given source. " } ] };
     };
     
@@ -262,17 +263,29 @@
         var pieData = [];
         var annData = mg_stats[dcat][dtype];
         var colors  = GooglePalette(annData.length);
-        for (var i = 0; i < annData.length; i++) {
-    	    pieData.push({ name: annData[i][0], data: [ parseInt(annData[i][1]) ], fill: colors[i] });
+        var annMax  = 0;
+        var annSort = annData.sort(function(a,b) {
+            return b[1] - a[1];
+        });        
+        for (var i = 0; i < annSort.length; i++) {
+    	    pieData.push({ name: annSort[i][0], data: [ parseInt(annSort[i][1]) ], fill: colors[i] });
+    	    annMax = Math.max(annMax, annSort[i][0].length);
     	}
+    	var pwidth  = 300;
+    	var pheight = 300;
+    	var lwidth  = Math.max(300, annMax*7.5);
+    	var lheight = pieData.length * 23;
+    	var width   = pwidth+lwidth;
+    	var height  = (lheight > pheight) ? Math.min(lheight, pheight+(pheight/2)) : pheight;
     	var data = { 'title': dtype,
     	             'type': 'pie',
     		         'title_settings': { 'font-size': '18px', 'font-weight': 'bold', 'x': 0, 'text-anchor': 'start' },
-    		         'x_labels': [ " " ],		     
+    		         'x_labels': [""],
     		         'show_legend': true,
-    		         'legend_position': 'right',
-    		         'width': 700,
-    		         'height': 350,
+    		         'legendArea': [pwidth+40, 20, lwidth, lheight],
+    		         'chartArea': [25, 20, pwidth, pheight],
+    		         'width': width,
+    		         'height': height,
     		         'data': pieData };
     	return data;
     };

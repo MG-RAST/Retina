@@ -116,7 +116,8 @@
 			   "feature": stm.DataStore["metagenome"][i]["feature"],
 			   "material": stm.DataStore["metagenome"][i]["material"],
 			   "package": stm.DataStore["metagenome"][i]["package"],
-			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"]
+			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
+			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"]
 //			   "domain": "-",
 //			   "prokaryotic": "-",
 //			   "complete": "-"
@@ -186,7 +187,7 @@
 	    label: "name",
 	    sort: true,
 	    extra_wide: true,
-	    filter: [ "name", "id", "project", "type", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method" ], //, "domain", "prokaryotic", "complete" ],
+	    filter: [ "name", "id", "project", "type", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"], //, "domain", "prokaryotic", "complete" ],
 	    callback: function (data) {
 		    var senddata = "";
 		    var dataname = document.getElementById('sample_select_variable_name').value;
@@ -194,13 +195,18 @@
 		        senddata += "# "+document.getElementById('sample_select_comment').value.split(/\n/).join("\n# ") + "\n";
 		    }
 		    var sd = [];
+		    var has_wgs = false;
 		    for (i=0;i<data.length;i++) {
 		        Retina.WidgetInstances.VisualPython[0].loaded_ids[data[i]] = true;
 		        sd.push("'" + data[i] + "'");
+		        if ((stm.DataStore["metagenome"][data[i]]["sequence_type"] == 'WGS') || (stm.DataStore["metagenome"][data[i]]["sequence_type"] == 'MT')) {
+                    has_wgs = true;
+                }
 		    }
+		    var dataopts = has_wgs ? "method='WGS', function_source='Subsystems'" : "method='Amplicon'";
 		    senddata += "id_list = [ "+sd.join(", ")+" ]\n";
 		    senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name=\""+dataname+"['statistics']\"),\n";
-		    senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, method='WGS', function_source='Subsystems', def_name=\""+dataname+"['abundances']\") }";
+		    senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, "+dataopts+", def_name=\""+dataname+"['abundances']\") }";
 		    widget.transfer(senddata, document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value);
 		    document.getElementById('data_li').innerHTML = Retina.WidgetInstances.VisualPython[0].get_data_tab();
 	    }
@@ -322,8 +328,9 @@
 	chart_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
 <tr><th>type</th><td><select id="graph_type" style="margin-bottom: 0px;"><option>row</option><option>stackedRow</option><option>column</option><option>stackedColumn</option><option>line</option><option>pie</option><option>stackedArea</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="graph_data" value="'+document.getElementById('data_variable_name').value+'" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>title</th><td><input type="text" id="graph_title" value="Graph 1" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="graph_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
-<tr><th>width</th><td><input type="text" id="graph_width" value="auto" style="margin-bottom: 0px;"></td><th>height</th><td><input type="text" id="graph_height" value="auto" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>x-axis title</th><td><input type="text" id="graph_x_title" value="X" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="graph_comment"></textarea></td</tr>\
+<tr><th>height</th><td><input type="text" id="graph_height" value="auto" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="graph_comment"></textarea></td></tr>\
+<tr><th>width</th><td><input type="text" id="graph_width" value="auto" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>x-axis title</th><td><input type="text" id="graph_x_title" value="X" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>y-axis title</th><td><input type="text" id="graph_y_title" value="Y" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>legend position</th><td><select id="graph_legend_position" style="margin-bottom: 0px;"><option>right</option><option>left</option><option>none</option></select></td></tr>\
 </table>';
@@ -415,7 +422,7 @@
 	plot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
 <tr><th>connected</th><td><select id="plot_connected" style="margin-bottom: 0px;"><option value="True">yes</option><option value="False">no</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="plot_data" value="'+document.getElementById('data_variable_name').value+'" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>show dots</th><td><select id="plot_dots" style="margin-bottom: 0px;"><option value="False">no</option><option value="True">yes</option></select></td><th>cell content</th><td><select id="plot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
-<tr><th>title</th><td><input type="text" id="plot_title" value="Plot 1" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=4><textarea id="plot_comment"></textarea></td></tr>\
+<tr><th>title</th><td><input type="text" id="plot_title" value="Plot 1" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="plot_comment"></textarea></td></tr>\
 <tr><th>x-axis maximum value</th><td><input type="text" id="plot_x_max" value="auto" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>y-axis maximum value</th><td><input type="text" id="plot_y_max" value="auto" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>legend position</th><td><select id="graph_legend_position" style="margin-bottom: 0px;"><option>right</option><option>left</option><option>none</option></select></td></tr>\
@@ -596,61 +603,61 @@
     	}
     };
         
-    widget.loadSelector = function () {
-	var metagenome_data = [];
-	for (i in stm.DataStore["metagenome"]) {
-	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
-		if (stm.DataStore["metagenome"][i]["metadata"]  ==  null ) {
-		    continue;
-		}
-		if (stm.DataStore["metagenome"][i]["metadata"]["sample"]  ==  null ) {
-		    continue;
-		}
-		if (stm.DataStore["metagenome"][i]["metadata"]["project"]  ==  null ) {
-		    continue;
-		}
-		metagenome_data.push( { "name": stm.DataStore["metagenome"][i]["name"],
-					"id": i,
-					"biome": stm.DataStore["metagenome"][i]["metadata"]["sample"]["data"]["biome"],
-					"project": stm.DataStore["metagenome"][i]["metadata"]["project"]["name"],
-					"pi": stm.DataStore["metagenome"][i]["metadata"]["project"]["data"]["PI_firstname"] + ' ' + stm.DataStore["metagenome"][i]["metadata"]["project"]["data"]["PI_lastname"] });
-	    }
-	}
-
-	widget.mg_select.settings.data = metagenome_data;
-	widget.mg_select.render();
-    };
+    // widget.loadSelector = function () {
+    // var metagenome_data = [];
+    // for (i in stm.DataStore["metagenome"]) {
+    //     if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
+    //  if (stm.DataStore["metagenome"][i]["metadata"]  ==  null ) {
+    //      continue;
+    //  }
+    //  if (stm.DataStore["metagenome"][i]["metadata"]["sample"]  ==  null ) {
+    //      continue;
+    //  }
+    //  if (stm.DataStore["metagenome"][i]["metadata"]["project"]  ==  null ) {
+    //      continue;
+    //  }
+    //  metagenome_data.push( { "name": stm.DataStore["metagenome"][i]["name"],
+    //              "id": i,
+    //              "biome": stm.DataStore["metagenome"][i]["metadata"]["sample"]["data"]["biome"],
+    //              "project": stm.DataStore["metagenome"][i]["metadata"]["project"]["name"],
+    //              "pi": stm.DataStore["metagenome"][i]["metadata"]["project"]["data"]["PI_firstname"] + ' ' + stm.DataStore["metagenome"][i]["metadata"]["project"]["data"]["PI_lastname"] });
+    //     }
+    // }
+    // 
+    // widget.mg_select.settings.data = metagenome_data;
+    // widget.mg_select.render();
+    // };
 
     widget.number = function (number) {
 	    return '<p style="font-size: 16px; float: left; font-weight: bold; height: 18px; text-align: center; vertical-align: middle; margin-right: 8px; border: 5px solid #0088CC; width: 18px; border-radius: 14px 14px 14px 14px; position: relative; bottom: 5px; right: 9px;">'+number+'</p>';
     };
 
     widget.create_data = function () {
-	var senddata = "";
-	var data_var = document.getElementById('data_variable_name').value;
-	document.getElementById('graph_data').value = data_var;
-	document.getElementById('heat_data').value = data_var;
-	document.getElementById('table_data').value = data_var;
-	document.getElementById('plot_data').value = data_var;
-	document.getElementById('boxplot_data').value = data_var;
-	document.getElementById('deviationplot_data').value = data_var;
-	var dataname = document.getElementById('sample_select_variable_name').value;
-	if (document.getElementById('data_comment').value) {
-	    senddata += "# " + document.getElementById('data_comment').value.split(/\n/).join("\n# ") + "\n";
-	}
-	var sd = [];
-	var data = document.getElementById('data_sample_select').options;
-	for (i=0;i<data.length;i++) {
-	    if (data[i].selected) {
-		sd.push("'"+data[i].value+"'");
+	    var senddata = "";
+	    var data_var = document.getElementById('data_variable_name').value;
+	    document.getElementById('graph_data').value = data_var;
+	    document.getElementById('heat_data').value = data_var;
+	    document.getElementById('table_data').value = data_var;
+	    document.getElementById('plot_data').value = data_var;
+	    document.getElementById('boxplot_data').value = data_var;
+	    document.getElementById('deviationplot_data').value = data_var;
+	    var dataname = document.getElementById('sample_select_variable_name').value;
+	    if (document.getElementById('data_comment').value) {
+	        senddata += "# " + document.getElementById('data_comment').value.split(/\n/).join("\n# ") + "\n";
 	    }
-	}
-	senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
-	if (document.getElementById('data_select').value == 'abundance') {
-	    var level = (document.getElementById('type_select').value == 'organism') ? document.getElementById('tax_select').value : document.getElementById('func_select').value;
-	    var norm  = document.getElementById('data_normalize').checked ? '1' : '0';
-	    senddata += dataname+"['abundances'].set_display_mgs(ids=selected_ids)\n";
-	    senddata += document.getElementById('data_variable_name').value+" = {'annot': '"+document.getElementById('type_select').value+"', 'level': '"+level+"', 'normalize': "+norm+", 'arg_list': True}";
+	    var sd = [];
+	    var data = document.getElementById('data_sample_select').options;
+	    for (i=0;i<data.length;i++) {
+	        if (data[i].selected) {
+		        sd.push("'"+data[i].value+"'");
+	        }
+	    }
+	    senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
+	    if (document.getElementById('data_select').value == 'abundance') {
+	        var level = (document.getElementById('type_select').value == 'organism') ? document.getElementById('tax_select').value : document.getElementById('func_select').value;
+	        var norm  = document.getElementById('data_normalize').checked ? '1' : '0';
+	        senddata += dataname+"['abundances'].set_display_mgs(ids=selected_ids)\n";
+	        senddata += document.getElementById('data_variable_name').value+" = {'annot': '"+document.getElementById('type_select').value+"', 'level': '"+level+"', 'normalize': "+norm+", 'arg_list': True}";
         } else {
             senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
             switch (document.getElementById('stat_select').value) {
@@ -697,7 +704,7 @@
                 break;
             }
         }
-	widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
+	    widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
     };
     
     widget.get_data_tab = function () {
@@ -708,15 +715,16 @@
 	for (i in widget.loaded_ids) {
 	    html += "<option value='"+i+"' selected>"+stm.DataStore.metagenome[i].name+"</option>";
 	}
-	html += "</select></td><td style='padding-right: 20px;'><table>\
-<select id='data_select' onchange='if(this.options[this.selectedIndex].value==\"abundance\"){document.getElementById(\"abu_span\").style.display=\"\";document.getElementById(\"stat_span\").style.display=\"none\";document.getElementById(\"data_variable_name\").value=\"abundance_args_1\";}else{document.getElementById(\"abu_span\").style.display=\"none\";document.getElementById(\"stat_span\").style.display=\"\";document.getElementById(\"data_variable_name\").value=\"stats_args_1\";}'>\
+	html += "</select></td><td style='padding-right: 20px;'><table><tr><td>\
+<select id='data_select' onchange='if(this.options[this.selectedIndex].value==\"abundance\"){document.getElementById(\"abu_span\").style.display=\"\";document.getElementById(\"stat_span\").style.display=\"none\";document.getElementById(\"abu_viz_select\").style.display=\"\";document.getElementById(\"data_variable_name\").value=\"abundance_args_1\";}else{document.getElementById(\"abu_span\").style.display=\"none\";document.getElementById(\"stat_span\").style.display=\"\";document.getElementById(\"abu_viz_select\").style.display=\"none\";document.getElementById(\"data_variable_name\").value=\"stats_args_1\";}'>\
   <option>abundance</option>\
   <option>statistics</option>\
-</select><br>\
+</select>\
+</td></tr><tr><td>\
 <span id='abu_span'>\
-<select id='type_select' onchange='if(this.options[this.selectedIndex].value==\"taxonomy\"){document.getElementById(\"tax_select\").style.display=\"\";document.getElementById(\"func_select\").style.display=\"none\";}else{document.getElementById(\"tax_select\").style.display=\"none\";document.getElementById(\"func_select\").style.display=\"\"}'>\
-  <option value='organism'>Taxonomy</option>\
-  <option value='function'>Ontology</option>\
+<select id='type_select' onchange='if(this.options[this.selectedIndex].value==\"organism\"){document.getElementById(\"tax_select\").style.display=\"\";document.getElementById(\"func_select\").style.display=\"none\";}else{document.getElementById(\"tax_select\").style.display=\"none\";document.getElementById(\"func_select\").style.display=\"\"}'>\
+  <option value='organism'>Taxonomic Hierarchy</option>\
+  <option value='function'>Functional Hierarchy</option>\
 </select><br>\
 <select id='func_select' style='display: none;'>\
   <option value='level1'>Level 1</option>\
@@ -735,26 +743,34 @@
 </select>\
 </span>\
 <span id='stat_span' style='display: none;'>\
-<select id='primary_select'>";
-    for (i in widget.loaded_ids) {
-	    html += "<option value='"+i+"'>"+stm.DataStore.metagenome[i].name+"</option>";
-	}
-	html += "</select>\
-<select id='stat_select'>\
+<select id='stat_select' onchange='if(/^(rarefaction|metadata)$/.test(this.options[this.selectedIndex].value)){document.getElementById(\"primary_select\").style.display=\"none\";}else{document.getElementById(\"primary_select\").style.display=\"\"}'>\
   <option value='rarefaction'>Rarefaction Curve</option>\
   <option value='drisee'>DRISEE Profile</option>\
   <option value='kmer'>k-mer Profile</option>\
   <option value='metadata'>Metadata</option>\
   <option value='alpha'>Alpha-Diversity</option>\
-  <option value='bp'>bp Profile</option>";
-//  <option value='length'>Length Histogram</option>\
-//  <option value='gc'>GC Histogram</option>\
+  <option value='bp'>bp Profile</option>\
+  <option value='length'>Length Histogram</option>\
+  <option value='gc'>GC Histogram</option>\
+</select><br>\
+<select id='primary_select' style='display: none;'>";
+    for (i in widget.loaded_ids) {
+    	html += "<option value='"+i+"'>"+stm.DataStore.metagenome[i].name+"</option>";
+    }
     html += "</select>\
 </span>\
-</table>\
+</td></tr></table>\
 </td><td style='padding-right: 20px;'>\
 <table>\
 <tr><th style='width: 120px;'>normalize</th><td><input type='checkbox' id='data_normalize' checked style=''></td></tr>\
+<tr><th style='width: 120px;'>vizualize now</th><td><input type='checkbox' id='vizualize_now' checked style=''></td></tr>\
+<tr><td colspan=2>\
+<select id='abu_viz_select' style='width: 135px'>\
+    <option>barchart</option>\
+    <option>heatmap</option>\
+    <option>boxplot</option>\
+</select>\
+</td></tr>\
 </table>\
 </td><td>\
 <table>\
