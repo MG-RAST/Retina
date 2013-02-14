@@ -3331,19 +3331,19 @@ jQuery.extend(SVGPlot.prototype, {
 	/* Draw an axis, its tick marks, and title.
 	   @param  horiz  (boolean) true for x-axis, false for y-axis */
 	_drawAxis: function(horiz) {
-		var id = (horiz ? 'x' : 'y') + 'Axis';
-		var axis = (horiz ? this.xAxis : this.yAxis);
-		var axis2 = (horiz ? this.yAxis : this.xAxis);
-		var dims = this._getDims();
-		var scales = this._getScales();
-		var gl = this._wrapper.group(this._plot, jQuery.extend({class_: id}, axis._lineFormat));
-		var gt = this._wrapper.group(this._plot, jQuery.extend({class_: id + 'Labels',
-			textAnchor: (horiz ? 'middle' : 'end')}, axis._labelFormat));
-		var zero = (horiz ? axis2._scale.max : -axis2._scale.min) *
-			scales[horiz ? 1 : 0] + (horiz ? dims[this.Y] : dims[this.X]);
-		this._wrapper.line(gl, (horiz ? dims[this.X] : zero), (horiz ? zero : dims[this.Y]),
-			(horiz ? dims[this.X] + dims[this.W] : zero),
-			(horiz ? zero : dims[this.Y] + dims[this.H]));
+	    var id = (horiz ? 'x' : 'y') + 'Axis';
+	    var axis = (horiz ? this.xAxis : this.yAxis);
+	    var axis2 = (horiz ? this.yAxis : this.xAxis);
+	    var dims = this._getDims();
+	    var scales = this._getScales();
+	    var gl = this._wrapper.group(this._plot, jQuery.extend({class_: id}, axis._lineFormat));
+	    var gt = this._wrapper.group(this._plot, jQuery.extend({class_: id + 'Labels',
+								    textAnchor: (horiz ? 'middle' : 'end')}, axis._labelFormat));
+	    var zero = (horiz ? axis2._scale.max : -axis2._scale.min) *
+		scales[horiz ? 1 : 0] + (horiz ? dims[this.Y] : dims[this.X]);
+	    this._wrapper.line(gl, (horiz ? dims[this.X] : zero), (horiz ? zero : dims[this.Y]),
+			       (horiz ? dims[this.X] + dims[this.W] : zero),
+			       (horiz ? zero : dims[this.Y] + dims[this.H]), { strokeWidth: 1.5 });
 		if (axis._ticks.major) {
 			var size = axis._ticks.size;
 			var major = Math.floor(axis._scale.min / axis._ticks.major) * axis._ticks.major;
@@ -3354,24 +3354,40 @@ jQuery.extend(SVGPlot.prototype, {
 			var offsets = [(axis._ticks.position == 'nw' || axis._ticks.position == 'both' ? -1 : 0),
 				(axis._ticks.position == 'se' || axis._ticks.position == 'both' ? +1 : 0)];
 			while (major <= axis._scale.max || minor <= axis._scale.max) {
-				var cur = Math.min(major, minor);
-				var len = (cur == major ? size : size / 2);
-				var xy = (horiz ? cur - axis._scale.min : axis._scale.max - cur) *
-					scales[horiz ? 0 : 1] + (horiz ? dims[this.X] : dims[this.Y]);
-				this._wrapper.line(this._plotCont, (horiz ? xy : zero + len * offsets[0]),
-					(horiz ? zero + len * offsets[0] : xy),
-					(horiz ? xy : zero + len * offsets[1]),
-					(horiz ? zero + len * offsets[1] : xy));
-				if (cur == major && cur != 0) {
-					this._wrapper.text(this._plotCont, (horiz ? xy : zero - size),
-							   (horiz ? zero + size + 12 : xy + (size / 2)), '' + cur, { textAnchor: (horiz ? 'middle' : 'end')});
-				}
-				major += (cur == major ? axis._ticks.major : 0);
-				minor += (cur == minor ? axis._ticks.minor : 0);
+			    var cur = Math.min(major, minor);
+			    var len = (cur == major ? size : size / 2);
+			    var xy = (horiz ? cur - axis._scale.min : axis._scale.max - cur) *
+				scales[horiz ? 0 : 1] + (horiz ? dims[this.X] : dims[this.Y]);
+			    this._wrapper.line(this._plotCont, 
+					       (horiz ? xy : zero + len * offsets[0]),
+					       (horiz ? zero + len * offsets[0] : xy),
+					       (horiz ? xy : zero + len * offsets[1]),
+					       (horiz ? zero + len * offsets[1] : xy));
+			    if (cur == major && cur != 0) {
 
+				// always plot the axis text at the very left / bottom of the plot
+				var zeroo = (horiz ? dims[this.Y] + dims[this.H] : dims[this.X]);
+
+				this._wrapper.text(this._plotCont, (horiz ? xy : zeroo - size),
+						   (horiz ? zeroo + size + 12 : xy + (size / 2)), '' + cur, { textAnchor: (horiz ? 'middle' : 'end')});
+			    }
+			    major += (cur == major ? axis._ticks.major : 0);
+			    minor += (cur == minor ? axis._ticks.minor : 0);
+			    
 			    // fix floating point error
 			    var maj_str = major.toString();
 			    var tick_str = axis._ticks.major.toString();
+
+			    // round to a maximum of 3 significant digits
+			    if (tick_str.substr(tick_str.indexOf('.')+1).length > 3) {
+				tick_str = tick_str.substr(0, tick_str.indexOf('.')+4);
+			    }
+
+			    // fail if the max is smaller than the smallest number displayable with
+			    // three significant digits
+			    if (parseFloat(tick_str) < 0.001) {
+				return;
+			    }
 			    if (maj_str.substr(maj_str.indexOf('.')+1).length > tick_str.substr(tick_str.indexOf('.')+1).length) {
 				major = parseFloat(major.toFixed(tick_str.substr(tick_str.indexOf('.')+1).length));
 			    }
@@ -3424,8 +3440,8 @@ jQuery.extend(SVGPlot.prototype, {
     _plotPoints: function(points, series) {
 	var scales = this._getScales();
 	var dims = this._getDims();
-	var zerox = dims[0];
-	var zeroy = dims[1] + dims[3];
+	var zerox = dims[0] - (this.xAxis._scale.min * scales[0]);
+	var zeroy = dims[1] + dims[3] + (this.yAxis._scale.min * scales[1]);
 	var psettings = { size: 6, shape: this.series[series].shape, 'filled': this.series[series].filled || false, color: this.series[series].color };
 	for (i=0;i<points.length;i++) {
 	    var p = points[i];
@@ -3450,8 +3466,8 @@ jQuery.extend(SVGPlot.prototype, {
     _plotConnectedPoints: function(points, series) {
 	var scales = this._getScales();
 	var dims = this._getDims();
-	var zerox = dims[0];
-	var zeroy = dims[1] + dims[3];
+	var zerox = dims[0] - (this.xAxis._scale.min * scales[0]);
+	var zeroy = dims[1] + dims[3] + (this.yAxis._scale.min * scales[1]);
 	var psettings = { size: 8, shape: this.series[series].shape, line: this.series[series].color || 'blue', fill: this.series[series].fillColor || 'black' };
 	for (i=0;i<points.length;i++) {
 	    var p = points[i];
