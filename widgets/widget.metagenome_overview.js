@@ -39,7 +39,7 @@
 	
 	    // set style variables
 	    var header_color = "black";
-	    var title_color = "#8FBC3F";
+	    var title_color = "black";
 	    var outputs = [ 
 	        { type: 'paragraph', data: 'general_overview' },
 	        { type: 'paragraph', data: 'metagenome_summary' },
@@ -141,16 +141,15 @@
 	        organization = "-";
 	    }
 	    var data = { data:
-	           [ { title: "Metagenome Overview"},
-			     { header: "MG-RAST ID " + mg.id.substring(3) },
-			     { table: [ [ { header: "Metagenome Name" }, mg.name, { header: "NCBI Project ID" }, ncbi_id ],
-				            [ { header: "PI" }, pi_link, { header: "GOLD ID" }, gold_id ],
-				            [ { header: "Organization" }, organization, { header: "PubMed ID" }, pubmed_id ],
-				            [ { header: "Visibility" }, mg.status ],
-				            [ { header: "Static Link" }, "<a href='http://metagenomics.anl.gov/linkin.cgi?metagenome="+mg.id.substring(3)+"'>http://metagenomics.anl.gov/linkin.cgi?metagenome="+mg.id.substring(3)+"</a>" ]
-                          ] }
-			   ] };
-	    return data;
+	           [ { title: "Metagenome Data Sheet for ID " + mg.id.substring(3)},
+		     { table: [ [ { header: "Metagenome Name" }, mg.name, { header: "NCBI Project ID" }, ncbi_id ],
+				[ { header: "PI" }, pi_link, { header: "GOLD ID" }, gold_id ],
+				[ { header: "Organization" }, organization, { header: "PubMed ID" }, pubmed_id ],
+				[ { header: "Visibility" }, mg.status ],
+				//[ { header: "Static Link" }, "<a href='http://metagenomics.anl.gov/linkin.cgi?metagenome="+mg.id.substring(3)+"'>http://metagenomics.anl.gov/linkin.cgi?metagenome="+mg.id.substring(3)+"</a>" ]
+                              ] }
+		   ] };
+	return data;
     };
     
     widget.metagenome_summary = function(mg, mg_stats) {
