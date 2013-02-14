@@ -67,17 +67,24 @@
 		renderer.settings.target.innerHTML = renderer.settings.data;
 	    } else {
 		renderer.settings.target.innerHTML = "";
-		
+		var div_styles  = "";
 		var html_string = "<style>\
 #para"+renderer.index+" > h2 { color: "+renderer.settings.title_color+"; }\
 #para"+renderer.index+" > h3 { color: "+renderer.settings.header_color+"; margin-top: 20px; margin-bottom: 10px; }\
 #para"+renderer.index+" > p { color: "+renderer.settings.text_color+"; }\
-</style><div id='para"+renderer.index+"' ";
+</style><div id='para"+renderer.index+"'";
 		if (renderer.settings.width.match(/^\d+$/)) {
-		    html_string += "style='width: "+renderer.settings.width+"px;'>";
+		    div_styles = "width: "+renderer.settings.width+"px;";
 		} else {
-		    html_string += "class='"+renderer.settings.width+"'>";
+		    html_string += " class='"+renderer.settings.width+"'";
 		}
+		if (renderer.settings.style) {
+		    div_styles += renderer.settings.style
+		}
+		if (div_styles) {
+		    html_string += " style='"+div_styles+"'";
+		}
+		html_string += ">"
 		for (i=0; i<renderer.settings.data.length; i++) {
 		    if (renderer.settings.data[i].hasOwnProperty('title')) {
 			html_string += "<h2>"+renderer.settings.data[i].title+"</h2>";
