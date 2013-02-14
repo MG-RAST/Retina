@@ -216,11 +216,15 @@ This wizard was designed to help users to perform comparative analyses on the an
 	    group_select.render();
 	    
 	    // create the field select
-	    var field_data = widget.field_data = [ { name: "biome" },
-						   { name: "env-package" },
-						   { name: "organism-count" },
-						   { name: "body-product" },
-						   { name: "body-site" },
+	    var field_data = widget.field_data = [ { name: "project" },
+						   { name: "lat/long" },
+						   { name: "location" },
+						   { name: "collection date" },
+						   { name: "biome" },
+						   { name: "feature" },
+						   { name: "material" },
+						   { name: "package" },
+						   { name: "sequencing method" },
 						   { name: "DRISEE score" },
 						   { name: "alpha diversity" } ];
 	    var field_select = widget.field_select = Retina.Renderer.create("listselect", { target: field_container,
@@ -252,6 +256,23 @@ This wizard was designed to help users to perform comparative analyses on the an
 	    // call the tab rendering
 	    widget.render_overview(widget.ids[0], index);
 	    widget.render_qc_distribution(index);
+
+	    
+	    var tdata2 = [];
+	    for (i=0;i<widget.ids.length;i++) {
+		var mg = stm.DataStore.metagenome[widget.ids[i]];
+		var id = widget.ids[i];
+		tdata2.push([ mg.id, mg.name, "rank abundance", "group", parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2), mg.biome, "include" ]);
+	    }
+	    var table_data2 = { data: tdata2, header: [ "ID", "name", "rank abundance", "group", "alpha diversity", "biome", "suggestion" ] };
+	    var tab2 = widget.table = Retina.Renderer.create("table", { target: document.getElementById('stats'),
+									data: table_data2,
+									rows_per_page: 10,
+									filter_autodetect: true,
+									editable: { 2: true, 3: true, 6: true },
+									hide_options: true });
+	    tab2.render();
+
 	}
     };
 
