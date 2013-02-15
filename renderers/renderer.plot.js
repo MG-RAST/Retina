@@ -48,6 +48,12 @@
         top
         bottom
 
+  chartArea (ARRAY of FLOAT)
+     The values passed correspond to the left, top, width and height of the chart area respectively. The position is relative to the top left corner of the containing div. Values less than 1 are interpreted as fractions. Values greater than 1 are interpreted as absolute pixel values. Note that the labels are drawn to the left and bottom of these margins.
+
+  legendArea (ARRAY of FLOAT)
+      If this parameter is set, the legend_position parameter will not be used. Instead pass an array of floats. The values correspond to the left, top, width and height of the legend area respectively. The position is relative to the top left corner of the containing div. Values less than 1 are interpreted as fractions. Values greater than 1 are interpreted as absolute pixel values.
+
   x_min (FLOAT)
       minimum x value
 
@@ -65,6 +71,9 @@
 
   y_title (STRING)
       title of the y axis
+
+  drag_select (FUNCTION)
+      function to be called for drag select. This function will get passed an array of the selected points.
   
 */
 (function () {
@@ -187,8 +196,8 @@
 		}
 	    }
 	    svg.plot.noDraw(). 
-		legend.show(plotLegend).area(legendAreas[plotLegend]).end().
-		area(chartAreas[plotLegend]).redraw();
+		legend.show(plotLegend).area(renderer.settings.legendArea ? renderer.settings.legendArea : legendAreas[plotLegend]).end().
+		area(renderer.settings.chartArea ? renderer.settings.chartArea : chartAreas[plotLegend]).redraw();
 	}
     });
 }).call(this);
