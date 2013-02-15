@@ -3446,15 +3446,17 @@ jQuery.extend(SVGPlot.prototype, {
 	for (i=0;i<points.length;i++) {
 	    var p = points[i];
 	    jQuery.extend(p, psettings);
+	    p.imgX = p.x * scales[0] + zerox;
+	    p.imgY = zeroy - (p.y * scales[1]);
 	    switch (p.shape) {
 	    case 'circle':
-		this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
+		p.svg = this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
 		break;
 	    case 'square':
-		this._wrapper.rect(this._plot, p.x * scales[0] + zerox - (p.size / 2), zeroy - (p.y * scales[1]) - (p.size / 2), p.size, p.size, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
+		p.svg = this._wrapper.rect(this._plot, p.x * scales[0] + zerox - (p.size / 2), zeroy - (p.y * scales[1]) - (p.size / 2), p.size, p.size, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
 		break;
 	    case 'triangle':
-		this._wrapper.polygon(this._plot, [ [ p.x * scales[0] + zerox - (p.size / 2), zeroy - (p.y * scales[1]) - (p.size / 2) ],
+		p.svg = this._wrapper.polygon(this._plot, [ [ p.x * scales[0] + zerox - (p.size / 2), zeroy - (p.y * scales[1]) - (p.size / 2) ],
 						    [ p.x * scales[0] + zerox + (p.size / 2), zeroy - (p.y * scales[1]) - (p.size / 2) ],
 						    [ p.x * scales[0] + zerox, zeroy - (p.y * scales[1]) + (p.size / 2) ] ], { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
 		break;
@@ -3472,13 +3474,29 @@ jQuery.extend(SVGPlot.prototype, {
 	for (i=0;i<points.length;i++) {
 	    var p = points[i];
 	    jQuery.extend(p, psettings);
+	    p.imgX = p.x * scales[0] + zerox;
+	    p.imgY = zeroy - (p.y * scales[1]);
 	    if (i>0) {
 		this._wrapper.line(this._plot, points[i-1].x * scales[0] + zerox, zeroy - (points[i-1].y * scales[1]), p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), { strokeWidth: 2, stroke: this.series[series].color || 'blue' });
 	    }
 	    if (this.showDots) {
-		this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.fill, strokeWidth: 2, stroke: p.line, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
+		p.svg = this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.fill, strokeWidth: 2, stroke: p.line, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
 	    }
 	}
+    },
+
+    pointsInBounds: function(x1, y1, x2, y2) {
+	var points = this.plotPoints;
+	var retval = [];
+	for (i=0;i<points.length;i++) {
+	    for (h=0;h<points[i].length;h++) {
+		if (points[i][h].imgX >= x1 && points[i][h].imgX <= x2 && points[i][h].imgY >= y1 && points[i][h].imgY <= y2) {
+		    points[i][h]['series'] = i;
+		    retval.push(points[i][h]);
+		}
+	    }
+	}
+	return retval;
     },
     
 	/* Draw the plot title - centred. */
@@ -3880,10 +3898,62 @@ jQuery.extend(SVGPlotLegend.prototype, {
 });
 
 //==============================================================================
-
 /* Determine whether an object is an array. */
 function isArray(a) {
 	return (a && a.constructor == Array);
 }
 
-})(jQuery)
+})(jQuery);
+
+(function createMarquee(global){
+    var svgNS = 'http://www.w3.org/2000/svg',
+    svg   = document.createElementNS(svgNS,'svg'),
+    pt    = svg.createSVGPoint();
+    
+    global.trackMarquee = function(forElement,onRelease,onDrag){
+	forElement.addEventListener('mousedown',function(evt){
+	    var point0 = getLocalCoordinatesFromMouseEvent(forElement,evt);
+	    var marquee = document.createElementNS(svgNS,'rect');
+	    marquee.setAttribute('class','marquee');
+	    updateMarquee(marquee,point0,point0);
+	    forElement.appendChild(marquee);
+	    document.documentElement.addEventListener('mousemove',trackMouseMove,false);
+	    document.documentElement.addEventListener('mouseup',stopTrackingMove,false);
+	    function trackMouseMove(evt){
+		var point1 = getLocalCoordinatesFromMouseEvent(forElement,evt);
+		updateMarquee(marquee,point0,point1);
+		if (onDrag) callWithBBox(onDrag,marquee);
+	    }
+	    function stopTrackingMove(){
+		document.documentElement.removeEventListener('mousemove',trackMouseMove,false);
+		document.documentElement.removeEventListener('mouseup',stopTrackingMove,false);
+		forElement.removeChild(marquee);
+		if (onRelease) callWithBBox(onRelease,marquee,forElement);
+	    }
+	},false);
+    };
+    
+    function callWithBBox(func,rect,elem){
+	var x = rect.getAttribute('x')*1,
+        y = rect.getAttribute('y')*1,
+        w = rect.getAttribute('width')*1,
+        h = rect.getAttribute('height')*1;
+	func(jQuery("#"+elem.parentNode.id).svg('get').plot.pointsInBounds(x,y,x+w,y+h));
+    }
+    
+    function updateMarquee(rect,p0,p1){
+	var xs = [p0.x,p1.x].sort(sortByNumber),
+        ys = [p0.y,p1.y].sort(sortByNumber);
+	rect.setAttribute('x',xs[0]);
+	rect.setAttribute('y',ys[0]);
+	rect.setAttribute('width', xs[1]-xs[0]);
+	rect.setAttribute('height',ys[1]-ys[0]);
+    }
+    
+    function getLocalCoordinatesFromMouseEvent(el,evt){
+	pt.x = evt.clientX; pt.y = evt.clientY;
+	return pt.matrixTransform(el.getScreenCTM().inverse());
+    }
+    
+    function sortByNumber(a,b){ return a-b }
+})(window);
