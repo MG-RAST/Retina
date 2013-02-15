@@ -232,7 +232,9 @@
     };
     
     widget.piechart_footnote = function(mg, mg_stats) {
-	    return { data: [ { footnote: { title: "Note:", text: "Sequences containing multiple predicted features are only counted in one category. Currently downloading of sequences via chart slices is not enabeled." } } ], width: 'span8' };
+	    return { width: 'span8',
+	             style: 'margin-top: -20px;',
+	             data: [ { footnote: { title: "Note:", text: "Sequences containing multiple predicted features are only counted in one category. Currently downloading of sequences via chart slices is not enabeled." } } ] };
     };
     
     widget.ontology_introtext = function(mg, mg_stats) {
@@ -249,6 +251,7 @@
     widget.project_information = function(mg) {
         try {
 	        return { width: "span6",
+	                 style: "float: right;",
 	                 data: [ { header: "Project Information" },
 			                 { p: "This metagenome is part of the project "+mg.metadata.project.name },
 			                 { p: mg.metadata.project.data.project_description }
@@ -318,7 +321,7 @@
     widget.analysis_statistics = function(mg, mg_stats) {
         stats = mg_stats.sequence_stats;
 	    return { width: "span6",
-		         style: "float: left; margin-top: -20px;",
+		         style: "float: left;",
 		         data: [ { header: "Analysis Statistics" },
 			             { fancy_table: { data: [
 			                 [ { header: "Upload: bp Count" }, widget._to_num('bp_count_raw', stats)+" bp" ],
