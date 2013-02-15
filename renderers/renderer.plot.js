@@ -93,21 +93,22 @@
 		'y_max': 100,
 		'x_title': '',
 		'y_title': '',
+		'drag_select': null,
 		'data': [ ] }
 	},
 	exampleData: function () {
 	    return { series: [ { name: "cool", color: 'blue', shape: 'circle' },
 			       { name: "uncool", color: 'red', shape: 'square' },
 			       { name: "semi-cool", color: 'orange', shape: 'triangle' } ],
-		     points: [ [ { x: 0,  y: 1 },
+		     points: [ [ { x: 0.5,  y: 7 },
 				 { x: 0.15,  y: 5  },
 				 { x: 0.5, y: 15  } ],
 			       [ { x: 0,  y: 0 },
 				 { x: 0.25,  y: 35  },
-				 { x: 0.35, y: 100  } ],
-			       [ { x: 0.8,  y: 100 },
+				 { x: 0.35, y: 90  } ],
+			       [ { x: 0.8,  y: 80 },
 				 { x: 0.49,  y: 50  },
-				 { x: 0.15, y: 0  } ]
+				 { x: 0.15, y: 10  } ]
 			     ] };
         },
 	
@@ -122,9 +123,14 @@
 	    }
 	    target.innerHTML = "<div id='plot_div"+index+"'></div>";
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
-	    jQuery('#plot_div'+index).svg();
+	    jQuery('#plot_div'+index).svg().bind('dragstart', function(event) { event.preventDefault(); });
 	    Retina.RendererInstances.plot[renderer.index].drawImage(jQuery('#plot_div'+index).svg('get'), renderer.index);
-	    
+
+	    if (renderer.settings.drag_select && typeof(renderer.settings.drag_select) == 'function') {
+		var svg = document.querySelector('svg');
+		trackMarquee(svg, renderer.settings.drag_select);
+	    }
+
 	    return renderer;
 	},
 	
