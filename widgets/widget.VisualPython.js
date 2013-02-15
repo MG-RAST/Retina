@@ -337,14 +337,16 @@
 	vis_disp.appendChild(chart_div);
 
 	var graph_button = document.createElement('button');
+	graph_button.setAttribute('id', 'chart_button');
 	graph_button.setAttribute('class', 'btn btn-success');
 	graph_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	graph_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
 	graph_button.addEventListener('click', function() {
+	    var lpos = (document.getElementById('graph_legend_position').value == 'none') ? "'show_legend': False" : "'show_legend': True, 'legend_position': '"+document.getElementById('graph_legend_position').value+"'";
 	    var height = (document.getElementById('graph_width').value == 'auto') ? "" : "'height': "+document.getElementById('graph_width').value;
 	    var width  = (document.getElementById('graph_height').value == 'auto') ? "" : "'width': "+document.getElementById('graph_height').value;
 	    var senddata = "graph_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].barchart(**"+document.getElementById('graph_data').value+")\n";	    
-	    senddata += "graph_args.update({'btype': '"+document.getElementById('graph_type').value+"', 'title': '"+document.getElementById('graph_title').value+"', 'x_title': '"+document.getElementById('graph_x_title').value+"', 'y_title': '"+document.getElementById('graph_y_title').value+"', 'legend_position': '"+document.getElementById('graph_legend_position').value+"'";
+	    senddata += "graph_args.update({"+lpos+", 'btype': '"+document.getElementById('graph_type').value+"', 'title': '"+document.getElementById('graph_title').value+"', 'x_title': '"+document.getElementById('graph_x_title').value+"', 'y_title': '"+document.getElementById('graph_y_title').value+"'";
 	    if (height) {
 	        senddata += ", "+height;
 	    }
@@ -372,6 +374,7 @@
 </table>';
 
 	var table_button = document.createElement('button');
+	table_button.setAttribute('id', 'table_button');
 	table_button.setAttribute('class', 'btn btn-success');
 	table_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	table_button.setAttribute('style', 'position: relative; left: 700px;');
@@ -399,6 +402,7 @@
 </table>';
 
 	var heat_button = document.createElement('button');
+	heat_button.setAttribute('id', 'heat_button');
 	heat_button.setAttribute('class', 'btn btn-success');
 	heat_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	heat_button.setAttribute('style', 'position: relative; left: 700px;');
@@ -410,6 +414,45 @@
 	});
 	heatmap_div.appendChild(heat_button);
 	vis_disp.appendChild(heatmap_div);
+
+    // pcoa UI
+    var pcoa_sel = document.createElement('li');
+	pcoa_sel.innerHTML = '<a href="#pcoa" data-toggle="tab"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_plot.png">PCoA</a>';
+	vis_ul.appendChild(pcoa_sel);
+	
+	var pcoa_div = document.createElement('div');
+	pcoa_div.setAttribute('class', 'tab-pane');
+	pcoa_div.setAttribute('id', 'pcoa');
+	pcoa_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
+<tr><th>height</th><td><input type="text" id="pcoa_height" value="auto" style="margin-bottom: 0px;"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="pcoa_data" value="'+document.getElementById('data_variable_name').value+'" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>width</th><td><input type="text" id="pcoa_width" value="auto" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="pcoa_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th>title</th><td><input type="text" id="pcoa_title" value="PCoA 1" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="pcoa_comment"></textarea></td></tr>\
+<tr><th>legend position</th><td><select id="pcoa_legend_position" style="margin-bottom: 0px;"><option>right</option><option>left</option><option>none</option></select></td></tr>\
+</table>';
+
+    var pcoa_button = document.createElement('button');
+    pcoa_button.setAttribute('id', 'pcoa_button');
+	pcoa_button.setAttribute('class', 'btn btn-success');
+	pcoa_button.innerHTML = "<i class='icon-ok icon-white'></i>";
+	pcoa_button.setAttribute('style', 'position: relative; left: 700px;');
+	pcoa_button.addEventListener('click', function() {
+	    var height = (document.getElementById('pcoa_height').value == 'auto') ? "" : "'height': "+document.getElementById('pcoa_height').value;
+	    var width = (document.getElementById('pcoa_width').value == 'auto') ? "" : "'width': "+document.getElementById('pcoa_width').value;
+	    var lpos = (document.getElementById('pcoa_legend_position').value == 'none') ? "'show_legend': False" : "'show_legend': True, 'legend_position': '"+document.getElementById('pcoa_legend_position').value+"'";
+	    var senddata = "pcoa_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].pco(**"+document.getElementById('pcoa_data').value+")\n";
+	    senddata += "pcoa_args.update({"+lpos+", 'title': '"+document.getElementById('plot_title').value+"'";
+	    if (height) {
+	        senddata += ", "+height;
+	    }
+	    if (width) {
+	        senddata += ", "+width;
+	    }
+	    senddata += "})\n";
+	    senddata += "Ipy.RETINA.plot(**pcoa_args)";
+	    widget.transfer(senddata, false);
+	});
+	pcoa_div.appendChild(pcoa_button);
+	vis_disp.appendChild(pcoa_div);
 
 	// plot UI
 	var plot_sel = document.createElement('li');
@@ -425,18 +468,18 @@
 <tr><th>title</th><td><input type="text" id="plot_title" value="Plot 1" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="plot_comment"></textarea></td></tr>\
 <tr><th>x-axis maximum value</th><td><input type="text" id="plot_x_max" value="auto" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>y-axis maximum value</th><td><input type="text" id="plot_y_max" value="auto" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>legend position</th><td><select id="graph_legend_position" style="margin-bottom: 0px;"><option>right</option><option>left</option><option>none</option></select></td></tr>\
+<tr><th>legend position</th><td><select id="plot_legend_position" style="margin-bottom: 0px;"><option>right</option><option>left</option><option>none</option></select></td></tr>\
 </table>';
 
 	var plot_button = document.createElement('button');
+	plot_button.setAttribute('id', 'plot_button');
 	plot_button.setAttribute('class', 'btn btn-success');
 	plot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	plot_button.setAttribute('style', 'position: relative; left: 700px;');
 	plot_button.addEventListener('click', function() {
-	    //var lpos = document.getElementById('graph_legend_position').options[document.getElementById('graph_legend_position').selectedIndex].value;
 	    var xmax = (document.getElementById('plot_x_max').value == 'auto') ? "" : "'x_max': "+document.getElementById('plot_x_max').value;
 	    var ymax = (document.getElementById('plot_y_max').value == 'auto') ? "" : "'y_max': "+document.getElementById('plot_y_max').value;
-	    var lpos = (document.getElementById('graph_legend_position').value == 'none') ? "'show_legend': False" : "'show_legend': True, 'legend_position': '"+document.getElementById('graph_legend_position').value+"'";
+	    var lpos = (document.getElementById('plot_legend_position').value == 'none') ? "'show_legend': False" : "'show_legend': True, 'legend_position': '"+document.getElementById('plot_legend_position').value+"'";
 	    var senddata = document.getElementById('plot_data').value+".update({"+lpos+", 'connected': "+document.getElementById('plot_connected').value+", 'show_dots': "+document.getElementById('plot_dots').value+", 'title': '"+document.getElementById('plot_title').value+"'";
 	    if (xmax) {
 	        senddata += ", "+xmax;
@@ -466,6 +509,7 @@
 </table>';
 
 	var boxplot_button = document.createElement('button');
+	boxplot_button.setAttribute('id', 'boxplot_button');
 	boxplot_button.setAttribute('class', 'btn btn-success');
 	boxplot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	boxplot_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
@@ -493,6 +537,7 @@
 </table>';
 
 	var deviationplot_button = document.createElement('button');
+	deviationplot_button.setAttribute('id', 'deviationplot_button');
 	deviationplot_button.setAttribute('class', 'btn btn-success');
 	deviationplot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	deviationplot_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
@@ -647,6 +692,7 @@
 	    }
 	    var sd = [];
 	    var data = document.getElementById('data_sample_select').options;
+	    var viz_button = '';
 	    for (i=0;i<data.length;i++) {
 	        if (data[i].selected) {
 		        sd.push("'"+data[i].value+"'");
@@ -658,53 +704,74 @@
 	        var norm  = document.getElementById('data_normalize').checked ? '1' : '0';
 	        senddata += dataname+"['abundances'].set_display_mgs(ids=selected_ids)\n";
 	        senddata += document.getElementById('data_variable_name').value+" = {'annot': '"+document.getElementById('type_select').value+"', 'level': '"+level+"', 'normalize': "+norm+", 'arg_list': True}";
+	        if (document.getElementById('vizualize_now').checked) {
+	            switch (document.getElementById('abu_viz_select').value) {
+	                case 'barchart':
+	                document.getElementById('graph_data').value = document.getElementById('data_variable_name').value;
+	                viz_button = 'chart_button';
+	                break;
+	                case 'heatmap':
+	                document.getElementById('heat_data').value = document.getElementById('data_variable_name').value;
+	                viz_button = 'heat_button';
+	                break;
+	                case 'boxplot':
+	                document.getElementById('boxplot_data').value = document.getElementById('data_variable_name').value;
+	                viz_button = 'boxplot_button';
+	                break;
+	                default:
+                    break;
+                }
+	        }
         } else {
             senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
             switch (document.getElementById('stat_select').value) {
-            case 'rarefaction':
+                case 'rarefaction':
                 // selected metagenomes - plot
                 senddata += document.getElementById('data_variable_name').value+" = "+dataname+"['statistics'].plot_rarefaction(mgids=selected_ids, arg_list=True)";
                 break;
-            case 'drisee':
+                case 'drisee':
                 // single metagenome - plot
                 senddata += "drisee_data = Drisee(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
                 senddata += document.getElementById('data_variable_name').value+" = drisee_data.plot(arg_list=True)";
                 break;
-            case 'kmer':
+                case 'kmer':
                 // single metagenome - plot
                 senddata += "kmer_data = Kmer(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
                 senddata += document.getElementById('data_variable_name').value+" = kmer_data.plot_abundance(arg_list=True)";
                 break;
-            case 'metadata':
+                case 'metadata':
                 // selected metagenomes - table
                 senddata += document.getElementById('data_variable_name').value+" = "+dataname+"['statistics'].show_metadata(mgids=selected_ids, arg_list=True)";
                 break;
-            case 'alpha':
+                case 'alpha':
                 // single and selected metagenomes - deviationplot
                 senddata += "alpha_list = "+dataname+"['statistics'].get_stat(stat='alpha_diversity_shannon', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += document.getElementById('data_variable_name').value+" = { 'data': alpha_list}";
                 break;
-            case 'bp':
+                case 'bp':
                 // single and selected metagenomes - deviationplot
                 senddata += "bp_list = "+dataname+"['statistics'].get_stat(stat='bp_count_raw', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += document.getElementById('data_variable_name').value+" = { 'data': bp_list }";
                 break;
-            case 'length':
+                case 'length':
                 // single and selected metagenomes - deviationplot
                 senddata += "length_list = "+dataname+"['statistics'].get_stat(stat='average_length_raw', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += document.getElementById('data_variable_name').value+" = { 'data': length_list }";
                 break;
-            case 'gc':
+                case 'gc':
                 // single and selected metagenomes - deviationplot
                 senddata += "gc_list = "+dataname+"['statistics'].get_stat(stat='average_gc_content_raw', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += document.getElementById('data_variable_name').value+" = { 'data': gc_list }";
                 break;
-            default:
+                default:
                 senddata += '';
                 break;
             }
         }
 	    widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
+        if (viz_button) {
+            setTimeout("document.getElementById('"+viz_button+"').click", 500);
+        }
     };
     
     widget.get_data_tab = function () {
