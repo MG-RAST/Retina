@@ -5,11 +5,18 @@
    MIT (http://dev.jquery.com/browser/trunk/jquery/MIT-LICENSE.txt) licenses. 
    Please attribute the author if you use it. */
 
-svg\:svg {
-	display: none;
+svg:svg {
+    display: none;
 }
 
 .svg_error {
-	color: red;
-	font-weight: bold;
+    color: red;
+    font-weight: bold;
+}
+
+.marquee {
+    fill-opacity: 0.2;
+    stroke: #000;
+    stroke-dasharray: 2,4;
+    vector-effect:non-scaling-stroke;
 }

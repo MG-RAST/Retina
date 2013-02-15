@@ -48,6 +48,12 @@
         top
         bottom
 
+  chartArea (ARRAY of FLOAT)
+     The values passed correspond to the left, top, width and height of the chart area respectively. The position is relative to the top left corner of the containing div. Values less than 1 are interpreted as fractions. Values greater than 1 are interpreted as absolute pixel values. Note that the labels are drawn to the left and bottom of these margins.
+
+  legendArea (ARRAY of FLOAT)
+      If this parameter is set, the legend_position parameter will not be used. Instead pass an array of floats. The values correspond to the left, top, width and height of the legend area respectively. The position is relative to the top left corner of the containing div. Values less than 1 are interpreted as fractions. Values greater than 1 are interpreted as absolute pixel values.
+
   x_min (FLOAT)
       minimum x value
 
@@ -65,6 +71,9 @@
 
   y_title (STRING)
       title of the y axis
+
+  drag_select (FUNCTION)
+      function to be called for drag select. This function will get passed an array of the selected points.
   
 */
 (function () {
@@ -93,21 +102,22 @@
 		'y_max': 100,
 		'x_title': '',
 		'y_title': '',
+		'drag_select': null,
 		'data': [ ] }
 	},
 	exampleData: function () {
 	    return { series: [ { name: "cool", color: 'blue', shape: 'circle' },
 			       { name: "uncool", color: 'red', shape: 'square' },
 			       { name: "semi-cool", color: 'orange', shape: 'triangle' } ],
-		     points: [ [ { x: 0,  y: 1 },
+		     points: [ [ { x: 0.5,  y: 7 },
 				 { x: 0.15,  y: 5  },
 				 { x: 0.5, y: 15  } ],
 			       [ { x: 0,  y: 0 },
 				 { x: 0.25,  y: 35  },
-				 { x: 0.35, y: 100  } ],
-			       [ { x: 0.8,  y: 100 },
+				 { x: 0.35, y: 90  } ],
+			       [ { x: 0.8,  y: 80 },
 				 { x: 0.49,  y: 50  },
-				 { x: 0.15, y: 0  } ]
+				 { x: 0.15, y: 10  } ]
 			     ] };
         },
 	
@@ -122,9 +132,14 @@
 	    }
 	    target.innerHTML = "<div id='plot_div"+index+"'></div>";
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
-	    jQuery('#plot_div'+index).svg();
+	    jQuery('#plot_div'+index).svg().bind('dragstart', function(event) { event.preventDefault(); });
 	    Retina.RendererInstances.plot[renderer.index].drawImage(jQuery('#plot_div'+index).svg('get'), renderer.index);
-	    
+
+	    if (renderer.settings.drag_select && typeof(renderer.settings.drag_select) == 'function') {
+		var svg = document.querySelector('svg');
+		trackMarquee(svg, renderer.settings.drag_select);
+	    }
+
 	    return renderer;
 	},
 	
@@ -181,8 +196,8 @@
 		}
 	    }
 	    svg.plot.noDraw(). 
-		legend.show(plotLegend).area(legendAreas[plotLegend]).end().
-		area(chartAreas[plotLegend]).redraw();
+		legend.show(plotLegend).area(renderer.settings.legendArea ? renderer.settings.legendArea : legendAreas[plotLegend]).end().
+		area(renderer.settings.chartArea ? renderer.settings.chartArea : chartAreas[plotLegend]).redraw();
 	}
     });
 }).call(this);

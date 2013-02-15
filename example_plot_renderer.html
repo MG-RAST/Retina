@@ -8,6 +8,7 @@
 	<script src="js/retina.js"></script>
 	<script src="js/bootstrap.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="css/jquery.svg.css">
 	<script>
 	Retina.init( { library_resource: "js/" } ).then( function () {
 	    Retina.add_renderer({"name": "plot", "resource": "renderers/",  "filename": "renderer.plot.js" });
@@ -16,11 +17,37 @@
 		    target: document.getElementById('target'),
 		    data: Retina.RendererInstances.plot[0].exampleData(),
 		    show_dots: true,
-		    x_max: 200,
-		    connected: true
+		    x_max: 2,
+		    x_min: -3,
+		    y_min: -100,
+		    connected: false,
+		    drag_select: function(points){
+			for (i=0;i<points.length;i++) {
+			    points[i].svg.style.fill = "red";
+			    points[i].svg.style.stroke = "red";
+			}
+		    },
+		    data: { series: [ { name: "cool", color: 'blue', shape: 'circle' } ],
+			    points: [ [ { x: -1,  y: 0 },
+					{ x: -1,  y: -50 },
+					{ x: -1, y: -100 },
+					{ x: 0,  y: 0 },
+					{ x: 0,  y: 50 },
+					{ x: 0,  y: 100 },
+					{ x: 0.5,  y: 0 },
+					{ x: 0.5,  y: 50 },
+					{ x: 0.5,  y: 100 },
+					{ x: -0.5,  y: 0 },
+					{ x: -0.5,  y: 50 },
+					{ x: -0.5,  y: 100 },
+					{ x: 1,  y: 0 },
+					{ x: 1,  y: 50 },
+					{ x: 1,  y: 100 }]
+				    ] }
 		}).render();
 	    });
 	});
+
 	</script>
   </head>
 
