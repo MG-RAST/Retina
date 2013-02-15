@@ -16,8 +16,27 @@
 		    target: document.getElementById('target'),
 		    data: Retina.RendererInstances.plot[0].exampleData(),
 		    show_dots: true,
-		    x_max: 200,
-		    connected: true
+		    x_max: 2,
+		    x_min: -3,
+		    y_min: -100,
+		    connected: true,
+		    data: { series: [ { name: "cool", color: 'blue', shape: 'circle' } ],
+			    points: [ [ { x: -1,  y: 0 },
+					{ x: -1,  y: -50 },
+					{ x: -1, y: -100 },
+					{ x: 0,  y: 0 },
+					{ x: 0,  y: 50 },
+					{ x: 0,  y: 100 },
+					{ x: 0.5,  y: 0 },
+					{ x: 0.5,  y: 50 },
+					{ x: 0.5,  y: 100 },
+					{ x: -0.5,  y: 0 },
+					{ x: -0.5,  y: 50 },
+					{ x: -0.5,  y: 100 },
+					{ x: 1,  y: 0 },
+					{ x: 1,  y: 50 },
+					{ x: 1,  y: 100 }]
+				    ] }
 		}).render();
 	    });
 	});
