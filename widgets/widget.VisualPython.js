@@ -779,7 +779,7 @@
                 senddata += document.getElementById('data_variable_name').value+" = "+dataname+"['statistics'].show_metadata(mgids=selected_ids, arg_list=True)";
                 if (document.getElementById('vizualize_now').checked) {
                     document.getElementById('table_data').value = document.getElementById('data_variable_name').value;
-                    viz_button = 'table_data';
+                    viz_button = 'table_button';
                 }
                 break;
                 case 'alpha':
@@ -788,7 +788,7 @@
                 senddata += document.getElementById('data_variable_name').value+" = { 'data': alpha_list}";
                 if (document.getElementById('vizualize_now').checked) {
                     document.getElementById('deviationplot_data').value = document.getElementById('data_variable_name').value;
-                    viz_button = 'deviationplot_data';
+                    viz_button = 'deviationplot_button';
                 }
                 break;
                 case 'bp':
@@ -797,7 +797,7 @@
                 senddata += document.getElementById('data_variable_name').value+" = { 'data': bp_list }";
                 if (document.getElementById('vizualize_now').checked) {
                     document.getElementById('deviationplot_data').value = document.getElementById('data_variable_name').value;
-                    viz_button = 'deviationplot_data';
+                    viz_button = 'deviationplot_button';
                 }
                 break;
                 case 'length':
@@ -806,7 +806,7 @@
                 senddata += document.getElementById('data_variable_name').value+" = { 'data': length_list }";
                 if (document.getElementById('vizualize_now').checked) {
                     document.getElementById('deviationplot_data').value = document.getElementById('data_variable_name').value;
-                    viz_button = 'deviationplot_data';
+                    viz_button = 'deviationplot_button';
                 }
                 break;
                 case 'gc':
@@ -815,7 +815,7 @@
                 senddata += document.getElementById('data_variable_name').value+" = { 'data': gc_list }";
                 if (document.getElementById('vizualize_now').checked) {
                     document.getElementById('deviationplot_data').value = document.getElementById('data_variable_name').value;
-                    viz_button = 'deviationplot_data';
+                    viz_button = 'deviationplot_button';
                 }
                 break;
                 default:
