@@ -232,7 +232,6 @@
 	        "sort": true,
 	        "multiple": false,
 		    "callback": function (mgid) {
-		        console.log({"target": target, "id": mgid});
 		        Retina.WidgetInstances.metagenome_overview[0].display({"target": target, "id": mgid});
 	        }
 		}).render();
