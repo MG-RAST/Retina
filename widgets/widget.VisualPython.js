@@ -54,13 +54,21 @@
 <p id="progressBar"></p>\
     </div>';
 	    params.target.appendChild(progress);
+	    jQuery.post( "http://140.221.84.160:7032", '{ "params": [ ["EnsemblPlant"], [], [], ["id", "scientific_name"] ], "method": "CDMI_EntityAPI.get_relationship_Submitted", "version": "1.1" }').then(function(data){
+		var d = JSON.parse(data);
+		d = d.result[0];
+		stm.DataStore['plant'] = {};
+		for (i=0;i<d.length;i++) {
+		    stm.DataStore['plant'][d[i][2]['id']] = d[i][2];
+		}
+
 	    // jQuery.getJSON("http://api.metagenomics.anl.gov/genome?verbosity=full").then(function(data){
 	    // 	stm.DataStore.genome = {};
 	    // 	for (i=0;i<data.items.length;i++) {
 	    // 	    stm.DataStore.genome[data.items[i].id] = data.items[i];
 	    // 	}
 		stm.get_objects({ "type": "metagenome", "options": { "verbosity": "migs", "limit": 0 } }).then(function(){Retina.WidgetInstances.VisualPython[0].display(params);});
-//	    });
+	    });
 	    return;
 	}
 	
@@ -103,6 +111,22 @@
 	// 	       "complete": stm.DataStore["genome"][i]["complete"] ? "yes" : "no" };
 	//     metagenome_data.push( md );
 	// }
+	for (i in stm.DataStore["plant"]) {
+	    var md = { "name": stm.DataStore["plant"][i]["scientific_name"],
+		       "id": i,
+		       "project": "-",
+		       "type": "plant genome",
+		       "lat/long": "-",
+		       "location": "-",
+		       "collection date": "-",
+		       "biome": "-",
+		       "feature": "-",
+		       "material": "-",
+		       "package": "-",
+		       "sequencing method": "-",
+		     };
+	    metagenome_data.push( md );
+	}
 	for (i in stm.DataStore["metagenome"]) {
 	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
 		     var md = { "name": stm.DataStore["metagenome"][i]["name"],
