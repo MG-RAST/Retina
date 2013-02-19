@@ -9,7 +9,9 @@
     });
     
     widget.setup = function () {
-	    return [ Retina.add_renderer({"name": "paragraph", "resource": "./renderers/",  "filename": "renderer.paragraph.js" }),
+	    return [ Retina.add_renderer({"name": "listselect", "resource": "./renderers/",  "filename": "renderer.listselect.js" }),
+                 Retina.load_renderer("listselect"),
+	             Retina.add_renderer({"name": "paragraph", "resource": "./renderers/",  "filename": "renderer.paragraph.js" }),
 		         Retina.load_renderer("paragraph"),
 		         Retina.add_renderer({"name": "graph", "resource": "./renderers/",  "filename": "renderer.graph.js" }),
 		         Retina.load_renderer("graph"),
@@ -21,17 +23,51 @@
     };
     
     widget.display = function (wparams) {
-	// check if required data is loaded
-	    if (! (stm.DataStore.hasOwnProperty('metagenome') && stm.DataStore.metagenome.hasOwnProperty(wparams.id))) {
-	        // make a promise list
-	        var stats_promises = [];
-	        stats_promises.push(stm.get_objects({ "type": "metagenome", "id": wparams.id, "options": { "verbosity": "full" } }));
-	        stats_promises.push(stm.get_objects({ "type": "metagenome_statistics", "id": wparams.id, "options": { "verbosity": "full" } }));
-	        jQuery.when.apply(this, stats_promises).then(function() {
-		        widget.display(wparams);
-	        });
-	        return;
-	    }
+        // check if id given
+        if (wparams.id) {
+            // remove modal if used
+            if (jQuery('#mg_modal')) {
+                jQuery('#mg_modal').modal('hide');
+            }
+	        // check if required data is loaded (use stats)
+	        if (! (stm.DataStore.hasOwnProperty('metagenome_statistics') && stm.DataStore.metagenome_statistics.hasOwnProperty(wparams.id))) {
+	            // make a promise list
+	            var stats_promises = [];
+	            stats_promises.push(stm.get_objects({ "type": "metagenome", "id": wparams.id, "options": { "verbosity": "full" } }));
+	            stats_promises.push(stm.get_objects({ "type": "metagenome_statistics", "id": wparams.id, "options": { "verbosity": "full" } }));
+	            jQuery.when.apply(this, stats_promises).then(function() {
+		            widget.display(wparams);
+	            });
+	            return;
+            }
+	    // get id first
+        } else {
+            var modal = document.createElement('div');
+            modal.innerHTML = '\
+            <div id="mg_modal" class="modal show fade" tabindex="-1" style="width: 400px;" role="dialog">\
+              <div class="modal-header">\
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>\
+                <h3>Metagenome Selector</h3>\
+              </div>\
+              <div id="mg_modal_body" class="modal-body">\
+                <div class="alert alert-block alert-info" id="progressIndicator" style="top: 100px; width: 300px;">\
+                    <button type="button" class="close" data-dismiss="alert">×</button>\
+                    <h4><img src="images/loading.gif"> Please wait...</h4>\
+                    <p>The data to be displayed is currently loading.</p>\
+                    <p id="progressBar"></p>\
+                </div>\
+              </div>\
+              <div class="modal-footer">\
+                <button class="btn btn-danger pull-left" data-dismiss="modal" aria-hidden="true">Cancel</button>\
+              </div>\
+            </div>';
+            wparams.target.appendChild(modal);
+            jQuery('#mg_modal').modal('show');
+            stm.get_objects({"type": "metagenome", "options": {"verbosity": "migs", "limit": 0}}).then(function() {
+                Retina.WidgetInstances.metagenome_overview[0].metagenome_selector(wparams.target);
+            });
+            return;
+        }
 
 	    // make some shortcuts
 	    var mg = stm.DataStore.metagenome[wparams.id];
@@ -164,6 +200,42 @@
 		            break;
 	        }
 	    }
+    };
+    
+    widget.metagenome_selector = function(target) {
+        var metagenome_data = [];
+        for (i in stm.DataStore["metagenome"]) {
+    	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
+    		     var md = { "name": stm.DataStore["metagenome"][i]["name"],
+    			   "id": i,
+    			   "project": stm.DataStore["metagenome"][i]["project"],
+    			   "type": "metagenome",
+    			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
+    			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
+    			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
+    			   "biome": stm.DataStore["metagenome"][i]["biome"],
+    			   "feature": stm.DataStore["metagenome"][i]["feature"],
+    			   "material": stm.DataStore["metagenome"][i]["material"],
+    			   "package": stm.DataStore["metagenome"][i]["package"],
+    			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
+    			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"]
+    			 };
+    		     metagenome_data.push(md);
+    	    }
+    	}
+    	Retina.Renderer.create('listselect', {
+    	    "target": document.getElementById('mg_modal_body'),
+			"data": metagenome_data,
+		    "value": "id",
+            "label": "name",
+	        "filter": ["name", "id", "project", "type", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"],
+	        "sort": true,
+	        "multiple": false,
+		    "callback": function (mgid) {
+		        console.log({"target": target, "id": mgid});
+		        Retina.WidgetInstances.metagenome_overview[0].display({"target": target, "id": mgid});
+	        }
+		}).render();
     };
     
     widget.general_overview = function (mg, mg_stats) {

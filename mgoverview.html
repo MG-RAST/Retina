@@ -15,12 +15,10 @@
 	    Retina.load_widget("metagenome_overview").then( function () {
 		var val = document.URL;
 		var param = "metagenome";
-		var mgid;
+		var mgid = "";
 		if (val.indexOf(param) > -1) {
 		    var url = val.substr(val.indexOf(param));
 		    mgid = url.replace(param+"=","");
-		} else {
-		    mgid = "mgm4440026.3";
 		}
 		Retina.Widget.create('metagenome_overview', { target: document.getElementById("content"), id: mgid });
 	    });
