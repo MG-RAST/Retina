@@ -123,7 +123,7 @@
 		       "feature": "-",
 		       "material": "-",
 		       "package": "-",
-		       "sequencing method": "-",
+		       "sequencing method": "-"
 		     };
 	    metagenome_data.push( md );
 	}
@@ -198,7 +198,7 @@
 	sample_select_disp_div.appendChild(control_sample_select);
 
 	control_sample_select.innerHTML = '<table style="text-align: left; margin-top: 10px;">\
-<tr><th style="width: 120px;">variable name</th><td><input type="text" id="sample_select_variable_name" value="metagenomes" style="margin-bottom: 0px;"></td></tr>\
+<tr><th style="width: 120px;">variable name</th><td><input type="text" id="sample_select_variable_name" value="sample_set" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>cell content</th><td><select id="sample_select_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="sample_select_comment">load the initial data</textarea></td></tr>\
 </table>';
@@ -219,18 +219,26 @@
 		        senddata += "# "+document.getElementById('sample_select_comment').value.split(/\n/).join("\n# ") + "\n";
 		    }
 		    var sd = [];
-		    var has_wgs = false;
+		    var has_wgs  = false;
+		    var is_plant = false;
 		    for (i=0;i<data.length;i++) {
 		        Retina.WidgetInstances.VisualPython[0].loaded_ids[data[i]] = true;
 		        sd.push("'" + data[i] + "'");
-		        if ((stm.DataStore["metagenome"][data[i]]["sequence_type"] == 'WGS') || (stm.DataStore["metagenome"][data[i]]["sequence_type"] == 'MT')) {
+		        if (stm.DataStore["plant"].hasOwnProperty(data[i])) {
+		            is_plant = true;
+		        }
+		        else if ((stm.DataStore["metagenome"][data[i]]["sequence_type"] == 'WGS') || (stm.DataStore["metagenome"][data[i]]["sequence_type"] == 'MT')) {
                     has_wgs = true;
                 }
 		    }
-		    var dataopts = has_wgs ? "method='WGS', function_source='Subsystems'" : "method='Amplicon'";
 		    senddata += "id_list = [ "+sd.join(", ")+" ]\n";
-		    senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name=\""+dataname+"['statistics']\"),\n";
-		    senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, "+dataopts+", def_name=\""+dataname+"['abundances']\") }";
+		    if (is_plant) {
+		        senddata += dataname+" = get_plant_set(gids=id_list, def_name='"+dataname+"')\n";
+	        } else {
+	            var dataopts = has_wgs ? "method='WGS', function_source='Subsystems'" : "method='Amplicon'";
+	            senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name=\""+dataname+"['statistics']\"),\n";
+		        senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, "+dataopts+", def_name=\""+dataname+"['abundances']\") }";
+	        }
 		    widget.transfer(senddata, document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value);
 		    document.getElementById('data_li').innerHTML = Retina.WidgetInstances.VisualPython[0].get_data_tab();
 	    }

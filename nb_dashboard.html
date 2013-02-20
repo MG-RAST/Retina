@@ -3,7 +3,8 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KBase iPyNB</title>
+    <title>KBNB - The KBase Notebook</title>
+    <link rel="icon" href="images/KBase_favicon.ico" type="image/x-icon">
     
     <!--external javascript files-->
     <script type="text/javascript" src="js/jquery.min.js"></script>
@@ -20,7 +21,7 @@
     <!--initialization-->
     <script type="text/javascript">
     jQuery(function () {
-      	stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
+      	stm.init('http://api.metagenomics.anl.gov').then(function() {
 	    Retina.init({ library_resource: "js/" });
 	    Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
 	    Retina.add_widget({"name": "VisualPython", "resource": "widgets/", "filename": "widget.VisualPython.js"});
@@ -41,7 +42,7 @@
       <div class="navbar-inner">
 	<div class="container" style="width: 100%; padding-left: 10px;">
           <img src="images/KbaseLogoTransparent.gif" style="float: left; background: white; margin-left: -10px; height: 55px;">
-    	  <a class="brand" href="#" style="color: white; cursor: default; margin-top: 8px; margin-left: 30px;">iPyNB - The KBase iPython Notebook</a>
+    	  <a class="brand" href="#" style="color: white; cursor: default; margin-top: 8px; margin-left: 30px;">KBNB - The KBase iPython Notebook</a>
 	  <p style="float: right; right:16px; top: 11px; position: relative;cursor: pointer;" onclick="if(document.getElementById('login_name').innerHTML ==''){jQuery('#loginModal').modal('show');}else{if(confirm('do you really want to log out?')){Retina.WidgetInstances.NotebookDashboard[0].perform_logout();}}"><i class="icon-user icon-white" style="margin-right: 5px;"></i><span  id="login_name_span"><input type="button" class="btn" value="login" style="position:relative; bottom: 2px;" onclick="jQuery('#loginModal').modal('show');"></span><span id="login_name"></span></p>
 	</div>
       </div>
