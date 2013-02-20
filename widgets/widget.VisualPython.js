@@ -233,7 +233,7 @@
 		    }
 		    senddata += "id_list = [ "+sd.join(", ")+" ]\n";
 		    if (is_plant) {
-		        senddata += dataname+" = get_plant_set(gids=id_list, def_name='"+dataname+"'))\n";
+		        senddata += dataname+" = get_plant_set(gids=id_list, def_name='"+dataname+"')\n";
 	        } else {
 	            var dataopts = has_wgs ? "method='WGS', function_source='Subsystems'" : "method='Amplicon'";
 	            senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name=\""+dataname+"['statistics']\"),\n";
