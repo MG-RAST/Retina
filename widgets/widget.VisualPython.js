@@ -54,21 +54,35 @@
 <p id="progressBar"></p>\
     </div>';
 	    params.target.appendChild(progress);
-	    jQuery.post( "http://140.221.84.160:7032", '{ "params": [ ["EnsemblPlant"], [], [], ["id", "scientific_name"] ], "method": "CDMI_EntityAPI.get_relationship_Submitted", "version": "1.1" }').then(function(data){
-		var d = JSON.parse(data);
-		d = d.result[0];
-		stm.DataStore['plant'] = {};
-		for (i=0;i<d.length;i++) {
-		    stm.DataStore['plant'][d[i][2]['id']] = d[i][2];
-		}
+	    jQuery.getJSON('data/plant_public.json', function(data) {
+	        for (var d in data) {
+                if (data.hasOwnProperty(d)) {
+                    stm.load_data({"data": data[d], "type": d});
+                }
+            }
+        }).fail( function() {
+	        jQuery.post( "http://140.221.84.160:7032", '{ "params": [ ["EnsemblPlant"], [], [], ["id", "scientific_name"] ], "method": "CDMI_EntityAPI.get_relationship_Submitted", "version": "1.1" }').then( function(data) {
+		        var d = JSON.parse(data);
+		        d = d.result[0];
+		        stm.DataStore['plant'] = {};
+		        for (i=0;i<d.length;i++) {
+		            stm.DataStore['plant'][d[i][2]['id']] = d[i][2];
+		        }
+		    });
+		});
 
-	    // jQuery.getJSON("http://api.metagenomics.anl.gov/genome?verbosity=full").then(function(data){
-	    // 	stm.DataStore.genome = {};
-	    // 	for (i=0;i<data.items.length;i++) {
-	    // 	    stm.DataStore.genome[data.items[i].id] = data.items[i];
-	    // 	}
-		stm.get_objects({ "type": "metagenome", "options": { "verbosity": "migs", "limit": 0 } }).then(function(){Retina.WidgetInstances.VisualPython[0].display(params);});
-	    });
+	    jQuery.getJSON('data/mg_migs_public.json', function(data) {
+            for (var d in data) {
+                if (data.hasOwnProperty(d)) {
+                    stm.load_data({"data": data[d], "type": d});
+                }
+            }
+            Retina.WidgetInstances.VisualPython[0].display(params);
+        }).fail( function() {
+            stm.get_objects({"type": "metagenome", "options": {"verbosity": "migs", "limit": 0}}).then(function() {
+                Retina.WidgetInstances.VisualPython[0].display(params);
+            });
+        });
 	    return;
 	}
 	

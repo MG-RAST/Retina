@@ -25,10 +25,7 @@
     widget.display = function (wparams) {
         // check if id given
         if (wparams.id) {
-            // remove modal if used
-            if (jQuery('#mg_modal')) {
-                jQuery('#mg_modal').modal('hide');
-            }
+            jQuery('#mg_modal').modal('hide');
 	        // check if required data is loaded (use stats)
 	        if (! (stm.DataStore.hasOwnProperty('metagenome_statistics') && stm.DataStore.metagenome_statistics.hasOwnProperty(wparams.id))) {
 	            // make a promise list
@@ -42,29 +39,18 @@
             }
 	    // get id first
         } else {
-            var modal = document.createElement('div');
-            modal.innerHTML = '\
-            <div id="mg_modal" class="modal show fade" tabindex="-1" style="width: 400px;" role="dialog">\
-              <div class="modal-header">\
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>\
-                <h3>Metagenome Selector</h3>\
-              </div>\
-              <div id="mg_modal_body" class="modal-body">\
-                <div class="alert alert-block alert-info" id="progressIndicator" style="top: 100px; width: 300px;">\
-                    <button type="button" class="close" data-dismiss="alert">×</button>\
-                    <h4><img src="images/loading.gif"> Please wait...</h4>\
-                    <p>The data to be displayed is currently loading.</p>\
-                    <p id="progressBar"></p>\
-                </div>\
-              </div>\
-              <div class="modal-footer">\
-                <button class="btn btn-danger pull-left" data-dismiss="modal" aria-hidden="true">Cancel</button>\
-              </div>\
-            </div>';
-            wparams.target.appendChild(modal);
             jQuery('#mg_modal').modal('show');
-            stm.get_objects({"type": "metagenome", "options": {"verbosity": "migs", "limit": 0}}).then(function() {
+            jQuery.getJSON('data/mg_migs_public.json', function(data) {
+                for (var d in data) {
+                    if (data.hasOwnProperty(d)) {
+                        stm.load_data({"data": data[d], "type": d});
+                    }
+                }
                 Retina.WidgetInstances.metagenome_overview[0].metagenome_selector(wparams.target);
+            }).fail( function() {
+                stm.get_objects({"type": "metagenome", "options": {"verbosity": "migs", "limit": 0}}).then(function() {
+                    Retina.WidgetInstances.metagenome_overview[0].metagenome_selector(wparams.target);
+                });
             });
             return;
         }
@@ -74,7 +60,7 @@
 	    var mg_stats = stm.DataStore.metagenome_statistics[wparams.id];
 	    var content = wparams.target;
 
-	    // empty the output area
+	    // set the output area
 	    content.innerHTML = "";
 	
 	    // set style variables
@@ -105,6 +91,8 @@
 	        { type: 'piechart', data: 'order', category: 'taxonomy' },
 	        { type: 'piechart', data: 'family', category: 'taxonomy' },
 	        { type: 'piechart', data: 'genus', category: 'taxonomy' },
+	        //{ type: 'paragraph', data: 'rank_abund_introtext' },
+	        //{ type: 'single_plot', data: 'rank_abund_plot', category: 'rank_abund' },
 	        { type: 'paragraph', data: 'rarefaction_introtext' },
 	        { type: 'single_plot', data: 'rarefaction_plot', category: 'rarefaction' },
 	        { type: 'title', data: 'Metadata' },
@@ -183,6 +171,8 @@
                             points = mg_stats.rarefaction;
                             xt = 'number of reads';
                             yt = 'species count';
+                            break;
+                        case 'rank_abund':
                             break;
                         default:
                             break;
@@ -347,6 +337,7 @@
         var stats  = mg_stats.sequence_stats;
         var is_rna = (mg.sequence_type == 'Amplicon') ? 1 : 0;
         var raw_seqs    = ('sequence_count_raw' in stats) ? parseFloat(stats.sequence_count_raw) : 0;
+        var qc_rna_seqs = ('sequence_count_preprocessed_rna' in stats) ? parseFloat(stats.sequence_count_preprocessed_rna) : 0;
         var qc_seqs     = ('sequence_count_preprocessed' in stats) ? parseFloat(stats.sequence_count_preprocessed) : 0;
         var rna_sims    = ('sequence_count_sims_rna' in stats) ? parseFloat(stats.sequence_count_sims_rna) : 0;
         var r_clusts    = ('cluster_count_processed_rna' in stats) ? parseFloat(stats.cluster_count_processed_rna) : 0;
@@ -428,6 +419,13 @@
 	             data: [ { header: "Kmer Profile" },
 	                     { p: "The kmer abundance spectra are tools to summarize the redundancy (repetitiveness) of sequence datasets by counting the number of occurrences of 15 and 6 bp sequences." },
 	                     { p: "The kmer rank abundance graph plots the kmer coverage as a function of abundance rank, with the most abundant sequences at left." }
+	                   ] };
+    };
+    
+    widget.rank_abund_introtext = function(mg, mg_stats) {
+        return { data: [ { header: "Rank Abundance Plot" },
+	                     { p: "The plot below shows the family abundances ordered from the most abundant to least abundant. Only the top 50 most abundant are shown. The y-axis plots the abundances of annotations in each family on a log scale." },
+	                     { p: "The rank abundance curve is a tool for visually representing taxonomic richness and evenness." }
 	                   ] };
     };
     
