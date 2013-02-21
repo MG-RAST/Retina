@@ -133,10 +133,11 @@
 	    target.innerHTML = "<div id='plot_div"+index+"'></div>";
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
 	    jQuery('#plot_div'+index).svg().bind('dragstart', function(event) { event.preventDefault(); });
-	    Retina.RendererInstances.plot[renderer.index].drawImage(jQuery('#plot_div'+index).svg('get'), renderer.index);
+	    Retina.RendererInstances.plot[renderer.index].svg = jQuery('#plot_div'+index).svg('get');
+	    Retina.RendererInstances.plot[renderer.index].drawImage(Retina.RendererInstances.plot[renderer.index].svg, renderer.index);
 
 	    if (renderer.settings.drag_select && typeof(renderer.settings.drag_select) == 'function') {
-		var svg = document.querySelector('svg');
+		var svg = document.getElementById('plot_div'+index).firstChild;
 		trackMarquee(svg, renderer.settings.drag_select);
 	    }
 

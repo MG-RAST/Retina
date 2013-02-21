@@ -128,6 +128,7 @@
 		'show_legend': false,
 		'legend_position': 'left',
 		'show_grid': false,
+		'short_axis_labels': false,
 		'width': 800,
 		'height': 400,
 		'data': [ ] }
@@ -222,6 +223,9 @@
 	    svg.linearGradient(defs, 'fadeYellow', [[0, '#FBB450'], [1, '#F89406']]);
 	    svg.linearGradient(defs, 'fadeLightblue', [[0, '#5BC0DE'], [1, '#2F96B4']]);
 	    svg.linearGradient(defs, 'fadePurple', [[0, '#ee5be0'], [1, '#bd2fa6']]);
+
+	    svg.graph.shortAxisLabels = renderer.settings.short_axis_labels;
+
 	    svg.graph.noDraw().title(renderer.settings.title, renderer.settings.title_color, renderer.settings.title_settings);
 	    svg.graph.noDraw().format('white', renderer.settings.show_grid ? 'gray' : 'white' );
 	    if (renderer.settings.show_grid) {
@@ -243,7 +247,7 @@
 		title(renderer.settings.y_title, renderer.settings.y_title_color).
 		ticks(parseInt(max / renderer.settings.y_labeled_tick_interval), parseInt(max / renderer.settings.y_tick_interval));
 	    svg.graph.yAxis._scale.max = max;
-
+	    
 	    if (renderer.settings.y_labels.length) {
 		svg.graph.xAxis.labels(renderer.settings.y_labels); 
 	    }
