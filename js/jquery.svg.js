@@ -1866,8 +1866,25 @@ jQuery.extend(SVGGraph.prototype, {
 					(horiz ? v : x1 + len * offsets[1]),
 					(horiz ? y1 + len * offsets[1] : v));
 				if (cur == major) {
+				    var pretty_cur = cur;
+				    if (this.shortAxisLabels) {
+					pretty_cur = Math.floor(pretty_cur) + '';
+					if (pretty_cur.length > 12) {
+					    pretty_cur = cur / 1000000000000;
+					    pretty_cur = pretty_cur.formatString(1)+' T';
+					} else if (pretty_cur.length > 9) {
+					    pretty_cur = cur / 1000000000;
+					    pretty_cur = pretty_cur.formatString(1)+' G';
+					} else if (pretty_cur.length > 6) {
+					    pretty_cur = cur / 1000000;
+					    pretty_cur = pretty_cur.formatString(1)+' M';
+					} else if (pretty_cur.length > 3) {
+					    pretty_cur = cur / 1000;
+					    pretty_cur = pretty_cur.formatString(1)+' K';
+					}
+				    }
 					this._wrapper.text(gt, (horiz ? v : x1 - size), (horiz ? y1 + 2 * size : v),
-						(axis._labels ? axis._labels[count++] : '' + cur));
+						(axis._labels ? axis._labels[count++] : '' + pretty_cur));
 				}
 				major += (cur == major ? axis._ticks.major : 0);
 				minor += (cur == minor ? axis._ticks.minor : 0);
@@ -3448,17 +3465,18 @@ jQuery.extend(SVGPlot.prototype, {
 	    jQuery.extend(p, psettings);
 	    p.imgX = p.x * scales[0] + zerox;
 	    p.imgY = zeroy - (p.y * scales[1]);
+	    var title = p.title ? p.title : "";
 	    switch (p.shape) {
 	    case 'circle':
-		p.svg = this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
+		p.svg = this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color, title: title });
 		break;
 	    case 'square':
-		p.svg = this._wrapper.rect(this._plot, p.x * scales[0] + zerox - (p.size / 2), zeroy - (p.y * scales[1]) - (p.size / 2), p.size, p.size, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
+		p.svg = this._wrapper.rect(this._plot, p.x * scales[0] + zerox - (p.size / 2), zeroy - (p.y * scales[1]) - (p.size / 2), p.size, p.size, { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color, title: title });
 		break;
 	    case 'triangle':
 		p.svg = this._wrapper.polygon(this._plot, [ [ p.x * scales[0] + zerox - (p.size / 2), zeroy - (p.y * scales[1]) - (p.size / 2) ],
 						    [ p.x * scales[0] + zerox + (p.size / 2), zeroy - (p.y * scales[1]) - (p.size / 2) ],
-						    [ p.x * scales[0] + zerox, zeroy - (p.y * scales[1]) + (p.size / 2) ] ], { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color });
+						    [ p.x * scales[0] + zerox, zeroy - (p.y * scales[1]) + (p.size / 2) ] ], { fill: p.filled ? p.color : 'none', strokeWidth: 1, stroke: p.color, title: title });
 		break;
 	    }
 	}
@@ -3480,7 +3498,8 @@ jQuery.extend(SVGPlot.prototype, {
 		this._wrapper.line(this._plot, points[i-1].x * scales[0] + zerox, zeroy - (points[i-1].y * scales[1]), p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), { strokeWidth: 2, stroke: this.series[series].color || 'blue' });
 	    }
 	    if (this.showDots) {
-		p.svg = this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.fill, strokeWidth: 2, stroke: p.line, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
+		var title = p.title ? p.title : "";
+		p.svg = this._wrapper.circle(this._plot, p.x * scales[0] + zerox, zeroy - (p.y * scales[1]), p.size / 2, { fill: p.fill, strokeWidth: 2, stroke: p.line, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)", title: title });
 	    }
 	}
     },
