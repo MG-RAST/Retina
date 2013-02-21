@@ -83,9 +83,11 @@
 	    wrapper.appendChild(title);
 	    wrapper.appendChild(select);
 
-	    title.innerHTML = "<h2>Welcome to the Experimental Design Wizard</h2>\
+	    title.innerHTML = "<h2 style='margin-top: 50px;'>Welcome to the Experiment Design Wizard</h2>\
 <p style='width: 600px; margin-top: 20px; margin-bottom: 20px;'>\
-This wizard was designed to help users to perform comparative analyses on the annotation results (abundance profiles) of multiple samples.<br>\
+With the KBase metagenomics wizard, you can design your metagenomic sequencing experiment. Selecting samples for deep(er) sequencing based on a metadata and on inexpensive 16s data. The wizard assumes that you either already have the data describing your samples (metadata) or are willing to create a spreadsheet with this data using the GSC conventions<p><p>If you have already uploaded your sequences, you can select them below. Otherwise please proceed to the <a href='http://140.221.92.81:7051/' target=_blank>upload</a>.</p>";
+
+/*\
 <button type='button' class='btn btn-primary' data-toggle='collapse' data-target='#more_info' style='height: 40px; position: relative; left: 200px; margin-top: 20px;'>\
   What can this wizard do?\
 </button>\
@@ -118,8 +120,8 @@ This wizard was designed to help users to perform comparative analyses on the an
     <li>use statistical outputs to subselect data for more detailed analyses</li>\
 </ul>\
 </p>\
-</div>\
-<h3 style='margin-bottom: 20px;'>select your samples</h3>";
+</div>\*/
+	    title.innerHTML += "<h3 style='margin-bottom: 20px;'>select your samples</h3>";
 
 	    Retina.Renderer.create("listselect", { target: select,
 						   multiple: true,
@@ -140,9 +142,10 @@ This wizard was designed to help users to perform comparative analyses on the an
 		
 		// make a promise list
 		var num_resolved = 0;
-		var total = widget.ids.length * 3;
+		var total = widget.ids.length * 4;
 		var stats_promises = [];
 		for (i=0; i<widget.ids.length; i++) {
+		    stats_promises.push(stm.get_objects({ "type": "metagenome", "id": widget.ids[i], options: { verbosity: 'full' } }).then(function(){ num_resolved++; document.getElementById('stats_progress').innerHTML = num_resolved + " of " + total; document.getElementById('stats_progress_bar').style.width = parseInt(num_resolved / total * 100)+"%"; }));
 		    stats_promises.push(stm.get_objects({ "type": "metagenome_statistics", "id": widget.ids[i], options: { verbosity: 'full' } }).then(function(){ num_resolved++; document.getElementById('stats_progress').innerHTML = num_resolved + " of " + total; document.getElementById('stats_progress_bar').style.width = parseInt(num_resolved / total * 100)+"%"; }));
 		    stats_promises.push(stm.get_objects({ "type": "abundanceprofile", "id": widget.ids[i], options: { "source": "Subsystems", "type": "function" } }).then(function(){ num_resolved++; document.getElementById('stats_progress').innerHTML = num_resolved + " of " + total; document.getElementById('stats_progress_bar').style.width = parseInt(num_resolved / total * 100)+"%"; }));
 		    stats_promises.push(stm.get_objects({ "type": "abundanceprofile", "id": widget.ids[i], options: { "source": "M5RNA", "type": "organism" } }).then(function(){ num_resolved++; document.getElementById('stats_progress').innerHTML = num_resolved + " of " + total; document.getElementById('stats_progress_bar').style.width = parseInt(num_resolved / total * 100)+"%"; }));
@@ -162,109 +165,92 @@ This wizard was designed to help users to perform comparative analyses on the an
 	    }
 	    
 	    // create the layout elements
-	    var layout_table = document.createElement('table');
-	    var top = document.createElement('tr');
-	    var bottom = document.createElement('tr');
-	    var titles = document.createElement('tr');
+	    // var layout_table = document.createElement('table');
+	    // var top = document.createElement('tr');
+	    // var bottom = document.createElement('tr');
+	    // var titles = document.createElement('tr');
 	    
-	    layout_table.appendChild(titles);
-	    layout_table.appendChild(top);
-	    layout_table.appendChild(bottom);
+	    // layout_table.appendChild(titles);
+	    // layout_table.appendChild(top);
+	    // layout_table.appendChild(bottom);
 	    
-	    var group_cell = document.createElement('td');
-	    group_cell.setAttribute('style', "padding-right: 10px;");
-	    var table_cell = document.createElement('td');
-	    table_cell.setAttribute('style', "width: 100%;");
-	    //var field_cell = document.createElement('td');
-	    //field_cell.setAttribute('style', "padding-left: 10px;");
+	    // var group_cell = document.createElement('td');
+	    // group_cell.setAttribute('style', "padding-right: 10px;");
+	    // var table_cell = document.createElement('td');
+	    // table_cell.setAttribute('style', "width: 100%;");
+	    // //var field_cell = document.createElement('td');
+	    // //field_cell.setAttribute('style', "padding-left: 10px;");
 	    
-	    top.appendChild(group_cell);
-	    top.appendChild(table_cell);
-	    //top.appendChild(field_cell);
+	    // top.appendChild(group_cell);
+	    // top.appendChild(table_cell);
+	    // //top.appendChild(field_cell);
 	    
-	    var group_container = document.createElement('div');
-	    group_cell.appendChild(group_container);
-	    //var field_container = document.createElement('div');
-	    //field_cell.appendChild(field_container);
+	    // var group_container = document.createElement('div');
+	    // group_cell.appendChild(group_container);
+	    // //var field_container = document.createElement('div');
+	    // //field_cell.appendChild(field_container);
 	    
-	    target.appendChild(layout_table);
+	    // target.appendChild(layout_table);
 
-	    // create the titles
-	    titles.innerHTML = "<td><h3>select sample</h3></td><td><h3>sample overview</h3></td>";//<td style='padding-left: 10px;'><h3>select fields</h3></td>";
+	    // // create the titles
+	    // titles.innerHTML = "<td><h3>select sample</h3></td><td><h3>sample overview</h3></td>";//<td style='padding-left: 10px;'><h3>select fields</h3></td>";
 	    
-	    // create the selection table
-	    var tdata = [];
+	    // // create the selection table
+	    // var tdata = [];
 	    var metagenome_data = [];
-	    for (i=0;i<widget.ids.length;i++) {
-		var mg = stm.DataStore.metagenome[widget.ids[i]];
-		tdata.push([ mg.id, mg.name, " - ", "-", parseInt(stm.DataStore.metagenome_statistics[widget.ids[i]].sequence_stats.alpha_diversity_shannon).formatString(2),"-" ]);
-		metagenome_data.push({name: mg.name, id: mg.id});
-	    }
-	    var table_data = { data: tdata, header: [ "ID", "name", "user notes", "group", "alpha diversity", "include in analyses" ] };
-	    var tab = widget.table = Retina.Renderer.create("table", { target: table_cell,
-								       data: table_data,
-								       rows_per_page: 6,
-								       filter_autodetect: true,
-								       sort_autodetect: true,
-								       editable: { 2: true, 3: true, 5: true },
-								       hide_options: true });
-	    tab.render();
+//	    for (i=0;i<widget.ids.length;i++) {
+//	    	var mg = stm.DataStore.metagenome[widget.ids[i]];
+//	    	tdata.push([ mg.id, mg.name, " - ", "-", parseInt(stm.DataStore.metagenome_statistics[widget.ids[i]].sequence_stats.alpha_diversity_shannon).formatString(2),"-" ]);
+//	    	metagenome_data.push({name: mg.name, id: mg.id});
+//	    }
+	    // var table_data = { data: tdata, header: [ "ID", "name", "user notes", "group", "alpha diversity", "include in analyses" ] };
+	    // var tab = widget.table = Retina.Renderer.create("table", { target: table_cell,
+	    // 							       data: table_data,
+	    // 							       rows_per_page: 6,
+	    // 							       filter_autodetect: true,
+	    // 							       sort_autodetect: true,
+	    // 							       editable: { 2: true, 3: true, 5: true },
+	    // 							       hide_options: true });
+	    // tab.render();
 	    
 	    // create the group select
-	    var group_select = widget.group_select = Retina.Renderer.create("listselect", { target: group_container,
-											    multiple: false,
-											    data: metagenome_data,
-											    no_button: true,
-											    value: "id",
-											    callback: function(data){
-												widget.render_overview(data, index);
-												widget.render_depth(data, index);
-											    },
-											    filter: [ "name", "id" ] });
-	    group_select.render();
-	    
-	    // create the field select
-	    // var field_data = widget.field_data = [ { name: "project" },
-	    // 					   { name: "lat/long" },
-	    // 					   { name: "location" },
-	    // 					   { name: "collection date" },
-	    // 					   { name: "biome" },
-	    // 					   { name: "feature" },
-	    // 					   { name: "material" },
-	    // 					   { name: "package" },
-	    // 					   { name: "sequencing method" },
-	    // 					   { name: "DRISEE score" },
-	    // 					   { name: "alpha diversity" } ];
-	    // var field_select = widget.field_select = Retina.Renderer.create("listselect", { target: field_container,
-	    // 										    multiple: false,
-	    // 										    data: field_data,
-	    // 										    value: "id",
-	    // 										    filter: [ "name" ] });
-	    // field_select.render();
+	    var metagenome_data = [];
+	    for (i=0;i<widget.ids.length;i++) {
+	    	var mg = stm.DataStore.metagenome[widget.ids[i]];
+	    	metagenome_data.push({name: mg.name, id: mg.id});
+	    }
+
+	    var group_select = widget.group_select = Retina.Renderer.create("listselect", { multiple: false,
+	    										    data: metagenome_data,
+	    										    no_button: true,
+	    										    value: "id",
+	    										    filter: [ "name", "id" ] });
 	    
 	    // do the bottom part
-	    bottom.innerHTML = '<td colspan=3 style="padding-top: 10px;">\
+	    target.innerHTML = '<td colspan=3 style="padding-top: 10px;">\
   <div class="tabbable">\
     <ul class="nav nav-tabs" id="tab_list">\
-       <li class="active"><a data-toggle="tab" href="#overview">Sample Overview</a></li>\
-       <li><a data-toggle="tab" href="#depth" onclick="if(! Retina.WidgetInstances.wizard['+index+'].depth_graph){document.getElementById(\'depth\').className=\'tab-pane active\';Retina.WidgetInstances.wizard['+index+'].render_depth(\''+widget.ids[0]+'\', '+index+');}">Sequence Depth Estimation</a></li>\
+       <li class="active"><a data-toggle="tab" href="#welcome">Get Started</a></li>\
+       <li style="margin-bottom: -11px;"><a data-toggle="tab" href="#pcoa">'+widget.number(1)+'PCoA</a></li>\
+       <li style="margin-bottom: -11px;"><a data-toggle="tab" href="#stats">'+widget.number(2)+'Result</a></li>\
+       <li style="margin-bottom: -11px;"><a data-toggle="tab" href="#depth" onclick="if(! Retina.WidgetInstances.wizard['+index+'].depth_graph){document.getElementById(\'depth\').className=\'tab-pane active\';Retina.WidgetInstances.wizard['+index+'].render_depth(\''+widget.ids[0]+'\', '+index+');}">'+widget.number(3)+'Sequence Depth Estimation</a></li>\
+       <li><a data-toggle="tab" href="#overview" onclick="if(! Retina.WidgetInstances.wizard['+index+'].breakdown){document.getElementById(\'overview\').className=\'tab-pane active\';Retina.WidgetInstances.wizard['+index+'].render_overview(\''+widget.ids[0]+'\', '+index+');}">Sample Overview</a></li>\
        <li><a data-toggle="tab" href="#qc">Abundance Distributions</a></li>\
-       <li><a data-toggle="tab" href="#pcoa">PCoA</a></li>\
-       <li><a data-toggle="tab" href="#stats">Result</a></li>\
     </ul>\
      \
     <div id="tab_div" class="tab-content" style="overflow: visible;">\
-       <div class="tab-pane active" id="overview" style="padding-left: 15px;"></div>\
-       <div class="tab-pane" id="depth" style="padding-left: 15px;"></div>\
-       <div class="tab-pane" id="qc" style="padding-left: 15px;"></div>\
+<div class="tab-pane active span10" id="welcome" style="padding-left: 15px;"><h2 style="margin-bottom: 15px;">Getting started using the KBase Experiment Design Wizard</h2><p style="margin-bottom: 20px;">With this wizard, you can design your metagenomic sequencing experiment. Selecting samples for deep(er) sequencing based on a metadata and on inexpensive 16s data.</p><table><tr><td>'+widget.number(1)+' First you should place your samples into groups, based on PCoA and metadata. This is available via the <a href="#" onclick="jQuery(\'#tab_list li:eq(1) a\').tab(\'show\');">PCoA tab</a>.</td></tr><tr><td>'+widget.number(2)+' Next you can view the result tab, where we suggest one sample from each group that will provide the most diversity. This is available via the <a href="#" onclick="jQuery(\'#tab_list li:eq(2) a\').tab(\'show\');">Result tab</a>.</td></tr><tr><td>'+widget.number(3)+' Finally you can click on a sample in the result table to view a sequence depth analysis. This will help you approximate the required amount of sequencing to gain a certain coverage of selected taxa. This is available via the <a href="#" onclick="jQuery(\'#tab_list li:eq(3) a\').tab(\'show\'); if(! Retina.WidgetInstances.wizard['+index+'].depth_graph){document.getElementById(\'depth\').className=\'tab-pane active\';Retina.WidgetInstances.wizard['+index+'].render_depth(\''+widget.ids[0]+'\', '+index+');}">Sequence Depth Estimation tab</a></td></tr><tr><td>Optionally we offer a sample overview and an abundance distribution graph to assess the quality of your individual samples.</td></tr></table></div>\
        <div class="tab-pane" id="pcoa" style="padding-left: 15px;"></div>\
        <div class="tab-pane" id="stats" style="padding-left: 15px;"><button class="btn" onclick="Retina.WidgetInstances.wizard[1].show_result();">calculate</button></div>\
+       <div class="tab-pane" id="depth" style="padding-left: 15px;"></div>\
+       <div class="tab-pane" id="overview" style="padding-left: 15px;"></div>\
+       <div class="tab-pane" id="qc" style="padding-left: 15px;"></div>\
     </div>\
   </div>\
 </td>';
 	    
 	    // call the tab rendering
-	    widget.render_overview(widget.ids[0], index);
+	    widget.show_result();
 	    widget.render_qc_distribution(index);
 	    widget.render_pcoa(index);
 	}
@@ -295,8 +281,15 @@ This wizard was designed to help users to perform comparative analyses on the an
 	    }
 	    
 	    var name = stm.DataStore.metagenome[id].name;
-	    disp.innerHTML = "<h3>"+name+"</h3><p>The graph below shows the estimated sequence depth required to obtain the specified coverage of each taxa.</p><div id='depth_result' style='float: left;'></div><div style='float: left;'><p>coverage</p> <input type='text' value='"+coverage+"' id='depth_coverage'><br><p>average genome size</p> <div class='input-append'><input type='text' value='"+genome_size+"' id='depth_genomesize'><button class='btn' onclick='Retina.WidgetInstances.wizard[1].render_depth(\""+id+"\", "+index+");' style='margin-left: 15px;'>calculate</button></div></div>";
+	    disp.innerHTML = "<div style='float: right;'><h3>select sample</h3><div id='depth_mg_select'></div></div><h3>"+name+"</h3><p>The graph below shows the estimated sequence depth required to obtain the specified coverage of each taxa.</p><div id='depth_result' style='float: left;'></div><div style='float: left;'><p>coverage</p> <input type='text' value='"+coverage+"' id='depth_coverage'><br><p>average genome size</p> <div class='input-append'><input type='text' value='"+genome_size+"' id='depth_genomesize'><button class='btn' onclick='Retina.WidgetInstances.wizard[1].render_depth(\""+id+"\", "+index+");' style='margin-left: 15px;'>calculate</button></div></div>";
 	    
+	    // mg-select
+	    widget.group_select.settings.target = document.getElementById('depth_mg_select');
+	    widget.group_select.settings.callback = function(data){
+	    	widget.render_depth(data, index);
+	    };
+	    widget.group_select.render();
+
 	    var rend = widget.depth_graph = Retina.Renderer.create("graph", { target: document.getElementById('depth_result'), x_labels: data.rows, data: [ { name: name, data: graph_data, fill: '#0088CC' } ], x_labels_rotation: -60, chartArea: [ 0.1, 0.1, 0.95, 0.6 ], height: 500, short_axis_labels: true });
 	    rend.render();
 	}
@@ -387,6 +380,40 @@ This wizard was designed to help users to perform comparative analyses on the an
 	Retina.WidgetInstances.wizard[1].pcoa_selection = points;
     };
 
+    widget.color_pcoa = function () {
+	var datum = document.getElementById('pcoa_metadata_select').options[document.getElementById('pcoa_metadata_select').selectedIndex].value;
+	var colors = [ '#EE5F5B', '#0088CC', '#62C462', '#FBB450', '#5BC0DE', '#ee5be0', '#BD362F', '#0044CC', '#51A351', '#F89406', '#2F96B4', '#bd2fa6'];
+	var colorcount = 0;
+	var md = {};
+	var mg = {};
+	var series = [];
+	var new_points = [];
+	for (i=0;i<widget.ids.length;i++) {
+	    if (stm.DataStore.metagenome[widget.ids[i]].migs && stm.DataStore.metagenome[widget.ids[i]].migs.hasOwnProperty(datum)) {
+		if (! md.hasOwnProperty(stm.DataStore.metagenome[widget.ids[i]].migs[datum])) {
+		    md[stm.DataStore.metagenome[widget.ids[i]].migs[datum]] = colorcount;
+		    series.push({ name: stm.DataStore.metagenome[widget.ids[i]].migs[datum], color: colors[colorcount], shape: 'circle', filled: true });
+		    new_points.push([]);
+		    colorcount++;
+		    
+		}
+		mg[stm.DataStore.metagenome[widget.ids[i]].name] = md[stm.DataStore.metagenome[widget.ids[i]].migs[datum]];
+	    }
+	}
+
+	var pcoa = Retina.WidgetInstances.wizard[1].pcoa;
+	var ps = Retina.WidgetInstances.wizard[1].plotPoints;
+
+	for (i=0;i<ps.length;i++) {
+	    new_points[mg[ps[i][0].title]].push(ps[i][0]);
+	}
+	pcoa.settings.data = { series: series, points: new_points };
+	pcoa.settings.show_legend = true;
+	pcoa.settings.legend_position = 'right';
+	pcoa.settings.target.innerHTML = "";
+	pcoa.render();
+    }
+
     widget.assign_group = function () {
 	var points = Retina.WidgetInstances.wizard[1].pcoa_selection;
 	var pnames = {};
@@ -394,7 +421,7 @@ This wizard was designed to help users to perform comparative analyses on the an
 	    pnames[points[i].title] = 1;
 	}
 	var group = document.getElementById('pcoa_group_name').value;
-	var table = Retina.WidgetInstances.wizard[1].table;
+	var table = Retina.WidgetInstances.wizard[1].result_table;
 	for (i=0;i<table.settings.tdata.length;i++) {
 	    if (pnames[table.settings.tdata[i].name]) {
 		table.settings.tdata[i].group = group;
@@ -440,7 +467,15 @@ This wizard was designed to help users to perform comparative analyses on the an
 	// a distribution was selected, draw the according visualization
 	if (distribution) {
 
-	    grouper.innerHTML = "<h3 style='margin-top: 35px;'>current selection</h3><select multiple id='pcoa_group_list' size=12></select><h3>group name</h3><div class='input-append'><input type='text' id='pcoa_group_name' value='group 1'><button class='btn' onclick='Retina.WidgetInstances.wizard[1].assign_group()'>assign group</button></div>";
+	    grouper.innerHTML = "<table><tr><td><h3 style='margin-top: 35px;'>current selection</h3><select multiple id='pcoa_group_list' size=12></select><h3>group name</h3><div class='input-append'><input type='text' id='pcoa_group_name' value='group 1'><button class='btn' onclick='Retina.WidgetInstances.wizard[1].assign_group()'>assign group</button></div></td><td style='vertical-align: top;padding-top: 35px;'><h3>metadata</h3><div class='input-append'><select id='pcoa_metadata_select'></select><button class='btn' onclick='Retina.WidgetInstances.wizard[1].color_pcoa();'>color PCoA</button></div></td></tr></table>";
+
+	    var opts = "";
+	    for (i in stm.DataStore.metagenome[widget.ids[0]].migs) {
+		if (stm.DataStore.metagenome[widget.ids[0]].migs.hasOwnProperty(i)) {
+		    opts += "<option>"+i+"</option>";
+		}
+	    }
+	    document.getElementById('pcoa_metadata_select').innerHTML = opts;
 
 	    var result;
 	    if (distribution == 'function') {
@@ -500,11 +535,12 @@ This wizard was designed to help users to perform comparative analyses on the an
 		}
 		
 	    	if (widget.pcoa) {
-	    	    jQuery.extend(widget.pcoa.settings, {  x_min: xmin, x_max: xmax, y_min: ymin, y_max: ymax, data: plot_data, target: display });
+	    	    jQuery.extend(widget.pcoa.settings, { show_legend: false, x_min: xmin, x_max: xmax, y_min: ymin, y_max: ymax, data: plot_data, target: display });
 		} else {
 	    	    widget.pcoa = Retina.Renderer.create('plot', { data: plot_data, target: display, x_min: xmin, x_max: xmax, y_min: ymin, y_max: ymax, connected: false, show_legend: false, drag_select: Retina.WidgetInstances['wizard'][index].plot_select });
 		}
 		widget.pcoa.render();
+		widget.plotPoints = Retina.WidgetInstances.wizard[1].pcoa.svg.plot.plotPoints;
 		
 	    });
 	}
@@ -609,9 +645,10 @@ This wizard was designed to help users to perform comparative analyses on the an
 
     widget.render_overview = function (id, index) {
 	if (document.getElementById('overview').className == 'tab-pane active') {
-	widget = Retina.WidgetInstances.wizard[index];
+	    widget = Retina.WidgetInstances.wizard[index];
+	    
 
-	document.getElementById('overview').innerHTML = '<h3 id="overview_header"></h3>\
+	document.getElementById('overview').innerHTML = '<div style="float: right;"><h3>select sample</h3><div id="overview_mg_select"></div></div><h3 id="overview_header"></h3>\
 <table><tr><td><div id="stats_overview_table"></div></td><td><div id="breakdown"></div></td></tr></table>\
 <table style="width: 600px;">\
 <tr><th align=left>Alpha Diversity (Shannon Index)</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2)+'</td><td><div id="alphadiversity"></div></td></tr>\
@@ -622,6 +659,13 @@ This wizard was designed to help users to perform comparative analyses on the an
 <div id="rarefaction"></div>\
 <table><tr><td><div id="seqlenu"></div></td><td><div id="seqlen"></div></td></tr></table>\
 <table><tr><td><div id="gchistu"></div></td><td><div id="gchist"></div></td></tr></table>';
+
+	    // mg-select
+	    widget.group_select.settings.target = document.getElementById('overview_mg_select');
+	    widget.group_select.settings.callback = function(data){
+	    	widget.render_overview(data, index);
+	    };
+	    widget.group_select.render();
 
 	// header
 	document.getElementById('overview_header').innerHTML = stm.DataStore.metagenome[id].name;
@@ -649,10 +693,10 @@ This wizard was designed to help users to perform comparative analyses on the an
     	// sequence distribution
     	var stats = stm.DataStore.metagenome_statistics[id].sequence_stats;
     	var breakdown_data = [ { name: 'Failed QC' , data: [ parseInt(stats.sequence_count_raw) - parseInt(stats.sequence_count_processed) ], fill: 'gray' },
-			       { name: 'Unknown' , data: [ parseInt(stats.sequence_count_processed) - parseInt(stats.sequence_count_processed_aa) - parseInt(stats.sequence_count_sims_rna) ], fill: 'url(#fadeRed)' },
-    			       { name: 'Unknown Protein' , data: [ parseInt(stats.sequence_count_processed_aa) - parseInt(stats.sequence_count_sims_aa) ], fill: 'url(#fadeYellow)' },
-			       { name: 'Annotated Protein' , data: [ parseInt(stats.sequence_count_sims_aa) ], fill: 'url(#fadeGreen)' },
-			       { name: 'ribosomal RNA' , data: [ parseInt(stats.sequence_count_sims_rna) ], fill: 'url(#fadeBlue)' } ];
+			       { name: 'Unknown' , data: [ parseInt(stats.sequence_count_processed) - parseInt(stats.sequence_count_processed_aa) - parseInt(stats.sequence_count_sims_rna) ], fill: '#EE5F5B' },
+    			       { name: 'Unknown Protein' , data: [ parseInt(stats.sequence_count_processed_aa) - parseInt(stats.sequence_count_sims_aa) ], fill: '#FBB450' },
+			       { name: 'Annotated Protein' , data: [ parseInt(stats.sequence_count_sims_aa) ], fill: '#62C462' },
+			       { name: 'ribosomal RNA' , data: [ parseInt(stats.sequence_count_sims_rna) ], fill: '#0088CC' } ];
 	var bdsettings = { target: document.getElementById('breakdown'),
     			   data: breakdown_data,
     			   title: "Sequence Breakdown",
@@ -989,40 +1033,59 @@ This wizard was designed to help users to perform comparative analyses on the an
 	display.appendChild(menu_space);
 	display.appendChild(table_space);
 
-	var t1 = widget.table.settings.tdata;
 	var group_data = {};
-	for (i=0;i<t1.length;i++) {
-	    if (group_data.hasOwnProperty(t1[i]['group'])) {
-		if (parseFloat(t1[i]['alpha diversity']) > parseFloat(group_data[t1[i]['group']].diversity)) {
-		    group_data[t1[i]['group']].diversity = parseFloat(t1[i]['alpha diversity']);
-		    group_data[t1[i]['group']].mgid = t1[i]['ID'];
-		}
-	    } else {
-		group_data[t1[i]['group']] = { "diversity": parseFloat(t1[i]['alpha diversity']),
-						     "mgid": t1[i]['ID'] };
-	    }
-	}
 	var includes = {};
-	for (i in group_data) {
-	    if (group_data.hasOwnProperty(i)) {
-		includes[group_data[i].mgid] = 1;
+
+	var table;
+	if (widget.result_table) {
+	    table = widget.result_table;
+	    table.settings.target = table_space;
+	    var t1 = widget.result_table.settings.tdata;
+	    for (i=0;i<t1.length;i++) {
+		if (group_data.hasOwnProperty(t1[i]['group'])) {
+		    if (parseFloat(t1[i]['alpha diversity']) > parseFloat(group_data[t1[i]['group']].diversity)) {
+			group_data[t1[i]['group']].diversity = parseFloat(t1[i]['alpha diversity']);
+			group_data[t1[i]['group']].mgid = t1[i]['ID'];
+		    }
+		} else {
+		    group_data[t1[i]['group']] = { "diversity": parseFloat(t1[i]['alpha diversity']),
+						   "mgid": t1[i]['ID'] };
+		}
 	    }
-	}
+	    for (i in group_data) {
+		if (group_data.hasOwnProperty(i)) {
+		    includes[group_data[i].mgid] = 1;
+		}
+	    }
+	    for (i=0;i<t1.length;i++) {
+		t1[i].suggestion = includes[t1[i].ID] ? "<span style='color: green;'>include</span>" : "-";
+	    }
+	    table.settings.tdata = t1;
+	} else {
 	
-	var tdata2 = [];
-	for (i=0;i<widget.ids.length;i++) {
-	    var mg = stm.DataStore.metagenome[widget.ids[i]];
-	    var id = widget.ids[i];
-	    tdata2.push([ mg.id, mg.name, stm.DataStore.metagenome[id].group ? stm.DataStore.metagenome[id].group : "-", parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2), includes[mg.id] ? "<span style='color: green;'>include</span>" : "-" ]);
+	    var tdata = [];
+	    for (i=0;i<widget.ids.length;i++) {
+		var mg = stm.DataStore.metagenome[widget.ids[i]];
+		var id = widget.ids[i];
+		tdata.push([ mg.id, mg.name, stm.DataStore.metagenome[id].group ? stm.DataStore.metagenome[id].group : "-", parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2), "-" ]);
+	    }
+	    var table_data = { data: tdata, header: [ "ID", "name", "group", "alpha diversity", "suggestion" ] };
+	    table = widget.result_table = Retina.Renderer.create("table", { target: table_space,
+									    data: table_data,
+									    rows_per_page: 15,
+									    sort_autodetect: true,
+									    onclick: function(clicked_row, clicked_cell, clicked_row_index, clicked_cell_index) {
+										jQuery('#tab_list li:eq(3) a').tab('show');
+										Retina.WidgetInstances.wizard[1].render_depth(clicked_row[0], 1);
+									    },
+									    filter_autodetect: true,
+									    editable: { 2: true, 3: true, 6: true },
+									    hide_options: false });
 	}
-	var table_data2 = { data: tdata2, header: [ "ID", "name", "group", "alpha diversity", "suggestion" ] };
-	var tab2 = widget.result_table = Retina.Renderer.create("table", { target: table_space,
-									   data: table_data2,
-									   rows_per_page: 15,
-									   sort_autodetect: true,
-									   filter_autodetect: true,
-									   editable: { 2: true, 3: true, 6: true },
-									   hide_options: false });
-	tab2.render();
+	table.render();
+    };
+
+    widget.number = function (number) {
+	return '<p style="font-size: 16px; float: left; font-weight: bold; height: 18px; text-align: center; vertical-align: middle; margin-right: 8px; border: 5px solid #0088CC; width: 18px; border-radius: 14px 14px 14px 14px; position: relative; bottom: 5px; right: 9px;">'+number+'</p>';
     };
 })();
