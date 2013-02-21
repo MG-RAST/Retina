@@ -173,16 +173,16 @@
     // populate nb listselect with newest version of each notebook, empty version listselect
     widget.nb_select_refresh = function (index) {
         // get notebooks from api    
-	stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
-	    Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
-	    var snbs = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
+	    stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
+	        Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
+	        var snbs = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
             Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.settings.data = snbs;
             Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.render();
             Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.settings.data = snbs;
             Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.render();
             Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.settings.data = [];
             Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.render();
-            Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
+            setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].ipy_refresh()", 500);
         });
     };
     
