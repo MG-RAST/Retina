@@ -407,6 +407,10 @@
 	graph_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	graph_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
 	graph_button.addEventListener('click', function() {
+	    if (! document.getElementById('graph_data').value) {
+	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
+	        return;
+	    }
 	    var lpos = (document.getElementById('graph_legend_position').value == 'none') ? "'show_legend': False" : "'show_legend': True, 'legend_position': '"+document.getElementById('graph_legend_position').value+"'";
 	    var height = (document.getElementById('graph_width').value == 'auto') ? "" : "'height': "+document.getElementById('graph_width').value;
 	    var width  = (document.getElementById('graph_height').value == 'auto') ? "" : "'width': "+document.getElementById('graph_height').value;
@@ -444,6 +448,10 @@
 	table_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	table_button.setAttribute('style', 'position: relative; left: 700px;');
 	table_button.addEventListener('click', function() {
+	    if (! document.getElementById('table_data').value) {
+	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
+	        return;
+	    }
 	    var senddata = "Ipy.RETINA.table(**"+document.getElementById('table_data').value+")";
 	    widget.transfer(senddata, false);
 	});
@@ -474,6 +482,10 @@
 	heat_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	heat_button.setAttribute('style', 'position: relative; left: 700px;');
 	heat_button.addEventListener('click', function() {
+	    if (! document.getElementById('heat_data').value) {
+	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
+	        return;
+	    }
 	    var senddata = "heatmap_args = dict("+document.getElementById('heat_data').value+".items() + {'dist': '"+document.getElementById('heat_distance').value+"', 'clust': '"+document.getElementById('heat_cluster').value+"'}.items())\n";
 	    senddata += "heat_viz_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].heatmap(**heatmap_args)\n";
 	    senddata += "heat_viz_args.update({'tree_height': "+document.getElementById('heat_tree_height').value+", 'tree_width': "+document.getElementById('heat_tree_width').value+", 'legend_width': "+document.getElementById('heat_legend_width').value+", 'legend_height': "+document.getElementById('heat_legend_height').value+", 'min_cell_height': "+document.getElementById('heat_min_cell_height').value+"})\n";
@@ -507,6 +519,10 @@
 	pcoa_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	pcoa_button.setAttribute('style', 'position: relative; left: 700px;');
 	pcoa_button.addEventListener('click', function() {
+	    if (! document.getElementById('pcoa_data').value) {
+	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
+	        return;
+	    }
 	    var height = (document.getElementById('pcoa_height').value == 'auto') ? "" : "'height': "+document.getElementById('pcoa_height').value;
 	    var width = (document.getElementById('pcoa_width').value == 'auto') ? "" : "'width': "+document.getElementById('pcoa_width').value;
 	    var lpos = (document.getElementById('pcoa_legend_position').value == 'none') ? "'show_legend': False" : "'show_legend': True, 'legend_position': '"+document.getElementById('pcoa_legend_position').value+"'";
@@ -549,6 +565,10 @@
 	plot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	plot_button.setAttribute('style', 'position: relative; left: 700px;');
 	plot_button.addEventListener('click', function() {
+	    if (! document.getElementById('plot_data').value) {
+	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
+	        return;
+	    }
 	    var xmax = (document.getElementById('plot_x_max').value == 'auto') ? "" : "'x_max': "+document.getElementById('plot_x_max').value;
 	    var ymax = (document.getElementById('plot_y_max').value == 'auto') ? "" : "'y_max': "+document.getElementById('plot_y_max').value;
 	    var lpos = (document.getElementById('plot_legend_position').value == 'none') ? "'show_legend': False" : "'show_legend': True, 'legend_position': '"+document.getElementById('plot_legend_position').value+"'";
@@ -586,6 +606,10 @@
 	boxplot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	boxplot_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
 	boxplot_button.addEventListener('click', function() {
+	    if (! document.getElementById('boxplot_data').value) {
+	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
+	        return;
+	    }
 	    var senddata = "boxplot_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].boxplot(**"+document.getElementById('boxplot_data').value+")\n";
 	    senddata += "boxplot_args.update({'height': "+document.getElementById('boxplot_height').value+", 'width': "+document.getElementById('boxplot_width').value+"})\n";
 	    senddata += "Ipy.RETINA.boxplot(**boxplot_args)";
@@ -614,6 +638,10 @@
 	deviationplot_button.innerHTML = "<i class='icon-ok icon-white'></i>";
 	deviationplot_button.setAttribute('style', 'position: relative; bottom: 40px; left: 660px;');
 	deviationplot_button.addEventListener('click', function() {
+	    if (! document.getElementById('deviationplot_data').value) {
+	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
+	        return;
+	    }
 	    var senddata = document.getElementById('deviationplot_data').value+".update({'height': "+document.getElementById('deviationplot_height').value+", 'width': "+document.getElementById('deviationplot_width').value+"})\n";
 	    senddata += "Ipy.RETINA.deviationplot(**"+document.getElementById('deviationplot_data').value+")";
 	    widget.transfer(senddata, false);
@@ -947,25 +975,27 @@
 	    var allowed = {};
 	    switch (tab) {
 	    case 'graph':
-		allowed = { 'abundance': 1 }
+		allowed = { 'abundance': 1 };
 		break;
 	    case 'table':
-		allowed = { 'table': 1 }
+		allowed = { 'table': 1 };
 		break;
 	    case 'heat':
-		allowed = { 'abundance': 1 }
+		allowed = { 'abundance': 1 };
 		break;
 	    case 'pcoa':
-		allowed = { 'abundance': 1 }
+		allowed = { 'abundance': 1 };
 		break;
 	    case 'boxplot':
-		allowed = { 'abundance': 1 }
+		allowed = { 'abundance': 1 };
 		break;
 	    case 'plot':
-		allowed = { 'plot': 1 }
+		allowed = { 'plot': 1 };
 		break;
 	    case 'deviationplot':
-		allowed = { 'deviationplot': 1 }
+		allowed = { 'deviationplot': 1 };
+		break;
+		default:
 		break;
 	    }
 
@@ -983,9 +1013,9 @@
 		}
 	    }
 	    if (count == 0) {
-		alert('You have not selected data that can be visualized with this visualization');
+		    alert('You have not selected data that can be visualized with this visualization');
 	    }
 	}
-    }
+    };
     
 })();
