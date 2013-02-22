@@ -298,6 +298,7 @@
 
     widget.nb_init = function (index, iframe_id) {
         stm.send_message(iframe_id, 'IPython.notebook.select(0);IPython.notebook.execute_selected_cell();', 'action');
+        stm.send_message(iframe_id, 'IPython.notebook.select(1);IPython.notebook.execute_selected_cell();', 'action');
         Retina.WidgetInstances.NotebookDashboard[index].send_auth(iframe_id, stm.Authorization);
     };
 
