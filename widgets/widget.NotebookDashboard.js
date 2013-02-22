@@ -173,19 +173,32 @@
     
     // populate nb listselect with newest version of each notebook, empty version listselect
     widget.nb_select_refresh = function (index) {
-        // get notebooks from api    
-	    stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
-	        Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
-	        // returns [editable_nbs, current_nbs]
-	        var sorted_nb_sets = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
-            Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.settings.data = sorted_nb_sets[0];
-            Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.render();
-            Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.settings.data = sorted_nb_sets[1];
-            Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.render();
-            Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.settings.data = [];
-            Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.render();
-            setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].ipy_refresh()", 500);
+        // get notebooks from api or cached
+        jQuery.getJSON('data/notebooks_public.json', function(data) {
+            for (var d in data) {
+                if (data.hasOwnProperty(d)) {
+                    stm.load_data({"data": data[d], "type": d});
+                }
+            }
+            Retina.WidgetInstances.NotebookDashboard[index].nb_list_refresh(index);
+        }).fail( function() {
+            stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
+                Retina.WidgetInstances.NotebookDashboard[index].nb_list_refresh(index);
+            });
         });
+    };
+
+    widget.nb_list_refresh = function (index) {
+        Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
+        // returns [editable_nbs, current_nbs]
+        var sorted_nb_sets = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
+        Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.settings.data = sorted_nb_sets[0];
+        Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.render();
+        Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.settings.data = sorted_nb_sets[1];
+        Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.render();
+        Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.settings.data = [];
+        Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.render();
+        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].ipy_refresh()", 500);
     };
     
     // display notebook metadata
