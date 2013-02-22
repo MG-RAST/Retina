@@ -63,7 +63,8 @@
 			   "feature": stm.DataStore["metagenome"][i]["feature"],
 			   "material": stm.DataStore["metagenome"][i]["material"],
 			   "package": stm.DataStore["metagenome"][i]["package"],
-			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"]
+			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
+			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"]
 			 };
 		metagenome_data.push(md);
 	    }
@@ -131,7 +132,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 						       widget.ids = data;
 						       widget.display(wparams);
 						   },
-						   filter: [ "name", "id", "project", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method" ] }).render();
+						   filter: ["name", "id", "project", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"] }).render();
 	}
 	
 	// we have metagenomes, show the wizard
