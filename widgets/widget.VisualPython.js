@@ -975,25 +975,27 @@
 	    var allowed = {};
 	    switch (tab) {
 	    case 'graph':
-		allowed = { 'abundance': 1 }
+		allowed = { 'abundance': 1 };
 		break;
 	    case 'table':
-		allowed = { 'table': 1 }
+		allowed = { 'table': 1 };
 		break;
 	    case 'heat':
-		allowed = { 'abundance': 1 }
+		allowed = { 'abundance': 1 };
 		break;
 	    case 'pcoa':
-		allowed = { 'abundance': 1 }
+		allowed = { 'abundance': 1 };
 		break;
 	    case 'boxplot':
-		allowed = { 'abundance': 1 }
+		allowed = { 'abundance': 1 };
 		break;
 	    case 'plot':
-		allowed = { 'plot': 1 }
+		allowed = { 'plot': 1 };
 		break;
 	    case 'deviationplot':
-		allowed = { 'deviationplot': 1 }
+		allowed = { 'deviationplot': 1 };
+		break;
+		default:
 		break;
 	    }
 
@@ -1011,9 +1013,9 @@
 		}
 	    }
 	    if (count == 0) {
-		alert('You have not selected data that can be visualized with this visualization');
+		    alert('You have not selected data that can be visualized with this visualization');
 	    }
 	}
-    }
+    };
     
 })();
