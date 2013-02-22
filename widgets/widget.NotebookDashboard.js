@@ -12,8 +12,9 @@
     // ipython notebook server ip
     widget.nb_server = 'http://140.221.92.53:7051';
     
-    // shock id of template notebook
-    widget.nb_template = 'ae9f993e-f8d2-4317-9bdd-70e815029668';
+    // uuid of template notebook
+    widget.nb_template = 'ea7baf0c-1858-4d27-b2d7-0c054865a338';
+    widget.nb_template_id = undefined;
     
     // current selected notebook [ uuid (notebook), id (shock) ]
     widget.nb_selected = [];
@@ -175,10 +176,11 @@
         // get notebooks from api    
 	    stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
 	        Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
-	        var snbs = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
-            Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.settings.data = snbs;
+	        // returns [editable_nbs, current_nbs]
+	        var sorted_nb_sets = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
+            Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.settings.data = sorted_nb_sets[0];
             Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.render();
-            Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.settings.data = snbs;
+            Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.settings.data = sorted_nb_sets[1];
             Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.render();
             Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.settings.data = [];
             Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.render();
@@ -263,10 +265,10 @@
         var new_uuid = Retina.uuidv4();
         if (! new_name) {
             alert("Please enter a name for new notebook.");
-        } else if (! Retina.WidgetInstances.NotebookDashboard[index].nb_template) {
+        } else if (! Retina.WidgetInstances.NotebookDashboard[index].nb_template_id) {
             alert("Error creating notebook. Please try again.");
         } else {
-            stm.get_objects({"type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
+            stm.get_objects({"type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template_id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
                 setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name+"')", 1000);
                 jQuery('#nb_select_modal').modal('hide');
@@ -314,11 +316,15 @@
         var all_nbs  = stm.DataStore["notebook"];
         // create sorted_nbs: { uuid: [nbs with this uuid] }
         for (var id in all_nbs) {
-            if ((id == Retina.WidgetInstances.NotebookDashboard[index].nb_template) || (! all_nbs[id].name)) {
+            var uuid = all_nbs[id].uuid;
+            if (! all_nbs[id].name) {
+                continue;
+            }
+            if (uuid == Retina.WidgetInstances.NotebookDashboard[index].nb_template) {
+                Retina.WidgetInstances.NotebookDashboard[index].nb_template_id = id;
                 continue;
             }
             all_nbs[id]['datetime'] = Retina.date_string(all_nbs[id].created);
-            var uuid = all_nbs[id].uuid;
             if (uuid in uuid_nbs) {
                 uuid_nbs[uuid].push( all_nbs[id] );
             } else {
@@ -326,20 +332,23 @@
             }
         }
         // sort nbs of same uuid by timestamp
-        var latest_nbs = [];
+        var editable_nbs = [];
+        var current_nbs  = [];
         for (var u in uuid_nbs) {
             uuid_nbs[u].sort( function(a,b) {
                 return (a.created < b.created) ? 1 : ((b.created < a.created) ? -1 : 0);
             });
-            latest_nbs.push(uuid_nbs[u][0]);
+            if (uuid_nbs[u][0].permission == 'edit') {
+                editable_nbs.push(uuid_nbs[u][0]);
+            }
+            current_nbs.push(uuid_nbs[u][0]);
         }
         // set sorted_nbs
         Retina.WidgetInstances.NotebookDashboard[index].sorted_nbs = uuid_nbs;
 	    // return sorted list of latest nbs
-        latest_nbs.sort( function(a,b) {
-            return (a.created < b.created) ? 1 : ((b.created < a.created) ? -1 : 0);
-        });
-        return latest_nbs;
+        editable_nbs.sort( function(a,b){ return (a.created < b.created) ? 1 : ((b.created < a.created) ? -1 : 0); });
+        current_nbs.sort( function(a,b){ return (a.created < b.created) ? 1 : ((b.created < a.created) ? -1 : 0); });
+        return [editable_nbs, current_nbs];
     };
 
     widget.export_visual = function (index, tried) {
