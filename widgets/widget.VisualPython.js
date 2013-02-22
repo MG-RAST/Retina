@@ -294,7 +294,7 @@
 
 	// visualizations
 	var vis_sel = document.createElement('li');
-	vis_sel.innerHTML = '<a href="#vis" data-toggle="tab">'+widget.number(3)+'visualize data</a>';
+	vis_sel.innerHTML = '<a href="#vis" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'paragraph\');jQuery(\'#vis li:eq(0) a\').tab(\'show\');">'+widget.number(3)+'visualize data</a>';
 	ul.appendChild(vis_sel);
 
 	var vis_div = document.createElement('div');
@@ -310,7 +310,14 @@
 	vis_disp.setAttribute('class', 'tab-content');
 	vis_disp.setAttribute('style', 'padding-left: 15px;');
 
+	// create the variable selector
+	var vs = document.createElement('div');
+	vs.setAttribute('id', 'variablename_div');
+	vs.setAttribute('style', "display: none; float: left; height: 340px; margin-left: 10px; padding-top: 6px;");
+	vs.innerHTML = "<p style='font-weight: bold;'>available variables</p><select multiple size=12 id='varnames'></select>";
+
 	vis_div.appendChild(vis_ul);
+	vis_div.appendChild(vs);
 	vis_div.appendChild(vis_disp);
 
     // some constants
@@ -328,7 +335,7 @@
 	// paragraph UI
 	var paragraph_sel = document.createElement('li');
 	paragraph_sel.setAttribute('class', 'active');
-	paragraph_sel.innerHTML = '<a href="#paragraph" data-toggle="tab"><i class="icon-align-center" style="margin-right: 5px;"></i>text writer</a>';
+	paragraph_sel.innerHTML = '<a href="#paragraph" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'paragraph\');"><i class="icon-align-center" style="margin-right: 5px;"></i>text writer</a>';
 	vis_ul.appendChild(paragraph_sel);
 
 	var paragraph_div = document.createElement('div');
@@ -377,14 +384,14 @@
 
 	// chart UI
 	var chart_sel = document.createElement('li');
-	chart_sel.innerHTML = '<a href="#chart" data-toggle="tab"><i class="icon-signal" style="margin-right: 5px;"></i>bar-/pie-chart</a>';
+	chart_sel.innerHTML = '<a href="#chart" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'graph\');"><i class="icon-signal" style="margin-right: 5px;"></i>bar-/pie-chart</a>';
 	vis_ul.appendChild(chart_sel);
 
 	var chart_div = document.createElement('div');
 	chart_div.setAttribute('class', 'tab-pane');
 	chart_div.setAttribute('id', 'chart');
 	chart_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>type</th><td><select id="graph_type" style="margin-bottom: 0px;"><option>row</option><option>stackedRow</option><option>column</option><option>stackedColumn</option><option>line</option><option>pie</option><option>stackedArea</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="graph_data" value="" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>type</th><td><select id="graph_type" style="margin-bottom: 0px;"><option>row</option><option>stackedRow</option><option>column</option><option>stackedColumn</option><option>line</option><option>pie</option><option>stackedArea</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="graph_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
 <tr><th>title</th><td><input type="text" id="graph_title" value="Graph 1" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="graph_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th>height</th><td><input type="text" id="graph_height" value="auto" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="graph_comment"></textarea></td></tr>\
 <tr><th>width</th><td><input type="text" id="graph_width" value="auto" style="margin-bottom: 0px;"></td></tr>\
@@ -419,14 +426,14 @@
 
 	// table UI
 	var table_sel = document.createElement('li');
-	table_sel.innerHTML = '<a href="#table" data-toggle="tab"><i class="icon-list-alt" style="margin-right: 5px;"></i>table</a>';
+	table_sel.innerHTML = '<a href="#table" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'table\');"><i class="icon-list-alt" style="margin-right: 5px;"></i>table</a>';
 	vis_ul.appendChild(table_sel);
 
 	var table_div = document.createElement('div');
 	table_div.setAttribute('class', 'tab-pane');
 	table_div.setAttribute('id', 'table');
 	table_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>data variable</th><td><input type="text" id="table_data" value="" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>data variable</th><td><input type="text" id="table_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
 <tr><th>cell content</th><td><select id="table_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th style="vertical-align: top;">comment</th><td><textarea id="table_comment"></textarea></td></tr>\
 </table>';
@@ -445,14 +452,14 @@
 
 	// heatmap UI
 	var heatmap_sel = document.createElement('li');
-	heatmap_sel.innerHTML = '<a href="#heatmap" data-toggle="tab"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_heatmap.png">heatmap</a>';
+	heatmap_sel.innerHTML = '<a href="#heatmap" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'heat\');"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_heatmap.png">heatmap</a>';
 	vis_ul.appendChild(heatmap_sel);
 
 	var heatmap_div = document.createElement('div');
 	heatmap_div.setAttribute('class', 'tab-pane');
 	heatmap_div.setAttribute('id', 'heatmap');
 	heatmap_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>tree height</th><td><input type="text" id="heat_tree_height" style="margin-bottom: 0px;" value="50"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="heat_data" value="" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>tree height</th><td><input type="text" id="heat_tree_height" style="margin-bottom: 0px;" value="50"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="heat_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
 <tr><th>tree width</th><td><input type="text" id="heat_tree_width" value="200" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="heat_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th>legend height</th><td><input type="text" id="heat_legend_height" value="250" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="heat_comment"></textarea></td></tr>\
 <tr><th>legend width</th><td><input type="text" id="heat_legend_width" value="250" style="margin-bottom: 0px;"></td></tr>\
@@ -478,14 +485,14 @@
 
     // pcoa UI
     var pcoa_sel = document.createElement('li');
-	pcoa_sel.innerHTML = '<a href="#pcoa" data-toggle="tab"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_plot.png">PCoA</a>';
+	pcoa_sel.innerHTML = '<a href="#pcoa" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'pcoa\');"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_pcoa.png">PCoA</a>';
 	vis_ul.appendChild(pcoa_sel);
 	
 	var pcoa_div = document.createElement('div');
 	pcoa_div.setAttribute('class', 'tab-pane');
 	pcoa_div.setAttribute('id', 'pcoa');
 	pcoa_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>height</th><td><input type="text" id="pcoa_height" value="auto" style="margin-bottom: 0px;"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="pcoa_data" value="" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>height</th><td><input type="text" id="pcoa_height" value="auto" style="margin-bottom: 0px;"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="pcoa_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
 <tr><th>width</th><td><input type="text" id="pcoa_width" value="auto" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="pcoa_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th>title</th><td><input type="text" id="pcoa_title" value="PCoA 1" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="pcoa_comment"></textarea></td></tr>\
 <tr><th>distance method</th><td><select id="pcoa_distance" style="margin-bottom: 0px;">'+dist_options+'</select></td></tr>\
@@ -521,14 +528,14 @@
 
 	// plot UI
 	var plot_sel = document.createElement('li');
-	plot_sel.innerHTML = '<a href="#plot" data-toggle="tab"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_plot.png">plot</a>';
+	plot_sel.innerHTML = '<a href="#plot" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'plot\');"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_plot.png">plot</a>';
 	vis_ul.appendChild(plot_sel);
 
 	var plot_div = document.createElement('div');
 	plot_div.setAttribute('class', 'tab-pane');
 	plot_div.setAttribute('id', 'plot');
 	plot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>connected</th><td><select id="plot_connected" style="margin-bottom: 0px;"><option value="True">yes</option><option value="False">no</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="plot_data" value="" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>connected</th><td><select id="plot_connected" style="margin-bottom: 0px;"><option value="True">yes</option><option value="False">no</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="plot_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
 <tr><th>show dots</th><td><select id="plot_dots" style="margin-bottom: 0px;"><option value="False">no</option><option value="True">yes</option></select></td><th>cell content</th><td><select id="plot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th>title</th><td><input type="text" id="plot_title" value="Plot 1" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="plot_comment"></textarea></td></tr>\
 <tr><th>x-axis maximum value</th><td><input type="text" id="plot_x_max" value="auto" style="margin-bottom: 0px;"></td></tr>\
@@ -561,14 +568,14 @@
 
 	// boxplot map UI
 	var boxplot_sel = document.createElement('li');
-	boxplot_sel.innerHTML = '<a href="#boxplot" data-toggle="tab"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_boxplot.png">boxplot</a>';
+	boxplot_sel.innerHTML = '<a href="#boxplot" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'boxplot\');"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_boxplot.png">boxplot</a>';
 	vis_ul.appendChild(boxplot_sel);
 
 	var boxplot_div = document.createElement('div');
 	boxplot_div.setAttribute('class', 'tab-pane');
 	boxplot_div.setAttribute('id', 'boxplot');
 	boxplot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>height</th><td><input type="text" id="boxplot_height" style="margin-bottom: 0px;" value="350"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="boxplot_data" value="" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>height</th><td><input type="text" id="boxplot_height" style="margin-bottom: 0px;" value="350"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="boxplot_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
 <tr><th>width</th><td><input type="text" id="boxplot_width" value="350" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="boxplot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th></th><td></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="boxplot_comment"></textarea></td></tr>\
 </table>';
@@ -589,14 +596,14 @@
 
 	// deviationplot UI
 	var deviationplot_sel = document.createElement('li');
-	deviationplot_sel.innerHTML = '<a href="#deviationplot" data-toggle="tab"><i class="icon-tasks" style="margin-right: 5px;"></i>deviationplot</a>';
+	deviationplot_sel.innerHTML = '<a href="#deviationplot" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'deviationplot\');"><i class="icon-tasks" style="margin-right: 5px;"></i>deviationplot</a>';
 	vis_ul.appendChild(deviationplot_sel);
 
 	var deviationplot_div = document.createElement('div');
 	deviationplot_div.setAttribute('class', 'tab-pane');
 	deviationplot_div.setAttribute('id', 'deviationplot');
 	deviationplot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
-<tr><th>height</th><td><input type="text" id="deviationplot_height" style="margin-bottom: 0px;" value="80"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="deviationplot_data" value="" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>height</th><td><input type="text" id="deviationplot_height" style="margin-bottom: 0px;" value="80"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="deviationplot_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
 <tr><th>width</th><td><input type="text" id="deviationplot_width" value="400" style="margin-bottom: 0px;"></td></td><th>cell content</th><td><select id="deviationplot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th></th><td></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="deviationplot_comment"></textarea></td></tr>\
 </table>';
@@ -719,85 +726,123 @@
     };
 
     widget.create_data = function () {
-	    var senddata = "";
-	    var data_var = document.getElementById('data_variable_name').value;
-	    var dataname = document.getElementById('sample_select_variable_name').value;
-	    if (document.getElementById('data_comment').value) {
-	        senddata += "# " + document.getElementById('data_comment').value.split(/\n/).join("\n# ") + "\n";
+	var senddata = "";
+	var data_var = document.getElementById('data_variable_name').value;
+	
+	// check if we have a variable name
+	if (! data_var) {
+	    alert('you must select a variable name');
+	    document.getElementById('data_variable_name').setAttribute('required', "");
+	    document.getElementById('data_variable_name').focus();
+	    return;
+	}
+	document.getElementById('data_variable_name').removeAttribute('required');
+
+	// check if the variable name is valid
+	if (! data_var.match(/^\w+$/)) {
+	    alert('you may only use the alphanumeric characters for variable names');
+	    document.getElementById('data_variable_name').setAttribute('required', "");
+	    document.getElementById('data_variable_name').focus();
+	    return;
+	}
+
+	// check if the variable name has been used before
+	if (Retina.WidgetInstances.VisualPython[0].used_variables.hasOwnProperty(data_var)) {
+	    if (confirm('You have used to variable name "'+data_var+'" for another data result.\nAre you sure you want to continue?\nThis would overwrite the previous data in that variable.')) {
+		delete(Retina.WidgetInstances.VisualPython[0].used_variables[data_var]);
+	    } else {
+		document.getElementById('data_variable_name').focus();
+		return;
 	    }
-	    var sd = [];
-	    var data = document.getElementById('data_sample_select').options;
-	    for (i=0;i<data.length;i++) {
-	        if (data[i].selected) {
-		        sd.push("'"+data[i].value+"'");
-	        }
+	}
+	
+	var dataname = document.getElementById('sample_select_variable_name').value;
+	if (document.getElementById('data_comment').value) {
+	    senddata += "# " + document.getElementById('data_comment').value.split(/\n/).join("\n# ") + "\n";
+	}
+
+	var sd = [];
+	var data = document.getElementById('data_sample_select').options;
+	for (i=0;i<data.length;i++) {
+	    if (data[i].selected) {
+		sd.push("'"+data[i].value+"'");
 	    }
-	    senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
-	    if (document.getElementById('data_select').value == 'abundance') {
-	        var level = (document.getElementById('type_select').value == 'organism') ? document.getElementById('tax_select').value : document.getElementById('func_select').value;
-	        var norm  = (document.getElementById('norm_select').value == 'norm')? '1' : '0';
-	        Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'abundance';
-	        senddata += dataname+"['abundances'].set_display_mgs(ids=selected_ids)\n";
-	        senddata += data_var+" = {'annot': '"+document.getElementById('type_select').value+"', 'level': '"+level+"', 'normalize': "+norm+", 'arg_list': True}";
+	}
+	senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
+	if (document.getElementById('data_select').value == 'abundance') {
+	    var level = (document.getElementById('type_select').value == 'organism') ? document.getElementById('tax_select').value : document.getElementById('func_select').value;
+	    var norm  = (document.getElementById('norm_select').value == 'norm')? '1' : '0';
+	    Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'abundance';
+	    senddata += dataname+"['abundances'].set_display_mgs(ids=selected_ids)\n";
+	    senddata += data_var+" = {'annot': '"+document.getElementById('type_select').value+"', 'level': '"+level+"', 'normalize': "+norm+", 'arg_list': True}";
         } else {
             switch (document.getElementById('stat_select').value) {
-                case 'rare':
+            case 'rare':
                 // selected metagenomes - plot
                 Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'plot';
                 senddata += data_var+" = "+dataname+"['statistics'].plot_rarefaction(mgids=selected_ids, arg_list=True)";
                 break;
-                case 'drisee':
+            case 'drisee':
                 // single metagenome - plot
                 Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'plot';
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "drisee_data = Drisee(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
                 senddata += data_var+" = drisee_data.plot(arg_list=True)";
                 break;
-                case 'kmer':
+            case 'kmer':
                 // single metagenome - plot
                 Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'plot';
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "kmer_data = Kmer(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
                 senddata += data_var+" = kmer_data.plot_abundance(arg_list=True)";
                 break;
-                case 'metadata':
+            case 'metadata':
                 // selected metagenomes - table
                 Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'table';
                 senddata += data_var+" = "+dataname+"['statistics'].show_metadata(mgids=selected_ids, arg_list=True)";
                 break;
-                case 'alpha':
+            case 'alpha':
                 // single and selected metagenomes - deviationplot
                 Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'deviationplot';
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "alpha_list = "+dataname+"['statistics'].get_stat(stat='alpha_diversity_shannon', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += data_var+" = { 'data': alpha_list}";
                 break;
-                case 'bp':
+            case 'bp':
                 // single and selected metagenomes - deviationplot
                 Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'deviationplot';
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "bp_list = "+dataname+"['statistics'].get_stat(stat='bp_count_raw', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += data_var+" = { 'data': bp_list }";
                 break;
-                case 'length':
+            case 'length':
                 // single and selected metagenomes - deviationplot
                 Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'deviationplot';
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "length_list = "+dataname+"['statistics'].get_stat(stat='average_length_raw', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += data_var+" = { 'data': length_list }";
                 break;
-                case 'gc':
+            case 'gc':
                 // single and selected metagenomes - deviationplot
                 Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'deviationplot';
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "gc_list = "+dataname+"['statistics'].get_stat(stat='average_gc_content_raw', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += data_var+" = { 'data': gc_list }";
                 break;
-                default:
+            default:
                 break;
             }
         }
-	    widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
+
+	var vnopts = "";
+	for (i in Retina.WidgetInstances.VisualPython[0].used_variables) {
+	    if (Retina.WidgetInstances.VisualPython[0].used_variables.hasOwnProperty(i)) {
+		vnopts += "<option>"+i+"</option>";
+	    }
+	}
+	document.getElementById('varnames').innerHTML = vnopts;
+	
+	widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
     };
     
     widget.get_data_tab = function () {
@@ -810,7 +855,7 @@
 	}
 	html += "</select></td><td style='padding-right: 20px;'>\
 <table><tr><th style='width: 100px;'>data type</th><td>\
-  <select id='data_select' onchange='\
+  <select style='margin-bottom: 0px;' id='data_select' onchange='\
     var abunds = document.getElementsByName(\"abund_row\");\
     var stats = document.getElementsByName(\"stat_row\");\
     if (this.options[this.selectedIndex].value == \"abundance\") {\
@@ -827,17 +872,17 @@
   </select>\
 </td></tr>\
 <tr name='abund_row'><th>value format</th><td>\
-  <select id='norm_select'>\
+  <select id='norm_select' style='margin-bottom: 0px;'>\
     <option value='norm'>log transformed</option>\
     <option value='raw'>raw values</option>\
   </select></td></tr>\
 <tr name='abund_row'><th>hierarchy</th><td>\
-  <select id='type_select' onchange='if(this.options[this.selectedIndex].value==\"organism\"){document.getElementById(\"tax_select\").style.display=\"\";document.getElementById(\"func_select\").style.display=\"none\";}else{document.getElementById(\"tax_select\").style.display=\"none\";document.getElementById(\"func_select\").style.display=\"\";}'>\
+  <select id='type_select' style='margin-bottom: 0px;' onchange='if(this.options[this.selectedIndex].value==\"organism\"){document.getElementById(\"tax_select\").style.display=\"\";document.getElementById(\"func_select\").style.display=\"none\";}else{document.getElementById(\"tax_select\").style.display=\"none\";document.getElementById(\"func_select\").style.display=\"\";}'>\
     <option value='organism'>Taxonomic Hierarchy</option>\
     <option value='function'>Functional Hierarchy</option>\
   </select></td></tr>\
 <tr name='abund_row'><th>level</th><td>\
-  <select id='tax_select'>\
+  <select style='margin-bottom: 0px;' id='tax_select'>\
     <option value='domain'>Domain</option>\
     <option value='phylum'>Phylum</option>\
     <option value='class'>Class</option>\
@@ -846,14 +891,14 @@
     <option value='genus'>Genus</option>\
     <option value='species'>Species</option>\
   </select>\
-  <select id='func_select' style='display: none;'>\
+  <select style='margin-bottom: 0px;' id='func_select' style='display: none;'>\
     <option value='level1'>Level 1</option>\
     <option value='level2'>Level 2</option>\
     <option value='level3'>Level 3</option>\
     <option value='function'>Function</option>\
   </select></td></tr>\
 <tr name='stat_row' style='display: none;'><th>stat view</th><td>\
-  <select id='stat_select' onchange='if(/^(rare|metadata)$/.test(this.options[this.selectedIndex].value)){document.getElementById(\"primary_row\").style.display=\"none\";}else{document.getElementById(\"primary_row\").style.display=\"\";}Retina.WidgetInstances.VisualPython[0].variable_name();'>\
+  <select style='margin-bottom: 0px;' id='stat_select' onchange='if(/^(rare|metadata)$/.test(this.options[this.selectedIndex].value)){document.getElementById(\"primary_row\").style.display=\"none\";}else{document.getElementById(\"primary_row\").style.display=\"\";}Retina.WidgetInstances.VisualPython[0].variable_name();'>\
     <option value='rare'>Rarefaction Curve</option>\
     <option value='drisee'>DRISEE Profile</option>\
     <option value='kmer'>k-mer Profile</option>\
@@ -864,14 +909,14 @@
     <option value='gc'>GC Histogram</option>\
   </select></td></tr>\
 <tr name='stat_row' id='primary_row' style='display: none;'><th>primary data</th><td>\
-  <select id='primary_select'>";
+  <select style='margin-bottom: 0px;' id='primary_select'>";
     for (i in widget.loaded_ids) {
     	html += "<option value='"+i+"'>"+stm.DataStore.metagenome[i].name+"</option>";
     }
     html += "</td></tr></table>\
 </td><td>\
   <table>\
-    <tr><th style='width: 120px;'>variable name</th><td><input type='text' id='data_variable_name' value='' style='margin-bottom: 0px;'></td></tr>\
+    <tr><th style='width: 120px;'>variable name</th><td><input type='text' id='data_variable_name' value='abund_args_1' style='margin-bottom: 0px;'></td></tr>\
     <tr><th>cell content</th><td><select id='data_content_handling' style='margin-bottom: 0px;'><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
     <tr><th style='vertical-align: top;'>comment</th><td><textarea id='data_comment'>my data subselection</textarea></td></tr>\
   </table>\
@@ -893,5 +938,54 @@
         }
         document.getElementById('data_variable_name').value = temp_name+num.toString();
     };
+
+    widget.check_varname_list = function (tab) {
+	var v = document.getElementById('variablename_div');
+	if (tab == 'paragraph') {
+	    v.style.display = 'none';
+	} else {
+	    var allowed = {};
+	    switch (tab) {
+	    case 'graph':
+		allowed = { 'abundance': 1 }
+		break;
+	    case 'table':
+		allowed = { 'table': 1 }
+		break;
+	    case 'heat':
+		allowed = { 'abundance': 1 }
+		break;
+	    case 'pcoa':
+		allowed = { 'abundance': 1 }
+		break;
+	    case 'boxplot':
+		allowed = { 'abundance': 1 }
+		break;
+	    case 'plot':
+		allowed = { 'plot': 1 }
+		break;
+	    case 'deviationplot':
+		allowed = { 'deviationplot': 1 }
+		break;
+	    }
+
+	    v.style.display = '';
+	    var vns = document.getElementById('varnames').options;
+	    var count = 0;
+	    for (i=0; i<vns.length; i++) {
+		if (allowed[Retina.WidgetInstances.VisualPython[0].used_variables[vns[i].value]]) {
+		    vns[i].removeAttribute('disabled');
+		    var val = vns[i].value;
+		    vns[i].setAttribute('onclick', "document.getElementById('"+tab+"_data').value = '"+val+"';");
+		    count ++;
+		} else {
+		    vns[i].setAttribute('disabled', '');
+		}
+	    }
+	    if (count == 0) {
+		alert('You have not selected data that can be visualized with this visualization');
+	    }
+	}
+    }
     
 })();
