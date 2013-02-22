@@ -192,13 +192,14 @@
     widget.display_nb_info = function (uuid) {
         var snbs = widget.sorted_nbs[uuid];
         widget.nb_selected = [uuid, snbs[0].id];
+        var desc = snbs[0].hasOwnProperty('description') ? snbs[0].description : 'example notebook';
         var html = '\
             <table class="table table-striped table-condensed">\
                 <tr><td>Name</td><td>'+snbs[0].name+'</td></tr>\
                 <tr><td>Last Modified</td><td>'+snbs[0].datetime+'</td></tr>\
                 <tr><td>Status</td><td>'+snbs[0].status+'</td></tr>\
                 <tr><td>ID</td><td>'+snbs[0].uuid+'</td></tr>\
-                <tr><td>Description</td><td>example notebook</td></tr>\
+                <tr><td>Description</td><td>'+desc+'</td></tr>\
             </table>';
         jQuery('#nb_primary_tbl').html(html);
     };
