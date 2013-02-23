@@ -111,6 +111,7 @@
                                     <div id="nb_primary_tbl" class="span3"></div>\
                                 </div>\
                                 <div style="float:right;"><button class="btn btn-success" style="margin-left:20px;margin-bottom:10px;" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_launch_click('+index+');">Launch</button></div>\
+                                <div style="float:right;"><button class="btn btn-danger" style="margin-left:20px;margin-bottom:10px;" onclick="if(confirm(\'Do you really want to delete this notebook?\')){Retina.WidgetInstances.NotebookDashboard['+index+'].nb_delete_click('+index+');}">Delete</button></div>\
                             </div>\
                             <div id="copy_nb_tab" class="tab-pane">\
                                 <div class="row">\
@@ -147,7 +148,7 @@
 									"multiple": false,
 									"no_button": true,
 									"callback": Retina.WidgetInstances.NotebookDashboard[index].display_nb_info
-								      });
+								  });
 	
         widget.nb_copy_list = Retina.Renderer.create('listselect', { "target": document.getElementById('nb_copy_div'),
 								     "data": [],
@@ -233,8 +234,32 @@
     
     widget.select_nb_click = function (index) {
         Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
-        Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
         jQuery('#nb_select_modal').modal('show');
+    };
+    
+    // delete selected - we make a copy (with new timestamp) flagged as deleted
+    widget.nb_delete_click = function (index) {
+        var sel_nb = Retina.WidgetInstances.NotebookDashboard[index].nb_selected;
+        if (sel_nb.length == 0) {
+            alert("No notebook is selected");
+            return;
+        }
+        var this_nb  = Retina.WidgetInstances.NotebookDashboard[index].sorted_nbs[sel_nb[0]][0];
+        var has_uuid = jQuery('#'+this_nb.uuid);
+        if (has_uuid.length > 0) {
+            alert('Notebook '+this_nb.name+' ('+this_nb.uuid+') is already open.\nPlease close tab if you wish to delete.');
+            return;
+        }
+        // if ((this_nb.permission == 'view') || (this_nb.status == 'public')) {
+        if (this_nb.permission == 'view') {
+            alert('Insufficient permissions to delete notebook '+this_nb.name+' ('+this_nb.uuid+')');
+            return;
+        }
+        // now we delete
+        stm.get_objects({"type": "notebook", "id": 'delete/'+this_nb.uuid, "options": {"verbosity": "minimal"}}).then(function () {
+            Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
+            alert('Deleted notebook '+this_nb.name+' ('+this_nb.uuid+')');
+        });
     };
     
     // launch latest notebook
@@ -255,6 +280,7 @@
         jQuery('#nb_select_modal').modal('hide');
     };
 
+    // copy selected and launch copy
     widget.copy_launch_click = function (index) {
         var sel_nb = Retina.WidgetInstances.NotebookDashboard[index].nb_selected;
         if (sel_nb.length == 0) {
@@ -274,6 +300,7 @@
         }
     };
     
+    // create new from template and launch new
     widget.new_nb_click = function (index) {
         var new_name = jQuery('#new_nb_name').val();
         var new_uuid = Retina.uuidv4();
@@ -327,12 +354,12 @@
     };
 
     widget.nb_sort = function (index) {
+        // create sorted_nbs: { uuid: [nbs with this uuid] }
         var uuid_nbs = {};
         var all_nbs  = stm.DataStore["notebook"];
-        // create sorted_nbs: { uuid: [nbs with this uuid] }
         for (var id in all_nbs) {
             var uuid = all_nbs[id].uuid;
-            if (! all_nbs[id].name) {
+            if (! (uuid && id && all_nbs[id].name)) {
                 continue;
             }
             if (uuid == Retina.WidgetInstances.NotebookDashboard[index].nb_template) {
@@ -353,6 +380,10 @@
             uuid_nbs[u].sort( function(a,b) {
                 return (a.created < b.created) ? 1 : ((b.created < a.created) ? -1 : 0);
             });
+            if (uuid_nbs[u][0].status == 'deleted') {
+                delete uuid_nbs[u];
+                continue;
+            }
             if (uuid_nbs[u][0].permission == 'edit') {
                 editable_nbs.push(uuid_nbs[u][0]);
             }
