@@ -15,6 +15,7 @@
     // uuid of template notebook
     widget.nb_template = 'ea7baf0c-1858-4d27-b2d7-0c054865a338';
     widget.nb_template_id = undefined;
+    widget.nb_cache = false;
     
     // current selected notebook [ uuid (notebook), id (shock) ]
     widget.nb_selected = [];
@@ -174,19 +175,25 @@
     
     // populate nb listselect with newest version of each notebook, empty version listselect
     widget.nb_select_refresh = function (index) {
-        // get notebooks from api or cached
-        jQuery.getJSON('data/notebooks_public.json', function(data) {
-            for (var d in data) {
-                if (data.hasOwnProperty(d)) {
-                    stm.load_data({"data": data[d], "type": d});
+        if (Retina.WidgetInstances.NotebookDashboard[index].nb_cache) {
+            // get notebooks from api or cached
+            jQuery.getJSON('data/notebooks_public.json', function(data) {
+                for (var d in data) {
+                    if (data.hasOwnProperty(d)) {
+                        stm.load_data({"data": data[d], "type": d});
+                    }
                 }
-            }
-            Retina.WidgetInstances.NotebookDashboard[index].nb_list_refresh(index);
-        }).fail( function() {
+                Retina.WidgetInstances.NotebookDashboard[index].nb_list_refresh(index);
+            }).fail( function() {
+                stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
+                    Retina.WidgetInstances.NotebookDashboard[index].nb_list_refresh(index);
+                });
+            });
+        } else {
             stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].nb_list_refresh(index);
             });
-        });
+        }
     };
 
     widget.nb_list_refresh = function (index) {
