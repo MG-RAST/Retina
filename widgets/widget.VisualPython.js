@@ -415,7 +415,7 @@
 	    var height = (document.getElementById('graph_width').value == 'auto') ? "" : "'height': "+document.getElementById('graph_width').value;
 	    var width  = (document.getElementById('graph_height').value == 'auto') ? "" : "'width': "+document.getElementById('graph_height').value;
 	    var senddata = "graph_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].barchart(**"+document.getElementById('graph_data').value+")\n";	    
-	    senddata += "graph_args.update({"+lpos+", 'btype': '"+document.getElementById('graph_type').value+"', 'title': '"+document.getElementById('graph_title').value+"', 'x_title': '"+document.getElementById('graph_x_title').value+"', 'y_title': '"+document.getElementById('graph_y_title').value+"'";
+	    senddata += "try:\n\tgraph_args.update({"+lpos+", 'btype': '"+document.getElementById('graph_type').value+"', 'title': '"+document.getElementById('graph_title').value+"', 'x_title': '"+document.getElementById('graph_x_title').value+"', 'y_title': '"+document.getElementById('graph_y_title').value+"'";
 	    if (height) {
 	        senddata += ", "+height;
 	    }
@@ -423,7 +423,8 @@
 	        senddata += ", "+width;
 	    }
 	    senddata += "})\n";
-	    senddata += "Ipy.RETINA.graph(**graph_args)";
+	    senddata += "\tIpy.RETINA.graph(**graph_args)\n";
+	    senddata += "except:\n\tpass";
 	    widget.transfer(senddata, false);
 	});
 	chart_div.appendChild(graph_button);
@@ -488,8 +489,9 @@
 	    }
 	    var senddata = "heatmap_args = dict("+document.getElementById('heat_data').value+".items() + {'dist': '"+document.getElementById('heat_distance').value+"', 'clust': '"+document.getElementById('heat_cluster').value+"'}.items())\n";
 	    senddata += "heat_viz_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].heatmap(**heatmap_args)\n";
-	    senddata += "heat_viz_args.update({'tree_height': "+document.getElementById('heat_tree_height').value+", 'tree_width': "+document.getElementById('heat_tree_width').value+", 'legend_width': "+document.getElementById('heat_legend_width').value+", 'legend_height': "+document.getElementById('heat_legend_height').value+", 'min_cell_height': "+document.getElementById('heat_min_cell_height').value+"})\n";
-	    senddata += "Ipy.RETINA.heatmap(**heat_viz_args)";
+	    senddata += "try:\n\theat_viz_args.update({'tree_height': "+document.getElementById('heat_tree_height').value+", 'tree_width': "+document.getElementById('heat_tree_width').value+", 'legend_width': "+document.getElementById('heat_legend_width').value+", 'legend_height': "+document.getElementById('heat_legend_height').value+", 'min_cell_height': "+document.getElementById('heat_min_cell_height').value+"})\n";
+	    senddata += "\tIpy.RETINA.heatmap(**heat_viz_args)\n";
+	    senddata += "except:\n\tpass";
 	    widget.transfer(senddata, false);
 	});
 	heatmap_div.appendChild(heat_button);
@@ -528,7 +530,7 @@
 	    var lpos = (document.getElementById('pcoa_legend_position').value == 'none') ? "'show_legend': False" : "'show_legend': True, 'legend_position': '"+document.getElementById('pcoa_legend_position').value+"'";
 	    var senddata = "pcoa_args = dict("+document.getElementById('pcoa_data').value+".items() + {'dist': '"+document.getElementById('pcoa_distance').value+"', 'x_axis': "+document.getElementById('pcoa_x_comp').value+", 'y_axis': "+document.getElementById('pcoa_y_comp').value+"}.items())\n";
 	    senddata += "pcoa_viz_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].pco(**pcoa_args)\n";
-	    senddata += "pcoa_viz_args.update({"+lpos+", 'title': '"+document.getElementById('plot_title').value+"'";
+	    senddata += "try:\n\tpcoa_viz_args.update({"+lpos+", 'title': '"+document.getElementById('plot_title').value+"'";
 	    if (height) {
 	        senddata += ", "+height;
 	    }
@@ -536,7 +538,8 @@
 	        senddata += ", "+width;
 	    }
 	    senddata += "})\n";
-	    senddata += "Ipy.RETINA.plot(**pcoa_viz_args)";
+	    senddata += "\tIpy.RETINA.plot(**pcoa_viz_args)\n";
+	    senddata += "except:\n\tpass";
 	    widget.transfer(senddata, false);
 	});
 	pcoa_div.appendChild(pcoa_button);
@@ -611,8 +614,9 @@
 	        return;
 	    }
 	    var senddata = "boxplot_args = "+document.getElementById('sample_select_variable_name').value+"['abundances'].boxplot(**"+document.getElementById('boxplot_data').value+")\n";
-	    senddata += "boxplot_args.update({'height': "+document.getElementById('boxplot_height').value+", 'width': "+document.getElementById('boxplot_width').value+"})\n";
-	    senddata += "Ipy.RETINA.boxplot(**boxplot_args)";
+	    senddata += "try:\n\tboxplot_args.update({'height': "+document.getElementById('boxplot_height').value+", 'width': "+document.getElementById('boxplot_width').value+"})\n";
+	    senddata += "\tIpy.RETINA.boxplot(**boxplot_args)\n";
+	    senddata += "except:\n\tpass";
 	    widget.transfer(senddata, false);
 	});
 	boxplot_div.appendChild(boxplot_button);
