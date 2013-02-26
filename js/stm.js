@@ -294,11 +294,24 @@
 		document.getElementById('progressBar').innerHTML = "waiting for respose...";
 		//progressIndicator.style.display = "none";
 	    }
-	    if (params.hasOwnProperty('return_type') && params.return_type == 'text') {
-		var d = {};
-		d['id'] = params['id'];
-		d['data'] = xhr.responseText;
-		stm.load_data({ "data": d, "type": type });
+	    if (params.hasOwnProperty('return_type')) {
+		switch (params.return_type) {
+		case 'text':
+		    var d = {};
+		    d['id'] = params['id'];
+		    d['data'] = xhr.responseText;
+		    stm.load_data({ "data": d, "type": type });
+		    break;
+		case 'shock':
+		    var d = JSON.parse(xhr.responseText);
+		    if (d.E == null) {
+			stm.load_data({ "data": d.D, "type": type });
+		    } else {
+			alert(d.E);
+			console.log(d);
+		    }
+		    break;
+		}
 	    } else {
 		stm.load_data({ "data": JSON.parse(xhr.responseText), "type": type });
 	    }
