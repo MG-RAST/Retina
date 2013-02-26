@@ -50,8 +50,13 @@
 	var dash_div = params.target;
 	var iframe_div = params.notebook;
 	var dash_html = '\
-	        <button style="width: 150px; width: 150px; position: absolute; top: 60px; right: 55px;" data-toggle="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" type="button" class="btn">Analysis Builder</button>\
-            <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].export_visual('+index+');" title="show results in new window" style="position: absolute; top: 60px; right: 10px;"><i class="icon-eye-open icon-white"></i></button>\
+	        <button class="btn" type="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" data-toggle="button" style="width: 150px; width: 150px; position: absolute; top: 60px; right: 90px;">Analysis Builder</button>\
+                <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[1].export_visual(1, null, true);" title="show full notebook text in new window" style="position: absolute; top: 60px; right: 50px;">\
+                   <i class="icon-align-justify icon-white"></i>\
+                </button>\
+                <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[1].export_visual(1);" title="show visual results in new window" style="position: absolute; top: 60px; right: 10px;">\
+                   <i class="icon-eye-open icon-white"></i>\
+                </button>\
             <div id="data_pick" style="display: none; height: 395px; margin-top: 5px;">\
 	            <div id="data_selector_div"></div>\
 	        </div>\
@@ -404,11 +409,11 @@
         return [editable_nbs, current_nbs];
     };
 
-    widget.export_visual = function (index, tried) {
+    widget.export_visual = function (index, tried, full) {
 	if (! tried) {
 	    var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
 	    var iframe_id = curr_iframe[0].id;
-	    stm.send_message(iframe_id, 'ipy.createHTML();', 'action');
+	    stm.send_message(iframe_id, 'ipy.createHTML("full");', 'action');
 	    setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].export_visual("+index+", true)", 1000);
 	} else {	
 	    if (document.getElementById('result').innerHTML == "") {
@@ -416,8 +421,52 @@
 	    } else {
 		var w = window.open('', '_blank', '');
 		w.document.open();
-		w.document.write("<html><head><title>Notebook Analysis Result</title><link rel='stylesheet' type='text/css' href='css/bootstrap.min.css'><style>body div { margin-bottom: 30px; }</style></head><body class='container' style='margin-top: 50px;'></body></html>");
-		w.document.body.innerHTML = document.getElementById('result').innerHTML;
+		w.document.write("<html>\
+<head>\
+  <title>Notebook Analysis Result</title>\
+  <link rel='stylesheet' type='text/css' href='css/bootstrap.min.css'>\
+  <style>\
+      h1,h2,h3 {\
+        margin-bottom: 15px;\
+      }\
+      .prompt {\
+        display: none;\
+      }\
+      .CodeMirror-cursor {\
+        display: none;\
+      }\
+      .output_html {\
+        margin-bottom: 15px;\
+      }\
+pre {" + (full ? "" : "display: none;\
+") +"\
+        width: 920px;\
+      }\
+  </style>\
+  <script>\
+    function cleanup () {\
+	var pres = document.getElementsByClassName('CodeMirror-cursor');\
+	var len = pres.length;\
+	for (i=0; i<len; i++) {\
+	    pres[i].parentNode.removeChild(pres[i]);\
+	    i--;\
+	    len--;\
+	}\
+	pres = document.getElementsByTagName('pre');\
+	len = pres.length;\
+	for (i=0;i<len;i++) {\
+	    if (pres[i].nextSibling && pres[i].nextSibling.tagName == 'PRE') {\
+		pres[i].innerHTML += '<br>'+pres[i].nextSibling.innerHTML;\
+		pres[i+1].parentNode.removeChild(pres[i+1]);\
+		i--;\
+		len--;\
+	    }\
+	}\
+    }\
+  </script>\
+</head>\
+<body class='container' style='margin-top: 50px;' onload='cleanup();'></body></html>");
+		w.document.body.innerHTML = document.getElementById('result').innerHTML;		
 		w.document.close();
 	    }
 	}
