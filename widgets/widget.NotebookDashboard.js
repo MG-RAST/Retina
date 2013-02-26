@@ -414,7 +414,7 @@
 	    var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
 	    var iframe_id = curr_iframe[0].id;
 	    stm.send_message(iframe_id, 'ipy.createHTML("full");', 'action');
-	    setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].export_visual("+index+", true)", 1000);
+	    setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].export_visual("+index+", true, "+(full?"true":"false")+")", 1000);
 	} else {	
 	    if (document.getElementById('result').innerHTML == "") {
 		alert("There is no content to show.");
