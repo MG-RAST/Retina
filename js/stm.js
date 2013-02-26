@@ -97,7 +97,7 @@
     stm.repositories = function () { return stm.repository(); };
     
     // set up / reset the DataHandler, adding initial repositories
-    stm.init = function (repo) {
+    stm.init = function (repo, nocheck) {
 	stm.DataStore = [];
 	stm.TypeData = [];
 	stm.TypeData['object_count'] = [];
@@ -107,7 +107,7 @@
 	stm.DataRepositoriesCount = 0;
 	stm.DataRepositoryDefault = null;
 	if (repo) {
-	    return stm.add_repository(repo);
+	    return stm.add_repository(repo, null, nocheck);
 	}
     };
     
@@ -161,29 +161,37 @@
     };
     
     // adds / replaces a repository in the stm.DataRepositories list
-    stm.add_repository = function (repository, resolve_resources) {
+    stm.add_repository = function (repository, resolve_resources, offline_mode) {
 	if (repository) {
-	    var promises = [];
-	    var promise = jQuery.Deferred();
-	    promises.push(jQuery.getJSON(repository, function (data) {
-		repository = data;
-		stm.DataRepositories[repository.service] = repository;
-		if (resolve_resources) {
-		    for (var i=0; i<repository.resources.length; i++) {
-			promises.push(jQuery.getJSON(repository.resources[i].url, function (data) {
-			    stm.TypeData[data.name] = data;
-			}));
-		    }
-		}
+	    if (offline_mode) {
+		stm.DataRepositories['default'] = { url: repository, name: 'default' };
 		stm.DataRepositoriesCount++;
 		if (stm.DataRepositoryDefault == null) {
-		    stm.DataRepositoryDefault = stm.DataRepositories[repository.service];
+		    stm.DataRepositoryDefault = stm.DataRepositories['default'];
 		}
-	    }));
-	    jQuery.when.apply(this, promises).then(function() {
-		promise.resolve();
-	    });
-	    return promise;
+	    } else {
+		var promises = [];
+		var promise = jQuery.Deferred();
+		promises.push(jQuery.getJSON(repository, function (data) {
+		    repository = data;
+		    stm.DataRepositories[repository.service] = repository;
+		    if (resolve_resources) {
+			for (var i=0; i<repository.resources.length; i++) {
+			    promises.push(jQuery.getJSON(repository.resources[i].url, function (data) {
+				stm.TypeData[data.name] = data;
+			    }));
+			}
+		    }
+		    stm.DataRepositoriesCount++;
+		    if (stm.DataRepositoryDefault == null) {
+			stm.DataRepositoryDefault = stm.DataRepositories[repository.service];
+		    }
+		}));
+		jQuery.when.apply(this, promises).then(function() {
+		    promise.resolve();
+		});
+		return promise;
+	    }
 	}
     };
     
@@ -286,11 +294,24 @@
 		document.getElementById('progressBar').innerHTML = "waiting for respose...";
 		//progressIndicator.style.display = "none";
 	    }
-	    if (params.hasOwnProperty('return_type') && params.return_type == 'text') {
-		var d = {};
-		d['id'] = params['id'];
-		d['data'] = xhr.responseText;
-		stm.load_data({ "data": d, "type": type });
+	    if (params.hasOwnProperty('return_type')) {
+		switch (params.return_type) {
+		case 'text':
+		    var d = {};
+		    d['id'] = params['id'];
+		    d['data'] = xhr.responseText;
+		    stm.load_data({ "data": d, "type": type });
+		    break;
+		case 'shock':
+		    var d = JSON.parse(xhr.responseText);
+		    if (d.E == null) {
+			stm.load_data({ "data": d.D, "type": type });
+		    } else {
+			alert(d.E);
+			console.log(d);
+		    }
+		    break;
+		}
 	    } else {
 		stm.load_data({ "data": JSON.parse(xhr.responseText), "type": type });
 	    }
