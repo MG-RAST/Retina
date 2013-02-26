@@ -34,8 +34,13 @@
 	    IPython.notebook.get_cell(index).set_text(IPython.notebook.get_cell(index).get_text()+"\n"+text);
     };
 
-    ipy.createHTML = function () {
-	var cells = document.getElementsByClassName('output_html');
+    ipy.createHTML = function (type) {
+	var cells;
+	if (type && (type == 'full')) {
+	    cells = [ document.getElementById('notebook') ];
+	} else {
+	    cells = document.getElementsByClassName('output_html');
+	}
 	var html = "";
 	for (i=0;i<cells.length;i++) {
 	    html += cells[i].innerHTML;
