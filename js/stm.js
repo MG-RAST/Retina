@@ -164,7 +164,7 @@
     stm.add_repository = function (repository, resolve_resources, offline_mode) {
 	if (repository) {
 	    if (offline_mode) {
-		stm.DataRepositories['default'] = repository;
+		stm.DataRepositories['default'] = { url: repository, name: 'default' };
 		stm.DataRepositoriesCount++;
 		if (stm.DataRepositoryDefault == null) {
 		    stm.DataRepositoryDefault = stm.DataRepositories['default'];
