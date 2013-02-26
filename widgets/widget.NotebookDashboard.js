@@ -421,7 +421,7 @@
 	    } else {
 		var w = window.open('', '_blank', '');
 		w.document.open();
-		w.document.write("<html>\
+		var str = "<html>\
 <head>\
   <title>Notebook Analysis Result</title>\
   <link rel='stylesheet' type='text/css' href='css/bootstrap.min.css'>\
@@ -438,10 +438,14 @@
       .output_html {\
         margin-bottom: 15px;\
       }\
-pre {" + (full ? "" : "display: none;\
-") +"\
-        width: 920px;\
-      }\
+pre {\
+";
+		if (! full) {
+		    str += "display: none;\
+";
+		}
+		str += "        width: 920px;\
+     }\
   </style>\
   <script>\
     function cleanup () {\
@@ -465,7 +469,8 @@ pre {" + (full ? "" : "display: none;\
     }\
   </script>\
 </head>\
-<body class='container' style='margin-top: 50px;' onload='cleanup();'></body></html>");
+<body class='container' style='margin-top: 50px;' onload='cleanup();'></body></html>";
+		w.document.write(str);
 		w.document.body.innerHTML = document.getElementById('result').innerHTML;		
 		w.document.close();
 	    }
