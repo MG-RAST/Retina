@@ -42,10 +42,23 @@
 	stm.send_message(iframe_id, msgstring, 'action');
     };
 
-    widget.display = function (params) {
+    widget.add_private = function (params) {
+        var progress = document.createElement('div');
+	    progress.innerHTML = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 100px; width: 400px; right: 38%;">\
+<button type="button" class="close" data-dismiss="alert">×</button>\
+<h4><img src="images/loading.gif"> Please wait...</h4>\
+<p>The data to be displayed is currently loading.</p>\
+<p id="progressBar"></p>\
+    </div>';
+	    params.target.appendChild(progress);
+	    stm.get_objects({"type": "metagenome", "options": {"status": "private", "verbosity": "migs", "limit": 0}}).then(function() {
+            Retina.WidgetInstances.VisualPython[0].display(params);
+        });
+    };
 
-	// check if the required metadata is loaded
-	if (! stm.DataStore.hasOwnProperty('metagenome')) {	    
+    widget.display = function (params) {
+	// check if the required metadata is loaded - if not get public
+	if (! stm.DataStore.hasOwnProperty('metagenome')) {
 	    var progress = document.createElement('div');
 	    progress.innerHTML = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 100px; width: 400px; right: 38%;">\
 <button type="button" class="close" data-dismiss="alert">×</button>\
@@ -79,7 +92,7 @@
             }
             Retina.WidgetInstances.VisualPython[0].display(params);
         }).fail( function() {
-            stm.get_objects({"type": "metagenome", "options": {"verbosity": "migs", "limit": 0}}).then(function() {
+            stm.get_objects({"type": "metagenome", "options": {"status": "public", "verbosity": "migs", "limit": 0}}).then(function() {
                 Retina.WidgetInstances.VisualPython[0].display(params);
             });
         });

@@ -10,7 +10,7 @@
     });
     
     // ipython notebook server ip
-    widget.nb_server = 'http://140.221.92.53:7051';
+    widget.nb_server = 'http://140.221.84.229:7051';
     
     // uuid of template notebook
     widget.nb_template = 'ea7baf0c-1858-4d27-b2d7-0c054865a338';
@@ -444,6 +444,7 @@
 		        document.getElementById('login_name').innerHTML = uname;
 		        document.getElementById('failure').innerHTML = "";
 		        stm.Authorization = d.token;
+		        Retina.WidgetInstances.VisualPython[0].add_private({ target: document.getElementById('data_selector_div') });
 		        jQuery('#loginModal').modal('hide');
 		        jQuery('#msgModal').modal('show');
 		        jQuery('.tab-pane').children('iframe').each(function() {
@@ -458,6 +459,8 @@
     widget.perform_logout = function () {
 	    document.getElementById('login_name_span').style.display = "";
 	    document.getElementById('login_name').innerHTML = "";
+	    delete stm.DataStore['metagenome'];
+	    Retina.WidgetInstances.VisualPython[0].display({ target: document.getElementById('data_selector_div') });
 	    jQuery('.tab-pane').children('iframe').each(function() {
 	        Retina.WidgetInstances.NotebookDashboard[0].send_auth(this.id, undefined);
         });
