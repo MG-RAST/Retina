@@ -180,6 +180,8 @@
     
     // populate nb listselect with newest version of each notebook, empty version listselect
     widget.nb_select_refresh = function (index) {
+        // clear current nbs
+        stm.delete_object_type('notebook');
         if (Retina.WidgetInstances.NotebookDashboard[index].nb_cache) {
             // get notebooks from api or cached
             jQuery.getJSON('data/notebooks_public.json', function(data) {
@@ -501,6 +503,7 @@ pre {\
 		        document.getElementById('login_name').innerHTML = uname;
 		        document.getElementById('failure').innerHTML = "";
 		        stm.Authentication = d.token;
+		        Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
 		        Retina.WidgetInstances.VisualPython[0].add_private({ target: document.getElementById('data_selector_div') });
 		        jQuery('#loginModal').modal('hide');
 		        jQuery('#msgModal').modal('show');
@@ -517,6 +520,7 @@ pre {\
 	    document.getElementById('login_name_span').style.display = "";
 	    document.getElementById('login_name').innerHTML = "";
 	    stm.delete_object_type('metagenome');
+	    Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
 	    Retina.WidgetInstances.VisualPython[0].display({ target: document.getElementById('data_selector_div') });
 	    jQuery('.tab-pane').children('iframe').each(function() {
 	        Retina.WidgetInstances.NotebookDashboard[0].send_auth(this.id, undefined);
