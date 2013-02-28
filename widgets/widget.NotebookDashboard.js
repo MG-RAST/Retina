@@ -478,6 +478,9 @@ pre {\
     };
 
     widget.send_auth = function (iframe_id, auth) {
+        if (iframe_id == 'ipython_dash') {
+            return;
+        }
         if (auth) {
             var uname = auth.substr(3, auth.indexOf('|') - 3);
             stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.auth=\''+auth+'\'; Ipy.username=\''+uname+'\'", {}, {});' , 'action');
