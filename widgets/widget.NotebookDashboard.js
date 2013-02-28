@@ -351,7 +351,7 @@
     widget.nb_init = function (index, iframe_id) {
         stm.send_message(iframe_id, 'IPython.notebook.select(0);IPython.notebook.execute_selected_cell();', 'action');
         stm.send_message(iframe_id, 'IPython.notebook.select(1);IPython.notebook.execute_selected_cell();', 'action');
-        Retina.WidgetInstances.NotebookDashboard[index].send_auth(iframe_id, stm.Authorization);
+        Retina.WidgetInstances.NotebookDashboard[index].send_auth(iframe_id, stm.Authentication);
     };
 
     widget.ipy_refresh = function () {
@@ -497,7 +497,7 @@ pre {\
 		        document.getElementById('login_name_span').style.display = "none";
 		        document.getElementById('login_name').innerHTML = uname;
 		        document.getElementById('failure').innerHTML = "";
-		        stm.Authorization = d.token;
+		        stm.Authentication = d.token;
 		        Retina.WidgetInstances.VisualPython[0].add_private({ target: document.getElementById('data_selector_div') });
 		        jQuery('#loginModal').modal('hide');
 		        jQuery('#msgModal').modal('show');
@@ -513,7 +513,7 @@ pre {\
     widget.perform_logout = function () {
 	    document.getElementById('login_name_span').style.display = "";
 	    document.getElementById('login_name').innerHTML = "";
-	    delete stm.DataStore['metagenome'];
+	    stm.delete_object_type('metagenome');
 	    Retina.WidgetInstances.VisualPython[0].display({ target: document.getElementById('data_selector_div') });
 	    jQuery('.tab-pane').children('iframe').each(function() {
 	        Retina.WidgetInstances.NotebookDashboard[0].send_auth(this.id, undefined);

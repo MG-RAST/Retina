@@ -21,7 +21,7 @@
     <!--initialization-->
     <script type="text/javascript">
     jQuery(function () {
-      	stm.init('http://api.metagenomics.anl.gov').then(function() {
+      	stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
 	        Retina.init({ library_resource: "js/" });
 	        Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
 	        Retina.add_widget({"name": "VisualPython", "resource": "widgets/", "filename": "widget.VisualPython.js"});
