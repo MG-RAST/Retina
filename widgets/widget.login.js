@@ -15,9 +15,6 @@
     widget.callback = null;
     
     widget.display = function (wparams) {
-	console.log('hello world');
-	console.log(wparams);
-
 	widget = this;
 	var index = widget.index;
 	
