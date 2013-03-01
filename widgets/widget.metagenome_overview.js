@@ -79,6 +79,8 @@
 	    (mg.sequence_type == 'Amplicon') ? null: { type: 'multi_plot', data: 'drisee_plot', category: 'drisee' },
 	    { type: 'paragraph', data: 'kmer_introtext' },
 	    (mg.sequence_type == 'Amplicon') ? null: { type: 'single_plot', data: 'kmer_plot', category: 'kmer' },
+	    { type: 'paragraph', data: 'bp_introtext' },
+	    (mg.sequence_type == 'Amplicon') ? null: { type: 'areagraph', data: 'bp_plot', category: 'bp' },
 	    { type: 'paragraph', data: 'ontology_introtext' },
 	    { type: 'piechart', data: 'COG', category: 'ontology' },
 	    { type: 'piechart', data: 'KO', category: 'ontology' },
@@ -142,6 +144,16 @@
 		    break;
 		case 'linegraph':
             data = widget.taxon_linegraph(mg_stats.taxonomy, 'family', 50);
+            data.target = div;
+            Retina.Renderer.create("graph", data).render();
+            break;
+        case 'areagraph':
+            if (! mg_stats.qc.bp_profile.percents.data) {
+		        content.removeChild(tag);
+		        content.removeChild(div);
+                break;
+            }
+            data = widget.bp_areagraph(mg_stats.qc.bp_profile.percents.columns, mg_stats.qc.bp_profile.percents.data);
             data.target = div;
             Retina.Renderer.create("graph", data).render();
             break;
@@ -322,8 +334,10 @@
 			                 [ "<a href='#migs_metadata'>MIxS Metadata</a>" ],
 			                 [ "<a href='#drisee_introtext'>DRISEE</a>" ],
 			                 [ "<a href='#kmer_introtext'>Kmer Profile</a>" ],
+			                 [ "<a href='#bp_introtext'>Nucleotide Histogram</a>" ],
 			                 [ "<a href='#ontology_introtext'>Functional Hits</a>" ],
 			                 [ "<a href='#taxonomy_introtext'>Taxonomic Hits</a>" ],
+			                 [ "<a href='#rank_abund_introtext'>Rank Abundance Plot</a>" ],
 			                 [ "<a href='#rarefaction_introtext'>Rarefaction Curve</a>" ],
 			                 [ "<a href='#metadata_table'>Full Metadata</a>" ]
 			              ] } }
@@ -439,6 +453,16 @@
 	    return retval;
     };
     
+    widget.bp_introtext = function(mg, mg_stats) {
+        var retval = { style: "clear: both", data: [ { header: "Nucleotide Histogram" } ] };
+	    if (mg.sequence_type == 'Amplicon') {
+            retval.data.push( { p: "Since this is an amplicon dataset, no Nucleotide histogram could be generated." } );
+        } else {
+            retval.data.push( { p: "These graphs show the fraction of base pairs of each type (A, C, G, T, or ambiguous base 'N') at each position starting from the beginning of each read up to the first 100 base pairs. Amplicon datasets should show consensus sequences; shotgun datasets should have roughly equal proportions of basecalls." } );
+        }
+	    return retval;
+    };
+    
     widget.rank_abund_introtext = function(mg, mg_stats) {
         return { data: [ { header: "Rank Abundance Plot" },
 	                     { p: "The plot below shows the family abundances ordered from the most abundant to least abundant. Only the top 50 most abundant are shown. The y-axis plots the abundances of annotations in each family on a log scale." },
@@ -505,20 +529,60 @@
     	    lineData[0].data.push( parseInt(annSort[i][1]) );
     	    xlabels.push( annSort[i][0] );
     	}
-        var gwidth  = 800;
+        var gwidth  = 750;
     	var gheight = 300;
     	var longest = xlabels.reduce(function (a, b) { return a.length > b.length ? a : b; });
     	var data = { 'title': '',
-    	             'type': 'pie',
-    		         'title_settings': { 'font-size': '18px', 'font-weight': 'bold', 'x': 0, 'text-anchor': 'start' },
+    	             'type': 'column',
+    	             'default_line_width': 2,
+    	             'default_line_color': 'blue',
     		         'x_labels': xlabels,
-    		         'x_labels_rotation': '300',
+    		         'x_labels_rotation': '310',
+    		         'x_tick_interval': xlabels.length,
     		         'show_legend': false,
-    		         'chartArea': [15, 15, gwidth, gheight],
-    		         'width': gwidth,
-    		         'height': gheight+(longest.length * 6),
+    		         'chartArea': [80, 20, gwidth, gheight],
+    		         'width': gwidth+80,
+    		         'height': gheight+(longest.length * 4)+40,
     		         'data': lineData };
     	return data;
+    };
+
+    widget.bp_areagraph = function(labels, bpdata) {
+        var xt = 'bp '+labels[0];
+        var yt = 'Percent bp';
+        var names  = labels.slice(1);
+        var colors = GooglePalette(names.length);
+        var areaData = [];
+        for (var x = 0; x < names.length; x++) {
+    	    areaData.push({ name: names[x], data: [], fill: colors[x] });
+    	}
+        for (var i = 0; i < bpdata.length; i++) {
+            labels.push(bpdata[i][0]);
+            for (var j = 1; j < bpdata[i].length; j++) {
+                areaData[j-1].data.push( parseFloat(bpdata[i][j]) )
+            }
+        }
+        var pwidth  = 750;
+    	var pheight = 300;
+    	var lwidth  = 15;
+    	var lheight = areaData.length * 23;
+    	var width   = pwidth+lwidth;
+    	var height  = (lheight > pheight) ? Math.min(lheight, pheight+(pheight/2)) : pheight;
+        var data = { 'x_title': xt,
+                     'y_title': yt,
+                     'type': 'stackedArea',
+                     'x_tick_interval': parseInt(bpdata.length/50),
+                     'x_labeled_tick_interval': parseInt(bpdata.length/10),
+                     'show_legend': true,
+                     'show_dots': false,
+                     'connected': true,
+                     'legendArea': [pwidth+20, 20, lwidth, lheight],
+     		         'chartArea': [70, 20, pwidth, pheight],
+     		         'width': width+40,
+     		         'height': height+45,
+                     'data': areaData
+                 };
+        return data;
     };
 
     widget.single_plot = function(nums, xt, yt) {
@@ -530,8 +594,10 @@
             x_all.push( parseFloat(nums[i][0]) );
             y_all.push( parseFloat(nums[i][1]) );
         }
-        var data = { 'width': 700,
-                     'height': 300,
+        var pwidth  = 750;
+    	var pheight = 300;
+        var data = { 'y_titleOffset': 60,
+                     'x_titleOffset': 40,
                      'x_title': xt,
                      'y_title': yt,
                      'x_min': Math.min.apply(Math, x_all),
@@ -541,6 +607,9 @@
                      'show_legend': false,
                      'show_dots': false,
                      'connected': true,
+                     'chartArea': [70, 20, pwidth, pheight],
+                     'width': pwidth+40,
+                     'height': pheight+45,
                      'data': {'series': [{'name': ''}], 'points': [xy]}          
                  };
         return data;
@@ -552,12 +621,10 @@
         var x_all  = [];
         var y_all  = [];
         var annMax = 0;
-        var colors = GooglePalette(labels.length);
-        for (var l in y) {
-            series.push({'name': labels[l], 'color': colors[l]});
-            annMax = Math.max(annMax, labels[l].length);
-        }        
+        var colors = GooglePalette(y.length);
         for (var i = 0; i < y.length; i++) {
+            series.push({'name': labels[y[i]], 'color': colors[i]});
+            annMax = Math.max(annMax, labels[y[i]].length);
             xy = [];
             for (var j = 0; j < nums.length; j++) {
                 xy.push({ 'x': parseFloat(nums[j][x]), 'y': parseFloat(nums[j][y[i]]) });
@@ -566,14 +633,14 @@
             }
             points.push(xy);
         }
-        var pwidth  = 700;
+        var pwidth  = 750;
     	var pheight = 300;
     	var lwidth  = annMax * 10;
     	var lheight = series.length * 23;
-    	var width   = pwidth+lwidth+40;
+    	var width   = pwidth+lwidth;
     	var height  = (lheight > pheight) ? Math.min(lheight, pheight+(pheight/2)) : pheight;
-        var data = { 'width': pwidth+50,
-                     'height': pheight+50,
+        var data = { 'y_titleOffset': 60,
+                     'x_titleOffset': 40,
                      'x_title': xt,
                      'y_title': yt,
                      'x_min': Math.min.apply(Math, x_all),
@@ -583,10 +650,10 @@
                      'show_legend': true,
                      'show_dots': false,
                      'connected': true,
-                     'legendArea': [pwidth+40, 20, lwidth, lheight],
-     		         'chartArea': [50, 20, pwidth, pheight],
-     		         'width': width,
-     		         'height': height,
+                     'legendArea': [pwidth+20, 20, lwidth, lheight],
+     		         'chartArea': [70, 20, pwidth, pheight],
+     		         'width': width+40,
+     		         'height': height+45,
                      'data': {'series': series, 'points': points}
                  };
         return data;
