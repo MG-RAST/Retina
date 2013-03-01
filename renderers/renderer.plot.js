@@ -72,6 +72,15 @@
   y_title (STRING)
       title of the y axis
 
+  x_titleOffset (INT)
+      pixels offset of the x axis title
+
+  y_titleOffset (INT)
+      pixels offset of the y axis title
+
+  titleOffset (INT)
+      pixels offset of the plot title
+
   drag_select (FUNCTION)
       function to be called for drag select. This function will get passed an array of the selected points.
   
@@ -102,6 +111,9 @@
 		'y_max': 100,
 		'x_title': '',
 		'y_title': '',
+		'x_titleOffset': 35,
+		'y_titleOffset': 45,
+		'titleOffset': 0,
 		'drag_select': null,
 		'data': [ ] }
 	},
@@ -166,7 +178,7 @@
 			   '#bd2fa6'  // purple 
 			 ];
 	    
-	    svg.plot.noDraw().title(renderer.settings.title, null, renderer.settings.title_color, renderer.settings.title_settings);
+	    svg.plot.noDraw().title(renderer.settings.title, renderer.settings.titleOffset, renderer.settings.title_color, renderer.settings.title_settings);
 	    for (i=0;i<renderer.settings.data.length;i++) {
 		var d = renderer.settings.data[i];
 	    }
@@ -177,8 +189,8 @@
 	    svg.plot.series = renderer.settings.data.series;
 
 	    svg.plot.noDraw().format('white', 'gray').gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
-	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max).ticks(parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 10), parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw').title(renderer.settings.x_title); 
-	    svg.plot.yAxis.scale(renderer.settings.y_min, renderer.settings.y_max).ticks(parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 10), parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 5), 8, 'sw').title(renderer.settings.y_title);
+	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max).ticks(parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 10), parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw').title(renderer.settings.x_title, renderer.settings.x_titleOffset); 
+	    svg.plot.yAxis.scale(renderer.settings.y_min, renderer.settings.y_max).ticks(parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 10), parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 5), 8, 'sw').title(renderer.settings.y_title, renderer.settings.y_titleOffset);
 	    svg.plot.legend.settings({fill: 'white', stroke: 'gray'});
 	    
 	    var plotLegend = 0;
