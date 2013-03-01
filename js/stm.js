@@ -403,32 +403,32 @@
     
     // deletes an object from the DataStore
     stm.delete_object = function (type, id) {
-	type = type.toLowerCase();
-	if (stm.DataStore[type][id]) {
-	    stm.DataStore[type][id] = null;
-	    stm.TypeData['object_count'][type]--;
-	    if (stm.TypeData['object_count'][type] == 0) {
-		delete_object_type(type);
+	    type = type.toLowerCase();
+	    if (stm.DataStore[type][id]) {
+	        delete stm.DataStore[type][id];
+	        stm.TypeData['object_count'][type]--;
+	        if (stm.TypeData['object_count'][type] == 0) {
+		        delete_object_type(type);
+	        }
 	    }
-	}
     };
     
     // deletes a set of objects from the DataStore
     stm.delete_objects = function (type, ids) {
-	type = type.toLowerCase();
-	for (var i = 0; i < ids.length; i++) {
-	    delete_object(type, ids[i]);
-	}
+	    type = type.toLowerCase();
+	    for (var i = 0; i < ids.length; i++) {
+	        delete_object(type, ids[i]);
+	    }
     };
     
     // deletes an entire type from the DataStore
     stm.delete_object_type = function (type) {
-	type = type.toLowerCase();
-	if (stm.TypeData['object_count'][type]) {
-	    stm.TypeData['object_count'][type] = null;
-	    stm.TypeData['type_count']--;
-	    stm.DataStore[type] = null;
-	}
+	    type = type.toLowerCase();
+	    if (stm.TypeData['object_count'][type]) {
+	        delete stm.DataStore[type];
+	        delete stm.TypeData['object_count'][type];
+	        stm.TypeData['type_count']--;
+	    }
     };
 
     // session dumping
