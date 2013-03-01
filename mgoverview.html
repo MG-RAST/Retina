@@ -35,7 +35,7 @@
 	    <div class="container" style="width: 100%; padding-left: 10px;">
           <img src="images/KbaseLogoTransparent.gif" style="float: left; background: white; margin-left: -10px; height: 55px;">
     	  <a class="brand" href="#" style="color: white; cursor: default; margin-top: 8px; margin-left: 30px;">Metagenome Data Sheet</a>
-	      <p style="float: right; right:16px; top: 11px; position: relative;cursor: pointer;" onclick="if(document.getElementById('login_name').innerHTML ==''){jQuery('#loginModal').modal('show');}else{if(confirm('do you really want to log out?')){Retina.WidgetInstances.NotebookDashboard[0].perform_logout();}}">
+	      <p style="float: right; right:16px; top: 11px; position: relative;cursor: pointer;" onclick="if(document.getElementById('login_name').innerHTML ==''){jQuery('#loginModal').modal('show');}else{if(confirm('do you really want to log out?')){Retina.WidgetInstances.metagenome_modal[0].perform_logout();}}">
 	        <i class="icon-user icon-white" style="margin-right: 5px;"></i>
 	        <span  id="login_name_span">
 	          <input type="button" class="btn" value="login" style="position:relative; bottom: 2px;" onclick="jQuery('#loginModal').modal('show');">
@@ -66,7 +66,7 @@
     </div>
     <div class="container" style="margin-top: 100px; margin-bottom: 100px; width: 1000px;">
       <div>    
-        <button style="width:150px;width:150px;position:absolute;top:60px;right:10px;" data-toggle="button" onclick="jQuery('#mg_modal').modal('show');" type="button" class="btn">Select Metagenome</button>
+        <button style="width:150px;width:150px;position:absolute;top:60px;right:10px;" data-toggle="button" onclick="Retina.WidgetInstances.metagenome_overview[0].metagenome_modal(document.getElementById('content'));" type="button" class="btn">Select Metagenome</button>
       </div>
       <div id='content'></div>
     </div>
