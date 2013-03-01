@@ -22,6 +22,8 @@
 	           ];
     };
     
+    widget.mg_select_list = undefined;
+    
     widget.display = function (wparams) {
         // check if id given
         if (wparams.id) {
@@ -39,19 +41,7 @@
             }
 	    // get id first
         } else {
-            jQuery('#mg_modal').modal('show');
-            jQuery.getJSON('data/mg_migs_public.json', function(data) {
-                for (var d in data) {
-                    if (data.hasOwnProperty(d)) {
-                        stm.load_data({"data": data[d], "type": d});
-                    }
-                }
-                Retina.WidgetInstances.metagenome_overview[0].metagenome_selector(wparams.target);
-            }).fail( function() {
-                stm.get_objects({"type": "metagenome", "options": {"verbosity": "migs", "limit": 0}}).then(function() {
-                    Retina.WidgetInstances.metagenome_overview[0].metagenome_selector(wparams.target);
-                });
-            });
+            Retina.WidgetInstances.metagenome_overview[0].metagenome_modal(wparams.target);
             return;
         }
 	
@@ -221,6 +211,26 @@
 	}
     };
     
+    widget.metagenome_modal = function(target) {
+        jQuery('#mg_modal').modal('show');
+        if (! Retina.WidgetInstances.metagenome_overview[0].mg_select_list) {
+            jQuery.getJSON('data/mg_migs_public.json', function(data) {
+                for (var d in data) {
+                    if (data.hasOwnProperty(d)) {
+                        stm.load_data({"data": data[d], "type": d});
+                    }
+                }
+                Retina.WidgetInstances.metagenome_overview[0].metagenome_selector(target);
+            }).fail( function() {
+                stm.get_objects({"type": "metagenome", "options": {"verbosity": "migs", "limit": 0}}).then(function() {
+                    Retina.WidgetInstances.metagenome_overview[0].metagenome_selector(target);
+                });
+            });
+        } else {
+            Retina.WidgetInstances.metagenome_overview[0].mg_select_list.render();
+        }
+    };
+    
     widget.metagenome_selector = function(target) {
         var metagenome_data = [];
         for (i in stm.DataStore["metagenome"]) {
@@ -243,7 +253,7 @@
     		     metagenome_data.push(md);
     	    }
     	}
-    	Retina.Renderer.create('listselect', {
+    	Retina.WidgetInstances.metagenome_overview[0].mg_select_list = Retina.Renderer.create('listselect', {
     	    "target": document.getElementById('mg_modal_body'),
 			"data": metagenome_data,
 		    "value": "id",
@@ -254,7 +264,8 @@
 		    "callback": function (mgid) {
 		        Retina.WidgetInstances.metagenome_overview[0].display({"target": target, "id": mgid});
 	        }
-		}).render();
+		});
+		Retina.WidgetInstances.metagenome_overview[0].mg_select_list.render();
     };
     
     widget.general_overview = function (mg, mg_stats) {
@@ -559,7 +570,7 @@
         for (var i = 0; i < bpdata.length; i++) {
             labels.push(bpdata[i][0]);
             for (var j = 1; j < bpdata[i].length; j++) {
-                areaData[j-1].data.push( parseFloat(bpdata[i][j]) )
+                areaData[j-1].data.push( parseFloat(bpdata[i][j]) );
             }
         }
         var pwidth  = 750;
