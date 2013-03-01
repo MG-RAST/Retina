@@ -507,7 +507,6 @@
 	var pot = ymax.toString().indexOf('.') || ymax.toString.length;
 	pot = Math.pow(10, pot - 1);
 	ymax = Math.floor((ymax + pot) / pot) * pot;
-	console.log(ymax);
 	var ymin = 0;
         var data = { 'width': 800,
                      'height': 300,
