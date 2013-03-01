@@ -10,7 +10,7 @@
     });
     
     // ipython notebook server ip
-    widget.nb_server = 'http://140.221.92.53:7051';
+    widget.nb_server = 'http://140.221.84.229:7051';
     
     // uuid of template notebook
     widget.nb_template = 'ea7baf0c-1858-4d27-b2d7-0c054865a338';
@@ -45,11 +45,30 @@
     // the params should at least contain a space in the DOM for the widget to render to
     // if the widget is visual
     widget.display = function (params) {
-	widget = this;
-	var index = widget.index;
-	var dash_div = params.target;
-	var iframe_div = params.notebook;
-	var dash_html = '\
+	    widget = this;
+	    var index = widget.index;
+	    var dash_div = params.target;
+	    var iframe_div = params.notebook;
+	    var link = document.createElement('link');
+        link.type = 'image/x-icon';
+        link.rel = 'shortcut icon';
+	    if (params.logo == 'mgrast') {
+	        // make this look like mgrast page
+	        jQuery('#login_space').hide();
+	        document.title = 'MGNB - The MG-RAST Notebook';
+	        jQuery('#title_bar').html('MGNB - The MG-RAST Notebook');
+	        jQuery('#title_img').attr('src', 'images/MGRAST_logo.png');
+	        jQuery('#title_img').css('background', 'black');
+            link.href = 'images/MGRAST_favicon.ico';
+	    } else if (params.logo == 'kbase') {
+	        document.title = 'KBNB - The KBase Notebook';
+	        jQuery('#title_bar').html('KBNB - The KBase Notebook');
+	        jQuery('#title_img').attr('src', 'images/KbaseLogoTransparent.gif');
+	        jQuery('#title_img').css('background', 'white');
+	        link.href = 'images/KBase_favicon.ico';
+	    }
+	    document.getElementsByTagName('head')[0].appendChild(link);
+	    var dash_html = '\
 	        <button class="btn" type="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" data-toggle="button" style="width: 150px; width: 150px; position: absolute; top: 60px; right: 90px;">Analysis Builder</button>\
                 <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[1].export_visual(1, null, true);" title="show full notebook text in new window" style="position: absolute; top: 60px; right: 50px;">\
                    <i class="icon-align-justify icon-white"></i>\
@@ -60,8 +79,9 @@
             <div id="data_pick" style="display: none; height: 395px; margin-top: 5px;">\
 	            <div id="data_selector_div"></div>\
 	        </div>\
-	        <div id="result" style="display: none;"><h3 style="position: relative; top: 200px; left: 25%;">your analysis currently has no results</h3></div>\
-\
+	        <div id="result" style="display: none;"><h3 style="position: relative; top: 200px; left: 25%;">your analysis currently has no results</h3></div>';
+        if (params.logo == 'kbase') {
+            dash_html += '\
 	        <div id="loginModal" class="modal show fade" tabindex="-1" style="width: 400px;" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">\
 	          <div class="modal-header">\
 	            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="jQuery(\'#nb_select_modal\').modal(\'show\');">×</button>\
@@ -80,7 +100,6 @@
 	            <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[0].perform_login('+index+');">log in</button>\
 	          </div>\
 	        </div>\
-\
 	        <div id="msgModal" class="modal hide fade" tabindex="-1" style="width: 400px;" role="dialog" aria-labelledby="msgModalLabel" aria-hidden="true">\
 	          <div class="modal-header">\
 	            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="jQuery(\'#nb_select_modal\').modal(\'show\');">×</button>\
@@ -92,8 +111,9 @@
 	          <div class="modal-footer">\
 	            <button class="btn btn-success" aria-hidden="true" data-dismiss="modal" onclick="jQuery(\'#nb_select_modal\').modal(\'show\');">OK</button>\
 	          </div>\
-	        </div>\
-\
+	        </div>';
+        }
+        dash_html += '\
 	        <div id="nb_select_modal" class="modal show fade" tabindex="-1" role="dialog" style="width: 590px; margin: -250px 0 0 -295px;">\
                 <div class="modal-header">\
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>\
@@ -175,11 +195,17 @@
 								  });
 	    // populate nb selects
         widget.nb_select_refresh(index);
-        jQuery('#loginModal').modal('show');
+        if (params.logo == 'kbase') {
+            jQuery('#loginModal').modal('show');
+        } else {
+            jQuery('#nb_select_modal').modal('show');
+        }
     };
     
     // populate nb listselect with newest version of each notebook, empty version listselect
     widget.nb_select_refresh = function (index) {
+        // clear current nbs
+        stm.delete_object_type('notebook');
         if (Retina.WidgetInstances.NotebookDashboard[index].nb_cache) {
             // get notebooks from api or cached
             jQuery.getJSON('data/notebooks_public.json', function(data) {
@@ -351,7 +377,7 @@
     widget.nb_init = function (index, iframe_id) {
         stm.send_message(iframe_id, 'IPython.notebook.select(0);IPython.notebook.execute_selected_cell();', 'action');
         stm.send_message(iframe_id, 'IPython.notebook.select(1);IPython.notebook.execute_selected_cell();', 'action');
-        Retina.WidgetInstances.NotebookDashboard[index].send_auth(iframe_id, stm.Authorization);
+        Retina.WidgetInstances.NotebookDashboard[index].send_auth(iframe_id, stm.Authentication);
     };
 
     widget.ipy_refresh = function () {
@@ -478,6 +504,9 @@ pre {\
     };
 
     widget.send_auth = function (iframe_id, auth) {
+        if (iframe_id == 'ipython_dash') {
+            return;
+        }
         if (auth) {
             var uname = auth.substr(3, auth.indexOf('|') - 3);
             stm.send_message(iframe_id, 'IPython.notebook.kernel.execute("Ipy.auth=\''+auth+'\'; Ipy.username=\''+uname+'\'", {}, {});' , 'action');
@@ -497,7 +526,9 @@ pre {\
 		        document.getElementById('login_name_span').style.display = "none";
 		        document.getElementById('login_name').innerHTML = uname;
 		        document.getElementById('failure').innerHTML = "";
-		        stm.Authorization = d.token;
+		        stm.Authentication = d.token;
+		        Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
+		        Retina.WidgetInstances.VisualPython[0].add_private({ target: document.getElementById('data_selector_div') });
 		        jQuery('#loginModal').modal('hide');
 		        jQuery('#msgModal').modal('show');
 		        jQuery('.tab-pane').children('iframe').each(function() {
@@ -512,6 +543,9 @@ pre {\
     widget.perform_logout = function () {
 	    document.getElementById('login_name_span').style.display = "";
 	    document.getElementById('login_name').innerHTML = "";
+	    stm.delete_object_type('metagenome');
+	    Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
+	    Retina.WidgetInstances.VisualPython[0].display({ target: document.getElementById('data_selector_div') });
 	    jQuery('.tab-pane').children('iframe').each(function() {
 	        Retina.WidgetInstances.NotebookDashboard[0].send_auth(this.id, undefined);
         });
