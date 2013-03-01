@@ -91,8 +91,8 @@
 	    { type: 'piechart', data: 'order', category: 'taxonomy' },
 	    { type: 'piechart', data: 'family', category: 'taxonomy' },
 	    { type: 'piechart', data: 'genus', category: 'taxonomy' },
-	    //{ type: 'paragraph', data: 'rank_abund_introtext' },
-	    //{ type: 'single_plot', data: 'rank_abund_plot', category: 'rank_abund' },
+	    { type: 'paragraph', data: 'rank_abund_introtext' },
+	    { type: 'linegraph', data: 'rank_abund_plot', category: 'rank_abund' },
 	    { type: 'paragraph', data: 'rarefaction_introtext' },
 	    { type: 'single_plot', data: 'rarefaction_plot', category: 'rarefaction' },
 	    { type: 'title', data: 'Metadata' },
@@ -102,7 +102,7 @@
 	// iterate over the outputs
 	for (out=0;out<outputs.length;out++) {
 	    if (! outputs[out]) {
-		continue;
+		    continue;
 	    }
 	    // create and append the output div
 	    var data, x, y, labels, points, xt, yt;
@@ -118,17 +118,17 @@
 	        Retina.Renderer.create("paragraph", {target: div, data: [{header: outputs[out].data}]}).render();
 	        break;
 	    case 'paragraph':
-		data = widget[outputs[out].data](mg, mg_stats);
-		if (data) {
-		    data.target = div;
-		    data.title_color = title_color;
-		    data.header_color = header_color;
-		    Retina.Renderer.create("paragraph", data).render();
+		    data = widget[outputs[out].data](mg, mg_stats);
+		    if (data) {
+		        data.target = div;
+		        data.title_color = title_color;
+		        data.header_color = header_color;
+		        Retina.Renderer.create("paragraph", data).render();
 	        } else {
-		    content.removeChild(tag);
-		    content.removeChild(div);
-		}
-		break;
+		        content.removeChild(tag);
+		        content.removeChild(div);
+		    }
+		    break;
 	    case 'piechart':
 	        if (outputs[out].data == 'summary') {
 	            data = widget.summary_piechart(mg, mg_stats);
@@ -137,71 +137,74 @@
 	            data = widget.annotation_piechart(mg_stats, outputs[out].category, outputs[out].data);
 	            div.setAttribute('class', 'span12');
 	        }
-		data.target = div;
-		Retina.Renderer.create("graph", data).render();
-		break;
+		    data.target = div;
+		    Retina.Renderer.create("graph", data).render();
+		    break;
+		case 'linegraph':
+            data = widget.taxon_linegraph(mg_stats.taxonomy, 'family', 50);
+            data.target = div;
+            Retina.Renderer.create("graph", data).render();
+            break;
 	    case 'multi_plot':
-		switch (outputs[out].category) {
-		case 'drisee':
-		    if (! mg_stats.qc.drisee.percents.data) {
-			labels = null;
+		    switch (outputs[out].category) {
+		    case 'drisee':
+		        if (! mg_stats.qc.drisee.percents.data) {
+			        labels = null;
+		            break;
+		        }
+		        x = 0;
+                y = [1,2,3,4,5,6,7];
+                xt = 'bp position';
+                yt = 'percent error';
+                labels = mg_stats.qc.drisee.percents.columns;
+                points = mg_stats.qc.drisee.percents.data;
+                break;
+            default:
+                break;
+            }
+            if (! (labels && points)) {
+		        content.removeChild(tag);
+		        content.removeChild(div);
+                break;
+            }
+            data = widget.multi_plot(x, y, labels, points, xt, yt);
+            data.target = div;
+            Retina.Renderer.create("plot", data).render();
+            break;
+        case 'single_plot':
+		    switch (outputs[out].category) {
+		    case 'kmer':
+		        points = [];
+		        for (var i = 0; i < mg_stats.qc.kmer['15_mer']['data'].length; i++) {
+                    points.push([ (Math.log(parseFloat(mg_stats.qc.kmer['15_mer']['data'][i][3]))/Math.log(10)), (Math.log(parseFloat(mg_stats.qc.kmer['15_mer']['data'][i][0]))/Math.log(10)) ]);
+                }
+                xt = 'kmer coverage';
+                yt = 'sequence size';
+                break;
+            case 'rarefaction':
+                points = mg_stats.rarefaction;
+                xt = 'number of reads';
+                yt = 'species count';
+                break;
+            default:
+                break;
+            }
+		    if (! points || ! points.length) {
+		        content.removeChild(tag);
+		        content.removeChild(div);
 		        break;
 		    }
-		    x = 0;
-                    y = [1,2,3,4,5,6,7];
-                    xt = 'bp position';
-                    yt = 'percent error';
-                    labels = mg_stats.qc.drisee.percents.columns;
-                    points = mg_stats.qc.drisee.percents.data;
-                    break;
-                default:
-                    break;
-                }
-                if (! (labels && points)) {
-		    content.removeChild(tag);
-		    content.removeChild(div);
-                    break;
-                }
-                data = widget.multi_plot(x, y, labels, points, xt, yt);
-                data.target = div;
-                Retina.Renderer.create("plot", data).render();
-                break;
-            case 'single_plot':
-		switch (outputs[out].category) {
-		case 'kmer':
-		    points = [];
-		    for (var i = 0; i < mg_stats.qc.kmer['15_mer']['data'].length; i++) {
-                        points.push([ (Math.log(parseFloat(mg_stats.qc.kmer['15_mer']['data'][i][3]))/Math.log(10)), (Math.log(parseFloat(mg_stats.qc.kmer['15_mer']['data'][i][0]))/Math.log(10)) ]);
-                    }
-                    xt = 'kmer coverage';
-                    yt = 'sequence size';
-                    break;
-                case 'rarefaction':
-                    points = mg_stats.rarefaction;
-                    xt = 'number of reads';
-                    yt = 'species count';
-                    break;
-                case 'rank_abund':
-                    break;
-                default:
-                    break;
-                }
-		if (! points || ! points.length) {
-		    content.removeChild(tag);
-		    content.removeChild(div);
-		    break;
-		}
-                data = widget.single_plot(points, xt, yt);
-                data.target = div;
-                Retina.Renderer.create("plot", data).render();
-                break;
-            case 'metadata_table':
-                data = widget.metadata_table(mg.metadata);
-                data.target = div;
-                Retina.Renderer.create("table", data).render();
-                break;
+            data = widget.single_plot(points, xt, yt);
+            data.target = div;
+            Retina.Renderer.create("plot", data).render();
+            break;
+        case 'metadata_table':
+            data = widget.metadata_table(mg.metadata);
+            data.target = div;
+            Retina.Renderer.create("table", data).render();
+            break;
 	    default:
-		break;
+	        break;
 	    }
 	}
     };
@@ -214,6 +217,7 @@
     			   "id": i,
     			   "project": stm.DataStore["metagenome"][i]["project"],
     			   "type": "metagenome",
+    			   "status": stm.DataStore["metagenome"][i]["status"],
     			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
     			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
     			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
@@ -232,7 +236,7 @@
 			"data": metagenome_data,
 		    "value": "id",
             "label": "name",
-	        "filter": ["name", "id", "project", "type", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"],
+	        "filter": ["name", "id", "project", "type", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"],
 	        "sort": true,
 	        "multiple": false,
 		    "callback": function (mgid) {
@@ -425,17 +429,14 @@
     };
     
     widget.kmer_introtext = function(mg, mg_stats) {
-        var retval = { style: "clear: both",
-	               data: [ { header: "Kmer Profile" },
-	                       { p: "The kmer abundance spectra are tools to summarize the redundancy (repetitiveness) of sequence datasets by counting the number of occurrences of 15 and 6 bp sequences." },
-	                       { p: "The kmer rank abundance graph plots the kmer coverage as a function of abundance rank, with the most abundant sequences at left." }
-			     ] };
-
-	if (mg.sequence_type == 'Amplicon') {
+        var retval = { style: "clear: both", data: [ { header: "Kmer Profile" } ] };
+	    if (mg.sequence_type == 'Amplicon') {
             retval.data.push( { p: "Since this is an amplicon dataset, no Kmer profile could be generated." } );
+        } else {
+            retval.data.push( { p: "The kmer abundance spectra are tools to summarize the redundancy (repetitiveness) of sequence datasets by counting the number of occurrences of 15 and 6 bp sequences." } );
+            retval.data.push( { p: "The kmer rank abundance graph plots the kmer coverage as a function of abundance rank, with the most abundant sequences at left." } );
         }
-
-	return retval;
+	    return retval;
     };
     
     widget.rank_abund_introtext = function(mg, mg_stats) {
@@ -483,14 +484,40 @@
     	var height  = (lheight > pheight) ? Math.min(lheight, pheight+(pheight/2)) : pheight;
     	var data = { 'title': dtype,
     	             'type': 'pie',
-    		     'title_settings': { 'font-size': '18px', 'font-weight': 'bold', 'x': 0, 'text-anchor': 'start' },
-    		     'x_labels': [""],
-    		     'show_legend': true,
-    		     'legendArea': [pwidth+40, 20, lwidth, lheight],
-    		     'chartArea': [25, 20, pwidth, pheight],
-    		     'width': width,
-    		     'height': height,
-    		     'data': pieData };
+    		         'title_settings': { 'font-size': '18px', 'font-weight': 'bold', 'x': 0, 'text-anchor': 'start' },
+    		         'x_labels': [""],
+    		         'show_legend': true,
+    		         'legendArea': [pwidth+40, 20, lwidth, lheight],
+    		         'chartArea': [25, 20, pwidth, pheight],
+    		         'width': width,
+    		         'height': height,
+    		         'data': pieData };
+    	return data;
+    };
+
+    widget.taxon_linegraph = function(taxons, level, num) {
+        var lineData = [{ name: level+' rank abundance', data: []}];
+        var xlabels  = [];
+        var annSort  = taxons[level].sort(function(a,b) {
+            return b[1] - a[1];
+        });
+        for (var i = 0; i < Math.min(num, annSort.length); i++) {
+    	    lineData[0].data.push( parseInt(annSort[i][1]) );
+    	    xlabels.push( annSort[i][0] );
+    	}
+        var gwidth  = 800;
+    	var gheight = 300;
+    	var longest = xlabels.reduce(function (a, b) { return a.length > b.length ? a : b; });
+    	var data = { 'title': '',
+    	             'type': 'pie',
+    		         'title_settings': { 'font-size': '18px', 'font-weight': 'bold', 'x': 0, 'text-anchor': 'start' },
+    		         'x_labels': xlabels,
+    		         'x_labels_rotation': '300',
+    		         'show_legend': false,
+    		         'chartArea': [15, 15, gwidth, gheight],
+    		         'width': gwidth,
+    		         'height': gheight+(longest.length * 6),
+    		         'data': lineData };
     	return data;
     };
 
@@ -524,9 +551,11 @@
         var points = [];
         var x_all  = [];
         var y_all  = [];
+        var annMax = 0;
         var colors = GooglePalette(labels.length);
-        for (var l = 0; l < labels.length; l++) {
+        for (var l in y) {
             series.push({'name': labels[l], 'color': colors[l]});
+            annMax = Math.max(annMax, labels[l].length);
         }        
         for (var i = 0; i < y.length; i++) {
             xy = [];
@@ -537,17 +566,27 @@
             }
             points.push(xy);
         }
-        var data = { 'width': 700,
-                     'height': 300,
+        var pwidth  = 700;
+    	var pheight = 300;
+    	var lwidth  = annMax * 10;
+    	var lheight = series.length * 23;
+    	var width   = pwidth+lwidth+40;
+    	var height  = (lheight > pheight) ? Math.min(lheight, pheight+(pheight/2)) : pheight;
+        var data = { 'width': pwidth+50,
+                     'height': pheight+50,
                      'x_title': xt,
                      'y_title': yt,
                      'x_min': Math.min.apply(Math, x_all),
                      'x_max': Math.max.apply(Math, x_all),
                      'y_min': Math.min.apply(Math, y_all),
                      'y_max': Math.max.apply(Math, y_all),
-                     'show_legend': false,
+                     'show_legend': true,
                      'show_dots': false,
                      'connected': true,
+                     'legendArea': [pwidth+40, 20, lwidth, lheight],
+     		         'chartArea': [50, 20, pwidth, pheight],
+     		         'width': width,
+     		         'height': height,
                      'data': {'series': series, 'points': points}
                  };
         return data;
