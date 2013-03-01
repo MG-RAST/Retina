@@ -503,17 +503,25 @@
             x_all.push( parseFloat(nums[i][0]) );
             y_all.push( parseFloat(nums[i][1]) );
         }
-        var data = { 'width': 700,
+	var ymax = Math.max.apply(Math, y_all);
+	var pot = ymax.toString().indexOf('.') || ymax.toString.length;
+	pot = Math.pow(10, pot - 1);
+	ymax = Math.floor((ymax + pot) / pot) * pot;
+	console.log(ymax);
+	var ymin = 0;
+        var data = { 'width': 800,
                      'height': 300,
                      'x_title': xt,
                      'y_title': yt,
                      'x_min': Math.min.apply(Math, x_all),
                      'x_max': Math.max.apply(Math, x_all),
-                     'y_min': Math.min.apply(Math, y_all),
-                     'y_max': Math.max.apply(Math, y_all),
+                     'y_min': ymin,//Math.min.apply(Math, y_all),
+                     'y_max': ymax,
                      'show_legend': false,
                      'show_dots': false,
                      'connected': true,
+		     'chartArea': [ 0.15, 0.1, 0.95, 0.8 ],
+		     'y_titleOffset': 80,
                      'data': {'series': [{'name': ''}], 'points': [xy]}          
                  };
         return data;
