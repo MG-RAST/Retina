@@ -3425,8 +3425,11 @@
 			
 			// always plot the axis text at the very left / bottom of the plot
 			var zeroo = (horiz ? dims[this.Y] + dims[this.H] : dims[this.X]);
+			var logtext = this._wrapper.createText().string('10').span(cur, {dy: -10, fontSize: 10});
 			this._wrapper.text(this._plotCont, (horiz ? xy : zeroo - size),
-					   (horiz ? zeroo + size + 12 : xy + (size / 2)), '' + cur, { textAnchor: (horiz ? 'middle' : 'end')});
+					   (horiz ? zeroo + size + 12 : xy + (size / 2)),
+					   (axis._scale.type == 'log') ? logtext : ''+cur,
+					   { textAnchor: (horiz ? 'middle' : 'end')});
 		    }
 		    major += (cur == major ? axis._ticks.major : 0);
 		    minor += (cur == minor ? axis._ticks.minor : 0);
@@ -3792,7 +3795,7 @@
 	   'nw', 'se', 'both' (optional)
 	   @return  (SVGPlotAxis) this axis object or
 	   (object) major, minor, size, and position values (if no parameters) */
-	ticks: function(major, minor, size, position) {
+	ticks: function(major, minor, size, position, type) {
 	    if (arguments.length === 0) {
 		return this._ticks;
 	    }
@@ -3800,8 +3803,8 @@
 		position = size;
 		size = null;
 	    }
-	    this._ticks.major = major;
-	    this._ticks.minor = minor;
+	    this._ticks.major = (type == 'log' && major !== 0) ? 2 : major;
+	    this._ticks.minor = (type == 'log' && minor !== 0) ? 1 : minor;
 	    this._ticks.size = size || this._ticks.size;
 	    this._ticks.position = position || this._ticks.position;
 	    this._plot._drawPlot();

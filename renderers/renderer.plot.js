@@ -197,8 +197,8 @@
 	    svg.plot.series = renderer.settings.data.series;
 
 	    svg.plot.noDraw().format('white', 'gray').gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
-	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max, renderer.settings.x_scale).ticks(parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 10), parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw').title(renderer.settings.x_title, renderer.settings.x_titleOffset); 
-	    svg.plot.yAxis.scale(renderer.settings.y_min, renderer.settings.y_max, renderer.settings.y_scale).ticks(parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 10), parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 5), 8, 'sw').title(renderer.settings.y_title, renderer.settings.y_titleOffset);
+	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max, renderer.settings.x_scale).ticks(parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 10), parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw', renderer.settings.x_scale).title(renderer.settings.x_title, renderer.settings.x_titleOffset); 
+	    svg.plot.yAxis.scale(renderer.settings.y_min, renderer.settings.y_max, renderer.settings.y_scale).ticks(parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 10), parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 5), 8, 'sw', renderer.settings.y_scale).title(renderer.settings.y_title, renderer.settings.y_titleOffset);
 	    svg.plot.legend.settings({fill: 'white', stroke: 'gray'});
 	    
 	    var plotLegend = 0;
