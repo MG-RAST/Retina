@@ -155,8 +155,11 @@
 	    
 	    return renderer;
 	},
-	hover: function (title, value, event) {
-	    var svg = jQuery('#graph_div'+renderer.index).svg('get');
+	hover: function (title, value, event, e) {
+	    var id = e.currentTarget.ownerSVGElement.ownerSVGElement.parentNode.id;
+	    var index = id.substr(9);
+	    renderer = Retina.RendererInstances.graph[index];
+	    var svg = jQuery('#'+id).svg('get');
 	    if (title) {
 		jQuery(this, svg.root()).attr('fill-opacity', .8);
 		jQuery(this, svg.root()).attr('title', title+": "+value);
