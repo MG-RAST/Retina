@@ -212,8 +212,8 @@
 	    var max = 0;
 	    for (i=0; i<renderer.settings.data.length; i++) {
 		for (h=0; h<renderer.settings.data[i].data.length; h++) {
-		    if (renderer.settings.data[i].data[h] > max) {
-			max = renderer.settings.data[i].data[h];
+		    if (parseFloat(renderer.settings.data[i].data[h]) > max) {
+			max = parseFloat(renderer.settings.data[i].data[h]);
 		    }
 		}
 	    }
