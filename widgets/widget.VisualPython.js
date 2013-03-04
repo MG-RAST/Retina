@@ -42,18 +42,29 @@
 	stm.send_message(iframe_id, msgstring, 'action');
     };
 
-    widget.display = function (params) {
-
-	// check if the required metadata is loaded
-	if (! stm.DataStore.hasOwnProperty('metagenome')) {	    
-	    var progress = document.createElement('div');
-	    progress.innerHTML = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 100px; width: 400px; right: 38%;">\
+    widget.add_private = function (params) {
+        var progress = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 100px; width: 400px; right: 38%;">\
 <button type="button" class="close" data-dismiss="alert">×</button>\
 <h4><img src="images/loading.gif"> Please wait...</h4>\
 <p>The data to be displayed is currently loading.</p>\
 <p id="progressBar"></p>\
-    </div>';
-	    params.target.appendChild(progress);
+</div>';
+        params.target.innerHTML = progress;
+	    stm.get_objects({"type": "metagenome", "options": {"status": "private", "verbosity": "migs", "limit": 0}}).then(function() {
+            Retina.WidgetInstances.VisualPython[0].display(params);
+        });
+    };
+
+    widget.display = function (params) {
+	// check if the required metadata is loaded - if not get public
+	if (! stm.DataStore.hasOwnProperty('metagenome')) {
+	    var progress = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 100px; width: 400px; right: 38%;">\
+<button type="button" class="close" data-dismiss="alert">×</button>\
+<h4><img src="images/loading.gif"> Please wait...</h4>\
+<p>The data to be displayed is currently loading.</p>\
+<p id="progressBar"></p>\
+</div>';
+        params.target.innerHTML = progress;
 	    jQuery.getJSON('data/plant_public.json', function(data) {
 	        for (var d in data) {
                 if (data.hasOwnProperty(d)) {
@@ -79,7 +90,7 @@
             }
             Retina.WidgetInstances.VisualPython[0].display(params);
         }).fail( function() {
-            stm.get_objects({"type": "metagenome", "options": {"verbosity": "migs", "limit": 0}}).then(function() {
+            stm.get_objects({"type": "metagenome", "options": {"status": "public", "verbosity": "migs", "limit": 0}}).then(function() {
                 Retina.WidgetInstances.VisualPython[0].display(params);
             });
         });
@@ -130,6 +141,7 @@
 		       "id": i,
 		       "project": "-",
 		       "type": "plant genome",
+		       "status": "public",
 		       "lat/long": "-",
 		       "location": "-",
 		       "collection date": "-",
@@ -137,7 +149,8 @@
 		       "feature": "-",
 		       "material": "-",
 		       "package": "-",
-		       "sequencing method": "-"
+		       "sequencing method": "-",
+		       "sequencing type": "-"
 		     };
 	    metagenome_data.push( md );
 	}
@@ -147,6 +160,7 @@
 			   "id": i,
 			   "project": stm.DataStore["metagenome"][i]["project"],
 			   "type": "metagenome",
+			   "status": stm.DataStore["metagenome"][i]["status"],
 			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
 			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
 			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
@@ -225,7 +239,7 @@
 	    label: "name",
 	    sort: true,
 	    extra_wide: true,
-	    filter: [ "name", "id", "project", "type", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"], //, "domain", "prokaryotic", "complete" ],
+	    filter: [ "name", "id", "project", "type", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"], //, "domain", "prokaryotic", "complete" ],
 	    callback: function (data) {
 		    var senddata = "";
 		    var dataname = document.getElementById('sample_select_variable_name').value;

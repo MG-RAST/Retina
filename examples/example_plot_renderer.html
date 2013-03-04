@@ -12,6 +12,7 @@
 	<script>
 	Retina.init( { library_resource: "js/" } ).then( function () {
 	    Retina.add_renderer({"name": "plot", "resource": "renderers/",  "filename": "renderer.plot.js" });
+	    console.log(Retina);
 	    Retina.load_renderer("plot").then( function () {
 		Retina.Renderer.create("plot", {
 		    target: document.getElementById('target'),

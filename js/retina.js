@@ -363,13 +363,15 @@
 	return widget;
     };
 
-    Widget.create = function (element, args) {
+    Widget.create = function (element, args, nodisplay) {
 	var widgetInstance = jQuery.extend(true, {}, Retina.WidgetInstances[element][0]);
 	widgetInstance.index = Retina.WidgetInstances[element].length;
 	jQuery.extend(true, widgetInstance, args);
 	Retina.WidgetInstances[element].push(widgetInstance);
 
-	widgetInstance.display(args);
+	if (! nodisplay) {
+	    widgetInstance.display(args);
+	}
 	
 	return widgetInstance;
     }
