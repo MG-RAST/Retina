@@ -119,6 +119,7 @@
 		'x_labels': [],
 		'x_labels_rotation': null,
 		'y_labels': [],
+		'y_scale': 'linear',
 		'x_tick_interval': 0,
 		'y_tick_interval': 30,
 		'x_labeled_tick_interval': 1,
@@ -245,8 +246,8 @@
 	    }
 	    svg.graph.yAxis.
 		title(renderer.settings.y_title, renderer.settings.y_title_color).
-		ticks(parseInt(max / renderer.settings.y_labeled_tick_interval), parseInt(max / renderer.settings.y_tick_interval));
-	    svg.graph.yAxis._scale.max = max;
+		ticks(parseInt(max / renderer.settings.y_labeled_tick_interval), parseInt(max / renderer.settings.y_tick_interval), 'log').
+		scale(0,max,renderer.settings.y_scale);
 	    
 	    if (renderer.settings.y_labels.length) {
 		svg.graph.xAxis.labels(renderer.settings.y_labels); 

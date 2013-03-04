@@ -302,10 +302,10 @@
 	    names.splice(names.length, 0, 'settings');
 	    var args = {};
 	    var offset = 0;
-	    if (values[0] !== null && values[0].jquery) {
+	    if (values[0] != null && values[0].jquery) {
 		values[0] = values[0][0];
 	    }
-	    if (values[0] !== null && !(typeof values[0] == 'object' && values[0].nodeName)) {
+	    if (values[0] != null && !(typeof values[0] == 'object' && values[0].nodeName)) {
 		args['parent'] = null;
 		offset = 1;
 	    }
@@ -1948,8 +1948,10 @@
 				pretty_cur = pretty_cur.formatString(1)+' K';
 			    }
 			}
+
+			var logtext = this._wrapper.createText().string('10').span(cur, {dy: -10, fontSize: 10});
 			this._wrapper.text(gt, (horiz ? v : x1 - size), (horiz ? y1 + 2 * size : v),
-					   (axis._labels ? axis._labels[count++] : '' + pretty_cur));
+					   (axis._labels ? axis._labels[count++] : ((axis._scale.type == 'log') ? logtext : pretty_cur)));
 		    }
 		    major += (cur == major ? axis._ticks.major : 0);
 		    minor += (cur == minor ? axis._ticks.minor : 0);
@@ -2140,7 +2142,7 @@
        @param  major  (number) the distance between major ticks
        @param  minor  (number) the distance between minor ticks (optional)
        @return  (SVGGraphAxis) the new axis object */
-    function SVGGraphAxis(graph, title, min, max, major, minor) {
+    function SVGGraphAxis(graph, title, min, max, major, minor, type) {
 	this._graph = graph; // The owning graph
 	this._title = title || ''; // Title of this axis
 	this._titleFormat = {}; // Formatting settings for the title
@@ -2149,7 +2151,7 @@
 	this._labelFormat = {}; // Formatting settings for the labels
 	this._lineFormat = {stroke: 'black', strokeWidth: 1}; // Formatting settings for the axis lines
 	this._ticks = {major: major || 10, minor: minor || 0, size: 10, position: 'out'}; // Tick mark options
-	this._scale = {min: min || 0, max: max || 100}; // Axis scale settings
+	this._scale = {min: min || 0, max: max || 100, type: type || 'linear' }; // Axis scale settings
 	this._crossAt = 0; // Where this axis crosses the other one
     }
     
@@ -2160,12 +2162,13 @@
 	   @param  max  (number) the maximum value shown
 	   @return  (SVGGraphAxis) this axis object or
 	   (object) min and max values (if no parameters) */
-	scale: function(min, max) {
+	scale: function(min, max, type) {
 	    if (arguments.length === 0) {
 		return this._scale;
 	    }
-	    this._scale.min = min;
-	    this._scale.max = max;
+	    this._scale.min = (type == 'log' && min !== 0) ? log10(min) : min;
+	    this._scale.max = (type == 'log' && max !== 0) ? log10(max) : max;
+	    this._scale.type = type || 'linear';
 	    this._graph._drawGraph();
 	    return this;
 	},
@@ -2178,7 +2181,7 @@
 	   'in', 'out', 'both' (optional)
 	   @return  (SVGGraphAxis) this axis object or
 	   (object) major, minor, size, and position values (if no parameters) */
-	ticks: function(major, minor, size, position) {
+	ticks: function(major, minor, size, position, type) {
 	    if (arguments.length === 0) {
 		return this._ticks;
 	    }
@@ -2186,8 +2189,8 @@
 		position = size;
 		size = null;
 	    }
-	    this._ticks.major = major;
-	    this._ticks.minor = minor;
+	    this._ticks.major = (type == 'log' && major !== 0) ? 2 : major;
+	    this._ticks.minor = (type == 'log' && minor !== 0) ? 1 : minor;
 	    this._ticks.size = size || this._ticks.size;
 	    this._ticks.position = position || this._ticks.position;
 	    this._graph._drawGraph();
@@ -2396,7 +2399,7 @@
 	},
 	
 	/* Plot an individual series. */
-	_drawSeries: function(graph, cur, numSer, barWidth, barGap, dims, xScale, yScale) {
+	_drawSeries: function(graph, cur, numSer, barWidth, barGap, dims, xScale, yScale, type) {
 	    var series = graph._series[cur];
 	    var g = graph._wrapper.group(this._chart,
 					 jQuery.extend({class_: 'series' + cur, fill: series._fill, stroke: series._stroke,
@@ -2404,8 +2407,8 @@
 	    for (var i = 0; i < series._values.length; i++) {
 		var r = graph._wrapper.rect(g,
 					    dims[graph.X] + xScale * (barGap + i * (numSer * barWidth + barGap) + (cur * barWidth)),
-					    dims[graph.Y] + yScale * (graph.yAxis._scale.max - series._values[i]),
-					    xScale * barWidth, yScale * series._values[i]);
+					    dims[graph.Y] + yScale * (graph.yAxis._scale.max - ((graph.yAxis._scale.type == 'log') ? log10(series._values[i]) : series._values[i])),
+					    xScale * barWidth, yScale * ((graph.yAxis._scale.type == 'log') ? log10(series._values[i]) : series._values[i]));
 		graph._showStatus(r, series._name, series._values[i]);
 	    }
 	},
@@ -3037,7 +3040,7 @@
 		}
 		if (graph.xAxis) {
 		    graph._wrapper.text(gt, cx, dims[graph.Y] + dims[graph.H] + graph.xAxis._titleOffset,
-					graph.xAxis._labels[i])
+					graph.xAxis._labels[i]);
 		}
 	    }
 	}
@@ -3781,7 +3784,7 @@
 		return this._scale;
 	    }
 	    this._scale.min = (type == 'log' && min !== 0) ? log10(min) : min;
-	    this._scale.max = (type == 'log' && max !== 0) ? log10(max) : max; //Math.pow(10, 2 * Math.ceil( log10 ( max ) / 2 ) ),
+	    this._scale.max = (type == 'log' && max !== 0) ? log10(max) : max;
 	    this._scale.type = type;
 	    this._plot._drawPlot();
 	    return this;
