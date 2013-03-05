@@ -585,8 +585,6 @@
                      'x_tick_interval': parseInt(bpdata.length/50),
                      'x_labeled_tick_interval': parseInt(bpdata.length/10),
                      'show_legend': true,
-                     'show_dots': false,
-                     'connected': true,
                      'legendArea': [pwidth+20, 20, lwidth, lheight],
      		         'chartArea': [70, 20, pwidth, pheight],
      		         'width': width+40,
