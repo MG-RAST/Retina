@@ -13,6 +13,11 @@
     <script>
     stm.init('http://api.metagenomics.anl.gov').then(function() {
 	Retina.init( { library_resource: "js/" } ).then( function () {
+	    Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
+	    Retina.load_widget("login").then( function() {
+		Retina.Widget.create('login', {"target": document.getElementById("login_space")});
+	    });
+
 	    Retina.add_widget({"name": "wizard", "resource": "widgets/",  "filename": "widget.wizard.js" });
 	    Retina.load_widget("wizard").then( function () {
 		Retina.Widget.create('wizard', { target: document.getElementById('content') });
@@ -27,7 +32,7 @@
 	<div class="container" style="width: 100%; padding-left: 10px;">
           <img src="images/KbaseLogoTransparent.gif" style="float: left; background: white; margin-left: -10px; height: 55px;">
     	  <a class="brand" href="#" style="color: white; cursor: default; margin-top: 8px; margin-left: 30px;">Experiment Design Wizard</a>
-	  <p style="float: right; right:16px; top: 11px; position: relative;cursor: pointer;" onclick="if(document.getElementById('login_name').innerHTML ==''){jQuery('#loginModal').modal('show');}else{if(confirm('do you really want to log out?')){Retina.WidgetInstances.NotebookDashboard[0].perform_logout();}}"><i class="icon-user icon-white" style="margin-right: 5px;"></i><span  id="login_name_span"><input type="button" class="btn" value="login" style="position:relative; bottom: 2px;" onclick="jQuery('#loginModal').modal('show');"></span><span id="login_name"></span></p>
+	  <span id="login_space"></span></p>
 	</div>
       </div>
     </div>

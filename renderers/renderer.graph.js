@@ -119,6 +119,7 @@
 		'x_labels': [],
 		'x_labels_rotation': null,
 		'y_labels': [],
+		'y_scale': 'linear',
 		'x_tick_interval': 0,
 		'y_tick_interval': 30,
 		'x_labeled_tick_interval': 1,
@@ -154,8 +155,11 @@
 	    
 	    return renderer;
 	},
-	hover: function (title, value, event) {
-	    var svg = jQuery('#graph_div'+renderer.index).svg('get');
+	hover: function (title, value, event, e) {
+	    var id = e.currentTarget.ownerSVGElement.ownerSVGElement.parentNode.id;
+	    var index = id.substr(9);
+	    renderer = Retina.RendererInstances.graph[index];
+	    var svg = jQuery('#'+id).svg('get');
 	    if (title) {
 		jQuery(this, svg.root()).attr('fill-opacity', .8);
 		jQuery(this, svg.root()).attr('title', title+": "+value);
@@ -178,7 +182,7 @@
 			    break;
 			}
 		    }
-		    renderer.settings.onclick({series: title, value: value, label: label, item: this, index: i, series_index: num });
+		    renderer.settings.onclick({series: title, value: value, label: label, item: this, index: i, series_index: num, svg: svg });
 		}
 	    }
 	},
@@ -211,8 +215,8 @@
 	    var max = 0;
 	    for (i=0; i<renderer.settings.data.length; i++) {
 		for (h=0; h<renderer.settings.data[i].data.length; h++) {
-		    if (renderer.settings.data[i].data[h] > max) {
-			max = renderer.settings.data[i].data[h];
+		    if (parseFloat(renderer.settings.data[i].data[h]) > max) {
+			max = parseFloat(renderer.settings.data[i].data[h]);
 		    }
 		}
 	    }
@@ -245,8 +249,8 @@
 	    }
 	    svg.graph.yAxis.
 		title(renderer.settings.y_title, renderer.settings.y_title_color).
-		ticks(parseInt(max / renderer.settings.y_labeled_tick_interval), parseInt(max / renderer.settings.y_tick_interval));
-	    svg.graph.yAxis._scale.max = max;
+		ticks(parseInt(max / renderer.settings.y_labeled_tick_interval), parseInt(max / renderer.settings.y_tick_interval), 'log').
+		scale(0,max,renderer.settings.y_scale);
 	    
 	    if (renderer.settings.y_labels.length) {
 		svg.graph.xAxis.labels(renderer.settings.y_labels); 

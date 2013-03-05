@@ -72,11 +72,17 @@
   y_title (STRING)
       title of the y axis
 
+  x_scale (STRING)
+      can be either 'linear' or 'log', default is linear.
+
+  y_scale (STRING)
+      can be either 'linear' or 'log', default is linear
+
   x_titleOffset (INT)
-      pixels offset of the x axis title
+      pixels offset of the x axis title, default is 35.
 
   y_titleOffset (INT)
-      pixels offset of the y axis title
+      pixels offset of the y axis title, default is 45.
 
   titleOffset (INT)
       pixels offset of the plot title
@@ -109,6 +115,8 @@
 		'x_max': 100,
 		'y_min': 0,
 		'y_max': 100,
+		'x_scale': 'linear',
+		'y_scale': 'linear',
 		'x_title': '',
 		'y_title': '',
 		'x_titleOffset': 35,
@@ -189,8 +197,8 @@
 	    svg.plot.series = renderer.settings.data.series;
 
 	    svg.plot.noDraw().format('white', 'gray').gridlines({stroke: 'gray', strokeDashArray: '2,2'}, 'gray'); 
-	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max).ticks(parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 10), parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw').title(renderer.settings.x_title, renderer.settings.x_titleOffset); 
-	    svg.plot.yAxis.scale(renderer.settings.y_min, renderer.settings.y_max).ticks(parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 10), parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 5), 8, 'sw').title(renderer.settings.y_title, renderer.settings.y_titleOffset);
+	    svg.plot.xAxis.scale(renderer.settings.x_min, renderer.settings.x_max, renderer.settings.x_scale).ticks(parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 10), parseFloat((renderer.settings.x_max - renderer.settings.x_min) / 5), 8, 'sw', renderer.settings.x_scale).title(renderer.settings.x_title, renderer.settings.x_titleOffset); 
+	    svg.plot.yAxis.scale(renderer.settings.y_min, renderer.settings.y_max, renderer.settings.y_scale).ticks(parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 10), parseFloat((renderer.settings.y_max - renderer.settings.y_min) / 5), 8, 'sw', renderer.settings.y_scale).title(renderer.settings.y_title, renderer.settings.y_titleOffset);
 	    svg.plot.legend.settings({fill: 'white', stroke: 'gray'});
 	    
 	    var plotLegend = 0;
