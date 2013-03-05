@@ -2020,10 +2020,9 @@
 	_showStatus: function(elem, label, value) {
 	    var status = this._onstatus;
 	    if (this._onstatus) {
-		jQuery(elem).hover(function() { status.apply(this, [label, value, 'mouseover']); },
-				   function() { status.apply(this, ['', 0, 'mouseout']); });
-		jQuery(elem).click(function() { status.apply(this, [label, value, 'click']); });
-		
+		jQuery(elem).hover(function(event) { status.apply(this, [label, value, 'mouseover', event]); },
+				   function(event) { status.apply(this, ['', 0, 'mouseout', event]); });
+		jQuery(elem).click(function(event) { status.apply(this, [label, value, 'click', event]); });
 	    }
 	}
     });

@@ -167,6 +167,9 @@
 		jQuery(this, svg.root()).attr('fill-opacity', 1);
 	    }
 	    if (event == 'click') {
+		
+		jQuery(this, svg.root()).attr('fill', '#BD362F');
+
 		var num = parseInt(this.parentElement.className.baseVal.substr(this.parentElement.className.baseVal.search(/\d+/)));
 		svg.graph.options({ explode: [ num ], explodeDist: 15 });
 
@@ -182,7 +185,7 @@
 			    break;
 			}
 		    }
-		    renderer.settings.onclick({series: title, value: value, label: label, item: this, index: i, series_index: num });
+		    renderer.settings.onclick({series: title, value: value, label: label, item: this, index: i, series_index: num, svg: svg });
 		}
 	    }
 	},
