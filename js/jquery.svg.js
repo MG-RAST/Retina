@@ -285,7 +285,7 @@
 	change: function(element, settings) {
 	    if (element) {
 		for (var name in settings) {
-		    if (settings[name] === null) {
+		    if (settings[name] == null) {
 			element.removeAttribute(jQuery.svg._attrNames[name] || name);
 		    }
 		    else {
@@ -442,7 +442,7 @@
 	    var args = this._args(arguments,
 				  ['id', 'stops', 'x1', 'y1', 'x2', 'y2'], ['x1']);
 	    var sets = jQuery.extend({id: args.id}, 
-				     (args.x1 !== null ? {x1: args.x1, y1: args.y1, x2: args.x2, y2: args.y2} : {}));
+				     (args.x1 != null ? {x1: args.x1, y1: args.y1, x2: args.x2, y2: args.y2} : {}));
 	    return this._gradient(args.parent, 'linearGradient', 
 				  jQuery.extend(sets, args.settings || {}), args.stops);
 	},
@@ -463,7 +463,7 @@
 	radialGradient: function(parent, id, stops, cx, cy, r, fx, fy, settings) {
 	    var args = this._args(arguments,
 				  ['id', 'stops', 'cx', 'cy', 'r', 'fx', 'fy'], ['cx']);
-	    var sets = jQuery.extend({id: args.id}, (args.cx !== null ?
+	    var sets = jQuery.extend({id: args.id}, (args.cx != null ?
 						     {cx: args.cx, cy: args.cy, r: args.r, fx: args.fx, fy: args.fy} : {}));
 	    return this._gradient(args.parent, 'radialGradient', 
 				  jQuery.extend(sets, args.settings || {}), args.stops);
@@ -476,7 +476,7 @@
 		var stop = stops[i];
 		this._makeNode(node, 'stop', jQuery.extend(
 		    {offset: stop[0], stopColor: stop[1]}, 
-		    (stop[2] !== null ? {stopOpacity: stop[2]} : {})));
+		    (stop[2] != null ? {stopOpacity: stop[2]} : {})));
 	    }
 	    return node;
 	},
@@ -499,7 +499,7 @@
 	    var args = this._args(arguments, ['id', 'x', 'y', 'width', 'height',
 					      'vx', 'vy', 'vwidth', 'vheight'], ['vx']);
 	    var sets = jQuery.extend({id: args.id, x: args.x, y: args.y,
-				      width: args.width, height: args.height}, (args.vx !== null ?
+				      width: args.width, height: args.height}, (args.vx != null ?
 										{viewBox: args.vx + ' ' + args.vy + ' ' + args.vwidth + ' ' + args.vheight} : {}));
 	    return this._makeNode(args.parent, 'pattern', jQuery.extend(sets, args.settings || {}));
 	},
@@ -561,7 +561,7 @@
 	    var args = this._args(arguments, ['x', 'y', 'width', 'height',
 					      'vx', 'vy', 'vwidth', 'vheight'], ['vx']);
 	    var sets = jQuery.extend({x: args.x, y: args.y, width: args.width, height: args.height}, 
-				     (args.vx !== null ? {viewBox: args.vx + ' ' + args.vy + ' ' +
+				     (args.vx != null ? {viewBox: args.vx + ' ' + args.vy + ' ' +
 							 args.vwidth + ' ' + args.vheight} : {}));
 	    return this._makeNode(args.parent, 'svg', jQuery.extend(sets, args.settings || {}));
 	},
@@ -769,6 +769,9 @@
 	/* Draw text. */
 	_text: function(parent, name, value, settings) {
 	    var node = this._makeNode(parent, name, settings);
+	    if (typeof value == 'number') {
+		value = value.toString();
+	    }
 	    if (typeof value == 'string') {
 		node.appendChild(node.ownerDocument.createTextNode(value));
 	    }
@@ -817,7 +820,7 @@
 	    var node = this._svg.ownerDocument.createElementNS(jQuery.svg.svgNS, name);
 	    for (var name in settings) {
 		var value = settings[name];
-		if (value !== null && value !== null && 
+		if (value != null && value != null && 
 		    (typeof value != 'string' || value != '')) {
 		    node.setAttribute(jQuery.svg._attrNames[name] || name, value);
 		}
@@ -976,7 +979,7 @@
 		xml.resolveExternals = false;
 		xml.async = false;
 		xml.loadXML(data);
-		if (xml.parseError.errorCode !== 0) {
+		if (xml.parseError.errorCode != 0) {
 		    reportError(xml.parseError.reason);
 		    return null;
 		}
@@ -1241,15 +1244,15 @@
 	    if (isArray(x1)) {
 		for (var i = 0; i < x1.length; i++) {
 		    var cs = x1[i];
-		    this._path += (i === 0 ? cmd : ' ') + cs[0] + ',' + cs[1] +
+		    this._path += (i == 0 ? cmd : ' ') + cs[0] + ',' + cs[1] +
 			(cs.length < 4 ? '' : ' ' + cs[2] + ',' + cs[3] +
 			 (cs.length < 6 ? '': ' ' + cs[4] + ',' + cs[5]));
 		}
 	    }
 	    else {
 		this._path += cmd + x1 + ',' + y1 + 
-		    (x2 === null ? '' : ' ' + x2 + ',' + y2 +
-		     (x3 === null ? '' : ' ' + x3 + ',' + y3));
+		    (x2 == null ? '' : ' ' + x2 + ',' + y2 +
+		     (x3 == null ? '' : ' ' + x3 + ',' + y3));
 	    }
 	    return this;
 	},
@@ -1274,7 +1277,7 @@
 	    if (isArray(rx)) {
 		for (var i = 0; i < rx.length; i++) {
 		    var cs = rx[i];
-		    this._path += (i === 0 ? '' : ' ') + cs[0] + ',' + cs[1] + ' ' +
+		    this._path += (i == 0 ? '' : ' ') + cs[0] + ',' + cs[1] + ' ' +
 			cs[2] + ' ' + (cs[3] ? '1' : '0') + ',' +
 			(cs[4] ? '1' : '0') + ' ' + cs[5] + ',' + cs[6];
 		}
@@ -1536,7 +1539,7 @@
 	   @return  (SVGGraph) this graph object or
 	   (SVG element) the current container (if no parameters) */
 	container: function(cont) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._chartCont;
 	    }
 	    this._chartCont = cont;
@@ -1551,7 +1554,7 @@
 	   (string) the chart type (if no parameters)
 	   @deprecated  use type() */
 	chartType: function(id, options) {
-	    return (arguments.length === 0 ? this.type() : this.type(id, options));
+	    return (arguments.length == 0 ? this.type() : this.type(id, options));
 	},
 	
 	/* Set or retrieve the type of chart to be rendered.
@@ -1561,7 +1564,7 @@
 	   @return  (SVGGraph) this graph object or
 	   (string) the chart type (if no parameters) */
 	type: function(id, options) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._chartType;
 	    }
 	    var chartType = jQuery.svg.graphing._chartTypes[id];
@@ -1579,7 +1582,7 @@
 	   (object) the chart options (if no parameters)
 	   @deprecated  use options() */
 	chartOptions: function(options) {
-	    return(arguments.length === 0 ? this.options() : this.options(options));
+	    return(arguments.length == 0 ? this.options() : this.options(options));
 	},
 	
 	/* Set or retrieve additional options for the particular chart type.
@@ -1587,7 +1590,7 @@
 	   @return  (SVGGraph) this graph object or
 	   (object) the chart options (if no parameters) */
 	options: function(options) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._chartOptions;
 	    }
 	    this._chartOptions = jQuery.extend({}, options);
@@ -1603,7 +1606,7 @@
 	   (object) the chart format (if no parameters)
 	   @deprecated  use format() */
 	chartFormat: function(fill, stroke, settings) {
-	    return (arguments.length === 0 ? this.format() : this.format(fill, stroke, settings));
+	    return (arguments.length == 0 ? this.format() : this.format(fill, stroke, settings));
 	},
 	
 	/* Set or retrieve the background of the graph chart.
@@ -1613,7 +1616,7 @@
 	   @return  (SVGGraph) this graph object or
 	   (object) the chart format (if no parameters) */
 	format: function(fill, stroke, settings) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._chartFormat;
 	    }
 	    if (typeof stroke == 'object') {
@@ -1636,7 +1639,7 @@
 	   (number[4]) the chart area: left, top, right, bottom (if no parameters)
 	   @deprecated use area() */
 	chartArea: function(left, top, right, bottom) {
-	    return (arguments.length === 0 ? this.area() : this.area(left, top, right, bottom));
+	    return (arguments.length == 0 ? this.area() : this.area(left, top, right, bottom));
 	},
 	
 	/* Set or retrieve the main chart area.
@@ -1648,7 +1651,7 @@
 	   @return  (SVGGraph) this graph object or
 	   (number[4]) the chart area: left, top, right, bottom (if no parameters) */
 	area: function(left, top, right, bottom) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._area;
 	    }
 	    this._area = (isArray(left) ? left : [left, top, right, bottom]);
@@ -1666,12 +1669,12 @@
 	   @return  (SVGGraph) this graph object or
 	   (object[2]) the gridlines formatting (if no parameters) */
 	gridlines: function(xSettings, ySettings) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._gridlines;
 	    }
 	    this._gridlines = [(typeof xSettings == 'string' ? {stroke: xSettings} : xSettings),
 			       (typeof ySettings == 'string' ? {stroke: ySettings} : ySettings)];
-	    if (this._gridlines[0] === null && this._gridlines[1] === null) {
+	    if (this._gridlines[0] == null && this._gridlines[1] == null) {
 		this._gridlines = [];
 	    }
 	    this._drawGraph();
@@ -1687,7 +1690,7 @@
 	   @return  (SVGGraph) this graph object or
 	   (object) value, offset, and settings for the title (if no parameters) */
 	title: function(value, offset, colour, settings) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._title;
 	    }
 	    if (typeof offset != 'number') {
@@ -2071,7 +2074,7 @@
 	   @return  (SVGGraphSeries) this series object or
 	   (string) the series name (if no parameters) */
 	name: function(name) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._name;
 	    }
 	    this._name = name;
@@ -2085,7 +2088,7 @@
 	   @return  (SVGGraphSeries) this series object or
 	   (number[]) the series values (if no parameters) */
 	values: function(name, values) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._values;
 	    }
 	    if (isArray(name)) {
@@ -2106,7 +2109,7 @@
 	   @return  (SVGGraphSeries) this series object or
 	   (object) formatting settings (if no parameters) */
 	format: function(fill, stroke, strokeWidth, settings) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return jQuery.extend({fill: this._fill, stroke: this._stroke,
 				      strokeWidth: this._strokeWidth}, this._settings);
 	    }
@@ -2162,11 +2165,11 @@
 	   @return  (SVGGraphAxis) this axis object or
 	   (object) min and max values (if no parameters) */
 	scale: function(min, max, type) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._scale;
 	    }
-	    this._scale.min = (type == 'log' && min !== 0) ? log10(min) : min;
-	    this._scale.max = (type == 'log' && max !== 0) ? log10(max) : max;
+	    this._scale.min = (type == 'log' && min != 0) ? log10(min) : min;
+	    this._scale.max = (type == 'log' && max != 0) ? log10(max) : max;
 	    this._scale.type = type || 'linear';
 	    this._graph._drawGraph();
 	    return this;
@@ -2181,15 +2184,15 @@
 	   @return  (SVGGraphAxis) this axis object or
 	   (object) major, minor, size, and position values (if no parameters) */
 	ticks: function(major, minor, size, position, type) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._ticks;
 	    }
 	    if (typeof size == 'string') {
 		position = size;
 		size = null;
 	    }
-	    this._ticks.major = (type == 'log' && major !== 0) ? 2 : major;
-	    this._ticks.minor = (type == 'log' && minor !== 0) ? 1 : minor;
+	    this._ticks.major = (type == 'log' && major != 0) ? 2 : major;
+	    this._ticks.minor = (type == 'log' && minor != 0) ? 1 : minor;
 	    this._ticks.size = size || this._ticks.size;
 	    this._ticks.position = position || this._ticks.position;
 	    this._graph._drawGraph();
@@ -2204,7 +2207,7 @@
 	   @return  (SVGGraphAxis) this axis object or
 	   (object) title, offset, and format values (if no parameters) */
 	title: function(title, offset, colour, format) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return {title: this._title, offset: this._titleOffset, format: this._titleFormat};
 	    }
 	    if (typeof offset != 'number') {
@@ -2217,7 +2220,7 @@
 		colour = null;
 	    }
 	    this._title = title;
-	    this._titleOffset = (offset !== null ? offset : this._titleOffset);
+	    this._titleOffset = (offset != null ? offset : this._titleOffset);
 	    if (colour || format) {
 		this._titleFormat = jQuery.extend(format || {}, (colour ? {fill: colour} : {}));
 	    }
@@ -2232,7 +2235,7 @@
 	   @return  (SVGGraphAxis) this axis object or
 	   (object) labels and format values (if no parameters) */
 	labels: function(labels, colour, format) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return {labels: this._labels, format: this._labelFormat};
 	    }
 	    if (typeof colour != 'string') {
@@ -2254,7 +2257,7 @@
 	   @return  (SVGGraphAxis) this axis object or
 	   (object) line formatting values (if no parameters) */
 	line: function(colour, width, settings) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._lineFormat;
 	    }
 	    if (typeof width == 'object') {
@@ -2295,7 +2298,7 @@
 	   @return  (SVGGraphLegend) this legend object or
 	   (boolean) show the legend? (if no parameters) */
 	show: function(show) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._show;
 	    }
 	    this._show = show;
@@ -2312,7 +2315,7 @@
 	   @return  (SVGGraphLegend) this legend object or
 	   (number[4]) the legend area: left, top, right, bottom (if no parameters) */
 	area: function(left, top, right, bottom) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return this._area;
 	    }
 	    this._area = (isArray(left) ? left : [left, top, right, bottom]);
@@ -2327,7 +2330,7 @@
 	   @return  (SVGGraphLegend) this legend object or
 	   (object) bgSettings and textSettings for the legend (if no parameters) */
 	settings: function(sampleSize, bgSettings, textSettings) {
-	    if (arguments.length === 0) {
+	    if (arguments.length == 0) {
 		return {sampleSize: this._sampleSize, bgSettings: this._bgSettings,
 			textSettings: this._textSettings};
 	    }
@@ -3036,6 +3039,7 @@
 						    x + radius * Math.cos(end), y + radius * Math.sin(end)).close());
 		    graph._showStatus(p, series._name,
 				      roundNumber((end - start) / 2 / Math.PI * 100, 2));
+		    console.log(path.reset().line(x + radius * Math.cos(start), y + radius * Math.sin(start)));
 		}
 		if (graph.xAxis) {
 		    graph._wrapper.text(gt, cx, dims[graph.Y] + dims[graph.H] + graph.xAxis._titleOffset,

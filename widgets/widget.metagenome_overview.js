@@ -547,14 +547,15 @@
     	             'type': 'column',
     	             'default_line_width': 2,
     	             'default_line_color': 'blue',
-    		         'x_labels': xlabels,
-    		         'x_labels_rotation': '310',
-    		         'x_tick_interval': xlabels.length,
-    		         'show_legend': false,
-    		         'chartArea': [80, 20, gwidth, gheight],
-    		         'width': gwidth+80,
-    		         'height': gheight+(longest.length * 4)+40,
-    		         'data': lineData };
+		     'y_scale': 'log',
+    		     'x_labels': xlabels,
+    		     'x_labels_rotation': '310',
+    		     'x_tick_interval': xlabels.length,
+    		     'show_legend': false,
+    		     'chartArea': [80, 20, gwidth, gheight],
+    		     'width': gwidth+80,
+    		     'height': gheight+(longest.length * 4)+40,
+    		     'data': lineData };
     	return data;
     };
 
