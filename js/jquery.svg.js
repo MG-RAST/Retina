@@ -3039,7 +3039,6 @@
 						    x + radius * Math.cos(end), y + radius * Math.sin(end)).close());
 		    graph._showStatus(p, series._name,
 				      roundNumber((end - start) / 2 / Math.PI * 100, 2));
-		    console.log(path.reset().line(x + radius * Math.cos(start), y + radius * Math.sin(start)));
 		}
 		if (graph.xAxis) {
 		    graph._wrapper.text(gt, cx, dims[graph.Y] + dims[graph.H] + graph.xAxis._titleOffset,
