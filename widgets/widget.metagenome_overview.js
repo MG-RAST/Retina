@@ -605,14 +605,19 @@
         }
         var pwidth  = 750;
     	var pheight = 300;
-        var data = { 'y_titleOffset': 60,
-                     'x_titleOffset': 40,
-                     'x_title': xt,
+	var ymax = Math.max.apply(Math, y_all);
+	var pot = ymax.toString().indexOf('.') || ymax.toString.length;
+	pot = Math.pow(10, pot - 1);
+	ymax = Math.floor((ymax + pot) / pot) * pot;
+	var ymin = 0;
+        var data = { 'x_titleOffset': 40,
+                     'y_titleOffset': 60,
+		     'x_title': xt,
                      'y_title': yt,
                      'x_min': Math.min.apply(Math, x_all),
                      'x_max': Math.max.apply(Math, x_all),
-                     'y_min': Math.min.apply(Math, y_all),
-                     'y_max': Math.max.apply(Math, y_all),
+                     'y_min': ymin,//Math.min.apply(Math, y_all),
+                     'y_max': ymax,
                      'show_legend': false,
                      'show_dots': false,
                      'connected': true,
