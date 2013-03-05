@@ -97,7 +97,7 @@
 		    continue;
 	    }
 	    // create and append the output div
-	    var data, x, y, labels, points, xt, yt;
+	    var data, x, y, labels, points, xt, yt, xscale, yscale;
 	    var div = document.createElement('div');
 	    var tag = document.createElement('a');
 	    tag.setAttribute('name', outputs[out].data);
@@ -174,14 +174,18 @@
             Retina.Renderer.create("plot", data).render();
             break;
         case 'single_plot':
+            xscale = 'linear';
+            yscale = 'linear';
 		    switch (outputs[out].category) {
 		    case 'kmer':
 		        points = [];
 		        for (var i = 0; i < mg_stats.qc.kmer['15_mer']['data'].length; i++) {
-                    points.push([ (Math.log(parseFloat(mg_stats.qc.kmer['15_mer']['data'][i][3]))/Math.log(10)), (Math.log(parseFloat(mg_stats.qc.kmer['15_mer']['data'][i][0]))/Math.log(10)) ]);
+                    points.push([ mg_stats.qc.kmer['15_mer']['data'][i][3], mg_stats.qc.kmer['15_mer']['data'][i][0] ]);
                 }
                 xt = 'kmer coverage';
                 yt = 'sequence size';
+                xscale = 'log';
+                yscale = 'log';
                 break;
             case 'rarefaction':
                 points = mg_stats.rarefaction;
@@ -196,7 +200,7 @@
 		        content.removeChild(div);
 		        break;
 		    }
-            data = widget.single_plot(points, xt, yt);
+            data = widget.single_plot(points, xt, yt, xscale, yscale);
             data.target = div;
             Retina.Renderer.create("plot", data).render();
             break;
@@ -595,7 +599,7 @@
         return data;
     };
 
-    widget.single_plot = function(nums, xt, yt) {
+    widget.single_plot = function(nums, xt, yt, xscale, yscale) {
         var xy = [];
         var x_all = [];
         var y_all = [];
@@ -606,18 +610,20 @@
         }
         var pwidth  = 750;
     	var pheight = 300;
-	var ymax = Math.max.apply(Math, y_all);
-	var pot = ymax.toString().indexOf('.') || ymax.toString.length;
-	pot = Math.pow(10, pot - 1);
-	ymax = Math.floor((ymax + pot) / pot) * pot;
-	var ymin = 0;
+	    var ymax = Math.max.apply(Math, y_all);
+	    ymax = ymax + (((yscale == 'log') ? 0.25 : 0.05) * ymax);
+	    var pot = ymax.toString().indexOf('.') || ymax.toString.length;
+	    pot = Math.pow(10, pot - 1);
+	    ymax = Math.floor((ymax + pot) / pot) * pot;
         var data = { 'x_titleOffset': 40,
                      'y_titleOffset': 60,
-		     'x_title': xt,
+		             'x_title': xt,
                      'y_title': yt,
+                     'x_scale': xscale,
+                     'y_scale': yscale,
                      'x_min': Math.min.apply(Math, x_all),
                      'x_max': Math.max.apply(Math, x_all),
-                     'y_min': ymin,//Math.min.apply(Math, y_all),
+                     'y_min': 0,
                      'y_max': ymax,
                      'show_legend': false,
                      'show_dots': false,
