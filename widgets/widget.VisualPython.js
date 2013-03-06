@@ -8,38 +8,50 @@
         }
     });
     
+    // nb_id -> variable_name -> viz_type
     widget.used_variables = {};
+    
+    // nb_id -> variable_name -> { 'type': data_type, 'data': [ data_ids ] }
     widget.loaded_ids = {};
-    widget.cellnum = 0;
 
     widget.setup = function () {
 	return [ Retina.add_renderer({"name": "graph", "resource": "renderers/", "filename": "renderer.graph.js"}),
       		 Retina.add_renderer({"name": "table", "resource": "renderers/", "filename": "renderer.table.js"}),
       		 Retina.add_renderer({"name": "paragraph", "resource": "renderers/", "filename": "renderer.paragraph.js"}),
-		 this.loadRenderer("listselect"),
-		 this.loadRenderer("graph"),
-		 this.loadRenderer("table")
+		     this.loadRenderer("listselect"),
+		     this.loadRenderer("graph"),
+		     this.loadRenderer("table")
 	       ];
     };
     
-    widget.transfer = function (data, cell_handling) {
-	var command = data.replace(/'/g, "##").replace(/"/g, "!!").replace(/\n/g, "\\n");
-	var msgstring = '';
-	if (cell_handling == 'create new cell') {
-	    msgstring += 'if (ipy.read_cell() == \'\') { ipy.write_cell(null, \''+command+'\'); } else { ';
-	    msgstring += 'ipy.write_cell(ipy.add_cell(), \''+command+'\'); }';
-	} else if (cell_handling == 'replace current cell') {
-	    msgstring += 'ipy.write_cell(null, \''+command+'\');';
-	} else if (cell_handling == 'append to current cell') {
-	    msgstring += 'ipy.append_to_cell(null, \''+command+'\');';
-	} else {
-	    msgstring += 'if (ipy.read_cell() == \'\') { ipy.write_cell(null, \''+command+'\'); } else { ';
-	    msgstring += 'ipy.write_cell(ipy.add_cell(), \''+command+'\'); }';
-	}
-	msgstring += "IPython.notebook.execute_selected_cell();";
-	var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
-	var iframe_id = curr_iframe[0].id;
-	stm.send_message(iframe_id, msgstring, 'action');
+    widget.transfer = function (data, cell_handling, nbid) {
+	    var command = data.replace(/'/g, "##").replace(/"/g, "!!").replace(/\n/g, "\\n");
+	    var msgstring = '';
+	    if (cell_handling == 'create new cell') {
+	        msgstring += 'if (ipy.read_cell() == \'\') { ipy.write_cell(null, \''+command+'\'); } else { ';
+	        msgstring += 'ipy.write_cell(ipy.add_cell(), \''+command+'\'); }';
+	    } else if (cell_handling == 'replace current cell') {
+	        msgstring += 'ipy.write_cell(null, \''+command+'\');';
+	    } else if (cell_handling == 'append to current cell') {
+	        msgstring += 'ipy.append_to_cell(null, \''+command+'\');';
+	    } else {
+	        msgstring += 'if (ipy.read_cell() == \'\') { ipy.write_cell(null, \''+command+'\'); } else { ';
+	        msgstring += 'ipy.write_cell(ipy.add_cell(), \''+command+'\'); }';
+	    }
+	    msgstring += "IPython.notebook.execute_selected_cell();";
+	    var current_nb = Retina.WidgetInstances.VisualPython[0].current_nb();
+	    if (current_nb) {
+	        stm.send_message(current_nb, msgstring, 'action');
+        }
+    };
+    
+    widget.current_nb = function () {
+        var curr_iframe = jQuery('#tab_div').children('.active').children('iframe');
+        if (curr_iframe && curr_iframe[0] && (curr_iframe[0].id != 'ipython_dash')) {
+            return curr_iframe[0].id;
+        } else {
+            return undefined;
+        }
     };
 
     widget.add_private = function (params) {
@@ -106,23 +118,24 @@
 	// create a tab menu
 	var ul = document.createElement('ul');
 	ul.setAttribute('class', 'nav nav-tabs');
-	ul.setAttribute('style', "margin-top: 35px; margin-right: -1px; height: 360px;");
+	ul.setAttribute('style', "margin-top: 35px; margin-right: -1px; height: 340px;");
 
 	// create the div-container
 	var div = document.createElement('div');
 	div.setAttribute('class', 'tab-content');
-	div.setAttribute('style', 'height: 395px; border-bottom: 1px solid #DDDDDD;');
+	div.setAttribute('style', 'height: 375px; border-bottom: 1px solid #DDDDDD;');
 
 	content.appendChild(ul);
 	content.appendChild(div);
 
-	// get the data for the metagenome select
-	var metagenome_data = [];
+	var sample_data = [];
+    // load genome samples
 	// for (i in stm.DataStore["genome"]) {
-	//     var md = { "name": stm.DataStore["genome"][i]["scientific_name"],
+	//     var gd = { "name": stm.DataStore["genome"][i]["scientific_name"],
 	// 	       "id": i,
 	// 	       "project": "-",
 	// 	       "type": "genome",
+	//         "status": "public",
 	// 	       "lat/long": "-",
 	// 	       "location": "-",
 	// 	       "collection date": "-",
@@ -131,29 +144,35 @@
 	// 	       "material": "-",
 	// 	       "package": "-",
 	// 	       "sequencing method": "-",
+	//         "sequencing type": "-",
 	// 	       "domain": stm.DataStore["genome"][i]["domain"],
 	// 	       "prokaryotic": stm.DataStore["genome"][i]["prokaryotic"] ? "yes" : "no",
-	// 	       "complete": stm.DataStore["genome"][i]["complete"] ? "yes" : "no" };
-	//     metagenome_data.push( md );
+	// 	       "complete": stm.DataStore["genome"][i]["complete"] ? "yes" : "no"
+	//     };
+	//     sample_data.push(gd);
 	// }
+	// load plant samples
 	for (i in stm.DataStore["plant"]) {
-	    var md = { "name": stm.DataStore["plant"][i]["scientific_name"],
-		       "id": i,
-		       "project": "-",
-		       "type": "plant genome",
-		       "status": "public",
-		       "lat/long": "-",
-		       "location": "-",
-		       "collection date": "-",
-		       "biome": "-",
-		       "feature": "-",
-		       "material": "-",
-		       "package": "-",
-		       "sequencing method": "-",
-		       "sequencing type": "-"
-		     };
-	    metagenome_data.push( md );
+	    if (stm.DataStore["plant"].hasOwnProperty(i)) {
+	        var pd = { "name": stm.DataStore["plant"][i]["scientific_name"],
+		        "id": i,
+		        "project": "-",
+		        "type": "plant",
+		        "status": "public",
+		        "lat/long": "-",
+		        "location": "-",
+		        "collection date": "-",
+		        "biome": "-",
+		        "feature": "-",
+		        "material": "-",
+		        "package": "-",
+		        "sequencing method": "-",
+		        "sequencing type": "-"
+		    };
+	        sample_data.push(pd);
+        }
 	}
+	// load metagenome samples
 	for (i in stm.DataStore["metagenome"]) {
 	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
 		     var md = { "name": stm.DataStore["metagenome"][i]["name"],
@@ -170,11 +189,8 @@
 			   "package": stm.DataStore["metagenome"][i]["package"],
 			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
 			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"]
-//			   "domain": "-",
-//			   "prokaryotic": "-",
-//			   "complete": "-"
 			 };
-		     metagenome_data.push(md);
+		     sample_data.push(md);
 	    }
 	}
 
@@ -226,72 +242,143 @@
 	sample_select_disp_div.appendChild(control_sample_select);
 
 	control_sample_select.innerHTML = '<table style="text-align: left; margin-top: 10px;">\
-<tr><th style="width: 120px;">variable name</th><td><input type="text" id="sample_select_variable_name" value="sample_set" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>cell content</th><td><select id="sample_select_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
-<tr><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="sample_select_comment">load the initial data</textarea></td></tr>\
-</table>';
+<tr><th style="width: 100px;">variable name</th>\
+  <td style="padding-right: 20px;"><input type="text" id="sample_select_variable_name" value="sample_set" style="margin-bottom: 0px; width: 165px;"></td>\
+  <th style="width: 75px;">comment</th>\
+  <td rowspan=3 style="margin-top: 10px; vertical-align: bottom;" ><textarea id="sample_select_comment" style="width: 175px;">load the initial data</textarea></td></tr>\
+<tr><th>cell content</th>\
+  <td><select id="sample_select_content_handling" style="margin-bottom: 0px; width: 175px;">\
+    <option selected>create new cell</option>\
+    <option>replace current cell</option>\
+    <option>append to current cell</option>\
+  </select></td></tr>\
+<tr><td></td></tr></table>';
 
 	widget.sample_select = Retina.Renderer.create('listselect', {
 	    target: ls_multi,
 	    multiple: true,
-	    data: metagenome_data,
+	    data: sample_data,
 	    value: "id",
 	    label: "name",
 	    sort: true,
 	    extra_wide: true,
-	    filter: [ "name", "id", "project", "type", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"], //, "domain", "prokaryotic", "complete" ],
+	    filter: [ "name", "id", "project", "type", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"],
 	    callback: function (data) {
-		    var senddata = "";
-		    var dataname = document.getElementById('sample_select_variable_name').value;
-		    if (document.getElementById('sample_select_comment').value) {
+	        if ((! data) || (data.length == 0)) {
+	            alert("You have not selected any samples.\nPlease place the samples of your choice in the right side box'.");
+    	        return;
+	        }
+		    var dataname   = document.getElementById('sample_select_variable_name').value;
+	        var current_nb = Retina.WidgetInstances.VisualPython[0].current_nb();
+	        
+	        // find and verify current notebook
+	        if (! current_nb) {
+                alert('You have not selected a notebook.\nEither click on an existing notebook tab or\ncreate a new one using the plus (+) tab.');
+                return;
+            }
+            // check if we have a variable name
+        	if (! dataname) {
+        	    alert('You must select a variable name');
+        	    return;
+        	}
+        	// check if the variable name is valid
+        	if (! dataname.match(/^\w+$/)) {
+        	    alert('you may only use alphanumeric characters for variable names');
+        	    return;
+        	}
+        	// add this notebook to data id list
+            if (! Retina.WidgetInstances.VisualPython[0].loaded_ids.hasOwnProperty(current_nb)) {
+                Retina.WidgetInstances.VisualPython[0].loaded_ids[current_nb] = {};
+            }
+        	// check if the variable name has been used before
+        	if (Retina.WidgetInstances.VisualPython[0].loaded_ids[current_nb].hasOwnProperty(dataname)) {
+        	    if (confirm('You have used to variable name "'+dataname+'" for another sample set.\nAre you sure you want to continue?\nThis would overwrite the previous samples in that variable.')) {
+        		    delete(Retina.WidgetInstances.VisualPython[0].loaded_ids[current_nb][dataname]);
+        	    } else {
+        		    return;
+        	    }
+        	}
+		    // get ids by type
+		    var has_wgs = false;
+		    var quote_id = [];
+		    var type_data = {};
+		    for (var t in stm.DataStore) {
+		        type_data[t] = [];
+	        }
+		    for (var i=0; i<data.length; i++) {
+		        for (var t in stm.DataStore) {
+		            if (stm.DataStore[t].hasOwnProperty(data[i])) {
+		                type_data[t].push(data[i]);
+		                quote_id.push("'"+data[i]+"'");
+		                var data_obj = stm.DataStore[t][data[i]];
+		                if ((t == 'metagenome') && ((data_obj["sequence_type"] == 'WGS') || (data_obj["sequence_type"] == 'MT'))) {
+		                    has_wgs = true;
+		                }
+		            }
+		        }
+	        }
+	        // verify all same type
+	        var type_num  = 0;
+	        var this_type = '';
+	        for (var t in type_data) {
+	            if (type_data[t].length > 0) {
+	                type_num += 1;
+	                this_type = t;
+	            }
+	        }
+	        if (type_num > 1) {
+	            alert('You may only select samples of the same type.');
+        	    return;
+	        }
+	        // populate global list / create text to send
+	        Retina.WidgetInstances.VisualPython[0].loaded_ids[current_nb][dataname] = {'type': this_type, 'data': type_data[this_type]};
+	        
+	        var senddata   = "";
+	        if (document.getElementById('sample_select_comment').value) {
 		        senddata += "# "+document.getElementById('sample_select_comment').value.split(/\n/).join("\n# ") + "\n";
 		    }
-		    var sd = [];
-		    var has_wgs  = false;
-		    var is_plant = false;
-		    for (i=0;i<data.length;i++) {
-		        Retina.WidgetInstances.VisualPython[0].loaded_ids[data[i]] = true;
-		        sd.push("'" + data[i] + "'");
-		        if (stm.DataStore["plant"].hasOwnProperty(data[i])) {
-		            is_plant = true;
-		        }
-		        else if ((stm.DataStore["metagenome"][data[i]]["sequence_type"] == 'WGS') || (stm.DataStore["metagenome"][data[i]]["sequence_type"] == 'MT')) {
-                    has_wgs = true;
-                }
-		    }
-		    senddata += "id_list = [ "+sd.join(", ")+" ]\n";
-		    if (is_plant) {
-		        senddata += dataname+" = get_plant_set(gids=id_list, def_name='"+dataname+"')\n";
-	        } else {
+		    senddata += "id_list = [ "+quote_id.join(", ")+" ]\n";
+	        switch (this_type) {
+	            case 'metagenome':
 	            var dataopts = has_wgs ? "method='WGS', function_source='Subsystems'" : "method='Amplicon'";
 	            senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name=\""+dataname+"['statistics']\"),\n";
-		        senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, "+dataopts+", def_name=\""+dataname+"['abundances']\") }";
+	            senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, "+dataopts+", def_name=\""+dataname+"['abundances']\") }";
+	            break;
+	            case 'plant':
+	            senddata += dataname+" = get_plant_set(gids=id_list, def_name='"+dataname+"')\n";
+	            break;
+	            case 'genome':
+	            senddata += dataname+" = get_genome_set(gids=id_list, def_name='"+dataname+"')\n";
+	            break;
+	            default:
+	            break;
 	        }
-		    widget.transfer(senddata, document.getElementById('sample_select_content_handling').options[document.getElementById('sample_select_content_handling').selectedIndex].value);
-		    document.getElementById('data_li').innerHTML = Retina.WidgetInstances.VisualPython[0].get_data_tab();
+	        // send it
+		    widget.transfer(senddata, document.getElementById('sample_select_content_handling').value);
+		    Retina.WidgetInstances.VisualPython[0].set_data_tab(current_nb);
 	    }
 	});
 	widget.sample_select.render();
 
 	// data load / convert
 	var data_sel = document.createElement('li');
-	data_sel.innerHTML = '<a href="#data" data-toggle="tab">'+widget.number(2)+'select data</a>';
+	data_sel.innerHTML = '<a href="#data" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].populate_varnames(null);">'+widget.number(2)+'select data</a>';
 	ul.appendChild(data_sel);
 
 	var data_div = document.createElement('div');
 	data_div.setAttribute('class', 'tab-pane');
 	data_div.setAttribute('id', 'data');
+	div.appendChild(data_div);
 
 	var data_ul = document.createElement('ul');
 	data_ul.setAttribute('class', 'nav nav-tabs');
 	data_ul.setAttribute('style', "margin-bottom: 10px;");
+	data_div.appendChild(data_ul);
 
 	var data_disp = document.createElement('div');
 	data_disp.setAttribute('class', 'tab-content');
 	data_disp.setAttribute('style', 'padding-left: 15px;');
-
-	data_div.appendChild(data_ul);
-	data_div.appendChild(data_disp);
+    data_div.appendChild(data_disp);
 
 	var data_li = document.createElement('li');
 	data_li.setAttribute('class', 'active');
@@ -301,10 +388,8 @@
 	var data_disp_div = document.createElement('div');
 	data_disp_div.setAttribute('class', 'tab-pane active');
 	data_disp_div.setAttribute('id', 'data_li');
-	data_disp_div.innerHTML = widget.get_data_tab();
 	data_disp.appendChild(data_disp_div);
-
-	div.appendChild(data_div);
+	widget.set_data_tab(null);
 
 	// visualizations
 	var vis_sel = document.createElement('li');
@@ -774,6 +859,13 @@
     widget.create_data = function () {
 	var senddata = "";
 	var data_var = document.getElementById('data_variable_name').value;
+	var current_nb = Retina.WidgetInstances.VisualPython[0].current_nb();
+
+	// check that there is a notebook
+    if (! current_nb) {
+        alert('You have not selected a notebook.\nEither click on an existing notebook tab or\ncreate a new one using the plus (+) tab.');
+        return;
+    }
 	
 	// check if we have a variable name
 	if (! data_var) {
@@ -792,13 +884,18 @@
 	    return;
 	}
 
+    // add this notebook to variable list
+    if (! Retina.WidgetInstances.VisualPython[0].used_variables.hasOwnProperty(current_nb)) {
+        Retina.WidgetInstances.VisualPython[0].used_variables[current_nb] = {};
+    }
+
 	// check if the variable name has been used before
-	if (Retina.WidgetInstances.VisualPython[0].used_variables.hasOwnProperty(data_var)) {
+	if (Retina.WidgetInstances.VisualPython[0].used_variables[current_nb].hasOwnProperty(data_var)) {
 	    if (confirm('You have used to variable name "'+data_var+'" for another data result.\nAre you sure you want to continue?\nThis would overwrite the previous data in that variable.')) {
-		delete(Retina.WidgetInstances.VisualPython[0].used_variables[data_var]);
+		    delete(Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var]);
 	    } else {
-		document.getElementById('data_variable_name').focus();
-		return;
+		    document.getElementById('data_variable_name').focus();
+		    return;
 	    }
 	}
 	
@@ -818,59 +915,59 @@
 	if (document.getElementById('data_select').value == 'abundance') {
 	    var level = (document.getElementById('type_select').value == 'organism') ? document.getElementById('tax_select').value : document.getElementById('func_select').value;
 	    var norm  = (document.getElementById('norm_select').value == 'norm')? '1' : '0';
-	    Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'abundance';
+	    Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = 'abundance';
 	    senddata += dataname+"['abundances'].set_display_mgs(ids=selected_ids)\n";
 	    senddata += data_var+" = {'annot': '"+document.getElementById('type_select').value+"', 'level': '"+level+"', 'normalize': "+norm+", 'arg_list': True}";
         } else {
             switch (document.getElementById('stat_select').value) {
             case 'rare':
                 // selected metagenomes - plot
-                Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'plot';
+                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = 'plot';
                 senddata += data_var+" = "+dataname+"['statistics'].plot_rarefaction(mgids=selected_ids, arg_list=True)";
                 break;
             case 'drisee':
                 // single metagenome - plot
-                Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'plot';
+                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = 'plot';
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "drisee_data = Drisee(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
                 senddata += data_var+" = drisee_data.plot(arg_list=True)";
                 break;
             case 'kmer':
                 // single metagenome - plot
-                Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'plot';
+                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = 'plot';
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "kmer_data = Kmer(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
                 senddata += data_var+" = kmer_data.plot_abundance(arg_list=True)";
                 break;
             case 'metadata':
                 // selected metagenomes - table
-                Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'table';
+                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = 'table';
                 senddata += data_var+" = "+dataname+"['statistics'].show_metadata(mgids=selected_ids, arg_list=True)";
                 break;
             case 'alpha':
                 // single and selected metagenomes - deviationplot
-                Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'deviationplot';
+                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = 'deviationplot';
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "alpha_list = "+dataname+"['statistics'].get_stat(stat='alpha_diversity_shannon', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += data_var+" = { 'data': alpha_list}";
                 break;
             case 'bp':
                 // single and selected metagenomes - deviationplot
-                Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'deviationplot';
+                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = 'deviationplot';
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "bp_list = "+dataname+"['statistics'].get_stat(stat='bp_count_raw', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += data_var+" = { 'data': bp_list }";
                 break;
             case 'length':
                 // single and selected metagenomes - deviationplot
-                Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'deviationplot';
+                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = 'deviationplot';
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "length_list = "+dataname+"['statistics'].get_stat(stat='average_length_raw', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += data_var+" = { 'data': length_list }";
                 break;
             case 'gc':
                 // single and selected metagenomes - deviationplot
-                Retina.WidgetInstances.VisualPython[0].used_variables[data_var] = 'deviationplot';
+                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = 'deviationplot';
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "gc_list = "+dataname+"['statistics'].get_stat(stat='average_gc_content_raw', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += data_var+" = { 'data': gc_list }";
@@ -881,9 +978,9 @@
         }
 
 	var vnopts = "";
-	for (i in Retina.WidgetInstances.VisualPython[0].used_variables) {
-	    if (Retina.WidgetInstances.VisualPython[0].used_variables.hasOwnProperty(i)) {
-		vnopts += "<option>"+i+"</option>";
+	for (i in Retina.WidgetInstances.VisualPython[0].used_variables[current_nb]) {
+	    if (Retina.WidgetInstances.VisualPython[0].used_variables[current_nb].hasOwnProperty(i)) {
+		    vnopts += "<option>"+i+"</option>";
 	    }
 	}
 	document.getElementById('varnames').innerHTML = vnopts;
@@ -891,87 +988,121 @@
 	widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
     };
     
-    widget.get_data_tab = function () {
-	widget = Retina.WidgetInstances.VisualPython[0];
-	var html = "<table style='text-align: left;'>\
-<tr style='vertical-align: top;'><th style='padding-bottom: 15px;'>select samples</th><th>select types</th><th>select target</th><td rowspan=2 style='vertical-align: bottom;'><button type='button' class='btn btn-success' style='margin-left: 30px;' title='create IPython command' onclick='Retina.WidgetInstances.VisualPython[0].create_data();'><i class='icon-ok icon-white'></i></button></td></tr>\
-<tr style='vertical-align: top;'><td style='padding-right: 20px;'><select multiple size=10 id='data_sample_select'>";
-	for (i in widget.loaded_ids) {
-	    html += "<option value='"+i+"' selected>"+stm.DataStore.metagenome[i].name+"</option>";
-	}
-	html += "</select></td><td style='padding-right: 20px;'>\
-<table><tr><th style='width: 100px;'>data type</th><td>\
-  <select style='margin-bottom: 0px;' id='data_select' onchange='\
-    var abunds = document.getElementsByName(\"abund_row\");\
-    var stats = document.getElementsByName(\"stat_row\");\
-    if (this.options[this.selectedIndex].value == \"abundance\") {\
-      for (var x=0; x<abunds.length; x++) { abunds[x].style.display=\"\"; }\
-      for (var y=0; y<stats.length; y++) { stats[y].style.display=\"none\"; }\
-    } else {\
-        for (var x=0; x<abunds.length; x++) { abunds[x].style.display=\"none\"; }\
-        for (var y=0; y<stats.length; y++) { stats[y].style.display=\"\"; }\
-        document.getElementById(\"stat_select\").onchange();\
-    }\
-    Retina.WidgetInstances.VisualPython[0].variable_name();'>\
-    <option value='abundance'>abundance profile</option>\
-    <option value='statistics'>statistics</option>\
-  </select>\
-</td></tr>\
-<tr name='abund_row'><th>value format</th><td>\
-  <select id='norm_select' style='margin-bottom: 0px;'>\
-    <option value='norm'>log transformed</option>\
-    <option value='raw'>raw values</option>\
-  </select></td></tr>\
-<tr name='abund_row'><th>hierarchy</th><td>\
-  <select id='type_select' style='margin-bottom: 0px;' onchange='if(this.options[this.selectedIndex].value==\"organism\"){document.getElementById(\"tax_select\").style.display=\"\";document.getElementById(\"func_select\").style.display=\"none\";}else{document.getElementById(\"tax_select\").style.display=\"none\";document.getElementById(\"func_select\").style.display=\"\";}'>\
-    <option value='organism'>Taxonomic Hierarchy</option>\
-    <option value='function'>Functional Hierarchy</option>\
-  </select></td></tr>\
-<tr name='abund_row'><th>level</th><td>\
-  <select style='margin-bottom: 0px;' id='tax_select'>\
-    <option value='domain'>Domain</option>\
-    <option value='phylum'>Phylum</option>\
-    <option value='class'>Class</option>\
-    <option value='order'>Order</option>\
-    <option value='family'>Family</option>\
-    <option value='genus'>Genus</option>\
-    <option value='species'>Species</option>\
-  </select>\
-  <select style='margin-bottom: 0px;' id='func_select' style='display: none;'>\
-    <option value='level1'>Level 1</option>\
-    <option value='level2'>Level 2</option>\
-    <option value='level3'>Level 3</option>\
-    <option value='function'>Function</option>\
-  </select></td></tr>\
-<tr name='stat_row' style='display: none;'><th>stat view</th><td>\
-  <select style='margin-bottom: 0px;' id='stat_select' onchange='if(/^(rare|metadata)$/.test(this.options[this.selectedIndex].value)){document.getElementById(\"primary_row\").style.display=\"none\";}else{document.getElementById(\"primary_row\").style.display=\"\";}Retina.WidgetInstances.VisualPython[0].variable_name();'>\
-    <option value='rare'>Rarefaction Curve</option>\
-    <option value='drisee'>DRISEE Profile</option>\
-    <option value='kmer'>k-mer Profile</option>\
-    <option value='metadata'>Metadata</option>\
-    <option value='alpha'>Alpha-Diversity</option>\
-    <option value='bp'>bp Profile</option>\
-    <option value='length'>Length Histogram</option>\
-    <option value='gc'>GC Histogram</option>\
-  </select></td></tr>\
-<tr name='stat_row' id='primary_row' style='display: none;'><th>primary data</th><td>\
-  <select style='margin-bottom: 0px;' id='primary_select'>";
-    for (i in widget.loaded_ids) {
-    	html += "<option value='"+i+"'>"+stm.DataStore.metagenome[i].name+"</option>";
-    }
-    html += "</td></tr></table>\
-</td><td>\
-  <table>\
-    <tr><th style='width: 120px;'>variable name</th><td><input type='text' id='data_variable_name' value='abund_args_1' style='margin-bottom: 0px;'></td></tr>\
-    <tr><th>cell content</th><td><select id='data_content_handling' style='margin-bottom: 0px;'><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
-    <tr><th style='vertical-align: top;'>comment</th><td><textarea id='data_comment'>my data subselection</textarea></td></tr>\
-  </table>\
-</td></tr>\
-</table>";
-	return html;
+    widget.set_data_tab = function (current_nb) {
+	    widget = Retina.WidgetInstances.VisualPython[0];
+	    if (! current_nb) {
+	        current_nb = widget.current_nb();
+	    }
+	    var html = "<table style='text-align:left;'>\
+<tr style='vertical-align:top;text-align:center;'>\
+  <th style='padding-bottom: 15px;'>select samples</th>\
+  <th>select data</th>\
+  <th>select target</th></tr>\
+<tr style='vertical-align: top;'>\
+  <td style='padding-right: 15px;'>\
+    <table><tr><th style='width: 75px;'>type</th><td>\
+      <select style='margin-bottom: 0px; width: 175px;' id='sample_type_select' onchange='Retina.WidgetInstances.VisualPython[0].populate_sample_vars();'>";
+        if (current_nb && widget.loaded_ids.hasOwnProperty(current_nb)) {
+            var types = [];
+            for (var x in widget.loaded_ids[current_nb]) {
+                if (types.indexOf(widget.loaded_ids[current_nb][x]['type']) === -1) {
+                    types.push(widget.loaded_ids[current_nb][x]['type']);
+                }
+            }
+            for (var t in types) {
+                html += "<option>"+types[t]+"</option>";
+            }
+        }    
+        html += "</select></td></tr>\
+    <tr><th>variable</th><td>\
+      <select style='margin-bottom: 0px; width: 175px;' id='sample_name_select' onchange='Retina.WidgetInstances.VisualPython[0].populate_sample_ids();'>\
+      </select></td></tr>\
+    <tr><td colspan='2'>\
+      <select style='width: 250px;' multiple size=10 id='data_sample_select'></select></td></tr>\
+    </table>\
+  <td style='padding-right: 15px;'>\
+    <table><tr><th style='width: 85px;'>data type</th><td>\
+      <select style='margin-bottom: 0px; width: 175px;' id='data_select' onchange='\
+        var abunds = document.getElementsByName(\"abund_row\");\
+        var stats = document.getElementsByName(\"stat_row\");\
+        if (this.options[this.selectedIndex].value == \"abundance\") {\
+          for (var x=0; x<abunds.length; x++) { abunds[x].style.display=\"\"; }\
+          for (var y=0; y<stats.length; y++) { stats[y].style.display=\"none\"; }\
+        } else {\
+          for (var x=0; x<abunds.length; x++) { abunds[x].style.display=\"none\"; }\
+          for (var y=0; y<stats.length; y++) { stats[y].style.display=\"\"; }\
+          document.getElementById(\"stat_select\").onchange();\
+        }\
+        Retina.WidgetInstances.VisualPython[0].variable_name();'>\
+        <option value='abundance' selected>abundance profile</option>\
+        <option value='statistics'>statistics</option>\
+      </select>\
+    </td></tr>\
+    <tr name='abund_row'><th>value format</th><td>\
+      <select id='norm_select' style='margin-bottom: 0px; width: 175px;'>\
+        <option value='norm'>log transformed</option>\
+        <option value='raw'>raw values</option>\
+      </select></td></tr>\
+    <tr name='abund_row'><th>hierarchy</th><td>\
+      <select id='type_select' style='margin-bottom: 0px; width: 175px;' onchange='if(this.options[this.selectedIndex].value==\"organism\"){document.getElementById(\"tax_select\").style.display=\"\";document.getElementById(\"func_select\").style.display=\"none\";}else{document.getElementById(\"tax_select\").style.display=\"none\";document.getElementById(\"func_select\").style.display=\"\";}'>\
+        <option value='organism' selected>Taxonomic Hierarchy</option>\
+        <option value='function'>Functional Hierarchy</option>\
+      </select></td></tr>\
+    <tr name='abund_row'><th>level</th><td>\
+      <select style='margin-bottom: 0px; width: 175px;' id='tax_select'>\
+        <option value='domain'>Domain</option>\
+        <option value='phylum'>Phylum</option>\
+        <option value='class'>Class</option>\
+        <option value='order'>Order</option>\
+        <option value='family'>Family</option>\
+        <option value='genus'>Genus</option>\
+        <option value='species'>Species</option>\
+      </select>\
+      <select style='margin-bottom: 0px; width: 175px;' id='func_select' style='display:none;'>\
+        <option value='level1'>Level 1</option>\
+        <option value='level2'>Level 2</option>\
+        <option value='level3'>Level 3</option>\
+        <option value='function'>Function</option>\
+      </select></td></tr>\
+    <tr name='stat_row' style='display: none;'><th>stat view</th><td>\
+      <select style='margin-bottom: 0px; width: 175px;' id='stat_select' onchange='if(/^(rare|metadata)$/.test(this.options[this.selectedIndex].value)){document.getElementById(\"primary_row\").style.display=\"none\";}else{document.getElementById(\"primary_row\").style.display=\"\";}Retina.WidgetInstances.VisualPython[0].variable_name();'>\
+        <option value='rare'>Rarefaction Curve</option>\
+        <option value='drisee'>DRISEE Profile</option>\
+        <option value='kmer'>k-mer Profile</option>\
+        <option value='metadata'>Metadata</option>\
+        <option value='alpha'>Alpha-Diversity</option>\
+        <option value='bp'>bp Profile</option>\
+        <option value='length'>Length Histogram</option>\
+        <option value='gc'>GC Histogram</option>\
+      </select></td></tr>\
+    <tr name='stat_row' id='primary_row' style='display: none;'><th>primary data</th><td>\
+      <select style='margin-bottom: 0px; width: 175px;' id='primary_select'></select></td></tr>\
+    </table>\
+  </td><td>\
+    <table>\
+      <tr><th style='width: 100px;'>variable name</th>\
+        <td><input type='text' id='data_variable_name' value='abund_args_1' style='margin-bottom: 0px; width: 170px;'></td></tr>\
+      <tr><th>cell content</th>\
+        <td><select id='data_content_handling' style='margin-bottom: 0px; width: 180px;'><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+      <tr><th style='vertical-align: top;'>comment</th>\
+        <td><textarea id='data_comment' style='width: 170px;'>my data subselection</textarea></td></tr>\
+      <tr><td colspan='2' align='right' style='padding-top:30px;'>\
+        <button type='button' class='btn btn-success' title='create IPython command' onclick='Retina.WidgetInstances.VisualPython[0].create_data();'><i class='icon-ok icon-white'></i></button>\
+      </td></tr>\
+    </table>\
+  </td>\
+</tr></table>";
+        document.getElementById('data_li').innerHTML = html;
+        document.getElementById("type_select").onchange();
+        widget.variable_name(current_nb);
+        widget.populate_sample_vars(current_nb);
     };
     
-    widget.variable_name = function () {
+    widget.variable_name = function (nbid) {
+        widget = Retina.WidgetInstances.VisualPython[0];
+        if (! nbid) {
+            nbid = widget.current_nb();
+        }
         var temp_name = "";
         if (document.getElementById('data_select').value == 'abundance') {
             temp_name = 'abund_args_';
@@ -979,10 +1110,71 @@
             temp_name = document.getElementById('stat_select').value+"_args_";
         }
         var num = 1;
-        while ( Retina.WidgetInstances.VisualPython[0].used_variables.hasOwnProperty(temp_name+num.toString()) ) {
-            num += 1;
+        if (widget.used_variables.hasOwnProperty(nbid)) {
+            while ( widget.used_variables[nbid].hasOwnProperty(temp_name+num.toString()) ) {
+                num += 1;
+            }
         }
         document.getElementById('data_variable_name').value = temp_name+num.toString();
+    };
+
+    widget.populate_sample_vars = function (nbid) {
+        widget = Retina.WidgetInstances.VisualPython[0];
+        if (! nbid) {
+            nbid = widget.current_nb();
+        }
+        var type = document.getElementById('sample_type_select').value;
+        document.getElementById('sample_name_select').innerHTML = "";
+        if (nbid && (nbid != 'delete') && widget.loaded_ids.hasOwnProperty(nbid)) {
+            var snopts = "";
+            for (var name in widget.loaded_ids[nbid]) {
+                if (widget.loaded_ids[nbid][name]['type'] == type) {
+                    snopts += "<option>"+name+"</option>";
+                }
+            }
+            document.getElementById('sample_name_select').innerHTML = snopts;
+        }
+        widget.populate_sample_ids(nbid);
+    };
+
+    widget.populate_sample_ids = function (nbid) {
+        widget = Retina.WidgetInstances.VisualPython[0];
+        if (! nbid) {
+            nbid = widget.current_nb();
+        }
+        var name = document.getElementById('sample_name_select').value;
+        var type = document.getElementById('sample_type_select').value;
+        document.getElementById('data_sample_select').innerHTML = "";
+        document.getElementById('primary_select').innerHTML = "";
+        if ( nbid && (nbid != 'delete') && widget.loaded_ids.hasOwnProperty(nbid) &&
+             widget.loaded_ids[nbid].hasOwnProperty(name) && (widget.loaded_ids[nbid][name]['type'] == type) ) {
+            var idopts = "";
+            for (var i in widget.loaded_ids[nbid][name]['data']) {
+                var id = widget.loaded_ids[nbid][name]['data'][i];
+                idopts += "<option value='"+id+"'>"+stm.DataStore[type][id].name+"</option>";
+            }
+            document.getElementById('data_sample_select').innerHTML = idopts;
+            if (type == 'metagenome') {
+                document.getElementById('primary_select').innerHTML = idopts;
+            }
+        }
+    };
+    
+    widget.populate_varnames = function (nbid) {
+        widget = Retina.WidgetInstances.VisualPython[0];
+        if (! nbid) {
+            nbid = widget.current_nb();
+        }
+        document.getElementById('varnames').innerHTML = "";
+        if (nbid && (nbid != 'delete') && widget.used_variables.hasOwnProperty(nbid)) {
+            var vnopts = "";
+        	for (var i in widget.used_variables[nbid]) {
+        	    if (widget.used_variables[nbid].hasOwnProperty(i)) {
+        		    vnopts += "<option>"+i+"</option>";
+        	    }
+        	}
+        	document.getElementById('varnames').innerHTML = vnopts;
+        }
     };
 
     widget.check_varname_list = function (tab) {
@@ -1018,10 +1210,11 @@
 	    }
 
 	    v.style.display = '';
+	    var current_nb = Retina.WidgetInstances.VisualPython[0].current_nb();
 	    var vns = document.getElementById('varnames').options;
 	    var count = 0;
 	    for (i=0; i<vns.length; i++) {
-		if (allowed[Retina.WidgetInstances.VisualPython[0].used_variables[vns[i].value]]) {
+		if (allowed[Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][vns[i].value]]) {
 		    vns[i].removeAttribute('disabled');
 		    var val = vns[i].value;
 		    vns[i].setAttribute('onclick', "document.getElementById('"+tab+"_data').value = '"+val+"';");

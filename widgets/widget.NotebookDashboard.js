@@ -359,7 +359,7 @@
     widget.nb_create_tab = function (index, uuid, name) {
         // create html
         var url = Retina.WidgetInstances.NotebookDashboard[index].nb_server+'/'+uuid;
-        var li_elem  = '<li class="active" id="'+uuid+'_li"><a data-toggle="tab" href="#'+uuid+'_tab">'+name+'<i class="icon-remove" onclick="if(confirm(\'really close this notebook?\')){Retina.WidgetInstances.NotebookDashboard['+index+'].nb_close_tab(\''+uuid+'\');}" style="position: relative; left: 5px; bottom: 4px;"></a></li>';
+        var li_elem  = '<li class="active" id="'+uuid+'_li"><a data-toggle="tab" href="#'+uuid+'_tab" onclick="Retina.WidgetInstances.VisualPython[0].set_data_tab(\''+uuid+'\');Retina.WidgetInstances.VisualPython[0].populate_varnames(\''+uuid+'\');">'+name+'<i class="icon-remove" onclick="if(confirm(\'really close this notebook?\')){Retina.WidgetInstances.NotebookDashboard['+index+'].nb_close_tab(\''+uuid+'\');}" style="position: relative; left: 5px; bottom: 4px;"></a></li>';
         var div_elem = '<div id="'+uuid+'_tab" class="tab-pane active"><iframe id="'+uuid+'" src="'+url+'" width="95%" height="750">Your Browser does not support iFrames</iframe></div>';
         // add tab
         jQuery('#tab_list').children('.active').removeClass('active');
@@ -370,6 +370,8 @@
     };
 
     widget.nb_close_tab = function (uuid) {
+        delete Retina.WidgetInstances.VisualPython[0].used_variables[uuid];
+        Retina.WidgetInstances.VisualPython[0].populate_varnames('delete');
         stm.send_message(uuid, 'ipy.notebook_terminate();', 'action');
         setTimeout("jQuery('#"+uuid+"_tab').remove();jQuery('#"+uuid+"_li').remove();", 1000);
     };
