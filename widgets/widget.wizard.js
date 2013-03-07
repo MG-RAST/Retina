@@ -46,7 +46,20 @@
 <p id="progressBar"></p>\
 </div>';
 	    target.appendChild(progress);
-	    stm.get_objects( { type: 'metagenome', options: { verbosity: 'migs', limit: 0 } } ).then(function(){widget.display(wparams);});
+	    jQuery.getJSON('data/mg_migs_public.json', function(data) {
+		for (var d in data) {
+                    if (data.hasOwnProperty(d)) {
+			stm.load_data({"data": data[d], "type": d});
+                    }
+		}
+		widget.display(wparams);
+            }).fail( function() {
+		stm.get_objects({"type": "metagenome", "options": {"status": "public", "verbosity": "migs", "limit": 0}}).then(function() {
+                    widget.display(wparams);
+		});
+	    });
+	    
+	    //stm.get_objects( { type: 'metagenome', options: { verbosity: 'migs', limit: 0 } } ).then(function(){widget.display(wparams);});
 	    //stm.get_objects( { type: 'metagenome', id: '4477840.3', options: { verbosity: 'migs', limit: 0 } } ).then(function(){stm.get_objects( { type: 'metagenome', id: '4478370.3', options: { verbosity: 'migs', limit: 0 } } ).then(function(){widget.display(wparams);})});
 	    return;
 	}
