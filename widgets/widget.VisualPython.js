@@ -8,9 +8,12 @@
         }
     });
     
+    // genome url
+    widget.genome_url = "http://bio-data-1.mcs.anl.gov/services/cdmi_api";
+    // plant url
+    widget.plant_url = "http://140.221.84.160:7032";
     // nb_id -> variable_name -> viz_type
     widget.used_variables = {};
-    
     // nb_id -> variable_name -> { 'type': data_type, 'data': [ data_ids ] }
     widget.loaded_ids = {};
 
@@ -39,8 +42,10 @@
 	        msgstring += 'ipy.write_cell(ipy.add_cell(), \''+command+'\'); }';
 	    }
 	    msgstring += "IPython.notebook.execute_selected_cell();";
-	    var current_nb = Retina.WidgetInstances.VisualPython[0].current_nb();
-	    if (current_nb) {
+	    if (! nbid) {
+	        nbid = Retina.WidgetInstances.VisualPython[0].current_nb();
+	    }
+	    if (nbid) {
 	        stm.send_message(current_nb, msgstring, 'action');
         }
     };
@@ -68,6 +73,7 @@
     };
 
     widget.display = function (params) {
+    widget = Retina.WidgetInstances.VisualPython[0];
 	// check if the required metadata is loaded - if not get public
 	if (! stm.DataStore.hasOwnProperty('metagenome')) {
 	    var progress = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 100px; width: 400px; right: 38%;">\
@@ -77,6 +83,42 @@
 <p id="progressBar"></p>\
 </div>';
         params.target.innerHTML = progress;
+        // get genome data
+        jQuery.getJSON('data/genome_public.json', function(data) {
+	        for (var d in data) {
+                if (data.hasOwnProperty(d)) {
+                    stm.load_data({"data": data[d], "type": d});
+                }
+            }
+        }).fail( function() {
+            jQuery.ajax({
+                type: "POST",
+                url: widget.genome_url,
+                crossDomain: true,
+                cache: false,
+                headers: { 'Access-Control-Allow-Origin': '*',
+                           'Access-Control-Request-Method': '*',
+                           'Access-Control-Allow-Credentials': true,
+                           'Access-Control-Allow-Headers': '*, x-requested-with, Content-Type',
+                           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS' },
+                data: '{"params":[0,1000000,["id","pegs","rnas","scientific_name","complete","prokaryotic","dna_size","domain","genetic_code","gc_content","phenotype","md5","source_id"]],"method":"CDMI_EntityAPI.all_entities_Genome","version":"1.1"}',
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log('Error: '+jqXHR+' : '+textStatus+' : '+errorThrown);
+                },
+                success: function (data) {
+		            var d = JSON.parse(data);
+		            d = d.result[0];
+		            stm.DataStore['genome'] = {};
+		            for (var g in d) {
+		                stm.DataStore['genome'][g] = d[g];
+		            }
+	            },
+	            complete: function (jqXHR, textStatus) {
+	                console.log('Complete: '+jqXHR+' : '+textStatus);
+	            }
+            });
+		});
+        // get plant data
 	    jQuery.getJSON('data/plant_public.json', function(data) {
 	        for (var d in data) {
                 if (data.hasOwnProperty(d)) {
@@ -84,26 +126,28 @@
                 }
             }
         }).fail( function() {
-	        jQuery.post( "http://140.221.84.160:7032", '{ "params": [ ["EnsemblPlant"], [], [], ["id", "scientific_name"] ], "method": "CDMI_EntityAPI.get_relationship_Submitted", "version": "1.1" }').then( function(data) {
-		        var d = JSON.parse(data);
-		        d = d.result[0];
-		        stm.DataStore['plant'] = {};
-		        for (i=0;i<d.length;i++) {
-		            stm.DataStore['plant'][d[i][2]['id']] = d[i][2];
-		        }
-		    });
+	        jQuery.post(widget.plant_url, '{ "params": [ 0, 100, [ "id", "pegs", "rnas", "scientific_name", "complete", "prokaryotic", "dna_size", "domain", "genetic_code", "gc_content", "phenotype", "md5", "source_id" ] ], "method": "CDMI_EntityAPI.all_entities_Genome", "version": "1.1" }').then(
+	            function(data) {
+		            var d = JSON.parse(data);
+		            d = d.result[0];
+		            stm.DataStore['plant'] = {};
+		            for (var p in d) {
+		                stm.DataStore['plant'][p] = d[p];
+		            }
+	            }
+		    );
 		});
-
+        // get metagenome data
 	    jQuery.getJSON('data/mg_migs_public.json', function(data) {
             for (var d in data) {
                 if (data.hasOwnProperty(d)) {
                     stm.load_data({"data": data[d], "type": d});
                 }
             }
-            Retina.WidgetInstances.VisualPython[0].display(params);
+            widget.display(params);
         }).fail( function() {
             stm.get_objects({"type": "metagenome", "options": {"status": "public", "verbosity": "migs", "limit": 0}}).then(function() {
-                Retina.WidgetInstances.VisualPython[0].display(params);
+                widget.display(params);
             });
         });
 	    return;
@@ -130,27 +174,29 @@
 
 	var sample_data = [];
     // load genome samples
-	// for (i in stm.DataStore["genome"]) {
-	//     var gd = { "name": stm.DataStore["genome"][i]["scientific_name"],
-	// 	       "id": i,
-	// 	       "project": "-",
-	// 	       "type": "genome",
-	//         "status": "public",
-	// 	       "lat/long": "-",
-	// 	       "location": "-",
-	// 	       "collection date": "-",
-	// 	       "biome": "-",
-	// 	       "feature": "-",
-	// 	       "material": "-",
-	// 	       "package": "-",
-	// 	       "sequencing method": "-",
-	//         "sequencing type": "-",
-	// 	       "domain": stm.DataStore["genome"][i]["domain"],
-	// 	       "prokaryotic": stm.DataStore["genome"][i]["prokaryotic"] ? "yes" : "no",
-	// 	       "complete": stm.DataStore["genome"][i]["complete"] ? "yes" : "no"
-	//     };
-	//     sample_data.push(gd);
-	// }
+	for (i in stm.DataStore["genome"]) {
+	    if (stm.DataStore["plant"].hasOwnProperty(i)) {
+	        var gd = { "genome": stm.DataStore["genome"][i]["scientific_name"],
+	 	        "id": i,
+	 	        "project": "-",
+	 	        "type": "genome",
+	            "status": "public",
+	 	        "lat/long": "-",
+	 	        "location": "-",
+	 	        "collection date": "-",
+	 	        "biome": "-",
+	 	        "feature": "-",
+	 	        "material": "-",
+	 	        "package": "-",
+	 	        "sequencing method": "-",
+	            "sequencing type": "-",
+	 	        "domain": stm.DataStore["genome"][i]["domain"],
+	 	        "prokaryotic": stm.DataStore["genome"][i]["prokaryotic"] ? "yes" : "no",
+	 	        "complete": stm.DataStore["genome"][i]["complete"] ? "yes" : "no"
+	        };
+	        sample_data.push(gd);
+        }
+	}
 	// load plant samples
 	for (i in stm.DataStore["plant"]) {
 	    if (stm.DataStore["plant"].hasOwnProperty(i)) {
@@ -167,7 +213,10 @@
 		        "material": "-",
 		        "package": "-",
 		        "sequencing method": "-",
-		        "sequencing type": "-"
+		        "sequencing type": "-",
+		        "domain": "Eukaryota",
+            	"prokaryotic": "no",
+            	"complete": stm.DataStore["plant"][i]["complete"] ? "yes" : "no"
 		    };
 	        sample_data.push(pd);
         }
@@ -188,7 +237,10 @@
 			   "material": stm.DataStore["metagenome"][i]["material"],
 			   "package": stm.DataStore["metagenome"][i]["package"],
 			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
-			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"]
+			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"],
+			   "domain": "-",
+           	   "prokaryotic": "-",
+           	   "complete": "-"
 			 };
 		     sample_data.push(md);
 	    }
@@ -262,14 +314,14 @@
 	    label: "name",
 	    sort: true,
 	    extra_wide: true,
-	    filter: [ "name", "id", "project", "type", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"],
+	    filter: [ "name", "id", "project", "type", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type", "domain", "prokaryotic", "complete" ],
 	    callback: function (data) {
 	        if ((! data) || (data.length == 0)) {
 	            alert("You have not selected any samples.\nPlease place the samples of your choice in the right side box'.");
     	        return;
 	        }
 		    var dataname   = document.getElementById('sample_select_variable_name').value;
-	        var current_nb = Retina.WidgetInstances.VisualPython[0].current_nb();
+	        var current_nb = widget.current_nb();
 	        
 	        // find and verify current notebook
 	        if (! current_nb) {
@@ -287,13 +339,13 @@
         	    return;
         	}
         	// add this notebook to data id list
-            if (! Retina.WidgetInstances.VisualPython[0].loaded_ids.hasOwnProperty(current_nb)) {
-                Retina.WidgetInstances.VisualPython[0].loaded_ids[current_nb] = {};
+            if (! widget.loaded_ids.hasOwnProperty(current_nb)) {
+                widget.loaded_ids[current_nb] = {};
             }
         	// check if the variable name has been used before
-        	if (Retina.WidgetInstances.VisualPython[0].loaded_ids[current_nb].hasOwnProperty(dataname)) {
+        	if (widget.loaded_ids[current_nb].hasOwnProperty(dataname)) {
         	    if (confirm('You have used to variable name "'+dataname+'" for another sample set.\nAre you sure you want to continue?\nThis would overwrite the previous samples in that variable.')) {
-        		    delete(Retina.WidgetInstances.VisualPython[0].loaded_ids[current_nb][dataname]);
+        		    delete(widget.loaded_ids[current_nb][dataname]);
         	    } else {
         		    return;
         	    }
@@ -331,7 +383,7 @@
         	    return;
 	        }
 	        // populate global list / create text to send
-	        Retina.WidgetInstances.VisualPython[0].loaded_ids[current_nb][dataname] = {'type': this_type, 'data': type_data[this_type]};
+	        widget.loaded_ids[current_nb][dataname] = {'type': this_type, 'data': type_data[this_type]};
 	        
 	        var senddata   = "";
 	        if (document.getElementById('sample_select_comment').value) {
@@ -354,8 +406,8 @@
 	            break;
 	        }
 	        // send it
-		    widget.transfer(senddata, document.getElementById('sample_select_content_handling').value);
-		    Retina.WidgetInstances.VisualPython[0].set_data_tab(current_nb);
+		    widget.transfer(senddata, document.getElementById('sample_select_content_handling').value, current_nb);
+		    widget.set_data_tab(current_nb);
 	    }
 	});
 	widget.sample_select.render();
@@ -473,7 +525,7 @@
  </td>\
  <td style="padding-left: 20px; vertical-align: top;">\
   <table style="text-align: left; margin-top: 50px;">\
-   <tr><th>cell content</th><td><select id="para_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+   <tr><th>cell content</th><td><select id="para_content_handling" style="margin-bottom: 0px;"><option selected>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
    <tr><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="para_comment">introductory paragraph</textarea></td></tr>\
   </table>\
  </td>\
@@ -524,7 +576,7 @@
 	    senddata += "})\n";
 	    senddata += "\tIpy.RETINA.graph(**graph_args)\n";
 	    senddata += "except:\n\tpass";
-	    widget.transfer(senddata, false);
+	    widget.transfer(senddata, false, false);
 	});
 	chart_div.appendChild(graph_button);
 
@@ -553,7 +605,7 @@
 	        return;
 	    }
 	    var senddata = "Ipy.RETINA.table(**"+document.getElementById('table_data').value+")";
-	    widget.transfer(senddata, false);
+	    widget.transfer(senddata, false, false);
 	});
 	table_div.appendChild(table_button);
 	vis_disp.appendChild(table_div);
@@ -591,7 +643,7 @@
 	    senddata += "try:\n\theat_viz_args.update({'tree_height': "+document.getElementById('heat_tree_height').value+", 'tree_width': "+document.getElementById('heat_tree_width').value+", 'legend_width': "+document.getElementById('heat_legend_width').value+", 'legend_height': "+document.getElementById('heat_legend_height').value+", 'min_cell_height': "+document.getElementById('heat_min_cell_height').value+"})\n";
 	    senddata += "\tIpy.RETINA.heatmap(**heat_viz_args)\n";
 	    senddata += "except:\n\tpass";
-	    widget.transfer(senddata, false);
+	    widget.transfer(senddata, false, false);
 	});
 	heatmap_div.appendChild(heat_button);
 	vis_disp.appendChild(heatmap_div);
@@ -639,7 +691,7 @@
 	    senddata += "})\n";
 	    senddata += "\tIpy.RETINA.plot(**pcoa_viz_args)\n";
 	    senddata += "except:\n\tpass";
-	    widget.transfer(senddata, false);
+	    widget.transfer(senddata, false, false);
 	});
 	pcoa_div.appendChild(pcoa_button);
 	vis_disp.appendChild(pcoa_div);
@@ -683,7 +735,7 @@
 	    }
 	    senddata += "})\n";
 	    senddata += "Ipy.RETINA.plot(**"+document.getElementById('plot_data').value+")";
-	    widget.transfer(senddata, false);
+	    widget.transfer(senddata, false, false);
 	});
 	plot_div.appendChild(plot_button);
 	vis_disp.appendChild(plot_div);
@@ -716,7 +768,7 @@
 	    senddata += "try:\n\tboxplot_args.update({'height': "+document.getElementById('boxplot_height').value+", 'width': "+document.getElementById('boxplot_width').value+"})\n";
 	    senddata += "\tIpy.RETINA.boxplot(**boxplot_args)\n";
 	    senddata += "except:\n\tpass";
-	    widget.transfer(senddata, false);
+	    widget.transfer(senddata, false, false);
 	});
 	boxplot_div.appendChild(boxplot_button);
 	vis_disp.appendChild(boxplot_div);
@@ -747,7 +799,7 @@
 	    }
 	    var senddata = document.getElementById('deviationplot_data').value+".update({'height': "+document.getElementById('deviationplot_height').value+", 'width': "+document.getElementById('deviationplot_width').value+"})\n";
 	    senddata += "Ipy.RETINA.deviationplot(**"+document.getElementById('deviationplot_data').value+")";
-	    widget.transfer(senddata, false);
+	    widget.transfer(senddata, false, false);
 	});
 	deviationplot_div.appendChild(deviationplot_button);
 	vis_disp.appendChild(deviationplot_div);
@@ -845,7 +897,7 @@
 	        var dstring = JSON.stringify(widget.currentParagraph);
 	        dstring = dstring.replace(/\\n/g, "<br>");
 	        senddata += "Ipy.RETINA.paragraph(data="+dstring+")";
-	        widget.transfer(senddata, document.getElementById('para_content_handling').options[document.getElementById('para_content_handling').selectedIndex].value);
+	        widget.transfer(senddata, document.getElementById('para_content_handling').value, false);
     	    break;
     	    default:
     	    break;
@@ -918,8 +970,8 @@
 	    Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = 'abundance';
 	    senddata += dataname+"['abundances'].set_display_mgs(ids=selected_ids)\n";
 	    senddata += data_var+" = {'annot': '"+document.getElementById('type_select').value+"', 'level': '"+level+"', 'normalize': "+norm+", 'arg_list': True}";
-        } else {
-            switch (document.getElementById('stat_select').value) {
+    } else {
+        switch (document.getElementById('stat_select').value) {
             case 'rare':
                 // selected metagenomes - plot
                 Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = 'plot';
@@ -974,18 +1026,9 @@
                 break;
             default:
                 break;
-            }
         }
-
-	var vnopts = "";
-	for (i in Retina.WidgetInstances.VisualPython[0].used_variables[current_nb]) {
-	    if (Retina.WidgetInstances.VisualPython[0].used_variables[current_nb].hasOwnProperty(i)) {
-		    vnopts += "<option>"+i+"</option>";
-	    }
-	}
-	document.getElementById('varnames').innerHTML = vnopts;
-	
-	widget.transfer(senddata, document.getElementById('data_content_handling').options[document.getElementById('data_content_handling').selectedIndex].value);
+    }
+	widget.transfer(senddata, document.getElementById('data_content_handling').value, current_nb);
     };
     
     widget.set_data_tab = function (current_nb) {
@@ -1021,7 +1064,7 @@
       <select style='width: 250px;' multiple size=10 id='data_sample_select'></select></td></tr>\
     </table>\
   <td style='padding-right: 15px;'>\
-    <table><tr><th style='width: 85px;'>data type</th><td>\
+    <table id='mg_options'><tr><th style='width: 85px;'>data type</th><td>\
       <select style='margin-bottom: 0px; width: 175px;' id='data_select' onchange='\
         var abunds = document.getElementsByName(\"abund_row\");\
         var stats = document.getElementsByName(\"stat_row\");\
@@ -1078,12 +1121,22 @@
     <tr name='stat_row' id='primary_row' style='display: none;'><th>primary data</th><td>\
       <select style='margin-bottom: 0px; width: 175px;' id='primary_select'></select></td></tr>\
     </table>\
+    <table id='plant_options'><tr><th style='width: 85px;'>data type</th><td>\
+      <select style='margin-bottom: 0px; width: 175px;' id='plant_data_select' onchange='if(this.options[this.selectedIndex].value==\"trait\"){document.getElementById(\"variant_row\").style.display=\"none\";}else{document.getElementById(\"variant_row\").style.display=\"\";}Retina.WidgetInstances.VisualPython[0].variable_name();'>\
+        <option value='trait' selected>traits</option>\
+        <option value='variant'>variations</option>\
+      </select></td></tr>\
+    <tr id='variant_row' style='display: none;'><th>counts</th><td>\
+        <input type='text' id='variant_count' value='5' style='margin-bottom: 0px; width: 165px;'></td></tr>\
+    <tr><th>primary data</th><td>\
+        <select style='margin-bottom: 0px; width: 175px;' id='plant_primary_select'></select></td></tr>\
+    </table>\
   </td><td>\
     <table>\
       <tr><th style='width: 100px;'>variable name</th>\
         <td><input type='text' id='data_variable_name' value='abund_args_1' style='margin-bottom: 0px; width: 170px;'></td></tr>\
       <tr><th>cell content</th>\
-        <td><select id='data_content_handling' style='margin-bottom: 0px; width: 180px;'><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+        <td><select id='data_content_handling' style='margin-bottom: 0px; width: 180px;'><option selected>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
       <tr><th style='vertical-align: top;'>comment</th>\
         <td><textarea id='data_comment' style='width: 170px;'>my data subselection</textarea></td></tr>\
       <tr><td colspan='2' align='right' style='padding-top:30px;'>\
@@ -1094,6 +1147,7 @@
 </tr></table>";
         document.getElementById('data_li').innerHTML = html;
         document.getElementById("type_select").onchange();
+        document.getElementById("plant_data_select").onchange();
         widget.variable_name(current_nb);
         widget.populate_sample_vars(current_nb);
     };
@@ -1104,10 +1158,14 @@
             nbid = widget.current_nb();
         }
         var temp_name = "";
-        if (document.getElementById('data_select').value == 'abundance') {
-            temp_name = 'abund_args_';
-        } else {
-            temp_name = document.getElementById('stat_select').value+"_args_";
+        if (document.getElementById('sample_type_select').value == 'metagenome') {
+            if (document.getElementById('data_select').value == 'abundance') {
+                temp_name = 'abund_args_';
+            } else {
+                temp_name = document.getElementById('stat_select').value+"_args_";
+            }
+        } else if (document.getElementById('sample_type_select').value == 'plant') {
+            temp_name = document.getElementById('plant_data_select').value+"_args_";
         }
         var num = 1;
         if (widget.used_variables.hasOwnProperty(nbid)) {
@@ -1156,6 +1214,8 @@
             document.getElementById('data_sample_select').innerHTML = idopts;
             if (type == 'metagenome') {
                 document.getElementById('primary_select').innerHTML = idopts;
+            } else if (type == 'plant') {
+                document.getElementById('plant_primary_select').innerHTML = idopts;
             }
         }
     };
