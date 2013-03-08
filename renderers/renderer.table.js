@@ -92,6 +92,7 @@
 		'hide_options': false,
 		'filter_changed': false,
 		'editable': {},
+		'edit_callback': null,
 		'target': 'table_space',
 		'data': 'exampleData()'
 	    },
@@ -564,6 +565,9 @@
 				      e = e || window.event;
 				      if (e.keyCode == 13) {
 					  Retina.RendererInstances.table[index].settings.tdata[clicked_row_index][header[clicked_cell_index]] = edit.value;
+					  if (Retina.RendererInstances.table[index].settings.edit_callback && typeof(Retina.RendererInstances.table[index].settings.edit_callback) == 'function') {
+					      Retina.RendererInstances.table[index].settings.edit_callback.call(Retina.RendererInstances.table[index].settings.tdata);
+					  }
 					  Retina.RendererInstances.table[index].render();
 				      }
 				  });
