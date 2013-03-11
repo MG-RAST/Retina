@@ -28,6 +28,9 @@
     widget.nb_primary_list = undefined;
     widget.nb_copy_list = undefined;
     widget.nb_ver_list = undefined;
+    
+    // builder widget this dashboard is interacting with
+    widget.builder_widget = undefined;
 
     // this will be called by Retina automatically to initialize the widget
     // note that the display function will not be called until this is finished
@@ -77,7 +80,7 @@
                    <i class="icon-eye-open icon-white"></i>\
                 </button>\
             <div id="data_pick" style="display: none; height: 395px; margin-top: 5px;">\
-	            <div id="data_selector_div"></div>\
+	            <div id="data_builder_div"></div>\
 	        </div>\
 	        <div id="result" style="display: none;"><h3 style="position: relative; top: 200px; left: 25%;">your analysis currently has no results</h3></div>';
         if (params.logo == 'kbase') {
@@ -125,8 +128,8 @@
 	          </div>\
 	          <div class="modal-footer">\
 	            <button class="btn btn-danger pull-left" data-dismiss="modal" aria-hidden="true">Cancel</button>\
-	            <button class="btn btn-success" aria-hidden="true" data-dismiss="modal" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_close_tab(false);">Close</button>\
-	            <button class="btn btn-success" aria-hidden="true" data-dismiss="modal" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_close_tab(true);">Save & Close</button>\
+	            <button class="btn btn-success" aria-hidden="true" data-dismiss="modal" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_close_tab('+index+', false);">Close</button>\
+	            <button class="btn btn-success" aria-hidden="true" data-dismiss="modal" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_close_tab('+index+', true);">Save & Close</button>\
 	          </div>\
 	        </div>\
 	        <div id="nb_select_modal" class="modal show fade" tabindex="-1" role="dialog" style="width: 590px; margin: -250px 0 0 -295px;">\
@@ -171,15 +174,15 @@
             </div>';
         var iframe_html = '<div class="tabbable" style="margin-top: 15px; margin-left: 15px;" id="ipython_iframe">\
             <ul id="tab_list" class="nav nav-tabs">\
-                <li class="hide"><a data-toggle="tab" href="#hidden_dash">IPython</a></li>\
+                <li id="hidden_tab" class="hide"><a data-toggle="tab" href="#hidden_dash">IPython</a></li>\
                 <li id="selector_tab" class="show"><a href="#" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].select_nb_click('+index+');"><i class="icon-plus"></i></a></li>\
             </ul>\
             <div id="tab_div" class="tab-content"><div id="hidden_dash" class="tab-pane hide"><iframe id="ipython_dash" src="'+widget.nb_server+'" width="95%" height="750"></iframe></div>\
             </div>';
         jQuery('#'+dash_div).html(dash_html);
         jQuery('#'+iframe_div).html(iframe_html);
-	
-	    Retina.Widget.create('VisualPython', { target: document.getElementById('data_selector_div') });
+	    
+	    widget.builder_widget = Retina.Widget.create(params.builder, { target: document.getElementById('data_builder_div') });
 	
 	    // create empty renderers
         widget.nb_primary_list = Retina.Renderer.create('listselect', { "target": document.getElementById('nb_primary_div'),
@@ -329,7 +332,7 @@
             return;
         }
         Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
-        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+this_nb.uuid+"','"+this_nb.name+"')", 1000);
+        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+this_nb.uuid+"','"+this_nb.name.replace(/'/g, "\\'")+"')", 1000);
         jQuery('#nb_select_modal').modal('hide');
     };
 
@@ -347,7 +350,7 @@
         } else {
             stm.get_objects({"type": "notebook", "id": sel_nb[1]+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
-                setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name+"')", 1000);
+                setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name.replace(/'/g, "\\'")+"')", 1000);
                 jQuery('#nb_select_modal').modal('hide');
             });
         }
@@ -364,7 +367,7 @@
         } else {
             stm.get_objects({"type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template_id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
-                setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name+"')", 1000);
+                setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name.replace(/'/g, "\\'")+"')", 1000);
                 jQuery('#nb_select_modal').modal('hide');
                 document.getElementById('data_pick').style.display='';
             });
@@ -374,7 +377,7 @@
     widget.nb_create_tab = function (index, uuid, name) {
         // create html
         var url = Retina.WidgetInstances.NotebookDashboard[index].nb_server+'/'+uuid;
-        var li_elem  = '<li class="active" id="'+uuid+'_li"><a data-toggle="tab" href="#'+uuid+'_tab" onclick="Retina.WidgetInstances.VisualPython[0].set_data_tab(\''+uuid+'\');Retina.WidgetInstances.VisualPython[0].populate_varnames(\''+uuid+'\');">'+name+'<i class="icon-remove" onclick="jQuery(\'#notebook_to_close\').val(\''+uuid+'\');jQuery(\'#nb_close_modal\').modal(\'show\');" style="position: relative; left: 5px; bottom: 4px;"></a></li>';
+        var li_elem  = '<li class="active" id="'+uuid+'_li"><a data-toggle="tab" href="#'+uuid+'_tab" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].builder_widget.nb_created(\''+uuid+'\');">'+name+'<i class="icon-remove" onclick="jQuery(\'#notebook_to_close\').val(\''+uuid+'\');jQuery(\'#nb_close_modal\').modal(\'show\');" style="position: relative; left: 5px; bottom: 4px;"></a></li>';
         var div_elem = '<div id="'+uuid+'_tab" class="tab-pane active"><iframe id="'+uuid+'" src="'+url+'" width="95%" height="750">Your Browser does not support iFrames</iframe></div>';
         // add tab
         jQuery('#tab_list').children('.active').removeClass('active');
@@ -384,23 +387,33 @@
         setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_init("+index+", '"+uuid+"')", 3000);
     };
 
-    widget.nb_close_tab = function (save) {
+    widget.nb_close_tab = function (index, save) {
         var uuid = document.getElementById('notebook_to_close').value;
-        var extra = 0;
+        var extra = 10;
         if (save) {
             stm.send_message(uuid, 'ipy.notebook_save();', 'action');
             extra = 500;
         }
-        delete Retina.WidgetInstances.VisualPython[0].used_variables[uuid];
-        delete Retina.WidgetInstances.VisualPython[0].loaded_ids[uuid];
-        Retina.WidgetInstances.VisualPython[0].populate_varnames('delete');
-        Retina.WidgetInstances.VisualPython[0].populate_sample_vars('delete');
+        Retina.WidgetInstances.NotebookDashboard[index].builder_widget.nb_deleted(uuid);
         setTimeout("stm.send_message('"+uuid+"', 'ipy.notebook_terminate();', 'action');", extra);
-        setTimeout("jQuery('#"+uuid+"_tab').remove();jQuery('#"+uuid+"_li').remove();", 1000+extra);
-        document.getElementById('notebook_to_close').value = "";
+        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_close_delay('"+uuid+"')", 1000+extra);
     };
-
-    widget.nb_save
+    
+    widget.nb_close_delay = function (uuid) {
+        document.getElementById('notebook_to_close').value = "";
+        jQuery('#'+uuid+'_tab').remove();
+        jQuery('#'+uuid+'_li').remove();
+        var tab_lists = jQuery('#tab_list').children().filter('[id!="selector_tab"]');
+        var tab_divs  = jQuery('#tab_div').children();
+        tab_lists.removeClass('active');
+        tab_divs.removeClass('active');
+        if (tab_lists.length > 1) {
+            tab_lists.last().addClass('active');
+        }
+        if (tab_divs.length > 1) {
+            tab_divs.last().addClass('active');
+        }
+    };
 
     widget.nb_init = function (index, iframe_id) {
         stm.send_message(iframe_id, 'IPython.notebook.select(0);IPython.notebook.execute_selected_cell();', 'action');
@@ -557,7 +570,7 @@ pre {\
 		        document.getElementById('failure').innerHTML = "";
 		        stm.Authentication = d.token;
 		        Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
-		        Retina.WidgetInstances.VisualPython[0].add_private({ target: document.getElementById('data_selector_div') });
+		        Retina.WidgetInstances.NotebookDashboard[index].builder_widget.perform_login({target: document.getElementById('data_builder_div')});
 		        jQuery('#loginModal').modal('hide');
 		        jQuery('#msgModal').modal('show');
 		        jQuery('.tab-pane').children('iframe').each(function() {
@@ -569,14 +582,14 @@ pre {\
 	    });
     };
 
-    widget.perform_logout = function () {
+    widget.perform_logout = function (index) {
 	    document.getElementById('login_name_span').style.display = "";
 	    document.getElementById('login_name').innerHTML = "";
 	    stm.delete_object_type('metagenome');
 	    Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
-	    Retina.WidgetInstances.VisualPython[0].display({ target: document.getElementById('data_selector_div') });
+	    Retina.WidgetInstances.NotebookDashboard[index].builder_widget.display({target: document.getElementById('data_builder_div')});
 	    jQuery('.tab-pane').children('iframe').each(function() {
-	        Retina.WidgetInstances.NotebookDashboard[0].send_auth(this.id, undefined);
+	        Retina.WidgetInstances.NotebookDashboard[index].send_auth(this.id, undefined);
         });
     };
 
