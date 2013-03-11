@@ -59,7 +59,19 @@
         }
     };
 
-    widget.add_private = function (params) {
+    widget.nb_created = function (nbid) {
+        Retina.WidgetInstances.VisualPython[0].set_data_tab(nbid);
+        Retina.WidgetInstances.VisualPython[0].populate_varnames(nbid);
+    };
+    
+    widget.nb_deleted = function (nbid) {
+        delete Retina.WidgetInstances.VisualPython[0].used_variables[nbid];
+        delete Retina.WidgetInstances.VisualPython[0].loaded_ids[nbid];
+        Retina.WidgetInstances.VisualPython[0].populate_varnames('delete');
+        Retina.WidgetInstances.VisualPython[0].populate_sample_vars('delete');
+    };
+
+    widget.perform_login = function (params) {
         var progress = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 100px; width: 400px; right: 38%;">\
 <button type="button" class="close" data-dismiss="alert">×</button>\
 <h4><img src="images/loading.gif"> Please wait...</h4>\
