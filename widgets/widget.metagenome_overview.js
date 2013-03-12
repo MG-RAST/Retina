@@ -182,8 +182,8 @@
 		        for (var i = 0; i < mg_stats.qc.kmer['15_mer']['data'].length; i++) {
                     points.push([ mg_stats.qc.kmer['15_mer']['data'][i][3], mg_stats.qc.kmer['15_mer']['data'][i][0] ]);
                 }
-                xt = 'kmer coverage';
-                yt = 'sequence size';
+                xt = 'sequence size';
+                yt = 'kmer coverage';
                 xscale = 'log';
                 yscale = 'log';
                 break;

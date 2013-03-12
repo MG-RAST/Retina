@@ -989,8 +989,8 @@
 	}
 	switch (document.getElementById('sample_type_select').value) {
 	    case 'metagenome':
+	    senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
 	    if (document.getElementById('data_select').value == 'abundance') {
-	        senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
 	        var level = (document.getElementById('abund_type_select').value == 'organism') ? document.getElementById('tax_select').value : document.getElementById('func_select').value;
 	        var norm  = (document.getElementById('norm_select').value == 'norm')? '1' : '0';
 	        Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = {'type': 'abundance', 'parent': dataname};
