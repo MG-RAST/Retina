@@ -407,9 +407,10 @@
 		    senddata += "id_list = [ "+quote_id.join(", ")+" ]\n";
 	        switch (this_type) {
 	            case 'metagenome':
+	            var space_buff = Array(dataname.length+6).join(" ")
 	            var dataopts = has_wgs ? "method='WGS', function_source='Subsystems'" : "method='Amplicon'";
 	            senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name=\""+dataname+"['statistics']\"),\n";
-	            senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, "+dataopts+", def_name=\""+dataname+"['abundances']\") }";
+	            senddata += space_buff+"'abundances': get_analysis_set(ids=id_list, "+dataopts+", def_name=\""+dataname+"['abundances']\") }";
 	            break;
 	            case 'plant':
 	            senddata += dataname+" = get_plant_set(gids=id_list, def_name='"+dataname+"')\n";
