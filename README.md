@@ -50,17 +50,17 @@
 
 <h2>STM - FUNCTIONS</h2>
 
-<h3>init(repository)</h3>
+<h3>init(repository, no_self_discovery)</h3>
 
-<p>Initializes the stm, optionally setting a default repository. If stm was already set up, this will purge all data in the storage. This function must be called before any operations with stm can occur.</p>
+<p>Initializes the stm, optionally setting a default repository. If stm was already set up, this will purge all data in the storage. This function must be called before any operations with stm can occur. If a repository is passed, it requires the same parameters as the add_repostitory function. If the repository does not offer self discovery of resources or you do not wish to use it, pass false as the second parameter.</p>
 
 <h3>repository(name, attribute)</h3>
 
 <p>If called without parameters, returns the hash of all repositories in the stm. If called with a repository name, returns a reference to that repository object or null if the repository does not exist. If called with a name and a attribute, will return the value of that attribute of the respository.</p>
 
-<h3>add_repository(repository_url)</h3>
+<h3>add_repository(repository_url, resolve_resources, offline_mode)</h3>
 
-<p>Adds a repository to the stm. The URL must point to a self describing REST API that needs to return a name in the attribute 'service' and a list of resources in the attribute 'resources'. Each resource must be a tuple of name and url, where the name is the name of the resource and the url points to a self description of the resource. If the repository is the first to be added to the current stm instance, it will be set to be the default repository.</p>
+<p>Adds a repository to the stm. If the repository offers self discovery, only a URL needs to be passed. It must then point to a JSON REST API that returns a name in the attribute 'service' and a list of resources in the attribute 'resources'. Each resource must be a tuple of name and url, where the name is the name of the resource and the url points to a description of the resource. If the repository does not support self discovery of resources or you do not wish to use it, pass false as the second parameter. If the repository does not support the service tag, pass true as the third parameter. In this case it will be added with the service name 'default' and not be queried for discovery. If the repository is the first to be added to the current stm instance, it will be set to be the default repository.</p>
 
 <h3>remove_repository(repo_name)</h3>
 
@@ -82,11 +82,13 @@
 
 <h3>dump</h3>
 
-<p>Dumps the content of the stm.DataStore to a new window. If the content is copied/pasted and saved to a file, it can later be loaded by the file_upload.</p>
+<p>Dumps the content of the stm.DataStore to a new window. If the content is saved to a file, it can later be loaded by the file_upload.</p>
 
 <h3>get_objects({repository, type, id, options})</h3>
 
-<p>This will retrieve one or more objects from the speciefied repository. The function returns a promise, which is fulfilled once the data is loaded into the storage. If no repository is passed, the default repository will be used. The stm will make an api call, using the repositories base url, appending the type and optioanl id as path parameters. Options will be passed as query parameters. All returned data objects will be put into the storage organized under the type passed in the type parameter.</p>
+<p>This will retrieve one or more objects from the specified repository. The function returns a promise, which is fulfilled once the data is loaded into the storage. If no repository is passed, the default repository will be used. The stm will make an api call, using the repositories base url, appending the type and optioanl id as path parameters. Options will be passed as query parameters. All returned data objects will be put into the storage organized under the type passed in the type parameter.</p>
+
+<p>If you want to provide visual feedback on the loading progess from the get_objects function, you can place a div with the id 'progressIndicator' into your page that contains a div with the id 'progressBar'. The indicator will be set to visible when data load occurs. The progressBar field will show the amount of data that has been loaded so far.</p>
 
 <h3>delete_object(type, id)</h3>
 
@@ -179,6 +181,22 @@
 <h3>mouseCoords(event)</h3>
 
 <p>Returns an object with x and y attributes, containing the absolute mouse position of the event passed, relative to the top left of the document (including scrolls).</p>
+
+<h3>findPos(DOM object)</h3>
+
+<p>Returns an array with x and y coordinates of the object passed, relative to the top left of the document (including scrolls).</p>
+
+<h3>Numsort(a,b)</h3>
+
+<p>Sorting function for numbers that can be used by the javascript sort function.</p>
+
+<h3>Base64</h3>
+
+<p>Offers encode and decode functions for Base64 encoding.</p>
+
+<h3>svg2png(source, target, width, height)</h3>
+
+<p>If the source parameter is an SVG element and the target parameter is a container element, this function will render the SVG as a PNG in the target container. The width and height parameters will scale the target image.</p>
 
 <h3>query_renderer_resource(resource)</h3>
 
