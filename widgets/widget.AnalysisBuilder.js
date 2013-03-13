@@ -9,7 +9,7 @@
     });
     
     // genome url
-    widget.genome_url = "http://bio-data-1.mcs.anl.gov/services/cdmi_api";
+    widget.genome_url = "http://kbase.us/services/cdmi_api";
     // plant url
     widget.plant_url = "http://140.221.84.160:7032";
     // nb_id -> data_variable_name -> { 'type': viz_type, 'parent': sample_variable_name }
