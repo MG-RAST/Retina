@@ -1,15 +1,15 @@
 (function () {
     var widget = Retina.Widget.extend({
         about: {
-                title: "Visual iPython Input Widget",
-                name: "VisualPython",
+                title: "Analysis Builder iPython Input Widget",
+                name: "AnalysisBuilder",
                 author: "Tobias Paczian",
                 requires: [ ]
         }
     });
     
     // genome url
-    widget.genome_url = "http://bio-data-1.mcs.anl.gov/services/cdmi_api";
+    widget.genome_url = "http://kbase.us/services/cdmi_api";
     // plant url
     widget.plant_url = "http://140.221.84.160:7032";
     // nb_id -> data_variable_name -> { 'type': viz_type, 'parent': sample_variable_name }
@@ -43,7 +43,7 @@
 	    }
 	    msgstring += "IPython.notebook.execute_selected_cell();";
 	    if (! nbid) {
-	        nbid = Retina.WidgetInstances.VisualPython[0].current_nb();
+	        nbid = Retina.WidgetInstances.AnalysisBuilder[0].current_nb();
 	    }
 	    if (nbid) {
 	        stm.send_message(nbid, msgstring, 'action');
@@ -60,15 +60,17 @@
     };
 
     widget.nb_created = function (nbid) {
-        Retina.WidgetInstances.VisualPython[0].set_data_tab(nbid);
-        Retina.WidgetInstances.VisualPython[0].populate_varnames(nbid);
+        Retina.WidgetInstances.AnalysisBuilder[0].used_variables[nbid] = {};
+        Retina.WidgetInstances.AnalysisBuilder[0].loaded_ids[nbid] = {};
+        Retina.WidgetInstances.AnalysisBuilder[0].set_data_tab(nbid);
+        Retina.WidgetInstances.AnalysisBuilder[0].populate_varnames(nbid);
     };
     
     widget.nb_deleted = function (nbid) {
-        delete Retina.WidgetInstances.VisualPython[0].used_variables[nbid];
-        delete Retina.WidgetInstances.VisualPython[0].loaded_ids[nbid];
-        Retina.WidgetInstances.VisualPython[0].populate_varnames('delete');
-        Retina.WidgetInstances.VisualPython[0].populate_sample_vars('delete');
+        delete Retina.WidgetInstances.AnalysisBuilder[0].used_variables[nbid];
+        delete Retina.WidgetInstances.AnalysisBuilder[0].loaded_ids[nbid];
+        Retina.WidgetInstances.AnalysisBuilder[0].populate_varnames('delete');
+        Retina.WidgetInstances.AnalysisBuilder[0].populate_sample_vars('delete');
     };
 
     widget.perform_login = function (params) {
@@ -80,12 +82,12 @@
 </div>';
         params.target.innerHTML = progress;
 	    stm.get_objects({"type": "metagenome", "options": {"status": "private", "verbosity": "migs", "limit": 0}}).then(function() {
-            Retina.WidgetInstances.VisualPython[0].display(params);
+            Retina.WidgetInstances.AnalysisBuilder[0].display(params);
         });
     };
 
     widget.display = function (params) {
-    widget = Retina.WidgetInstances.VisualPython[0];
+    widget = Retina.WidgetInstances.AnalysisBuilder[0];
 	// check if the required metadata is loaded - if not get public
 	if (! stm.DataStore.hasOwnProperty('metagenome')) {
 	    var progress = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 100px; width: 400px; right: 38%;">\
@@ -405,9 +407,10 @@
 		    senddata += "id_list = [ "+quote_id.join(", ")+" ]\n";
 	        switch (this_type) {
 	            case 'metagenome':
+	            var space_buff = Array(dataname.length+6).join(" ")
 	            var dataopts = has_wgs ? "method='WGS', function_source='Subsystems'" : "method='Amplicon'";
 	            senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name=\""+dataname+"['statistics']\"),\n";
-	            senddata += "\t\t\t\t'abundances': get_analysis_set(ids=id_list, "+dataopts+", def_name=\""+dataname+"['abundances']\") }";
+	            senddata += space_buff+"'abundances': get_analysis_set(ids=id_list, "+dataopts+", def_name=\""+dataname+"['abundances']\") }";
 	            break;
 	            case 'plant':
 	            senddata += dataname+" = get_plant_set(gids=id_list, def_name='"+dataname+"')\n";
@@ -427,7 +430,7 @@
 
 	// data load / convert
 	var data_sel = document.createElement('li');
-	data_sel.innerHTML = '<a href="#data" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].populate_varnames(null);">'+widget.number(2)+'select data</a>';
+	data_sel.innerHTML = '<a href="#data" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].populate_varnames(null);">'+widget.number(2)+'select data</a>';
 	ul.appendChild(data_sel);
 
 	var data_div = document.createElement('div');
@@ -458,7 +461,7 @@
 
 	// visualizations
 	var vis_sel = document.createElement('li');
-	vis_sel.innerHTML = '<a href="#vis" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'paragraph\');jQuery(\'#vis li:eq(0) a\').tab(\'show\');">'+widget.number(3)+'visualize data</a>';
+	vis_sel.innerHTML = '<a href="#vis" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].check_varname_list(\'paragraph\');jQuery(\'#vis li:eq(0) a\').tab(\'show\');">'+widget.number(3)+'visualize data</a>';
 	ul.appendChild(vis_sel);
 
 	var vis_div = document.createElement('div');
@@ -499,7 +502,7 @@
 	// paragraph UI
 	var paragraph_sel = document.createElement('li');
 	paragraph_sel.setAttribute('class', 'active');
-	paragraph_sel.innerHTML = '<a href="#paragraph" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'paragraph\');"><i class="icon-align-center" style="margin-right: 5px;"></i>text writer</a>';
+	paragraph_sel.innerHTML = '<a href="#paragraph" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].check_varname_list(\'paragraph\');"><i class="icon-align-center" style="margin-right: 5px;"></i>text writer</a>';
 	vis_ul.appendChild(paragraph_sel);
 
 	var paragraph_div = document.createElement('div');
@@ -517,8 +520,8 @@
    </div>\
    <div class="btn-group">\
     <button type="button" class="btn" style="margin-left: 70px;" onclick="document.getElementById(\'paragraph_text\').value = \'\';" title="clear text"><i class="icon-trash"></i></button>\
-    <button type="button" class="btn" onclick="Retina.WidgetInstances.VisualPython[0].paragraph(\'replace\');" title="replace paragraph"><i class="icon-refresh"></i></button>\
-    <button type="button" class="btn" onclick="Retina.WidgetInstances.VisualPython[0].paragraph(\'add\');" title="add paragraph"><i class="icon-plus"></i></button>\
+    <button type="button" class="btn" onclick="Retina.WidgetInstances.AnalysisBuilder[0].paragraph(\'replace\');" title="replace paragraph"><i class="icon-refresh"></i></button>\
+    <button type="button" class="btn" onclick="Retina.WidgetInstances.AnalysisBuilder[0].paragraph(\'add\');" title="add paragraph"><i class="icon-plus"></i></button>\
    </div>\
   </div>\
   <textarea style="width: 275px; height: 175px;" id="paragraph_text"></textarea>\
@@ -526,12 +529,12 @@
  <td style="padding-left: 20px;">\
   <div class="btn-toolbar">\
    <div class="btn-group">\
-    <button type="button" class="btn" onclick="if(confirm(\'Do you really want to delete ALL paragraphs from the list?\')){Retina.WidgetInstances.VisualPython[0].paragraph(\'delete_all\');}" title="delete all paragraphs"><i class="icon-trash"></i></button>\
-    <button type="button" class="btn" onclick="if(confirm(\'Do you really want to delete the selected paragraph from the list?\')){Retina.WidgetInstances.VisualPython[0].paragraph(\'delete\');}" title="delete selected paragraph"><i class="icon-remove"></i></button>\
-    <button type="button" class="btn" onclick="Retina.WidgetInstances.VisualPython[0].paragraph(\'edit\');" title="edit paragraph"><i class="icon-edit"></i></button>\
+    <button type="button" class="btn" onclick="if(confirm(\'Do you really want to delete ALL paragraphs from the list?\')){Retina.WidgetInstances.AnalysisBuilder[0].paragraph(\'delete_all\');}" title="delete all paragraphs"><i class="icon-trash"></i></button>\
+    <button type="button" class="btn" onclick="if(confirm(\'Do you really want to delete the selected paragraph from the list?\')){Retina.WidgetInstances.AnalysisBuilder[0].paragraph(\'delete\');}" title="delete selected paragraph"><i class="icon-remove"></i></button>\
+    <button type="button" class="btn" onclick="Retina.WidgetInstances.AnalysisBuilder[0].paragraph(\'edit\');" title="edit paragraph"><i class="icon-edit"></i></button>\
    </div>\
    <div class="btn-group">\
-    <button type="button" class="btn btn-success" style="margin-left: 70px;" title="create IPython command" onclick="Retina.WidgetInstances.VisualPython[0].paragraph(\'submit\');"><i class="icon-ok icon-white"></i></button>\
+    <button type="button" class="btn btn-success" style="margin-left: 70px;" title="create IPython command" onclick="Retina.WidgetInstances.AnalysisBuilder[0].paragraph(\'submit\');"><i class="icon-ok icon-white"></i></button>\
    </div>\
   </div>\
   <select multiple size=11 id="paragraph_list"></select>\
@@ -548,7 +551,7 @@
 
 	// chart UI
 	var chart_sel = document.createElement('li');
-	chart_sel.innerHTML = '<a href="#chart" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'graph\');"><i class="icon-signal" style="margin-right: 5px;"></i>bar-/pie-chart</a>';
+	chart_sel.innerHTML = '<a href="#chart" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].check_varname_list(\'graph\');"><i class="icon-signal" style="margin-right: 5px;"></i>bar-/pie-chart</a>';
 	vis_ul.appendChild(chart_sel);
 
 	var chart_div = document.createElement('div');
@@ -576,7 +579,7 @@
 	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
 	        return;
 	    }
-	    var dataname = Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var].parent;
+	    var dataname = Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var].parent;
 	    var lpos = (document.getElementById('graph_legend_position').value == 'none') ? "'show_legend': False" : "'show_legend': True, 'legend_position': '"+document.getElementById('graph_legend_position').value+"'";
 	    var height = (document.getElementById('graph_width').value == 'auto') ? "" : "'height': "+document.getElementById('graph_width').value;
 	    var width  = (document.getElementById('graph_height').value == 'auto') ? "" : "'width': "+document.getElementById('graph_height').value;
@@ -597,7 +600,7 @@
 
 	// table UI
 	var table_sel = document.createElement('li');
-	table_sel.innerHTML = '<a href="#table" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'table\');"><i class="icon-list-alt" style="margin-right: 5px;"></i>table</a>';
+	table_sel.innerHTML = '<a href="#table" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].check_varname_list(\'table\');"><i class="icon-list-alt" style="margin-right: 5px;"></i>table</a>';
 	vis_ul.appendChild(table_sel);
 
 	var table_div = document.createElement('div');
@@ -628,7 +631,7 @@
 
 	// heatmap UI
 	var heatmap_sel = document.createElement('li');
-	heatmap_sel.innerHTML = '<a href="#heatmap" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'heat\');"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_heatmap.png">heatmap</a>';
+	heatmap_sel.innerHTML = '<a href="#heatmap" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].check_varname_list(\'heat\');"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_heatmap.png">heatmap</a>';
 	vis_ul.appendChild(heatmap_sel);
 
 	var heatmap_div = document.createElement('div');
@@ -655,7 +658,7 @@
 	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
 	        return;
 	    }
-	    var dataname = Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var].parent;
+	    var dataname = Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var].parent;
 	    var senddata = "heatmap_args = dict("+data_var+".items() + {'dist': '"+document.getElementById('heat_distance').value+"', 'clust': '"+document.getElementById('heat_cluster').value+"'}.items())\n";
 	    senddata += "heat_viz_args = "+dataname+"['abundances'].heatmap(**heatmap_args)\n";
 	    senddata += "try:\n\theat_viz_args.update({'tree_height': "+document.getElementById('heat_tree_height').value+", 'tree_width': "+document.getElementById('heat_tree_width').value+", 'legend_width': "+document.getElementById('heat_legend_width').value+", 'legend_height': "+document.getElementById('heat_legend_height').value+", 'min_cell_height': "+document.getElementById('heat_min_cell_height').value+"})\n";
@@ -668,7 +671,7 @@
 
     // pcoa UI
     var pcoa_sel = document.createElement('li');
-	pcoa_sel.innerHTML = '<a href="#pcoa" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'pcoa\');"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_pcoa.png">PCoA</a>';
+	pcoa_sel.innerHTML = '<a href="#pcoa" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].check_varname_list(\'pcoa\');"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_pcoa.png">PCoA</a>';
 	vis_ul.appendChild(pcoa_sel);
 	
 	var pcoa_div = document.createElement('div');
@@ -695,7 +698,7 @@
 	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
 	        return;
 	    }
-	    var dataname = Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var].parent;
+	    var dataname = Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var].parent;
 	    var height = (document.getElementById('pcoa_height').value == 'auto') ? "" : "'height': "+document.getElementById('pcoa_height').value;
 	    var width = (document.getElementById('pcoa_width').value == 'auto') ? "" : "'width': "+document.getElementById('pcoa_width').value;
 	    var lpos = (document.getElementById('pcoa_legend_position').value == 'none') ? "'show_legend': False" : "'show_legend': True, 'legend_position': '"+document.getElementById('pcoa_legend_position').value+"'";
@@ -718,7 +721,7 @@
 
 	// plot UI
 	var plot_sel = document.createElement('li');
-	plot_sel.innerHTML = '<a href="#plot" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'plot\');"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_plot.png">plot</a>';
+	plot_sel.innerHTML = '<a href="#plot" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].check_varname_list(\'plot\');"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_plot.png">plot</a>';
 	vis_ul.appendChild(plot_sel);
 
 	var plot_div = document.createElement('div');
@@ -763,7 +766,7 @@
 
 	// boxplot map UI
 	var boxplot_sel = document.createElement('li');
-	boxplot_sel.innerHTML = '<a href="#boxplot" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'boxplot\');"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_boxplot.png">boxplot</a>';
+	boxplot_sel.innerHTML = '<a href="#boxplot" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].check_varname_list(\'boxplot\');"><img style="margin-right: 5px; position: relative; bottom: 2px;" src="images/icon_boxplot.png">boxplot</a>';
 	vis_ul.appendChild(boxplot_sel);
 
 	var boxplot_div = document.createElement('div');
@@ -786,7 +789,7 @@
 	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
 	        return;
 	    }
-	    var dataname = Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var].parent;
+	    var dataname = Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var].parent;
 	    var senddata = "boxplot_args = "+dataname+"['abundances'].boxplot(**"+data_var+")\n";
 	    senddata += "try:\n\tboxplot_args.update({'height': "+document.getElementById('boxplot_height').value+", 'width': "+document.getElementById('boxplot_width').value+"})\n";
 	    senddata += "\tIpy.RETINA.boxplot(**boxplot_args)\n";
@@ -798,7 +801,7 @@
 
 	// deviationplot UI
 	var deviationplot_sel = document.createElement('li');
-	deviationplot_sel.innerHTML = '<a href="#deviationplot" data-toggle="tab" onclick="Retina.WidgetInstances.VisualPython[0].check_varname_list(\'deviationplot\');"><i class="icon-tasks" style="margin-right: 5px;"></i>deviationplot</a>';
+	deviationplot_sel.innerHTML = '<a href="#deviationplot" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].check_varname_list(\'deviationplot\');"><i class="icon-tasks" style="margin-right: 5px;"></i>deviationplot</a>';
 	vis_ul.appendChild(deviationplot_sel);
 
 	var deviationplot_div = document.createElement('div');
@@ -852,7 +855,7 @@
     };
 
     widget.paragraph = function (command) {
-	    widget = Retina.WidgetInstances.VisualPython[0];
+	    widget = Retina.WidgetInstances.AnalysisBuilder[0];
 	    var sel = document.getElementById('paragraph_list');
 	    var txt = document.getElementById('paragraph_text');
 	    txt_string = txt.value.replace(/"/g, "&#34;");
@@ -935,7 +938,7 @@
     widget.create_data = function () {
 	var senddata = "";
 	var data_var = document.getElementById('data_variable_name').value;
-	var current_nb = Retina.WidgetInstances.VisualPython[0].current_nb();
+	var current_nb = Retina.WidgetInstances.AnalysisBuilder[0].current_nb();
 
 	// check that there is a notebook
     if (! current_nb) {
@@ -961,14 +964,14 @@
 	}
 
     // add this notebook to variable list
-    if (! Retina.WidgetInstances.VisualPython[0].used_variables.hasOwnProperty(current_nb)) {
-        Retina.WidgetInstances.VisualPython[0].used_variables[current_nb] = {};
+    if (! Retina.WidgetInstances.AnalysisBuilder[0].used_variables.hasOwnProperty(current_nb)) {
+        Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb] = {};
     }
 
 	// check if the variable name has been used before
-	if (Retina.WidgetInstances.VisualPython[0].used_variables[current_nb].hasOwnProperty(data_var)) {
+	if (Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb].hasOwnProperty(data_var)) {
 	    if (confirm('You have used to variable name "'+data_var+'" for another data result.\nAre you sure you want to continue?\nThis would overwrite the previous data in that variable.')) {
-		    delete(Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var]);
+		    delete(Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var]);
 	    } else {
 		    document.getElementById('data_variable_name').focus();
 		    return;
@@ -993,59 +996,59 @@
 	    if (document.getElementById('data_select').value == 'abundance') {
 	        var level = (document.getElementById('abund_type_select').value == 'organism') ? document.getElementById('tax_select').value : document.getElementById('func_select').value;
 	        var norm  = (document.getElementById('norm_select').value == 'norm')? '1' : '0';
-	        Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = {'type': 'abundance', 'parent': dataname};
+	        Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'abundance', 'parent': dataname};
 	        senddata += dataname+"['abundances'].set_display_mgs(ids=selected_ids)\n";
 	        senddata += data_var+" = {'annot': '"+document.getElementById('abund_type_select').value+"', 'level': '"+level+"', 'normalize': "+norm+", 'arg_list': True}";
         } else if (document.getElementById('data_select').value == 'statistics') {
             switch (document.getElementById('stat_select').value) {
                 case 'rare':
                 // selected metagenomes - plot
-                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = {'type': 'plot', 'parent': dataname};
+                Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'plot', 'parent': dataname};
                 senddata += data_var+" = "+dataname+"['statistics'].plot_rarefaction(mgids=selected_ids, arg_list=True)";
                 break;
                 case 'drisee':
                 // single metagenome - plot
-                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = {'type': 'plot', 'parent': dataname};
+                Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'plot', 'parent': dataname};
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "drisee_data = Drisee(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
                 senddata += data_var+" = drisee_data.plot(arg_list=True)";
                 break;
                 case 'kmer':
                 // single metagenome - plot
-                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = {'type': 'plot', 'parent': dataname};
+                Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'plot', 'parent': dataname};
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "kmer_data = Kmer(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
                 senddata += data_var+" = kmer_data.plot_abundance(arg_list=True)";
                 break;
                 case 'metadata':
                 // selected metagenomes - table
-                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = {'type': 'table', 'parent': dataname};
+                Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'table', 'parent': dataname};
                 senddata += data_var+" = "+dataname+"['statistics'].show_metadata(mgids=selected_ids, arg_list=True)";
                 break;
                 case 'alpha':
                 // single and selected metagenomes - deviationplot
-                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = {'type': 'deviationplot', 'parent': dataname};
+                Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'deviationplot', 'parent': dataname};
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "alpha_list = "+dataname+"['statistics'].get_stat(stat='alpha_diversity_shannon', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += data_var+" = { 'data': alpha_list}";
                 break;
                 case 'bp':
                 // single and selected metagenomes - deviationplot
-                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = {'type': 'deviationplot', 'parent': dataname};
+                Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'deviationplot', 'parent': dataname};
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "bp_list = "+dataname+"['statistics'].get_stat(stat='bp_count_raw', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += data_var+" = { 'data': bp_list }";
                 break;
                 case 'length':
                 // single and selected metagenomes - deviationplot
-                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = {'type': 'deviationplot', 'parent': dataname};
+                Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'deviationplot', 'parent': dataname};
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "length_list = "+dataname+"['statistics'].get_stat(stat='average_length_raw', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += data_var+" = { 'data': length_list }";
                 break;
                 case 'gc':
                 // single and selected metagenomes - deviationplot
-                Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = {'type': 'deviationplot', 'parent': dataname};
+                Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'deviationplot', 'parent': dataname};
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
                 senddata += "gc_list = "+dataname+"['statistics'].get_stat(stat='average_gc_content_raw', mgid=primary_id, mgid_set=selected_ids)\n";
                 senddata += data_var+" = { 'data': gc_list }";
@@ -1058,10 +1061,10 @@
         case 'plant':
         senddata += "primary_plant = "+dataname+"['"+document.getElementById('plant_primary_select').value+"']\n";
         if (document.getElementById('plant_data_select').value == 'trait') {
-            Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = {'type': 'table', 'parent': dataname};
+            Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'table', 'parent': dataname};
             senddata += data_var+" = primary_plant.show_traits(arg_list=True)";
         } else if (document.getElementById('plant_data_select').value == 'variant') {
-            Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][data_var] = {'type': 'plot', 'parent': dataname};
+            Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'plot', 'parent': dataname};
             senddata += data_var+" = primary_plant.plot_variations(count="+document.getElementById('variant_count').value+", arg_list=True)";
         }
         break;
@@ -1072,7 +1075,7 @@
     };
     
     widget.set_data_tab = function (current_nb) {
-	    widget = Retina.WidgetInstances.VisualPython[0];
+	    widget = Retina.WidgetInstances.AnalysisBuilder[0];
 	    if (! current_nb) {
 	        current_nb = widget.current_nb();
 	    }
@@ -1091,8 +1094,8 @@
         } else {\
             document.getElementById(\"blank_options_tbl\").style.display=\"\";\
         }\
-        Retina.WidgetInstances.VisualPython[0].variable_name();\
-        Retina.WidgetInstances.VisualPython[0].populate_sample_vars();'>";
+        Retina.WidgetInstances.AnalysisBuilder[0].variable_name();\
+        Retina.WidgetInstances.AnalysisBuilder[0].populate_sample_vars();'>";
         if (current_nb && widget.loaded_ids.hasOwnProperty(current_nb)) {
             var types = [];
             for (var x in widget.loaded_ids[current_nb]) {
@@ -1106,7 +1109,7 @@
         }    
         html += "</select></td></tr>\
     <tr><th>variable</th><td>\
-      <select style='margin-bottom: 0px; width: 175px;' id='sample_name_select' onchange='Retina.WidgetInstances.VisualPython[0].populate_sample_ids();'>\
+      <select style='margin-bottom: 0px; width: 175px;' id='sample_name_select' onchange='Retina.WidgetInstances.AnalysisBuilder[0].populate_sample_ids();'>\
       </select></td></tr>\
     <tr><td colspan='2'>\
       <select style='width: 250px;' multiple size=10 id='data_sample_select'></select></td></tr>\
@@ -1124,7 +1127,7 @@
           for (var y=0; y<stats.length; y++) { stats[y].style.display=\"\"; }\
           document.getElementById(\"stat_select\").onchange();\
         }\
-        Retina.WidgetInstances.VisualPython[0].variable_name();'>\
+        Retina.WidgetInstances.AnalysisBuilder[0].variable_name();'>\
         <option value='abundance' selected>abundance profile</option>\
         <option value='statistics'>statistics</option>\
       </select>\
@@ -1156,7 +1159,7 @@
         <option value='function'>Function</option>\
       </select></td></tr>\
     <tr name='stat_row' style='display: none;'><th>stat view</th><td>\
-      <select style='margin-bottom: 0px; width: 175px;' id='stat_select' onchange='if(/^(rare|metadata)$/.test(this.options[this.selectedIndex].value)){document.getElementById(\"primary_row\").style.display=\"none\";}else{document.getElementById(\"primary_row\").style.display=\"\";}Retina.WidgetInstances.VisualPython[0].variable_name();'>\
+      <select style='margin-bottom: 0px; width: 175px;' id='stat_select' onchange='if(/^(rare|metadata)$/.test(this.options[this.selectedIndex].value)){document.getElementById(\"primary_row\").style.display=\"none\";}else{document.getElementById(\"primary_row\").style.display=\"\";}Retina.WidgetInstances.AnalysisBuilder[0].variable_name();'>\
         <option value='rare'>Rarefaction Curve</option>\
         <option value='drisee'>DRISEE Profile</option>\
         <option value='kmer'>k-mer Profile</option>\
@@ -1170,7 +1173,7 @@
       <select style='margin-bottom: 0px; width: 175px;' id='primary_select'></select></td></tr>\
     </table>\
     <table id='plant_options_tbl' style='display:none;'><tr><th style='width: 85px;'>data type</th><td>\
-      <select style='margin-bottom: 0px; width: 175px;' id='plant_data_select' onchange='if(this.options[this.selectedIndex].value==\"trait\"){document.getElementById(\"variant_row\").style.display=\"none\";}else{document.getElementById(\"variant_row\").style.display=\"\";}Retina.WidgetInstances.VisualPython[0].variable_name();'>\
+      <select style='margin-bottom: 0px; width: 175px;' id='plant_data_select' onchange='if(this.options[this.selectedIndex].value==\"trait\"){document.getElementById(\"variant_row\").style.display=\"none\";}else{document.getElementById(\"variant_row\").style.display=\"\";}Retina.WidgetInstances.AnalysisBuilder[0].variable_name();'>\
         <option value='trait' selected>traits</option>\
         <option value='variant'>variations</option>\
       </select></td></tr>\
@@ -1192,7 +1195,7 @@
       <tr><th style='vertical-align: top;'>comment</th>\
         <td><textarea id='data_comment' style='width: 170px;'>my data subselection</textarea></td></tr>\
       <tr><td colspan='2' align='right' style='padding-top:30px;'>\
-        <button type='button' class='btn btn-success' title='create IPython command' onclick='Retina.WidgetInstances.VisualPython[0].create_data();'><i class='icon-ok icon-white'></i></button>\
+        <button type='button' class='btn btn-success' title='create IPython command' onclick='Retina.WidgetInstances.AnalysisBuilder[0].create_data();'><i class='icon-ok icon-white'></i></button>\
       </td></tr>\
     </table>\
   </td>\
@@ -1206,7 +1209,7 @@
     };
     
     widget.variable_name = function (nbid) {
-        widget = Retina.WidgetInstances.VisualPython[0];
+        widget = Retina.WidgetInstances.AnalysisBuilder[0];
         if (! nbid) {
             nbid = widget.current_nb();
         }
@@ -1230,7 +1233,7 @@
     };
 
     widget.populate_sample_vars = function (nbid) {
-        widget = Retina.WidgetInstances.VisualPython[0];
+        widget = Retina.WidgetInstances.AnalysisBuilder[0];
         if (! nbid) {
             nbid = widget.current_nb();
         }
@@ -1249,7 +1252,7 @@
     };
 
     widget.populate_sample_ids = function (nbid) {
-        widget = Retina.WidgetInstances.VisualPython[0];
+        widget = Retina.WidgetInstances.AnalysisBuilder[0];
         if (! nbid) {
             nbid = widget.current_nb();
         }
@@ -1276,7 +1279,7 @@
     };
     
     widget.populate_varnames = function (nbid) {
-        widget = Retina.WidgetInstances.VisualPython[0];
+        widget = Retina.WidgetInstances.AnalysisBuilder[0];
         if (! nbid) {
             nbid = widget.current_nb();
         }
@@ -1325,11 +1328,11 @@
 	    }
 
 	    v.style.display = '';
-	    var current_nb = Retina.WidgetInstances.VisualPython[0].current_nb();
+	    var current_nb = Retina.WidgetInstances.AnalysisBuilder[0].current_nb();
 	    var vns = document.getElementById('varnames').options;
 	    var count = 0;
 	    for (i=0; i<vns.length; i++) {
-		if (allowed[Retina.WidgetInstances.VisualPython[0].used_variables[current_nb][vns[i].value].type]) {
+		if (allowed[Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][vns[i].value].type]) {
 		    vns[i].removeAttribute('disabled');
 		    var val = vns[i].value;
 		    vns[i].setAttribute('onclick', "document.getElementById('"+tab+"_data').value = '"+val+"';");

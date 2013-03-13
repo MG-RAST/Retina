@@ -3,15 +3,15 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>plot</title>
-	<script src="js/jquery.min.js"></script>
-	<script src="js/stm.js"></script>
-	<script src="js/retina.js"></script>
-	<script src="js/bootstrap.min.js"></script>
-	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-	<link rel="stylesheet" type="text/css" href="css/jquery.svg.css">
+	<script src="../js/jquery.min.js"></script>
+	<script src="../js/stm.js"></script>
+	<script src="../js/retina.js"></script>
+	<script src="../js/bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="../css/jquery.svg.css">
 	<script>
-	Retina.init( { library_resource: "js/" } ).then( function () {
-	    Retina.add_renderer({"name": "plot", "resource": "renderers/",  "filename": "renderer.plot.js" });
+	Retina.init( { library_resource: "../js/" } ).then( function () {
+	    Retina.add_renderer({"name": "plot", "resource": "../renderers/",  "filename": "renderer.plot.js" });
 	    Retina.load_renderer("plot").then( function () {
 		Retina.Renderer.create("plot", {
 		    target: document.getElementById('target'),

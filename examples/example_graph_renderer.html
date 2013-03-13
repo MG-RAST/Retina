@@ -3,14 +3,14 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>graph</title>
-	<script src="js/jquery.min.js"></script>
-	<script src="js/stm.js"></script>
-	<script src="js/retina.js"></script>
-	<script src="js/bootstrap.min.js"></script>
-	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<script src="../js/jquery.min.js"></script>
+	<script src="../js/stm.js"></script>
+	<script src="../js/retina.js"></script>
+	<script src="../js/bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
 	<script>
-	Retina.init( { library_resource: "js/" } ).then( function () {
-	    Retina.add_renderer({"name": "graph", "resource": "renderers/",  "filename": "renderer.graph.js" });
+	Retina.init( { library_resource: "../js/" } ).then( function () {
+	    Retina.add_renderer({"name": "graph", "resource": "../renderers/",  "filename": "renderer.graph.js" });
 	    Retina.load_renderer("graph").then( function () {
 		Retina.Renderer.create("graph", {
 		    target: document.getElementById('target'),
@@ -22,7 +22,7 @@
 		    x_labels_rotation: "-90",
 		    type: "line",
 		    onclick: function (params) {
-			alert("You clicked the "+params.label+" bar of the "+params.series+" series, which has a value of "+params.value);
+			    alert("You clicked the "+params.label+" bar of the "+params.series+" series, which has a value of "+params.value);
 		    },
 		    y_title: '' }).render();
 	    });
