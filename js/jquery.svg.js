@@ -2403,14 +2403,21 @@
 	/* Plot an individual series. */
 	_drawSeries: function(graph, cur, numSer, barWidth, barGap, dims, xScale, yScale, type) {
 	    var series = graph._series[cur];
-	    var g = graph._wrapper.group(this._chart,
+	    var g; 
+	    if (typeof(series._fill) == 'object') {
+		g = graph._wrapper.group(this._chart,
+					 jQuery.extend({class_: 'series' + cur, stroke: series._stroke,
+							strokeWidth: series._strokeWidth}, series._settings || {}));
+	    } else {
+		g = graph._wrapper.group(this._chart,
 					 jQuery.extend({class_: 'series' + cur, fill: series._fill, stroke: series._stroke,
 							strokeWidth: series._strokeWidth}, series._settings || {}));
+	    }
 	    for (var i = 0; i < series._values.length; i++) {
 		var r = graph._wrapper.rect(g,
 					    dims[graph.X] + xScale * (barGap + i * (numSer * barWidth + barGap) + (cur * barWidth)),
 					    dims[graph.Y] + yScale * (graph.yAxis._scale.max - ((graph.yAxis._scale.type == 'log') ? log10(series._values[i]) : series._values[i])),
-					    xScale * barWidth, yScale * ((graph.yAxis._scale.type == 'log') ? log10(series._values[i]) : series._values[i]));
+					    xScale * barWidth, yScale * ((graph.yAxis._scale.type == 'log') ? log10(series._values[i]) : series._values[i]), (typeof(series._fill) == 'object') ? { fill: series._fill[i] } : {});
 		graph._showStatus(r, series._name, series._values[i]);
 	    }
 	},
