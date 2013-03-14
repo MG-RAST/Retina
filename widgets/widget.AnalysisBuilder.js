@@ -190,11 +190,11 @@
 	var sample_data = [];
     // load genome samples
 	for (i in stm.DataStore["genome"]) {
-	    if (stm.DataStore["plant"].hasOwnProperty(i)) {
-	        var gd = { "genome": stm.DataStore["genome"][i]["scientific_name"],
+	    if (stm.DataStore["genome"].hasOwnProperty(i)) {
+	        var gd = { "name": stm.DataStore["genome"][i]["scientific_name"],
 	 	        "id": i,
 	 	        "project": "-",
-	 	        "type": "genome",
+	 	        "type": "foo",
 	            "status": "public",
 	 	        "lat/long": "-",
 	 	        "location": "-",
