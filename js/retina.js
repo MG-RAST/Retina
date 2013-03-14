@@ -481,7 +481,9 @@
 
     // renderer = { name, resource, filename }
     Retina.add_renderer = function (renderer) {
-	available_renderers[renderer.name] = renderer;
+        if (! available_renderers.hasOwnProperty(renderer.name)) {
+	        available_renderers[renderer.name] = renderer;
+        }
     }
     
     Retina.load_renderer = function (renderer) {
@@ -518,7 +520,9 @@
     
     // widget = { name, resource, filename }
     Retina.add_widget = function (widget) {
-	available_widgets[widget.name] = widget;
+        if (! available_widgets.hasOwnProperty(widget.name)) {
+	        available_widgets[widget.name] = widget;
+        }
     }
     
     Retina.load_widget = function (widget) {
