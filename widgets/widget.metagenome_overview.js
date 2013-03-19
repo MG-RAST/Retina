@@ -242,7 +242,6 @@
     		     var md = { "name": stm.DataStore["metagenome"][i]["name"],
     			   "id": i,
     			   "project": stm.DataStore["metagenome"][i]["project"],
-    			   "type": "metagenome",
     			   "status": stm.DataStore["metagenome"][i]["status"],
     			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
     			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
@@ -262,7 +261,7 @@
 			"data": metagenome_data,
 		    "value": "id",
             "label": "name",
-	        "filter": ["name", "id", "project", "type", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"],
+	        "filter": ["name", "id", "project", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"],
 	        "sort": true,
 	        "multiple": false,
 		    "callback": function (mgid) {
