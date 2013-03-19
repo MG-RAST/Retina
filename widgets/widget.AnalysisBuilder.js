@@ -101,7 +101,6 @@
         jQuery.getJSON('data/genome_public.json', function(data) {
 	        for (var d in data) {
                 if (data.hasOwnProperty(d)) {
-                    console.log(data[d].length, d);
                     stm.load_data({"data": data[d], "type": d});
                 }
             }
