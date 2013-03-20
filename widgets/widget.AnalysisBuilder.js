@@ -429,7 +429,7 @@
 
 	// data load / convert
 	var data_sel = document.createElement('li');
-	data_sel.innerHTML = '<a href="#data" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].populate_varnames(null);">'+widget.number(2)+'select data</a>';
+	data_sel.innerHTML = '<a href="#data" data-toggle="tab">'+widget.number(2)+'select data</a>';
 	ul.appendChild(data_sel);
 
 	var data_div = document.createElement('div');
@@ -460,7 +460,7 @@
 
 	// visualizations
 	var vis_sel = document.createElement('li');
-	vis_sel.innerHTML = '<a href="#vis" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].check_varname_list(\'paragraph\');jQuery(\'#vis li:eq(0) a\').tab(\'show\');">'+widget.number(3)+'visualize data</a>';
+	vis_sel.innerHTML = '<a href="#vis" data-toggle="tab" onclick="Retina.WidgetInstances.AnalysisBuilder[0].populate_varnames(null);Retina.WidgetInstances.AnalysisBuilder[0].check_varname_list(\'paragraph\');jQuery(\'#vis li:eq(0) a\').tab(\'show\');">'+widget.number(3)+'visualize data</a>';
 	ul.appendChild(vis_sel);
 
 	var vis_div = document.createElement('div');
@@ -558,11 +558,11 @@
 	chart_div.setAttribute('id', 'chart');
 	chart_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
 <tr><th>type</th><td><select id="graph_type" style="margin-bottom: 0px;"><option>row</option><option>stackedRow</option><option>column</option><option>stackedColumn</option><option>line</option><option>pie</option><option>stackedArea</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="graph_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
-<tr><th>title</th><td><input type="text" id="graph_title" value="Graph 1" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="graph_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th>title</th><td><input type="text" id="graph_title" value="" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="graph_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
 <tr><th>height</th><td><input type="text" id="graph_height" value="auto" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="graph_comment"></textarea></td></tr>\
 <tr><th>width</th><td><input type="text" id="graph_width" value="auto" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>x-axis title</th><td><input type="text" id="graph_x_title" value="X" style="margin-bottom: 0px;"></td></tr>\
-<tr><th>y-axis title</th><td><input type="text" id="graph_y_title" value="Y" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>x-axis title</th><td><input type="text" id="graph_x_title" value="" style="margin-bottom: 0px;"></td></tr>\
+<tr><th>y-axis title</th><td><input type="text" id="graph_y_title" value="" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>legend position</th><td><select id="graph_legend_position" style="margin-bottom: 0px;"><option>right</option><option>left</option><option>none</option></select></td></tr>\
 </table>';
 	vis_disp.appendChild(chart_div);
@@ -578,6 +578,7 @@
 	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
 	        return;
 	    }
+	    var current_nb = Retina.WidgetInstances.AnalysisBuilder[0].current_nb();
 	    var dataname = Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var].parent;
 	    var lpos = (document.getElementById('graph_legend_position').value == 'none') ? "'show_legend': False" : "'show_legend': True, 'legend_position': '"+document.getElementById('graph_legend_position').value+"'";
 	    var height = (document.getElementById('graph_width').value == 'auto') ? "" : "'height': "+document.getElementById('graph_width').value;
@@ -657,6 +658,7 @@
 	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
 	        return;
 	    }
+	    var current_nb = Retina.WidgetInstances.AnalysisBuilder[0].current_nb();
 	    var dataname = Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var].parent;
 	    var senddata = "heatmap_args = dict("+data_var+".items() + {'dist': '"+document.getElementById('heat_distance').value+"', 'clust': '"+document.getElementById('heat_cluster').value+"'}.items())\n";
 	    senddata += "heat_viz_args = "+dataname+"['abundances'].heatmap(**heatmap_args)\n";
@@ -679,7 +681,7 @@
 	pcoa_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
 <tr><th>height</th><td><input type="text" id="pcoa_height" value="auto" style="margin-bottom: 0px;"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="pcoa_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
 <tr><th>width</th><td><input type="text" id="pcoa_width" value="auto" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="pcoa_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
-<tr><th>title</th><td><input type="text" id="pcoa_title" value="PCoA 1" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="pcoa_comment"></textarea></td></tr>\
+<tr><th>title</th><td><input type="text" id="pcoa_title" value="" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="pcoa_comment"></textarea></td></tr>\
 <tr><th>distance method</th><td><select id="pcoa_distance" style="margin-bottom: 0px;">'+dist_options+'</select></td></tr>\
 <tr><th>x-axis component</th><td><select id="pcoa_x_comp" style="margin-bottom: 0px;"><option value ="1" selected>PCO1<option><option value ="2">PCO2<option><option value ="3">PCO3<option><option value ="4">PCO4<option></select></td></tr>\
 <tr><th>y-axis component</th><td><select id="pcoa_y_comp" style="margin-bottom: 0px;"><option value ="1">PCO1<option><option value ="2" selected>PCO2<option><option value ="3">PCO3<option><option value ="4">PCO4<option></select></td></tr>\
@@ -697,6 +699,7 @@
 	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
 	        return;
 	    }
+	    var current_nb = Retina.WidgetInstances.AnalysisBuilder[0].current_nb();
 	    var dataname = Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var].parent;
 	    var height = (document.getElementById('pcoa_height').value == 'auto') ? "" : "'height': "+document.getElementById('pcoa_height').value;
 	    var width = (document.getElementById('pcoa_width').value == 'auto') ? "" : "'width': "+document.getElementById('pcoa_width').value;
@@ -729,7 +732,7 @@
 	plot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
 <tr><th>connected</th><td><select id="plot_connected" style="margin-bottom: 0px;"><option value="True">yes</option><option value="False">no</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="plot_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
 <tr><th>show dots</th><td><select id="plot_dots" style="margin-bottom: 0px;"><option value="False">no</option><option value="True">yes</option></select></td><th>cell content</th><td><select id="plot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
-<tr><th>title</th><td><input type="text" id="plot_title" value="Plot 1" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="plot_comment"></textarea></td></tr>\
+<tr><th>title</th><td><input type="text" id="plot_title" value="" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="plot_comment"></textarea></td></tr>\
 <tr><th>x-axis maximum value</th><td><input type="text" id="plot_x_max" value="auto" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>y-axis maximum value</th><td><input type="text" id="plot_y_max" value="auto" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>legend position</th><td><select id="plot_legend_position" style="margin-bottom: 0px;"><option>right</option><option>left</option><option>none</option></select></td></tr>\
@@ -788,6 +791,7 @@
 	        alert("You have not selected a variable name for this visualization.\nPlease choose one from the list of 'available variables'.");
 	        return;
 	    }
+	    var current_nb = Retina.WidgetInstances.AnalysisBuilder[0].current_nb();
 	    var dataname = Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var].parent;
 	    var senddata = "boxplot_args = "+dataname+"['abundances'].boxplot(**"+data_var+")\n";
 	    senddata += "try:\n\tboxplot_args.update({'height': "+document.getElementById('boxplot_height').value+", 'width': "+document.getElementById('boxplot_width').value+"})\n";
