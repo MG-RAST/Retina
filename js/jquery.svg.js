@@ -3815,7 +3815,7 @@
 		position = size;
 		size = null;
 	    }
-	    this._ticks.major = (type == 'log' && major !== 0) ? 2 : major;
+	    this._ticks.major = (type == 'log' && major !== 0) ? 1 : major;
 	    this._ticks.minor = (type == 'log' && minor !== 0) ? 1 : minor;
 	    this._ticks.size = size || this._ticks.size;
 	    this._ticks.position = position || this._ticks.position;

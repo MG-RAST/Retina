@@ -242,7 +242,6 @@
     		     var md = { "name": stm.DataStore["metagenome"][i]["name"],
     			   "id": i,
     			   "project": stm.DataStore["metagenome"][i]["project"],
-    			   "type": "metagenome",
     			   "status": stm.DataStore["metagenome"][i]["status"],
     			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
     			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
@@ -262,7 +261,7 @@
 			"data": metagenome_data,
 		    "value": "id",
             "label": "name",
-	        "filter": ["name", "id", "project", "type", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"],
+	        "filter": ["name", "id", "project", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"],
 	        "sort": true,
 	        "multiple": false,
 		    "callback": function (mgid) {
@@ -725,25 +724,29 @@
 			            ] };
     };
     
-    widget.migs_metadata = function(mg, mg_stats) {
+    widget.migs_metadata = function(mg, mg_stats, hide_link) {
         var md = mg.migs;
-	    return { width: "span6",
-		         style: "float: right;",
-		         data: [ { header: "GSC MIxS Info" },
-			             { fancy_table: { data: [
-			                 [ { header: "Investigation Type" }, md['sequence_type'] ],
-			                 [ { header: "Project Name" }, md['project'] ],
-			                 [ { header: "Latitude and Longitude" }, md['latitude']+" , "+md['longitude'] ],
-			                 [ { header: "Country and/or Sea, Location" }, md['country']+" , "+md['location'] ],
-			                 [ { header: "Collection Date" }, md['collection_date'] ],
-			                 [ { header: "Environment (Biome)" }, md['biome'] ],
-			                 [ { header: "Environment (Feature)" }, md['feature'] ],
-			                 [ { header: "Environment (Material)" }, md['material'] ],
-			                 [ { header: "Environmental Package" }, md['package'] ],
-			                 [ { header: "Sequencing Method" }, md['seq_method'] ],
-			                 [ { header: "More Metadata" }, "<a href='#metadata_table'>click for full table</a>" ]
-			                 ] } }
+        var data = { width: "span6",
+		             style: "float: right;",
+		             data: [ { header: "GSC MIxS Info" },
+			                 { fancy_table: { data: [
+			                     [ { header: "Investigation Type" }, md['sequence_type'] ],
+			                     [ { header: "Project Name" }, md['project'] ],
+			                     [ { header: "Latitude and Longitude" }, md['latitude']+" , "+md['longitude'] ],
+			                     [ { header: "Country and/or Sea, Location" }, md['country']+" , "+md['location'] ],
+			                     [ { header: "Collection Date" }, md['collection_date'] ],
+			                     [ { header: "Environment (Biome)" }, md['biome'] ],
+			                     [ { header: "Environment (Feature)" }, md['feature'] ],
+			                     [ { header: "Environment (Material)" }, md['material'] ],
+			                     [ { header: "Environmental Package" }, md['package'] ],
+			                     [ { header: "Sequencing Method" }, md['seq_method'] ]
+			                     ] }
+			                 }
 			            ] };
+		if (! hide_link) {
+		    data.data[1].fancy_table.data.push( [{header: "More Metadata"}, "<a href='#metadata_table'>click for full table</a>"] );
+	    }
+		return data;
     };
     
     widget._to_per = function(n, d) {

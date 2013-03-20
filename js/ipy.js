@@ -81,7 +81,7 @@
     };
     
     ipy.notebook_terminate = function () {
-        IPython.notebook.kill_kernel();
+        IPython.notebook.kernel.kill();
     };
     
 }).call(this);
