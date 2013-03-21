@@ -131,6 +131,7 @@
 	      // check if we have a header, otherwise interpret the first line as the header
 	      if (renderer.settings.data.length) {
 		  renderer.settings.data = { header: renderer.settings.data[0], data: renderer.settings.data };
+		  renderer.settings.data.data.shift();
 	      }
 	      
 	      // if a header has already been initialized, don't touch it again
@@ -256,7 +257,7 @@
 	      
 	      // initialize the options
 	      var offset = renderer.settings.offset;
-	      var rows = renderer.settings.rows_per_page;
+	      var rows = (renderer.settings.rows_per_page < 0) ? tdata.length : renderer.settings.rows_per_page;
 	      var sortcol = renderer.settings.sortcol;
 	      var sortdir = renderer.settings.sortdir;
 	      var sorttype = renderer.settings.sorttype;
