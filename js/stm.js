@@ -258,6 +258,9 @@
 
 	var type = params['type'];
 	var id = params['id'];
+	if (params.hasOwnProperty('return_type') && (params.return_type == 'search')) {
+	    id = '"'+id+'"';
+	}
 	if (id) {
 	    id = '/'+id;
 	} else {
@@ -308,6 +311,20 @@
 			stm.load_data({ "data": d.D, "type": type });
 		    } else {
 			alert(d.E);
+			console.log(d);
+		    }
+		    break;
+		case 'search':
+		    var d = JSON.parse(xhr.responseText);
+		    if (d.found && d.found > 0 && d.body && d.body.length) {
+			for (i=0;i<d.body.length;i++) {
+			    if (d.body[i].hasOwnProperty('gid')) { d.body[i].id = d.body[i].gid; }
+			    if (d.body[i].hasOwnProperty('fid')) { d.body[i].id = d.body[i].fid; }
+			    if (d.body[i].hasOwnProperty('kbfid')) { d.body[i].id = d.body[i].kbfid; }
+			}
+			stm.load_data({ "data": d.body, "type": type });
+		    } else {
+			alert('could not retrieve requested data');
 			console.log(d);
 		    }
 		    break;
