@@ -172,20 +172,17 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
     <ul class="nav nav-tabs" id="tab_list">\
        <li class="active"><a onfocus="this.blur();" data-toggle="tab" href="#welcome">Get Started</a></li>\
        <li style="margin-bottom: -11px;"><a id="tab_pcoa" onfocus="this.blur();" data-toggle="tab" href="#pcoa" onclick="if(! Retina.WidgetInstances.wizard['+index+'].pcoa){document.getElementById(\'pcoa\').className=\'tab-pane active\';Retina.WidgetInstances.wizard['+index+'].render_pcoa('+index+');}">'+widget.number('1')+'Sample Subselection</a></li>\
-       <li style="margin-bottom: -11px;"><a id="tab_depth" onfocus="this.blur();" data-toggle="tab" href="#depth" onclick="if(! Retina.WidgetInstances.wizard['+index+'].depth_graph){document.getElementById(\'depth\').className=\'tab-pane active\';Retina.WidgetInstances.wizard['+index+'].render_depth('+index+');}">'+widget.number('2')+'Sequence Depth Estimation</a></li>\
-       <li style="margin-bottom: -11px;"><a id="tab_result" onfocus="this.blur();" data-toggle="tab" href="#result" onclick="if(! Retina.WidgetInstances.wizard['+index+'].result_table){document.getElementById(\'result\').className=\'tab-pane active\';Retina.WidgetInstances.wizard['+index+'].render_result(null, null, '+index+');}">'+widget.number('3')+'Expected Results</a></li>\
+       <li style="margin-bottom: -11px;"><a id="tab_depth" onfocus="this.blur();" data-toggle="tab" href="#depth" onclick="if(! Retina.WidgetInstances.wizard['+index+'].depth_graph){document.getElementById(\'depth\').className=\'tab-pane active\';Retina.WidgetInstances.wizard['+index+'].render_depth('+index+');}">'+widget.number('2')+'Sequence Depth Estimation Summary</a></li>\
+       <li style="margin-bottom: -11px;"><a id="tab_result" onfocus="this.blur();" data-toggle="tab" href="#result" onclick="if(! Retina.WidgetInstances.wizard['+index+'].result_table){document.getElementById(\'result\').className=\'tab-pane active\';Retina.WidgetInstances.wizard['+index+'].render_result(null, null, '+index+');}">'+widget.number('3')+'Sequence Depth Detailed Reports</a></li>\
     </ul>\
      \
     <div id="tab_div" class="tab-content" style="overflow: visible;">\
 <div class="tab-pane active span10" id="welcome" style="padding-left: 15px;"><h2 style="margin-bottom: 15px;">Wizard Steps</h2><p style="margin-bottom: 20px;">The Experimental Design Wizard consists of three steps. You can get to the next step by clicking the <b>next</b> button, or by selecting the appropriate tab above. You can always go back to the previous steps to adjust your selections. The steps are:</p>\
 <ul style="margin-left: 150px; margin-top: 50px; list-style: none;">\
-    <li>'+widget.number('1')+'<p>Sample Subselection</p><br><br></li>\
-    <li>'+widget.number('2')+'<p>Sequence Depth Estimation</p><br><br></li>\
-    <li>'+widget.number('3')+'<p>Expected Results</p><br><br></li>\
+    <li>'+widget.number('1')+'<p style="width: 600px;"><b>Sample Subselection</b><br>In this section you can group and subselect your samples based on metadata, the results of a preliminary comparative analysis (PCoA), or any other criteria you choose.</p><br><br></li>\
+    <li>'+widget.number('2')+'<p style="width: 600px;padding-left: 36px;"><b>Sequence Depth Estimation Summary</b><br>A rank abundance visualization for each of your samples presents a summary describing how likely it is that each taxa can be assembled as well as the expected proportion of proteins that should be annotated in each taxa without assembly.</p><br><br></li>\
+    <li>'+widget.number('3')+'<p style="width: 600px;"><b>Sequence Depth Detailed Reports</b><br>Here you can access the complete assembly and gene detection predictions for all taxa in each of your samples.</p><br><br></li>\
 </ul>\
-<p style="margin-bottom: 20px;">You have selected '+widget.ids.length+' samples. In the first step you can determine the subset of these samples that will yield the best results in answering your biological questions.</p>\
-<p style="margin-bottom: 20px;">In the second step you select the amount of sequencing that you want to perform on the samples selected in step 1. You will get an overview of the results you can expect and adjust the sequencing amount until the results meet your requirements.</p>\
-<p style="margin-bottom: 20px;">The third step will provide you with a detailed list of results you can expect if you perform sequencing on the selected samples with the chosen depth.</p>\
 <p style="margin-bottom: 20px;"><button class="btn btn-large" style="margin-left: 250px;" onclick="document.getElementById(\'tab_pcoa\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></p></div>\
     <div class="tab-pane" id="pcoa" style="padding-left: 15px;"></div>\
        <div class="tab-pane" id="depth" style="padding-left: 15px;"></div>\
@@ -202,7 +199,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 
     widget.render_result = function () {
 	var target = document.getElementById('result');
-	target.innerHTML = "<h2 style='margin-bottom: 10px;'>Expected Results</h2><div id='result_settings_div'></div><div id='result_table_div'></div>";
+	target.innerHTML = "<h2 style='margin-bottom: 10px;'>Sequence Depth Detailed Reports</h2><div id='result_settings_div'></div><div id='result_table_div'></div>";
 
 	
     }
@@ -277,16 +274,23 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	var num_contigs = params.num_reads * Math.exp(-1 * coverage * sigma);
 	var seqs_per_contig = Math.exp(coverage * sigma);
 	var average_contig_length = params.read_length * (((Math.exp(coverage * sigma) - 1 )  / coverage) + (1 - sigma));
+	var percent_proteins_detected = parseInt(100 * num_contigs * average_contig_length / params.genome_size);
+	
 	if (num_contigs < 1) { num_contigs = 1; }
 	if (num_contigs > params.num_reads) { num_contigs = params.num_reads; }
 	num_contigs = parseInt(num_contigs);
+	
 	if (average_contig_length > params.genome_size) { average_contig_length = params.genome_size; }
 	average_contig_length = parseInt(average_contig_length);
+	
 	if (seqs_per_contig < 1) { seqs_per_contig = 1; }
 	if (seqs_per_contig > parseInt(params.num_reads / num_contigs)) { seqs_per_contig = parseInt(params.num_reads / num_contigs); }
 	seqs_per_contig = parseInt(seqs_per_contig);
-	var percent_proteins_detected = parseInt(100 * num_contigs * average_contig_length / params.genome_size);
-	
+
+	if (isNaN(percent_proteins_detected)) {
+	    percent_proteins_detected = 100;
+	}
+
 	return { coverage: coverage,
 		 num_contigs: num_contigs,
 		 seqs_per_contig: seqs_per_contig,
@@ -404,8 +408,11 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    }
 	    widget.result_table.render();
 
-	    disp.innerHTML = "<table id='abundance_result'><tr><td style='vertical-align: top; width: 800px; padding-right: 50px;'>\
-  <h2>Sequence Depth Estimation</h2>\
+	    if (document.getElementById('spaces')) {
+		document.getElementById('spaces').innerHTML = spaces;
+	    } else {
+		disp.innerHTML = "<table id='abundance_result'><tr><td style='vertical-align: top; width: 800px; padding-right: 50px;'>\
+  <h2>Sequence Depth Estimation Summary</h2>\
   <p>The graphs below show the rank abundance plots for your selected samples on a logarithmic scale. Click on a bar to get details about the selected taxa.</p>\
   <p class='alert alert-success'>The green bars represent strong assembly candidates. These taxa are present with high enough coverage to enable assembly or comparative analysis of annotated features. It is very likely that every core metabolism protein will be hit.</p>\
   <p class='alert alert-info'>The blue bars represent weak assembly candidates. These taxa have an estimated coverage too low to ensure complete assembly, but high enough to enable comparative analysis of annotated features. It is likely that the full set core metabolism proteins will be hit.</p>\
@@ -413,14 +420,15 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
   <p class='alert alert-error'>The red bars represent sparse data. The expected abundances for these taxa are too low to enable assembly or meaningful comparison of annotated features.</p></td><td><button class='btn btn-large' style='margin-left: 250px; margin-top: -70px;' onclick='document.getElementById(\"tab_result\").click();'>next <i class='icon-forward' style='position: relative; top: 2px;'></i></button><br>\
 <h3>settings</h3>\
 <table>\
-  <tr><td>genome length (#bp)</td><td><select onclick='document.getElementById(\"genome_length\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"genome_length\").value=this.options[this.selectedIndex].value;'><option value='4.6'>E. coli</option><option value='4.2'>B. subtilis</option><option value='0.8'>M. Pneumoniae</option><option value='5'>manual</option></select></td><td><div class='input-append' style='margin-bottom: 9px;'><input class='span2' type='text' id='genome_length' value='4.6' style='width: 112px;'><span class='add-on'>Mbp</span></div></td></tr>\
-  <tr><td>run size (#reads)</td><td><select onclick='document.getElementById(\"run_size\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"run_size\").value=this.options[this.selectedIndex].value;'><option value='200000000'>HiSeq Lane</option><option value='100000000' selected>&frac12; HiSeq Lane</option><option value='50000000'>&frac14; HiSeq Lane</option><option>manual</option></select></td><td><input type='text' style='width: 150px;' id='run_size' value='100000000'></td></tr>\
-  <tr><td>read length (#bp)</td><td><select onclick='document.getElementById(\"read_length\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"read_length\").value=this.options[this.selectedIndex].value;'><option value='100'>100 bp</option><option selected value='125'>125 bp</option><option value='150'>150 bp</option><option value='125'>manual</option></select></td><td><div style='margin-bottom: 9px;' class='input-append'><input class='span2' type='text' id='read_length' value='125'><span class='add-on'>bp</span></div></td></tr>\
-  <tr><td>expected coverage</td><td><select onclick='document.getElementById(\"expected_coverage\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"expected_coverage\").value=this.options[this.selectedIndex].value;'><option>default</option><option>manual</option></select></td><td><input type='text' id='expected_coverage' value='5' style='width: 150px;'></td></tr>\
-  <tr><td style='width: 200px;'>expected completeness</td><td><select onclick='document.getElementById(\"expected_completeness\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"expected_completeness\").value=this.options[this.selectedIndex].value;'><option>default</option><option>manual</option></select></td><td><div class='input-append' style='margin-bottom: 9px;'><input class='span2' type='text' id='expected_completeness' value='95'><span class='add-on'>%</span></div></td></tr><tr><td></td><td></td><td><button class='btn btn-large'>update graphs</button></td></tr>\
-</table></td></tr>\
-"+spaces+"</table>";
+  <tr><td style='padding-bottom: 9px;'>genome length (#bp)</td><td><select onclick='document.getElementById(\"genome_length\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"genome_length\").value=this.options[this.selectedIndex].value;'><option value='4.6'>E. coli</option><option value='4.2'>B. subtilis</option><option value='0.8'>M. Pneumoniae</option><option value='5'>manual</option></select></td><td><div class='input-append' style='margin-bottom: 9px;'><input class='span2' type='text' id='genome_length' value='4.6' style='width: 112px;'><span class='add-on'>Mbp</span></div></td></tr>\
+  <tr><td style='padding-bottom: 9px;'>run size (#reads)</td><td><select onclick='document.getElementById(\"run_size\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"run_size\").value=this.options[this.selectedIndex].value;'><option value='200000000'>HiSeq Lane</option><option value='100000000' selected>&frac12; HiSeq Lane</option><option value='50000000'>&frac14; HiSeq Lane</option><option>manual</option></select></td><td><input type='text' style='width: 150px;' id='run_size' value='100000000'></td></tr>\
+  <tr><td style='padding-bottom: 9px;'>read length (#bp)</td><td><select onclick='document.getElementById(\"read_length\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"read_length\").value=this.options[this.selectedIndex].value;'><option value='100'>100 bp</option><option selected value='125'>125 bp</option><option value='150'>150 bp</option><option value='125'>manual</option></select></td><td><div style='margin-bottom: 9px;' class='input-append'><input class='span2' type='text' id='read_length' value='125'><span class='add-on'>bp</span></div></td></tr>\
+  <tr><td></td><td></td><td><button class='btn btn-large' onclick='Retina.WidgetInstances.wizard["+index+"].render_depth("+index+");'>update graphs</button></td></tr>\
+</table></td></tr></table>\
+<table id='spaces'>"+spaces+"</table>";
+	    }
 	    
+	    Retina.RendererInstances.graph.length = 1;
 	    for (z=0;z<graph_data.length;z++) {
 		var rend = Retina.Renderer.create("graph", { target: document.getElementById('abundance_result'+z), x_labels: label_data[z], data: graph_data[z], x_labels_rotation: -40, y_scale: 'log', chartArea: [ 0.1, 0.05, 0.95, 0.6 ], onclick: Retina.WidgetInstances.wizard[index].depth_details });
 		rend.render();
@@ -523,30 +531,62 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	pcoa.render();
     }
 
-    widget.assign_group = function () {
+    widget.assign_group = function (update) {
 	var points = Retina.WidgetInstances.wizard[1].pcoa_selection;
 	var pnames = {};
-	for (i=0;i<points.length;i++) {
-	    pnames[points[i].title] = 1;
+	if (! update) {
+	    for (i=0;i<points.length;i++) {
+		pnames[points[i].title] = 1;
+	    }
 	}
 	var group = document.getElementById('pcoa_group_name').value;
 
-	for (i=0;i<widget.group_select.settings.data.length;i++) {
-	    if (pnames[widget.group_select.settings.data[i].name]) {
-		widget.group_select.settings.data[i].group = group;
-		stm.DataStore.metagenome[widget.group_select.settings.data[i].id].group = group;
-	    }
-	}
-	widget.group_select.render();
-
+	var check_selection = {};
 	var table = Retina.WidgetInstances.wizard[1].sample_table;
 	for (i=0;i<table.settings.tdata.length;i++) {
-	    if (pnames[table.settings.tdata[i].name]) {
-		table.settings.tdata[i].group = group;
+	    table.settings.tdata[i].include = "<input type='checkbox' onclick='Retina.WidgetInstances.wizard[1].toggle_mg(this, \""+table.settings.tdata[i].ID+"\");'>";
+	    if (! update) {
+		if (pnames[table.settings.tdata[i].name]) {
+		    table.settings.tdata[i].group = group;
+		}
+	    }
+	    if (! check_selection.hasOwnProperty(table.settings.tdata[i].group) || (check_selection[table.settings.tdata[i].group].alpha < table.settings.tdata[i]["alpha diversity"])) {
+		check_selection[table.settings.tdata[i].group] = { "alpha": table.settings.tdata[i]["alpha diversity"],
+								   "index": i };
+	    }
+	}
+	Retina.WidgetInstances.wizard[1].depth_mgs = [];
+	for (i in check_selection) {
+	    if (check_selection.hasOwnProperty(i)) {
+		table.settings.tdata[check_selection[i].index].include = "<input type='checkbox' checked onclick='Retina.WidgetInstances.wizard[1].toggle_mg(this, \""+table.settings.tdata[check_selection[i].index].ID+"\");'>";
+		Retina.WidgetInstances.wizard[1].depth_mgs.push(table.settings.tdata[check_selection[i].index].ID);
 	    }
 	}
 	table.render();
     };
+
+    widget.toggle_mg = function (checkbox, id) {
+	var checked = "";
+	if (checkbox.checked) {
+	    Retina.WidgetInstances.wizard[1].depth_mgs.push(id);
+	    checked = " checked";
+	} else {
+	    var new_list = [];
+	    for (i=0;i<Retina.WidgetInstances.wizard[1].depth_mgs.length;i++) {
+		if (Retina.WidgetInstances.wizard[1].depth_mgs[i] != id) {
+		    new_list.push(Retina.WidgetInstances.wizard[1].depth_mgs[i]);
+		}
+	    }
+	    Retina.WidgetInstances.wizard[1].depth_mgs = new_list;
+	}
+
+	var table = Retina.WidgetInstances.wizard[1].sample_table;
+	for (i=0;i<table.settings.tdata.length;i++) {
+	    if (table.settings.tdata[i].ID == id) {
+		table.settings.tdata[i].include = "<input type='checkbox'"+checked+" onclick='Retina.WidgetInstances.wizard[1].toggle_mg(this, \""+id+"\");'>";
+	    }
+	}
+    }
 
     widget.render_pcoa = function (index) {
 	if (document.getElementById('pcoa').className == 'tab-pane active') {
@@ -573,9 +613,10 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    for (i=0;i<widget.ids.length;i++) {
 		var mg = stm.DataStore.metagenome[widget.ids[i]];
 		var id = widget.ids[i];
-		tdata.push([ mg.id, mg.name, stm.DataStore.metagenome[id].group ? stm.DataStore.metagenome[id].group : "-", parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2), mg.migs.biome, parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.bp_count_raw), parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_raw), parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_length_raw), parseInt(parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_ratio_raw) * 100), parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_raw) ]);
+		//tdata.push([ mg.id, mg.name, stm.DataStore.metagenome[id].group ? stm.DataStore.metagenome[id].group : "-", parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2), mg.migs.biome, parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.bp_count_raw), parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_raw), parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_length_raw), parseInt(parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_ratio_raw) * 100), parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_raw) ]);
+		tdata.push([ mg.id, mg.name, stm.DataStore.metagenome[id].group ? stm.DataStore.metagenome[id].group : "-", parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2), "<input type='checkbox' checked onclick='Retina.WidgetInstances.wizard[1].toggle_mg(this, \""+id+"\");'>" ]);
 	    }
-	    var table_data = { data: tdata, header: [ "ID", "name", "group", "alpha diversity", "biome", "# bp", "# reads", "mean read length", "mean GC %", "mean GC content" ] };
+	    var table_data = { data: tdata, header: [ "ID", "name", "group", "alpha diversity", "include" ] };
 	    var table = widget.sample_table = Retina.Renderer.create("table", { target: tablespace,
 										data: table_data,
 										rows_per_page: 15,
@@ -1156,10 +1197,11 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    }
 	}
 	
-	for (i=0;i<widget.group_select.settings.data.length;i++) {
-	    widget.group_select.settings.data[i].group = stm.DataStore.metagenome[widget.group_select.settings.data[i].id].group;
-	}
-	widget.group_select.render();
+	// for (i=0;i<widget.group_select.settings.data.length;i++) {
+	//     widget.group_select.settings.data[i].group = stm.DataStore.metagenome[widget.group_select.settings.data[i].id].group;
+	// }
+	// widget.group_select.render();
+	widget.assign_group(true);
     }
     
     widget.number = function (number) {
