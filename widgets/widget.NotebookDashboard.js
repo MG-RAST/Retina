@@ -363,7 +363,8 @@
         jQuery('#tab_div').children('.active').removeClass('active');
         jQuery('#selector_tab').before(li_elem);
         jQuery('#tab_div').append(div_elem);
-        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_init("+index+", '"+uuid+"')", 3000);
+        setTimeout("stm.send_message('"+uuid+"', 'IPython.notebook.kernel.restart();', 'action');", 4000);
+        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_init("+index+", '"+uuid+"')", 7000);
     };
 
     widget.nb_close_tab = function (index, save) {
@@ -371,11 +372,11 @@
         var extra = 10;
         if (save) {
             stm.send_message(uuid, 'ipy.notebook_save();', 'action');
-            extra = 500;
+            extra = 1000;
         }
         Retina.WidgetInstances.NotebookDashboard[index].builder_widget.nb_deleted(uuid);
         setTimeout("stm.send_message('"+uuid+"', 'ipy.notebook_terminate();', 'action');", extra);
-        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_close_delay('"+uuid+"')", 1000+extra);
+        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_close_delay('"+uuid+"')", 1500+extra);
     };
     
     widget.nb_close_delay = function (uuid) {
