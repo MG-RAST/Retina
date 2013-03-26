@@ -70,9 +70,9 @@
 	        { type: 'table', data: 'overview_table', category: 'overview' },
 	        { type: 'stackcolumn', data: 'summary_stack' },
 	        { type: 'title', data: 'Analysis Statistics' },
-	        { type: 'table', data: 'analysis_statistics_table', category: 'analysis_statistics' },
+	        { type: 'table', data: 'summary_stats_table', category: 'summary_stats' },
 	        { type: 'title', data: 'GSC MIxS Info' },
-	        { type: 'table', data: 'migs_metadata_table', category: 'migs_metadata' },
+	        { type: 'table', data: 'mixs_metadata_table', category: 'mixs' },
 	        { type: 'paragraph', data: 'drisee_introtext' },
 	        { type: 'plot', data: 'drisee_plot', category: 'drisee' },
 	        { type: 'paragraph', data: 'kmer_introtext' },
@@ -89,7 +89,7 @@
 	        { type: 'paragraph', data: 'rarefaction_introtext' },
 	        { type: 'plot', data: 'rarefaction_plot', category: 'rarefaction' },
 	        { type: 'title', data: 'Metadata' },
-	        { type: 'table', data: 'full_metadata_table', category: 'full_metadata' }
+	        { type: 'table', data: 'full_metadata_table', category: 'metadata' }
 	    ];
 	
 	    // iterate over the outputs
@@ -223,8 +223,8 @@
 			             { fancy_table: {
 			                 data: [ [ "<a href='#overview_table'>Overview Info</a>",
 			                           "<a href='#summary_stack'>Sequence Summary</a>",
-			                           "<a href='#analysis_statistics_table'>Statistics</a>",
-			                           "<a href='#migs_metadata_table'>MIxS Metadata</a>",
+			                           "<a href='#summary_stats_table'>Statistics</a>",
+			                           "<a href='#mixs_metadata_table'>MIxS Metadata</a>",
 			                           "<a href='#drisee_introtext'>DRISEE</a>" ],
 			                         [ "<a href='#kmer_introtext'>Kmer Profile</a>",
 			                           "<a href='#ontology_introtext'>Functional Hits</a>",
@@ -405,7 +405,7 @@
     	return data;
     };
     
-    widget.mgs_plot = function(mgs, mg_stats, type) {
+    widget.mgs_plot = function(mgs, mg_stats, type, kmer) {
         var xt, yt;
         var labels = [];
         var points = [];
@@ -419,6 +419,9 @@
         	        for (var i in mg_stats[m].qc.drisee.percents.data) {
         	            xy.push( [ mg_stats[m].qc.drisee.percents.data[i][0], mg_stats[m].qc.drisee.percents.data[i][7] ] );
         	        }
+        	        if (! xy.length) {
+        	            continue;
+        	        }
         	        points.push(xy);
         	        labels.push(mgs[m].id);
         	    } catch (err) {
@@ -429,11 +432,39 @@
             yt = 'percent error';
             break;
             case 'kmer':
+            var xi, yi;
+            switch (kmer) {
+                case 'ranked':
+                xi = 3;
+                yi = 5;
+                xt = 'sequence size';
+                yt = 'fraction of observed kmers';
+                xscale = 'log';
+                yscale = 'linear';
+                break;
+                case 'spectrum':
+                xi = 0;
+                yi = 1;
+                xt = 'kmer coverage';
+                yt = 'number of kmers';
+                xscale = 'log';
+                yscale = 'log';
+                break;
+                default:
+                xi = 3;
+                yi = 0;
+                xt = 'sequence size';
+                yt = 'kmer coverage';
+                xscale = 'log';
+                yscale = 'log';
+                break;
+            }
             for (var m in mgs) {
                 try {
                     var xy = [];
                     for (var i in mg_stats[m].qc.kmer['15_mer']['data']) {
-                        xy.push( [ mg_stats[m].qc.kmer['15_mer']['data'][i][3], mg_stats[m].qc.kmer['15_mer']['data'][i][0] ] );
+                        var thisY = (yi == 5) ? 1 - parseFloat(mg_stats[m].qc.kmer['15_mer']['data'][i][yi]) : mg_stats[m].qc.kmer['15_mer']['data'][i][yi];
+                        xy.push( [ mg_stats[m].qc.kmer['15_mer']['data'][i][xi], thisY ] );
                     }
                     points.push(xy);
         	        labels.push(mgs[m].id);
@@ -441,10 +472,6 @@
             	    continue;
             	}
         	}
-            xt = 'sequence size';
-            yt = 'kmer coverage';
-            xscale = 'log';
-            yscale = 'log';
             break;
             case 'rarefaction':
             for (var m in mgs) {
@@ -465,7 +492,7 @@
             default:
             break;
         }
-        if (! (labels && points)) {
+        if (! (labels.length && points.length)) {
             return undefined;
         }
         return widget.multi_plot(points, labels, xt, yt, xscale, yscale);
@@ -584,7 +611,7 @@
                 tdata[6].push( pubmed_id );
             }
             break;
-            case 'analysis_statistics':
+            case 'summary_stats':
             cname = ['statistics'];
             tdata = [ ["Upload: bp Count"],
                       ["Upload: Sequences Count"],
@@ -618,7 +645,7 @@
                 tdata[13].push( widget._to_num('sequence_count_ontology', mg_stats[s].sequence_stats) );
             }
             break;
-            case 'migs_metadata':
+            case 'mixs':
             cname = ['term'];
             tdata = [ ["Investigation Type"],
                       ["Project Name"],
@@ -644,7 +671,7 @@
                 tdata[9].push( mgs[m].migs['seq_method'] );
             }
             break;
-            case 'full_metadata':
+            case 'metadata':
             cname = ['category', 'field'];
             options = { 'sort_autodetect': true, 'filter_autodetect': true, 'hide_options': false, 'rows_per_page': 20 };
             var mdata = {'project': {}, 'sample': {}, 'library': {}, 'env_package': {}};
