@@ -41,6 +41,9 @@
    selection (HASH of STRING)
       Hash of values pointing to 1. The inital selection in the result box. The values must be attribute values of the data object attribute selected as the value attribute of the selection list.
 
+   button (OBJECT)
+      This allows setting of the class, style, text and icon attributes of the button, i.e. { class: 'btn btn-error', style: 'border: 1px dotted black;', icon: '<i class="icon-ok icon-white"></i>', text: 'search' }
+
 */
 (function () {
     var renderer = Retina.Renderer.extend({
@@ -206,9 +209,9 @@
 
 	    // create the submit button
 	    var submit_button = document.createElement('a');
-	    submit_button.setAttribute('class', 'btn btn-small btn-success');
-	    submit_button.setAttribute('style', 'margin-left: 15px;');
-	    submit_button.innerHTML = '<i class="icon-ok icon-white"></i>';
+	    submit_button.setAttribute('class', (renderer.settings.button && renderer.settings.button.class) ? renderer.settings.button.class : 'btn btn-small btn-success');
+	    submit_button.setAttribute('style', (renderer.settings.button && renderer.settings.button.style) ? renderer.settings.button.style : 'margin-left: 15px;');
+	    submit_button.innerHTML = ((renderer.settings.button && renderer.settings.button.text) ? renderer.settings.button.text : '') + ( (renderer.settings.button && renderer.settings.button.icon) ? renderer.settings.button.icon : '<i class="icon-ok icon-white"></i>');
 	    if (typeof(renderer.settings.callback) == 'function') {
 	        var index = renderer.index;
 		    if (renderer.settings.multiple) {
