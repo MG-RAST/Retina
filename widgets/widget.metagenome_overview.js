@@ -25,6 +25,7 @@
     widget.mg_select_list = undefined;
     
     widget.display = function (wparams) {
+        var widget = Retina.WidgetInstances.metagenome_overview[0];
         // check if id given
         if (wparams.id) {
             jQuery('#mg_modal').modal('hide');
@@ -35,13 +36,13 @@
 	        stats_promises.push(stm.get_objects({ "type": "metagenome", "id": wparams.id, "options": { "verbosity": "full" } }));
 	        stats_promises.push(stm.get_objects({ "type": "metagenome_statistics", "id": wparams.id, "options": { "verbosity": "full" } }));
 	        jQuery.when.apply(this, stats_promises).then(function() {
-		    widget.display(wparams);
+		        widget.display(wparams);
 	        });
 	        return;
             }
 	    // get id first
         } else {
-            Retina.WidgetInstances.metagenome_overview[0].metagenome_modal(wparams.target);
+            widget.metagenome_modal(wparams.target);
             return;
         }
 	
@@ -580,7 +581,7 @@
 	    switch (type) {
 	        case 'drisee':
 	        try {
-	            data = widget.multi_plot(0, [1,2,3,4,5,6,7], mg_stats.qc.drisee.percents.columns, mg_stats.qc.drisee.percents.data, 'bp position', 'percent error');
+	            data = Retina.WidgetInstances.metagenome_overview[0].multi_plot(0, [1,2,3,4,5,6,7], mg_stats.qc.drisee.percents.columns, mg_stats.qc.drisee.percents.data, 'bp position', 'percent error');
 	        } catch (err) {
         	    data = undefined;
         	}
@@ -619,14 +620,14 @@
 	                var thisY = (yi == 5) ? 1 - parseFloat(mg_stats.qc.kmer['15_mer']['data'][i][yi]) : mg_stats.qc.kmer['15_mer']['data'][i][yi];
                     points.push([ mg_stats.qc.kmer['15_mer']['data'][i][xi], thisY ]);
                 }
-                data = widget.single_plot(points, xt, yt, xscale, yscale);
+                data = Retina.WidgetInstances.metagenome_overview[0].single_plot(points, xt, yt, xscale, yscale);
             } catch (err) {
         	    data = undefined;
         	}
             break;
             case 'rarefaction':
             try {
-                data = widget.single_plot(mg_stats.rarefaction, 'number of reads', 'species count', xscale, yscale);
+                data = Retina.WidgetInstances.metagenome_overview[0].single_plot(mg_stats.rarefaction, 'number of reads', 'species count', xscale, yscale);
             } catch (err) {
             	data = undefined;
             }

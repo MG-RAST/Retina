@@ -25,6 +25,7 @@
     widget.mg_select_list = undefined;
     
     widget.display = function (wparams) {
+        var widget = Retina.WidgetInstances.collection_overview[0];
         // check if id given
         if (wparams.ids) {
             jQuery('#mg_modal').modal('hide');
@@ -45,7 +46,7 @@
         }
 	    // get ids first
         else {
-            Retina.WidgetInstances.collection_overview[0].metagenome_modal(wparams.target);
+            widget.metagenome_modal(wparams.target);
             return;
         }
 	
@@ -59,7 +60,7 @@
         }
 	
 	    // set the output area
-	    content.innerHTML = '';//'<style>[class*="span"] { float: none; }</style>';
+	    content.innerHTML = '';
 	
 	    // set style variables
 	    var header_color = "black";
@@ -495,7 +496,7 @@
         if (! (labels.length && points.length)) {
             return undefined;
         }
-        return widget.multi_plot(points, labels, xt, yt, xscale, yscale);
+        return Retina.WidgetInstances.collection_overview[0].multi_plot(points, labels, xt, yt, xscale, yscale);
     };
 
     widget.multi_plot = function(points, labels, xt, yt, xscale, yscale) {
@@ -551,6 +552,7 @@
     };
     
     widget.build_table = function(mgs, mg_stats, type) {
+        var widget = Retina.WidgetInstances.collection_overview[0];
         var cname = [];
         var tdata = [];
         var options = {};
