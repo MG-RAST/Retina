@@ -101,9 +101,9 @@
 
 	    title.innerHTML = "<h2 style='margin-top: 50px;'>Welcome to the Experiment Design Wizard</h2>\
 <p style='width: 600px; margin-top: 20px; margin-bottom: 20px;'>\
-With the KBase metagenomics wizard, you can design your metagenomic sequencing experiment. Selecting samples for deep(er) sequencing based on a metadata and on inexpensive 16s data.</p>\
-<p>If you have already uploaded your sequences, you can select them below. Otherwise please proceed to the <a href='http://140.221.92.81:7051/' target=_blank>upload</a>.</p>\
-<p style='width: 600px; margin-bottom: 20px;'>The wizard assumes that you either already have the data describing your samples (metadata) or are willing to create a spreadsheet with this data using the GSC conventions. If have not yet provided metadata for your samples, you can do so using <a href='http://metagenomics.anl.gov/metazen.cgi' target=_blank>Metazen</a>.</p>";
+With the KBase metagenomics wizard, you can design your metagenomic sequencing experiment. Selecting samples for deep(er) sequencing based on a metadata inexpensive 16s amplicon data.</p>\
+<p>If you have already uploaded your 16s sequence data, you can select them below. Otherwise please proceed to the <a href='http://140.221.92.81:7051/' target=_blank>upload page</a>.</p>\
+<p style='width: 600px; margin-bottom: 20px;'>The wizard assumes that you either already have the data describing your samples (metadata) or are willing to create a spreadsheet with this data using the <a href='http://gensc.org/gc_wiki/index.php/Main_Page' target=_blank>GSC conventions</a>. If have not yet provided metadata for your samples, you can do so using <a href='http://metagenomics.anl.gov/metazen.cgi' target=_blank>Metazen</a>.</p>";
 
 	    title.innerHTML += "<h3 style='margin-bottom: 20px;'>select your samples</h3>";
 
@@ -111,6 +111,10 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 						   multiple: true,
 						   data: metagenome_data,
 						   value: "id",
+						   button: { text: 'next ',
+							     icon: "<i class='icon-forward' style='position: relative; top: 2px;'></i>",
+							     class: 'btn btn-large',
+							     style: 'margin-bottom: 10px; margin-left: 465px;' },
 						   callback: function (data) {
 						       widget.ids = data;
 						       widget.display(wparams);
@@ -170,7 +174,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    target.innerHTML = '<td colspan=3 style="padding-top: 10px;">\
   <div class="tabbable">\
     <ul class="nav nav-tabs" id="tab_list">\
-       <li class="active"><a onfocus="this.blur();" data-toggle="tab" href="#welcome">Get Started</a></li>\
+       <li class="active"><a id="tab_welcome" onfocus="this.blur();" data-toggle="tab" href="#welcome">Get Started</a></li>\
        <li style="margin-bottom: -11px;"><a id="tab_pcoa" onfocus="this.blur();" data-toggle="tab" href="#pcoa" onclick="if(! Retina.WidgetInstances.wizard['+index+'].pcoa){document.getElementById(\'pcoa\').className=\'tab-pane active\';Retina.WidgetInstances.wizard['+index+'].render_pcoa('+index+');}">'+widget.number('1')+'Sample Subselection</a></li>\
        <li style="margin-bottom: -11px;"><a id="tab_depth" onfocus="this.blur();" data-toggle="tab" href="#depth" onclick="if(! Retina.WidgetInstances.wizard['+index+'].depth_graph){document.getElementById(\'depth\').className=\'tab-pane active\';Retina.WidgetInstances.wizard['+index+'].render_depth('+index+');}">'+widget.number('2')+'Sequence Depth Estimation Summary</a></li>\
        <li style="margin-bottom: -11px;"><a id="tab_result" onfocus="this.blur();" data-toggle="tab" href="#result" onclick="if(! Retina.WidgetInstances.wizard['+index+'].result_table){document.getElementById(\'result\').className=\'tab-pane active\';Retina.WidgetInstances.wizard['+index+'].render_result(null, null, '+index+');}">'+widget.number('3')+'Sequence Depth Detailed Reports</a></li>\
@@ -180,10 +184,10 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 <div class="tab-pane active span10" id="welcome" style="padding-left: 15px;"><h2 style="margin-bottom: 15px;">Wizard Steps</h2><p style="margin-bottom: 20px;">The Experimental Design Wizard consists of three steps. You can get to the next step by clicking the <b>next</b> button, or by selecting the appropriate tab above. You can always go back to the previous steps to adjust your selections. The steps are:</p>\
 <ul style="margin-left: 150px; margin-top: 50px; list-style: none;">\
     <li>'+widget.number('1')+'<p style="width: 600px;"><b>Sample Subselection</b><br>In this section you can group and subselect your samples based on metadata, the results of a preliminary comparative analysis (PCoA), or any other criteria you choose.</p><br><br></li>\
-    <li>'+widget.number('2')+'<p style="width: 600px;padding-left: 36px;"><b>Sequence Depth Estimation Summary</b><br>A rank abundance visualization for each of your samples presents a summary describing how likely it is that each taxa can be assembled as well as the expected proportion of proteins that should be annotated in each taxa without assembly.</p><br><br></li>\
+    <li>'+widget.number('2')+'<p style="width: 600px;padding-left: 36px;"><b>Sequence Depth Estimation Summary</b><br>This tool provides a summary that indicates the likelihood that you will be able to generate an assembly for each taxa as well as the expected proportion of proteins that should be annotated in each taxa without assembly.<br>Estimates are based on the composition of your 16s and typical settings for and Illumina-based WGS sequencing run.</p><br><br></li>\
     <li>'+widget.number('3')+'<p style="width: 600px;"><b>Sequence Depth Detailed Reports</b><br>Here you can access the complete assembly and gene detection predictions for all taxa in each of your samples.</p><br><br></li>\
 </ul>\
-<p style="margin-bottom: 20px;"><button class="btn btn-large" style="margin-left: 250px;" onclick="document.getElementById(\'tab_pcoa\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></p></div>\
+<p style="margin-bottom: 20px;"><button class="btn btn-large" style="margin-left: 250px;" onclick="if(confirm(\'Really return to the sample selection?\\nThe statistical data will have to be reloaded.\')){window.top.location=\'wizard.html\';}"><i class="icon-backward" style="position: relative; top: 2px;"></i> previous</button><button class="btn btn-large" style="margin-left: 20px;" onclick="document.getElementById(\'tab_pcoa\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></p></div>\
     <div class="tab-pane" id="pcoa" style="padding-left: 15px;"></div>\
        <div class="tab-pane" id="depth" style="padding-left: 15px;"></div>\
        <div class="tab-pane" id="result" style="padding-left: 15px;"></div>\
@@ -199,7 +203,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 
     widget.render_result = function () {
 	var target = document.getElementById('result');
-	target.innerHTML = "<h2 style='margin-bottom: 10px;'>Sequence Depth Detailed Reports</h2><div id='result_settings_div'></div><div id='result_table_div'></div>";
+	target.innerHTML = "<button class='btn btn-large' style='position: absolute; top: 180px; left: 1100px;' onclick='document.getElementById(\"tab_depth\").click();'> <i class='icon-backward' style='position: relative; top: 2px;'></i> previous</button><h2 style='margin-bottom: 10px;'>Sequence Depth Detailed Reports</h2><div id='result_settings_div'></div><div id='result_table_div'></div>";
 
 	
     }
@@ -394,7 +398,12 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 		numseqtext = num_reads + " sequences";
 	    }
 
-	    document.getElementById('result_settings_div').innerHTML = "<p style='width: 940px; margin-bottom: 30px;'>The table below shows you the expected genome coverage and the percentage of detected proteins for your selected samples. The results assume the settings chosen in the previous step.<br><br><b>You will need to sequence "+numseqtext+" of each selected sample to yield these results.</b><br><br>The result shown should be taken as a rough estimate.</p>";
+	    document.getElementById('result_settings_div').innerHTML = "<p style='width: 940px; margin-bottom: 30px;'>The table below shows you the expected genome coverage and the percentage of detected proteins for your selected samples. The result shown should be taken as a rough estimate.</p>\
+  <p class='alert alert-success' style='width: 680px; margin-right: 10px; float: left;'><b>green</b> strong assembly candidate - enables comparative analysis - every core metabolism protein annotated</p>\
+  <p class='alert alert-info' style='width: 680px; margin-right: 10px; float: left;'><b>blue</b> weak assembly candidate - enables comparative analysis - likely every core metabolism proteins annotated.</p>\
+  <p class='alert alert-warning' style='width: 680px; margin-right: 10px; float: left;'><b>yellow</b> no assembly - likely >50% core metabolism proteins annotated</p>\
+  <p class='alert alert-error' style='width: 680px; margin-right: 10px; float: left;'><b>red</b> no assembly - no meaningful comparison of annotated features</p><h3 style='clear: both;'>settings</h3><table style='text-align: left; margin-bottom: 30px;'><tr><th style='padding-right: 15px;'>genome length (#bp)</th><td id='genome_length_mirror'></td></tr><tr><th>run size (#reads)</th><td id='run_size_mirror'></td></tr><tr><th>read length (#bp)</th><td id='read_length_mirror'></td></tr></table>";
+	    
 	    if (widget.result_table) {
 		widget.result_table.settings.data = { data: result_table_data, header: result_table_header };
 		widget.result_table.settings.tdata = null;
@@ -413,20 +422,25 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    } else {
 		disp.innerHTML = "<table id='abundance_result'><tr><td style='vertical-align: top; width: 800px; padding-right: 50px;'>\
   <h2>Sequence Depth Estimation Summary</h2>\
-  <p>The graphs below show the rank abundance plots for your selected samples on a logarithmic scale. Click on a bar to get details about the selected taxa.</p>\
-  <p class='alert alert-success'>The green bars represent strong assembly candidates. These taxa are present with high enough coverage to enable assembly or comparative analysis of annotated features. It is very likely that every core metabolism protein will be hit.</p>\
-  <p class='alert alert-info'>The blue bars represent weak assembly candidates. These taxa have an estimated coverage too low to ensure complete assembly, but high enough to enable comparative analysis of annotated features. It is likely that the full set core metabolism proteins will be hit.</p>\
-  <p class='alert alert-warning'>The yellow bars represent taxa that have an estimated coverage too low for any assembly. It is likely that more than 50% of the core metabolism proteins will be hit though.</p>\
-  <p class='alert alert-error'>The red bars represent sparse data. The expected abundances for these taxa are too low to enable assembly or meaningful comparison of annotated features.</p></td><td><button class='btn btn-large' style='margin-left: 250px; margin-top: -70px;' onclick='document.getElementById(\"tab_result\").click();'>next <i class='icon-forward' style='position: relative; top: 2px;'></i></button><br>\
-<h3>settings</h3>\
+  <p>The graphs below show the rank abundance plots for your selected samples. Click on a bar to get details about the individual taxa. You can also change the settings for your WGS sequencing run. Default settings are for half of an Illumina lane with 125bp reads for a genome estimated to be the same size as E coli. These settings can be changed using the dropdown menus to select preprogrammed values or by typing the desired value into the text boxes. Click 'update graphs' to apply new settings.</p>\
+  <p class='alert alert-success'>The green bars represent strong assembly candidates. These taxa are present with high enough coverage to enable assembly or comparative analysis of annotated features. It is very likely that every core metabolism protein will be annotated.</p>\
+  <p class='alert alert-info'>The blue bars represent weak assembly candidates. These taxa have an estimated coverage too low to ensure complete assembly, but high enough to enable comparative analysis of annotated features. It is likely that the full set core metabolism proteins will be annotated.</p>\
+  <p class='alert alert-warning'>The yellow bars represent taxa that have an estimated coverage too low for any assembly. It is likely that more than 50% of the core metabolism proteins will be hit.</p>\
+  <p class='alert alert-error'>The red bars represent sparse data. The expected abundances for these taxa are too low to enable assembly or meaningful comparison of annotated features.</p>\
+</td><td><button class='btn btn-large' style='margin-left: 250px; margin-top: -70px;' onclick='document.getElementById(\"tab_pcoa\").click();'><i class='icon-backward' style='position: relative; top: 2px;'></i> previous</button><button class='btn btn-large' style='margin-left: 20px; margin-top: -70px;' onclick='document.getElementById(\"tab_result\").click();'>next <i class='icon-forward' style='position: relative; top: 2px;'></i></button><br>\
+<div id='depth_settings_form'><h3>settings</h3>\
 <table>\
-  <tr><td style='padding-bottom: 9px;'>genome length (#bp)</td><td><select onclick='document.getElementById(\"genome_length\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"genome_length\").value=this.options[this.selectedIndex].value;'><option value='4.6'>E. coli</option><option value='4.2'>B. subtilis</option><option value='0.8'>M. Pneumoniae</option><option value='5'>manual</option></select></td><td><div class='input-append' style='margin-bottom: 9px;'><input class='span2' type='text' id='genome_length' value='4.6' style='width: 112px;'><span class='add-on'>Mbp</span></div></td></tr>\
-  <tr><td style='padding-bottom: 9px;'>run size (#reads)</td><td><select onclick='document.getElementById(\"run_size\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"run_size\").value=this.options[this.selectedIndex].value;'><option value='200000000'>HiSeq Lane</option><option value='100000000' selected>&frac12; HiSeq Lane</option><option value='50000000'>&frac14; HiSeq Lane</option><option>manual</option></select></td><td><input type='text' style='width: 150px;' id='run_size' value='100000000'></td></tr>\
-  <tr><td style='padding-bottom: 9px;'>read length (#bp)</td><td><select onclick='document.getElementById(\"read_length\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"read_length\").value=this.options[this.selectedIndex].value;'><option value='100'>100 bp</option><option selected value='125'>125 bp</option><option value='150'>150 bp</option><option value='125'>manual</option></select></td><td><div style='margin-bottom: 9px;' class='input-append'><input class='span2' type='text' id='read_length' value='125'><span class='add-on'>bp</span></div></td></tr>\
+  <tr><td style='padding-bottom: 9px;'>genome length (#bp)</td><td><select id='genome_length_master' onclick='document.getElementById(\"genome_length\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"genome_length\").value=this.options[this.selectedIndex].value;'><option value='4.6'>E. coli</option><option value='4.2'>B. subtilis</option><option value='0.8'>M. Pneumoniae</option><option value='5'>manual</option></select></td><td><div class='input-append' style='margin-bottom: 9px;'><input class='span2' type='text' id='genome_length' value='4.6' style='width: 112px;'><span class='add-on'>Mbp</span></div></td></tr>\
+  <tr><td style='padding-bottom: 9px;'>run size (#reads)</td><td><select id='run_size_master' onclick='document.getElementById(\"run_size\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"run_size\").value=this.options[this.selectedIndex].value;'><option value='200000000'>HiSeq Lane</option><option value='100000000' selected>&frac12; HiSeq Lane</option><option value='50000000'>&frac14; HiSeq Lane</option><option>manual</option></select></td><td><input type='text' style='width: 150px;' id='run_size' value='100000000'></td></tr>\
+  <tr><td style='padding-bottom: 9px;'>read length (#bp)</td><td><select id='read_length_master' onclick='document.getElementById(\"read_length\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"read_length\").value=this.options[this.selectedIndex].value;'><option value='100'>100 bp</option><option selected value='125'>125 bp</option><option value='150'>150 bp</option><option value='125'>manual</option></select></td><td><div style='margin-bottom: 9px;' class='input-append'><input class='span2' type='text' id='read_length' value='125'><span class='add-on'>bp</span></div></td></tr>\
   <tr><td></td><td></td><td><button class='btn btn-large' onclick='Retina.WidgetInstances.wizard["+index+"].render_depth("+index+");'>update graphs</button></td></tr>\
-</table></td></tr></table>\
+</table></div></td></tr></table>\
 <table id='spaces'>"+spaces+"</table>";
 	    }
+
+	    document.getElementById('genome_length_mirror').innerHTML = document.getElementById('genome_length_master').options[document.getElementById('genome_length_master').selectedIndex].label + ' - ' + document.getElementById('genome_length').value + 'Mbp';
+	    document.getElementById('run_size_mirror').innerHTML = document.getElementById('run_size_master').options[document.getElementById('run_size_master').selectedIndex].label + ' - ' + document.getElementById('run_size').value + ' reads';
+	    document.getElementById('read_length_mirror').innerHTML = document.getElementById('read_length').value + 'bp';
 	    
 	    Retina.RendererInstances.graph.length = 1;
 	    for (z=0;z<graph_data.length;z++) {
@@ -602,18 +616,22 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    grouper.setAttribute('style', "float: left; margin-left: 40px;");
 	    var tablespace = document.createElement('div');
 	    tablespace.setAttribute('style', 'clear: both; padding-top: 50px;');
+	    var info = document.createElement('div');
+	    info.setAttribute('class', 'alert alert-info');
+	    info.setAttribute('style', 'float: right; width: 300px; margin-top: 60px; margin-bottom: -50px;');
+	    info.innerHTML = "<i class='icon-info-sign icon-white'></i><div style='float: right; width: 275px;'>Note that only included samples will be shown in the Sequence Depth Estimation Summary</div>";
 
 	    display_area.innerHTML = "";
 	    display_area.appendChild(menu);
 	    display_area.appendChild(display);
 	    display_area.appendChild(grouper);
+	    display_area.appendChild(info);
 	    display_area.appendChild(tablespace);
 	    	    
 	    var tdata = [];
 	    for (i=0;i<widget.ids.length;i++) {
 		var mg = stm.DataStore.metagenome[widget.ids[i]];
 		var id = widget.ids[i];
-		//tdata.push([ mg.id, mg.name, stm.DataStore.metagenome[id].group ? stm.DataStore.metagenome[id].group : "-", parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2), mg.migs.biome, parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.bp_count_raw), parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_raw), parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_length_raw), parseInt(parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_ratio_raw) * 100), parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_raw) ]);
 		tdata.push([ mg.id, mg.name, stm.DataStore.metagenome[id].group ? stm.DataStore.metagenome[id].group : "-", parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2), "<input type='checkbox' checked onclick='Retina.WidgetInstances.wizard[1].toggle_mg(this, \""+id+"\");'>" ]);
 	    }
 	    var table_data = { data: tdata, header: [ "ID", "name", "group", "alpha diversity", "include" ] };
@@ -631,15 +649,15 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 
 	    menu.innerHTML = '\
 <h2>Groups Tool</h2>\
-<p style="width: 940px; margin-top: 10px; margin-bottom: 20px;">This tool will allow you to explore how well your samples group. This will help you to select the best sample(s) for WGS sequencing.<br><br>The PCoA presented on the page provides a preliminary characterization of your samples that will enable you to see how closely related they are. The PCoA represents the first two principal coordinates of a euclidean distance based principal coordinate analysis of abundance data that have undergone normalization and standardization.</p>\
-<p style="width: 940px; margin-bottom: 20px;">To be able to build groups, you should first determine your matter in question:</p>\
+<p style="width: 940px; margin-top: 10px; margin-bottom: 20px;">This tool will allow you to explore how well your samples group, helping you to select the best sample(s) for WGS sequencing.<br><br>The PCoA presented on the page provides a preliminary characterization of your samples that will enable you to see how closely related they are. The PCoA represents the first two principal coordinates of a euclidean distance based principal coordinate analysis of abundance data that have undergone normalization and standardization <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=17983263" target=_blank>[1]</a>.</p>\
+<p style="width: 940px; margin-bottom: 20px;">Group selection can be performed in one of three ways, select the most appropriate choice: </p>\
 <p style="width: 940px; margin-bottom: 20px;"><div class="btn-group" data-toggle="buttons-radio">\
 <button class="btn alert alert-info btn-large" style="height: 66px;" onclick="document.getElementById(\'use_group_div\').style.display=\'\';document.getElementById(\'use_representatives_div\').style.display=\'none\';document.getElementById(\'use_all_div\').style.display=\'none\';">I expect my samples to be closely related.<br>I want to exclude samples too distant from the rest.</button>\
 <button class="btn alert alert-info btn-large" style="height: 66px;" onclick="document.getElementById(\'use_group_div\').style.display=\'none\';document.getElementById(\'use_representatives_div\').style.display=\'\';document.getElementById(\'use_all_div\').style.display=\'none\';">I expect my samples to form groups that correspond to metadata.<br>I want to pick a representative from each group.</button>\
-<button class="btn alert alert-info btn-large" style="height: 66px;" onclick="document.getElementById(\'use_group_div\').style.display=\'none\';document.getElementById(\'use_representatives_div\').style.display=\'none\';document.getElementById(\'use_all_div\').style.display=\'\';">I do not want to make a subselection</button></div></p>\
-<table id="use_group_div" style="display: none; margin-left: 200px;"><tr><td><div style="width: 600px; margin-bottom: 0px;" class="alert alert-info"><ul><li>Click-drag a square over the samples in the graph that should be included.<br>The selection will appear in the <b>current selection</b> box</li><li>Click the <b>next</b> button, when you are satisfied with your selection</li></ul></div></td><td><button class="btn btn-large" style="margin-left: 50px;" onclick="var l=[];for(i=0;i<document.getElementById(\'pcoa_group_list\').options.length;i++){l.push(Retina.WidgetInstances.wizard['+index+'].name_mgid_hash[document.getElementById(\'pcoa_group_list\').options[i].value]);}Retina.WidgetInstances.wizard['+index+'].depth_mgs=l;document.getElementById(\'tab_depth\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></td></tr></table>\
-<table id="use_representatives_div" style="display: none; margin-left: 200px;"><tr><td><div style="width: 600px; margin-bottom: 0px;" class="alert alert-info"><ul><li>Select the metadata you want to group by and click the <b>color PCoA</b> button</li><li>Click-drag a square over the samples in the graph that should belong to one group.<br>You will see your selection in the <b>current selection</b> box.</li><li>Pick a group name and click the <b>assign group</b> button.<br>Your selection will be reflected in the table below the graph.</li><li>Repeat this step until you have assigned a group to each sample.<br>A representative for each group will be chosen automatically based on best alpha diversity.<br>You can manually change the selection by using the checkboxes in the <b>include</b> column.</li><li>Once you are satisfied with the selection, click the <b>next</b> button to proceed to step 2.</li></ul></div></td><td><button class="btn btn-large" style="margin-left: 50px;" onclick="document.getElementById(\'tab_depth\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></td></tr></table>\
-<table id="use_all_div" style="display: none; margin-left: 200px;"><tr><td><div style="width: 600px; margin-bottom: 0px;" class="alert alert-info"><ul><li>Click the <b>next</b> button to proceed to step 2 with all samples selected</li></ul></div></td><td><button class="btn btn-large" style="margin-left: 50px;" onclick="Retina.WidgetInstances.wizard['+index+'].depth_mgs=Retina.WidgetInstances.wizard['+index+'].ids;document.getElementById(\'tab_depth\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></td></tr></table>\
+<button class="btn alert alert-info btn-large" style="height: 66px;" onclick="document.getElementById(\'use_group_div\').style.display=\'none\';document.getElementById(\'use_representatives_div\').style.display=\'none\';document.getElementById(\'use_all_div\').style.display=\'\';">I want to skip the Groups Tool</button></div></p>\
+<table id="use_group_div" style="display: none; margin-left: 100px;"><tr><td><button class="btn btn-large" style="margin-right: 50px;" onclick="document.getElementById(\'tab_welcome\').click();"> <i class="icon-backward" style="position: relative; top: 2px;"></i> previous</button></td><td><div style="width: 600px; margin-bottom: 0px;" class="alert alert-info"><ul><li>Click-drag a square over the samples in the graph that should be included.<br>The selection will appear in the <b>current selection</b> box</li><li>Click the <b>next</b> button, when you are satisfied with your selection</li></ul></div></td><td><button class="btn btn-large" style="margin-left: 50px;" onclick="var l=[];for(i=0;i<document.getElementById(\'pcoa_group_list\').options.length;i++){l.push(Retina.WidgetInstances.wizard['+index+'].name_mgid_hash[document.getElementById(\'pcoa_group_list\').options[i].value]);}Retina.WidgetInstances.wizard['+index+'].depth_mgs=l;document.getElementById(\'tab_depth\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></td></tr></table>\
+<table id="use_representatives_div" style="display: none; margin-left: 100px;"><tr><td><button class="btn btn-large" style="margin-right: 50px;" onclick="document.getElementById(\'tab_welcome\').click();"> <i class="icon-backward" style="position: relative; top: 2px;"></i> previous</button></td><td><div style="width: 600px; margin-bottom: 0px;" class="alert alert-info"><ul><li>Select the metadata you want to group by and click the <b>color PCoA</b> button</li><li>Click-drag a square over the samples in the graph that should belong to one group.<br>You will see your selection in the <b>current selection</b> box.</li><li>Pick a group name and click the <b>assign group</b> button.<br>Your selection will be reflected in the table below the graph.</li><li>Repeat this step until you have assigned a group to each sample.<br>A representative for each group will be chosen automatically based on best alpha diversity.<br>You can manually change the selection by using the checkboxes in the <b>include</b> column.</li><li>Once you are satisfied with the selection, click the <b>next</b> button to proceed to step 2.</li><li>Selected groupings will appear in the "groups" section of the table beneath the PCoA plot</li><li>You can also edit groupings by typing the desired group names into the table</li></ul></div></td><td><button class="btn btn-large" style="margin-left: 50px;" onclick="document.getElementById(\'tab_depth\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></td></tr></table>\
+<table id="use_all_div" style="display: none; margin-left: 100px;"><tr><td><button class="btn btn-large" style="margin-right: 50px;" onclick="document.getElementById(\'tab_welcome\').click();"> <i class="icon-backward" style="position: relative; top: 2px;"></i> previous</button></td><td><div style="width: 600px; margin-bottom: 0px;" class="alert alert-info"><ul><li>Click the <b>next</b> button to proceed to step 2 with all samples selected</li></ul></div></td><td><button class="btn btn-large" style="margin-left: 50px;" onclick="Retina.WidgetInstances.wizard['+index+'].depth_mgs=Retina.WidgetInstances.wizard['+index+'].ids;document.getElementById(\'tab_depth\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></td></tr></table>\
 </div>';
 
 	    // a distribution was selected, draw the according visualization		
