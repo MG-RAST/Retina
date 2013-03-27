@@ -387,8 +387,8 @@
             return undefined;
         }        
         var width   = 600;
-        var lwidth  = annMax * 7.5;
         var height  = annot.length * barData.length * 7.5;
+        var lwidth  = annMax * 7.8;
         var lheight = barData.length*35;
         if (height < 100) {
             height = 100;
@@ -399,7 +399,7 @@
     		         'x_labels': annot,
     		         'show_legend': true,
     		         'legendArea': [width+lwidth, 50, 150, lheight],
-    		         'chartArea': [lwidth, 50, 0.85, height],
+    		         'chartArea': [lwidth, 50, 0.81, height],
     		         'width': width+lwidth+150,
     		         'height': Math.max(height, lheight),
     		         'data': barData };
