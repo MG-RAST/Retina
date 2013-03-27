@@ -19,8 +19,7 @@
 	        Retina.add_widget({"name": "collection_overview", "resource": "widgets/",  "filename": "widget.collection_overview.js"});
 	        Retina.load_widget("collection_overview").then( function() {
 		        var cache = true;
-		        var ids = ['mgm4440036.3','mgm4440037.3','mgm4440038.3','mgm4440039.3','mgm4440040.3','mgm4440041.3','mgm4440279.3','mgm4440280.3'];
-		        Retina.Widget.create('collection_overview', {"target": document.getElementById("content"), "cache": cache, "ids": ids});
+		        Retina.Widget.create('collection_overview', {"target": document.getElementById("content"), "cache": cache});
 	        });
 	    });
     });
