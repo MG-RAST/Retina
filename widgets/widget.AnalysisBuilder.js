@@ -8,10 +8,6 @@
         }
     });
     
-    // genome url
-    widget.genome_url = "http://kbase.us/services/cdmi_api";
-    // plant url
-    widget.plant_url = "http://140.221.84.160:7032";
     // nb_id -> data_variable_name -> { 'type': viz_type, 'parent': sample_variable_name }
     widget.used_variables = {};
     // nb_id -> sample_variable_name -> { 'type': data_type, 'data': [ data_ids ] }
@@ -81,91 +77,52 @@
 <p id="progressBar"></p>\
 </div>';
         params.target.innerHTML = progress;
-	    stm.get_objects({"type": "metagenome", "options": {"status": "private", "verbosity": "migs", "limit": 0}}).then(function() {
+	    stm.get_objects({"repository": "mgrast", "type": "metagenome", "options": {"status": "private", "verbosity": "migs", "limit": 0}}).then(function() {
             Retina.WidgetInstances.AnalysisBuilder[0].display(params);
         });
     };
-
+    
     widget.display = function (params) {
     widget = Retina.WidgetInstances.AnalysisBuilder[0];
-	// check if the required metadata is loaded - if not get public
-	if (! stm.DataStore.hasOwnProperty('metagenome')) {
-	    var progress = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 100px; width: 400px; right: 38%;">\
+	
+	var progress = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 100px; width: 400px; right: 38%;">\
 <button type="button" class="close" data-dismiss="alert">×</button>\
 <h4><img src="images/loading.gif"> Please wait...</h4>\
 <p>The data to be displayed is currently loading.</p>\
 <p id="progressBar"></p>\
 </div>';
-        params.target.innerHTML = progress;
-        // get genome data
-        jQuery.getJSON('data/genome_public.json', function(data) {
+    params.target.innerHTML = progress;
+    
+	if (! stm.DataStore.hasOwnProperty('genome')) {
+	    jQuery.getJSON('data/genome_public.json', function(data) {
 	        for (var d in data) {
-                if (data.hasOwnProperty(d)) {
-                    stm.load_data({"data": data[d], "type": d});
-                }
-            }
-        }).fail( function() {
-            jQuery.ajax({
-                type: "POST",
-                url: widget.genome_url,
-                crossDomain: true,
-                cache: false,
-                headers: { 'Access-Control-Allow-Origin': '*',
-                           'Access-Control-Request-Method': '*',
-                           'Access-Control-Allow-Credentials': true,
-                           'Access-Control-Allow-Headers': '*, x-requested-with, Content-Type',
-                           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS' },
-                data: '{"params":[0,1000000,["id","pegs","rnas","scientific_name","complete","prokaryotic","dna_size","domain","genetic_code","gc_content","phenotype","md5","source_id"]],"method":"CDMI_EntityAPI.all_entities_Genome","version":"1.1"}',
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.log('Error: '+jqXHR+' : '+textStatus+' : '+errorThrown);
-                },
-                success: function (data) {
-		            var d = JSON.parse(data);
-		            d = d.result[0];
-		            stm.DataStore['genome'] = {};
-		            for (var g in d) {
-		                stm.DataStore['genome'][g] = d[g];
-		            }
-	            },
-	            complete: function (jqXHR, textStatus) {
-	                console.log('Complete: '+jqXHR+' : '+textStatus);
-	            }
-            });
-		});
-        // get plant data
-	    jQuery.getJSON('data/plant_public.json', function(data) {
-	        for (var d in data) {
-                if (data.hasOwnProperty(d)) {
-                    stm.load_data({"data": data[d], "type": d});
-                }
-            }
-        }).fail( function() {
-	        jQuery.post(widget.plant_url, '{ "params": [ 0, 100, [ "id", "pegs", "rnas", "scientific_name", "complete", "prokaryotic", "dna_size", "domain", "genetic_code", "gc_content", "phenotype", "md5", "source_id" ] ], "method": "CDMI_EntityAPI.all_entities_Genome", "version": "1.1" }').then(
-	            function(data) {
-		            var d = JSON.parse(data);
-		            d = d.result[0];
-		            stm.DataStore['plant'] = {};
-		            for (var p in d) {
-		                stm.DataStore['plant'][p] = d[p];
-		            }
-	            }
-		    );
-		});
-        // get metagenome data
-	    jQuery.getJSON('data/mg_migs_public.json', function(data) {
-            for (var d in data) {
                 if (data.hasOwnProperty(d)) {
                     stm.load_data({"data": data[d], "type": d});
                 }
             }
             widget.display(params);
         }).fail( function() {
-            stm.get_objects({"type": "metagenome", "options": {"status": "public", "verbosity": "migs", "limit": 0}}).then(function() {
+            stm.get_objects({"repository":"kbase","return_type":"search","type":"genome","id":"kb","options":{"count":'10000'}}).then(function () {
                 widget.display(params);
             });
         });
-	    return;
+        return;
 	}
+	if (! stm.DataStore.hasOwnProperty('metagenome')) {
+	    jQuery.getJSON('data/mg_migs_public.json', function(data) {
+	        for (var d in data) {
+                if (data.hasOwnProperty(d)) {
+                    stm.load_data({"data": data[d], "type": d});
+                }
+            }
+            widget.display(params);
+        }).fail( function() {
+            stm.get_objects({"repository":"mgrast","type":"metagenome","options":{"status":"public","verbosity":"migs","limit":'0'}}).then(function () {
+                widget.display(params);
+            });
+        });
+        return;
+    }
 	
 	// get the content div
 	var content = params.target;
@@ -206,15 +163,16 @@
 	            "sequencing type": "-",
 	 	        "domain": stm.DataStore["genome"][i]["domain"],
 	 	        "prokaryotic": stm.DataStore["genome"][i]["prokaryotic"] ? "yes" : "no",
-	 	        "complete": stm.DataStore["genome"][i]["complete"] ? "yes" : "no"
+	 	        "complete": stm.DataStore["genome"][i]["complete"] ? "yes" : "no",
+	 	        "taxonomy": stm.DataStore["genome"][i].hasOwnProperty("taxonomy") ? stm.DataStore["genome"][i]["taxonomy"] : "-"
 	        };
 	        sample_data.push(gd);
         }
 	}
 	// load plant samples
-	for (i in stm.DataStore["plant"]) {
-	    if (stm.DataStore["plant"].hasOwnProperty(i)) {
-	        var pd = { "name": stm.DataStore["plant"][i]["scientific_name"],
+	for (i in stm.DataStore["genome"]) {
+	    if (stm.DataStore["genome"].hasOwnProperty(i) && stm.DataStore["genome"][i].hasOwnProperty("taxonomy") && /Streptophyta/.test(stm.DataStore["genome"][i]["taxonomy"])) {
+	        var pd = { "name": stm.DataStore["genome"][i]["scientific_name"],
 		        "id": i,
 		        "project": "-",
 		        "type": "plant genome",
@@ -230,7 +188,8 @@
 		        "sequencing type": "-",
 		        "domain": "Eukaryota",
             	"prokaryotic": "no",
-            	"complete": stm.DataStore["plant"][i]["complete"] ? "yes" : "no"
+            	"complete": stm.DataStore["genome"][i]["complete"] ? "yes" : "no",
+            	"taxonomy": stm.DataStore["genome"][i]["taxonomy"]
 		    };
 	        sample_data.push(pd);
         }
@@ -254,7 +213,8 @@
 			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"],
 			   "domain": "-",
            	   "prokaryotic": "-",
-           	   "complete": "-"
+           	   "complete": "-",
+           	   "taxonomy": "-"
 			 };
 		     sample_data.push(md);
 	    }

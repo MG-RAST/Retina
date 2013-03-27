@@ -223,7 +223,7 @@
     widget.nb_select_refresh = function (index) {
         // clear current nbs
         stm.delete_object_type('notebook');
-        stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
+        stm.get_objects({"repository": "mgrast", "type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
             Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
             // returns [editable_nbs, current_nbs]
             var sorted_nb_sets = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
@@ -291,7 +291,7 @@
             return;
         }
         // now we delete
-        stm.get_objects({"type": "notebook", "id": 'delete/'+this_nb.uuid, "options": {"verbosity": "minimal"}}).then(function () {
+        stm.get_objects({"repository": "mgrast", "type": "notebook", "id": 'delete/'+this_nb.uuid, "options": {"verbosity": "minimal"}}).then(function () {
             Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
             alert('Deleted notebook '+this_nb.name+' ('+this_nb.uuid+')');
         });
@@ -327,7 +327,7 @@
         if (! new_name) {
             alert("Please enter a new name for notebook copy.");
         } else {
-            stm.get_objects({"type": "notebook", "id": sel_nb[1]+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
+            stm.get_objects({"repository": "mgrast", "type": "notebook", "id": sel_nb[1]+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
                 setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name.replace(/'/g, "\\'")+"')", 1000);
                 jQuery('#nb_select_modal').modal('hide');
@@ -344,7 +344,7 @@
         } else if (! Retina.WidgetInstances.NotebookDashboard[index].nb_template_id) {
             alert("Error creating notebook. Please try again.");
         } else {
-            stm.get_objects({"type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template_id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
+            stm.get_objects({"repository": "mgrast", "type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template_id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
                 setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name.replace(/'/g, "\\'")+"')", 1000);
                 jQuery('#nb_select_modal').modal('hide');
