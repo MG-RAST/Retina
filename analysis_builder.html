@@ -21,23 +21,24 @@
     <script type="text/javascript">
     jQuery(function () {
         var builder_widget = 'AnalysisBuilder';
-        var api_url = 'http://kbase.us/services/communities/';
-      	stm.init(api_url).then(function() {
-	        Retina.init({ library_resource: "js/" });
-	        Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
-	        Retina.add_widget({"name": builder_widget, "resource": "widgets/", "filename": "widget."+builder_widget+".js"});
-      	    Retina.load_widget("NotebookDashboard").then(function () {
-      	        var val  = document.URL;
-		        var logo = "kbase";
-		        if (val.indexOf("mgrast") > -1) {
-		            logo = "mgrast";
-		        }
-		        Retina.load_widget(builder_widget).then(function () {
-		            var cache = true;
-		            Retina.Widget.create('NotebookDashboard', {"target": "dashboard", "notebook": "nb_iframe", "builder": builder_widget, "cache": cache, "logo": logo});	
-		        });
-	        });
-      	});
+      	stm.init('https://kbase.us/services/search-api/search', false, 'kbase').then(function() {
+      	    stm.add_repository('http://kbase.us/services/communities/', false, false, 'mgrast').then(function () {
+	            Retina.init({ library_resource: "js/" });
+	            Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
+	            Retina.add_widget({"name": builder_widget, "resource": "widgets/", "filename": "widget."+builder_widget+".js"});
+      	        Retina.load_widget("NotebookDashboard").then(function () {
+      	            var val  = document.URL;
+		            var logo = "kbase";
+		            if (val.indexOf("mgrast") > -1) {
+		                logo = "mgrast";
+		            }
+		            Retina.load_widget(builder_widget).then(function () {
+		                var cache = true;
+		                Retina.Widget.create('NotebookDashboard', {"target": "dashboard", "notebook": "nb_iframe", "builder": builder_widget, "cache": cache, "logo": logo});	
+		            });
+	            });
+      	    });
+  	    });
     });
     </script>
     
