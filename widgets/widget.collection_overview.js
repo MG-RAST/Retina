@@ -25,6 +25,7 @@
     widget.mg_select_list = undefined;
     
     widget.display = function (wparams) {
+        var widget = Retina.WidgetInstances.collection_overview[0];
         // check if id given
         if (wparams.ids) {
             jQuery('#mg_modal').modal('hide');
@@ -45,7 +46,7 @@
         }
 	    // get ids first
         else {
-            Retina.WidgetInstances.collection_overview[0].metagenome_modal(wparams.target);
+            widget.metagenome_modal(wparams.target);
             return;
         }
 	
@@ -59,7 +60,7 @@
         }
 	
 	    // set the output area
-	    content.innerHTML = '';//'<style>[class*="span"] { float: none; }</style>';
+	    content.innerHTML = '';
 	
 	    // set style variables
 	    var header_color = "black";
@@ -70,9 +71,9 @@
 	        { type: 'table', data: 'overview_table', category: 'overview' },
 	        { type: 'stackcolumn', data: 'summary_stack' },
 	        { type: 'title', data: 'Analysis Statistics' },
-	        { type: 'table', data: 'analysis_statistics_table', category: 'analysis_statistics' },
+	        { type: 'table', data: 'summary_stats_table', category: 'summary_stats' },
 	        { type: 'title', data: 'GSC MIxS Info' },
-	        { type: 'table', data: 'migs_metadata_table', category: 'migs_metadata' },
+	        { type: 'table', data: 'mixs_metadata_table', category: 'mixs' },
 	        { type: 'paragraph', data: 'drisee_introtext' },
 	        { type: 'plot', data: 'drisee_plot', category: 'drisee' },
 	        { type: 'paragraph', data: 'kmer_introtext' },
@@ -89,7 +90,7 @@
 	        { type: 'paragraph', data: 'rarefaction_introtext' },
 	        { type: 'plot', data: 'rarefaction_plot', category: 'rarefaction' },
 	        { type: 'title', data: 'Metadata' },
-	        { type: 'table', data: 'full_metadata_table', category: 'full_metadata' }
+	        { type: 'table', data: 'full_metadata_table', category: 'metadata' }
 	    ];
 	
 	    // iterate over the outputs
@@ -128,7 +129,7 @@
 		        Retina.Renderer.create("graph", data).render();
 		        break;
 	            case 'barchart':
-	            data = widget.annotation_barchart(mgs, mg_stats, outputs[out].category, outputs[out].data);
+	            data = widget.annotation_barchart(mg_stats, outputs[out].category, outputs[out].data);
 	            if (! data) {
                     content.removeChild(tag);
 		            content.removeChild(div);
@@ -138,7 +139,7 @@
 		        Retina.Renderer.create("graph", data).render();
 		        break;
 	            case 'plot':
-	            data = widget.mgs_plot(mgs, mg_stats, outputs[out].category);
+	            data = widget.mgs_plot(mg_stats, outputs[out].category);
 	            if (! data) {
                     content.removeChild(tag);
 		            content.removeChild(div);
@@ -223,8 +224,8 @@
 			             { fancy_table: {
 			                 data: [ [ "<a href='#overview_table'>Overview Info</a>",
 			                           "<a href='#summary_stack'>Sequence Summary</a>",
-			                           "<a href='#analysis_statistics_table'>Statistics</a>",
-			                           "<a href='#migs_metadata_table'>MIxS Metadata</a>",
+			                           "<a href='#summary_stats_table'>Statistics</a>",
+			                           "<a href='#mixs_metadata_table'>MIxS Metadata</a>",
 			                           "<a href='#drisee_introtext'>DRISEE</a>" ],
 			                         [ "<a href='#kmer_introtext'>Kmer Profile</a>",
 			                           "<a href='#ontology_introtext'>Functional Hits</a>",
@@ -347,7 +348,7 @@
 			             { p: "The pie charts below illustrate the distribution of taxonomic domains, phyla, and orders for the annotations. Each slice indicates the percentage of reads with predicted proteins and ribosomal RNA genes annotated to the indicated taxonomic level. This information is based on all the annotation source databases used by MG-RAST." } ] };
     };
     
-    widget.annotation_barchart = function(mgs, mg_stats, dcat, dtype) {
+    widget.annotation_barchart = function(mg_stats, dcat, dtype) {
         var annotSet = {};
         var annotMg = {};
         var barData = [];
@@ -355,7 +356,7 @@
         var annMax  = 0;
         for (var i in mg_stats) {
             try {
-                barData.push({ name: mgs[i].id, data: [], fill: colors[i] });
+                barData.push({ name: mg_stats[i].id, data: [], fill: colors[i] });
                 var thisAnnot = mg_stats[i][dcat][dtype];
                 var thisData  = {};
                 for (var j in thisAnnot) {
@@ -363,14 +364,14 @@
                     thisData[ thisAnnot[j][0] ] = thisAnnot[j][1];
                     annMax = Math.max(annMax, thisAnnot[j][0].length);
                 }
-                annotMg[ mgs[i].id ] = thisData;
+                annotMg[ mg_stats[i].id ] = thisData;
             } catch (err) {
     	        continue;
     	    }
         }
         var annot = Object.keys(annotSet).sort();
-        for (var m in mgs) {
-            var mid = mgs[m].id;
+        for (var m in mg_stats) {
+            var mid = mg_stats[m].id;
             if (! annotMg.hasOwnProperty(mid)) {
                 continue;
             }
@@ -405,7 +406,7 @@
     	return data;
     };
     
-    widget.mgs_plot = function(mgs, mg_stats, type) {
+    widget.mgs_plot = function(mg_stats, type, kmer) {
         var xt, yt;
         var labels = [];
         var points = [];
@@ -413,14 +414,17 @@
         var yscale = 'linear';
         switch (type) {
             case 'drisee':
-            for (var m in mgs) {
+            for (var m in mg_stats) {
                 try {
                     var xy = [];
         	        for (var i in mg_stats[m].qc.drisee.percents.data) {
         	            xy.push( [ mg_stats[m].qc.drisee.percents.data[i][0], mg_stats[m].qc.drisee.percents.data[i][7] ] );
         	        }
+        	        if (! xy.length) {
+        	            continue;
+        	        }
         	        points.push(xy);
-        	        labels.push(mgs[m].id);
+        	        labels.push(mg_stats[m].id);
         	    } catch (err) {
         	        continue;
         	    }
@@ -429,32 +433,56 @@
             yt = 'percent error';
             break;
             case 'kmer':
-            for (var m in mgs) {
+            var xi, yi;
+            switch (kmer) {
+                case 'ranked':
+                xi = 3;
+                yi = 5;
+                xt = 'sequence size';
+                yt = 'fraction of observed kmers';
+                xscale = 'log';
+                yscale = 'linear';
+                break;
+                case 'spectrum':
+                xi = 0;
+                yi = 1;
+                xt = 'kmer coverage';
+                yt = 'number of kmers';
+                xscale = 'log';
+                yscale = 'log';
+                break;
+                default:
+                xi = 3;
+                yi = 0;
+                xt = 'sequence size';
+                yt = 'kmer coverage';
+                xscale = 'log';
+                yscale = 'log';
+                break;
+            }
+            for (var m in mg_stats) {
                 try {
                     var xy = [];
                     for (var i in mg_stats[m].qc.kmer['15_mer']['data']) {
-                        xy.push( [ mg_stats[m].qc.kmer['15_mer']['data'][i][3], mg_stats[m].qc.kmer['15_mer']['data'][i][0] ] );
+                        var thisY = (yi == 5) ? 1 - parseFloat(mg_stats[m].qc.kmer['15_mer']['data'][i][yi]) : mg_stats[m].qc.kmer['15_mer']['data'][i][yi];
+                        xy.push( [ mg_stats[m].qc.kmer['15_mer']['data'][i][xi], thisY ] );
                     }
                     points.push(xy);
-        	        labels.push(mgs[m].id);
+        	        labels.push(mg_stats[m].id);
                 } catch (err) {
             	    continue;
             	}
         	}
-            xt = 'sequence size';
-            yt = 'kmer coverage';
-            xscale = 'log';
-            yscale = 'log';
             break;
             case 'rarefaction':
-            for (var m in mgs) {
+            for (var m in mg_stats) {
                 try {
                     var xy = [];
                     for (var i=0; i<mg_stats[m].rarefaction.length; i+=2) {
                         xy.push( [ mg_stats[m].rarefaction[i][0], mg_stats[m].rarefaction[i][1] ] );
                     }
                     points.push(xy);
-        	        labels.push(mgs[m].id);
+        	        labels.push(mg_stats[m].id);
                 } catch (err) {
             	    continue;
             	}
@@ -465,10 +493,10 @@
             default:
             break;
         }
-        if (! (labels && points)) {
+        if (! (labels.length && points.length)) {
             return undefined;
         }
-        return widget.multi_plot(points, labels, xt, yt, xscale, yscale);
+        return Retina.WidgetInstances.collection_overview[0].multi_plot(points, labels, xt, yt, xscale, yscale);
     };
 
     widget.multi_plot = function(points, labels, xt, yt, xscale, yscale) {
@@ -524,6 +552,7 @@
     };
     
     widget.build_table = function(mgs, mg_stats, type) {
+        var widget = Retina.WidgetInstances.collection_overview[0];
         var cname = [];
         var tdata = [];
         var options = {};
@@ -584,7 +613,7 @@
                 tdata[6].push( pubmed_id );
             }
             break;
-            case 'analysis_statistics':
+            case 'summary_stats':
             cname = ['statistics'];
             tdata = [ ["Upload: bp Count"],
                       ["Upload: Sequences Count"],
@@ -618,7 +647,7 @@
                 tdata[13].push( widget._to_num('sequence_count_ontology', mg_stats[s].sequence_stats) );
             }
             break;
-            case 'migs_metadata':
+            case 'mixs':
             cname = ['term'];
             tdata = [ ["Investigation Type"],
                       ["Project Name"],
@@ -644,7 +673,7 @@
                 tdata[9].push( mgs[m].migs['seq_method'] );
             }
             break;
-            case 'full_metadata':
+            case 'metadata':
             cname = ['category', 'field'];
             options = { 'sort_autodetect': true, 'filter_autodetect': true, 'hide_options': false, 'rows_per_page': 20 };
             var mdata = {'project': {}, 'sample': {}, 'library': {}, 'env_package': {}};

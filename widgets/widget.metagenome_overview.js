@@ -25,6 +25,7 @@
     widget.mg_select_list = undefined;
     
     widget.display = function (wparams) {
+        var widget = Retina.WidgetInstances.metagenome_overview[0];
         // check if id given
         if (wparams.id) {
             jQuery('#mg_modal').modal('hide');
@@ -35,13 +36,13 @@
 	        stats_promises.push(stm.get_objects({ "type": "metagenome", "id": wparams.id, "options": { "verbosity": "full" } }));
 	        stats_promises.push(stm.get_objects({ "type": "metagenome_statistics", "id": wparams.id, "options": { "verbosity": "full" } }));
 	        jQuery.when.apply(this, stats_promises).then(function() {
-		    widget.display(wparams);
+		        widget.display(wparams);
 	        });
 	        return;
             }
 	    // get id first
         } else {
-            Retina.WidgetInstances.metagenome_overview[0].metagenome_modal(wparams.target);
+            widget.metagenome_modal(wparams.target);
             return;
         }
 	
@@ -51,11 +52,15 @@
 	var content = wparams.target;
 	
 	// set the output area
-	content.innerHTML = '';//'<style>[class*="span"] { float: none; }</style>';
+	content.innerHTML = '';
 	
 	// set style variables
 	var header_color = "black";
 	var title_color = "black";
+	var ont_tbl = document.createElement('table');
+	var tax_tbl = document.createElement('table');
+	ont_tbl.id = 'ont_tbl';
+	tax_tbl.id = 'tax_tbl';
 	var outputs = [ 
 	    { type: 'paragraph', data: 'general_overview' },
 	    { type: 'paragraph', data: 'metagenome_summary' },
@@ -66,50 +71,67 @@
 	    { type: 'paragraph', data: 'analysis_statistics' },
 	    { type: 'paragraph', data: 'migs_metadata' },
 	    { type: 'paragraph', data: 'drisee_introtext' },
-	    (mg.sequence_type == 'Amplicon') ? null: { type: 'multi_plot', data: 'drisee_plot', category: 'drisee' },
+	    (mg.sequence_type == 'Amplicon') ? null: { type: 'plot', data: 'drisee_plot', category: 'drisee' },
 	    { type: 'paragraph', data: 'kmer_introtext' },
-	    (mg.sequence_type == 'Amplicon') ? null: { type: 'single_plot', data: 'kmer_plot', category: 'kmer' },
+	    (mg.sequence_type == 'Amplicon') ? null: { type: 'plot', data: 'kmer_plot', category: 'kmer' },
 	    { type: 'paragraph', data: 'bp_introtext' },
 	    (mg.sequence_type == 'Amplicon') ? null: { type: 'areagraph', data: 'bp_plot', category: 'bp' },
 	    { type: 'paragraph', data: 'ontology_introtext' },
-	    { type: 'piechart', data: 'COG', category: 'ontology' },
-	    { type: 'piechart', data: 'KO', category: 'ontology' },
-	    { type: 'piechart', data: 'NOG', category: 'ontology' },
-	    { type: 'piechart', data: 'Subsystems', category: 'ontology' },
+	    { type: 'add_element', data: ont_tbl },
+	    { type: 'piechart', data: 'Subsystems', category: 'ontology', pos: 'left' },
+	    { type: 'piechart', data: 'KO', category: 'ontology', pos: 'right' },
+	    { type: 'piechart', data: 'COG', category: 'ontology', pos: 'left' },
+	    { type: 'piechart', data: 'NOG', category: 'ontology', pos: 'right' },
 	    { type: 'paragraph', data: 'taxonomy_introtext' },
-	    { type: 'piechart', data: 'domain', category: 'taxonomy' },
-	    { type: 'piechart', data: 'phylum', category: 'taxonomy' },
-	    { type: 'piechart', data: 'class', category: 'taxonomy' },
-	    { type: 'piechart', data: 'order', category: 'taxonomy' },
-	    { type: 'piechart', data: 'family', category: 'taxonomy' },
-	    { type: 'piechart', data: 'genus', category: 'taxonomy' },
+	    { type: 'add_element', data: tax_tbl },
+	    { type: 'piechart', data: 'domain', category: 'taxonomy', pos: 'left' },
+	    { type: 'piechart', data: 'phylum', category: 'taxonomy', pos: 'right' },
+	    { type: 'piechart', data: 'class', category: 'taxonomy', pos: 'left' },
+	    { type: 'piechart', data: 'order', category: 'taxonomy', pos: 'right' },
+	    { type: 'piechart', data: 'family', category: 'taxonomy', pos: 'left' },
+	    { type: 'piechart', data: 'genus', category: 'taxonomy', pos: 'right' },
 	    { type: 'paragraph', data: 'rank_abund_introtext' },
 	    { type: 'linegraph', data: 'rank_abund_plot', category: 'rank_abund' },
 	    { type: 'paragraph', data: 'rarefaction_introtext' },
-	    { type: 'single_plot', data: 'rarefaction_plot', category: 'rarefaction' },
+	    { type: 'plot', data: 'rarefaction_plot', category: 'rarefaction' },
 	    { type: 'title', data: 'Metadata' },
 	    { type: 'metadata_table', data: 'metadata_table' }
 	];
 	
 	// iterate over the outputs
+	var curr_table = undefined;
 	for (out=0;out<outputs.length;out++) {
 	    if (! outputs[out]) {
 		    continue;
+	    }
+	    if (outputs[out].type == 'add_element') {
+	        curr_table = outputs[out].data.id;
+	        content.appendChild(outputs[out].data);
+	        continue;
 	    }
 	    // create and append the output div
 	    var data, x, y, labels, points, xt, yt, xscale, yscale;
 	    var div = document.createElement('div');
 	    var tag = document.createElement('a');
 	    tag.setAttribute('name', outputs[out].data);
-	    content.appendChild(tag);
-	    content.appendChild(div);
+	    // add div to content or table
+	    if (outputs[out].hasOwnProperty('pos') && curr_table) {
+	        if (outputs[out].pos == 'left') {
+	            jQuery('#'+curr_table).append( jQuery('<tr>').append( jQuery('<td>').css('vertical-align', 'top').append( jQuery(div) )));
+	        } else if (outputs[out].pos == 'right') {
+	            jQuery('#'+curr_table+' tr').last().append( jQuery('<td>').css('vertical-align', 'top').append( jQuery(div) ) );
+	        }
+	    } else {
+	        content.appendChild(tag);
+	        content.appendChild(div);
+        }
 	    
 	    // check the type and call the according renderer with the data generated by the defined function
 	    switch (outputs[out].type) {
-	    case 'title':
+	        case 'title':
 	        Retina.Renderer.create("paragraph", {target: div, data: [{header: outputs[out].data}]}).render();
 	        break;
-	    case 'paragraph':
+	        case 'paragraph':
 		    data = widget[outputs[out].data](mg, mg_stats);
 		    if (data) {
 		        data.target = div;
@@ -121,23 +143,22 @@
 		        content.removeChild(div);
 		    }
 		    break;
-	    case 'piechart':
+	        case 'piechart':
 	        if (outputs[out].data == 'summary') {
 	            data = widget.summary_piechart(mg, mg_stats);
 	            div.setAttribute('class', 'span9');
 	        } else {
 	            data = widget.annotation_piechart(mg_stats, outputs[out].category, outputs[out].data);
-	            div.setAttribute('class', 'span12');
 	        }
 		    data.target = div;
 		    Retina.Renderer.create("graph", data).render();
 		    break;
-		case 'linegraph':
+		    case 'linegraph':
             data = widget.taxon_linegraph(mg_stats.taxonomy, 'family', 50);
             data.target = div;
             Retina.Renderer.create("graph", data).render();
             break;
-        case 'areagraph':
+            case 'areagraph':
             if (! mg_stats.qc.bp_profile.percents.data) {
 		        content.removeChild(tag);
 		        content.removeChild(div);
@@ -147,69 +168,22 @@
             data.target = div;
             Retina.Renderer.create("graph", data).render();
             break;
-	    case 'multi_plot':
-		    switch (outputs[out].category) {
-		    case 'drisee':
-		        if (! mg_stats.qc.drisee.percents.data) {
-			        labels = null;
-		            break;
-		        }
-		        x = 0;
-                y = [1,2,3,4,5,6,7];
-                xt = 'bp position';
-                yt = 'percent error';
-                labels = mg_stats.qc.drisee.percents.columns;
-                points = mg_stats.qc.drisee.percents.data;
-                break;
-            default:
+            case 'plot':
+            data = widget.mg_plot(mg_stats, outputs[out].category);
+            if (! data) {
+                content.removeChild(tag);
+	            content.removeChild(div);
                 break;
             }
-            if (! (labels && points)) {
-		        content.removeChild(tag);
-		        content.removeChild(div);
-                break;
-            }
-            data = widget.multi_plot(x, y, labels, points, xt, yt);
             data.target = div;
             Retina.Renderer.create("plot", data).render();
             break;
-        case 'single_plot':
-            xscale = 'linear';
-            yscale = 'linear';
-		    switch (outputs[out].category) {
-		    case 'kmer':
-		        points = [];
-		        for (var i = 0; i < mg_stats.qc.kmer['15_mer']['data'].length; i++) {
-                    points.push([ mg_stats.qc.kmer['15_mer']['data'][i][3], mg_stats.qc.kmer['15_mer']['data'][i][0] ]);
-                }
-                xt = 'sequence size';
-                yt = 'kmer coverage';
-                xscale = 'log';
-                yscale = 'log';
-                break;
-            case 'rarefaction':
-                points = mg_stats.rarefaction;
-                xt = 'number of reads';
-                yt = 'species count';
-                break;
-            default:
-                break;
-            }
-		    if (! points || ! points.length) {
-		        content.removeChild(tag);
-		        content.removeChild(div);
-		        break;
-		    }
-            data = widget.single_plot(points, xt, yt, xscale, yscale);
-            data.target = div;
-            Retina.Renderer.create("plot", data).render();
-            break;
-        case 'metadata_table':
+            case 'metadata_table':
             data = widget.metadata_table(mg.metadata);
             data.target = div;
             Retina.Renderer.create("table", data).render();
             break;
-	    default:
+	        default:
 	        break;
 	    }
 	}
@@ -478,7 +452,8 @@
     };
     
     widget.rank_abund_introtext = function(mg, mg_stats) {
-        return { data: [ { header: "Rank Abundance Plot" },
+        return { style: "clear: both",
+                 data: [ { header: "Rank Abundance Plot" },
 	                     { p: "The plot below shows the family abundances ordered from the most abundant to least abundant. Only the top 50 most abundant are shown. The y-axis plots the abundances of annotations in each family on a log scale." },
 	                     { p: "The rank abundance curve is a tool for visually representing taxonomic richness and evenness." }
 	                   ] };
@@ -498,7 +473,8 @@
     };
     
     widget.taxonomy_introtext = function(mg, mg_stats) {
-	    return { data: [ { header: "Taxonomic Hits Distribution" },
+	    return { style: "clear: both",
+	             data: [ { header: "Taxonomic Hits Distribution" },
 			             { p: "The pie charts below illustrate the distribution of taxonomic domains, phyla, and orders for the annotations. Each slice indicates the percentage of reads with predicted proteins and ribosomal RNA genes annotated to the indicated taxonomic level. This information is based on all the annotation source databases used by MG-RAST." } ] };
     };
     
@@ -514,9 +490,9 @@
     	    pieData.push({ name: annSort[i][0], data: [ parseInt(annSort[i][1]) ], fill: colors[i] });
     	    annMax = Math.max(annMax, annSort[i][0].length);
     	}
-    	var pwidth  = 300;
-    	var pheight = 300;
-    	var lwidth  = Math.max(300, annMax*7.5);
+    	var pwidth  = 250;
+    	var pheight = 250;
+    	var lwidth  = Math.max(pwidth, annMax*7.5);
     	var lheight = pieData.length * 23;
     	var width   = pwidth+lwidth;
     	var height  = (lheight > pheight) ? Math.min(lheight, pheight+(pheight/2)) : pheight;
@@ -598,7 +574,74 @@
         return data;
     };
 
+    widget.mg_plot = function(mg_stats, type, kmer) {
+        var data, x, y, labels, points, xt, yt;
+        var xscale = 'linear';
+        var yscale = 'linear';
+	    switch (type) {
+	        case 'drisee':
+	        try {
+	            data = Retina.WidgetInstances.metagenome_overview[0].multi_plot(0, [1,2,3,4,5,6,7], mg_stats.qc.drisee.percents.columns, mg_stats.qc.drisee.percents.data, 'bp position', 'percent error');
+	        } catch (err) {
+        	    data = undefined;
+        	}
+            break;
+            case 'kmer':
+	        points = [];
+	        var xi, yi;
+            switch (kmer) {
+                case 'ranked':
+                xi = 3;
+                yi = 5;
+                xt = 'sequence size';
+                yt = 'fraction of observed kmers';
+                xscale = 'log';
+                yscale = 'linear';
+                break;
+                case 'spectrum':
+                xi = 0;
+                yi = 1;
+                xt = 'kmer coverage';
+                yt = 'number of kmers';
+                xscale = 'log';
+                yscale = 'log';
+                break;
+                default:
+                xi = 3;
+                yi = 0;
+                xt = 'sequence size';
+                yt = 'kmer coverage';
+                xscale = 'log';
+                yscale = 'log';
+                break;
+            }
+	        try {
+	            for (var i = 0; i < mg_stats.qc.kmer['15_mer']['data'].length; i++) {
+	                var thisY = (yi == 5) ? 1 - parseFloat(mg_stats.qc.kmer['15_mer']['data'][i][yi]) : mg_stats.qc.kmer['15_mer']['data'][i][yi];
+                    points.push([ mg_stats.qc.kmer['15_mer']['data'][i][xi], thisY ]);
+                }
+                data = Retina.WidgetInstances.metagenome_overview[0].single_plot(points, xt, yt, xscale, yscale);
+            } catch (err) {
+        	    data = undefined;
+        	}
+            break;
+            case 'rarefaction':
+            try {
+                data = Retina.WidgetInstances.metagenome_overview[0].single_plot(mg_stats.rarefaction, 'number of reads', 'species count', xscale, yscale);
+            } catch (err) {
+            	data = undefined;
+            }
+            break;
+            default:
+            break;
+        }
+        return data;
+    };
+
     widget.single_plot = function(nums, xt, yt, xscale, yscale) {
+        if (! (nums && nums.length)) {
+            return undefined;
+        }
         var xy = [];
         var x_all = [];
         var y_all = [];
@@ -636,6 +679,9 @@
     };
 
     widget.multi_plot = function(x, y, labels, nums, xt, yt) {
+        if (! (labels && nums && labels.length && nums.length)) {
+            return undefined;
+        }
         var series = [];
         var points = [];
         var x_all  = [];
