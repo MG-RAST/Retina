@@ -374,7 +374,11 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 		
 		graph_data.push( [ { name: name, data: d, fill: fills } ] );
 		widget.name_id_hash[name] = h;
-		spaces += "<tr><td><div id='abundance_result"+h+"'></div></td><td style='vertical-align: top;'><h4>"+name+"</h4><div id='abundance_result_detail"+h+"'></div></td></tr>";
+		var group = '';
+		if (stm.DataStore.metagenome[show_ids[h]].group && stm.DataStore.metagenome[show_ids[h]].group != '-') {
+		    group = ' ('+stm.DataStore.metagenome[show_ids[h]].group+')';
+		}
+		spaces += "<tr><td><div id='abundance_result"+h+"'></div></td><td style='vertical-align: top;'><h4>"+name+group+"</h4><div id='abundance_result_detail"+h+"'></div></td></tr>";
 	    }
 	    var genuses = Retina.keys(genus_rows_hash).sort();
 	    var numsamples = show_ids.length;
@@ -399,10 +403,10 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    }
 
 	    document.getElementById('result_settings_div').innerHTML = "<p style='width: 940px; margin-bottom: 30px;'>The table below shows you the expected genome coverage and the percentage of detected proteins for your selected samples. The result shown should be taken as a rough estimate.</p>\
-  <p class='alert alert-success' style='width: 680px; margin-right: 10px; float: left;'><b>green</b> strong assembly candidate - enables comparative analysis - every core metabolism protein annotated</p>\
-  <p class='alert alert-info' style='width: 680px; margin-right: 10px; float: left;'><b>blue</b> weak assembly candidate - enables comparative analysis - likely every core metabolism proteins annotated.</p>\
-  <p class='alert alert-warning' style='width: 680px; margin-right: 10px; float: left;'><b>yellow</b> no assembly - likely >50% core metabolism proteins annotated</p>\
-  <p class='alert alert-error' style='width: 680px; margin-right: 10px; float: left;'><b>red</b> no assembly - no meaningful comparison of annotated features</p><h3 style='clear: both;'>settings</h3><table style='text-align: left; margin-bottom: 30px;'><tr><th style='padding-right: 15px;'>genome length (#bp)</th><td id='genome_length_mirror'></td></tr><tr><th>run size (#reads)</th><td id='run_size_mirror'></td></tr><tr><th>read length (#bp)</th><td id='read_length_mirror'></td></tr></table>";
+  <p class='alert alert-success' style='width: 680px; margin-right: 10px; float: left;'><b>green</b> strong assembly candidate - enables comparative analysis - every core metabolism protein annotated<br>coverage >= 30 fold</p>\
+  <p class='alert alert-info' style='width: 680px; margin-right: 10px; float: left;'><b>blue</b> weak assembly candidate - enables comparative analysis - likely every core metabolism proteins annotated.<br>coverage >= 1 fold - at least 95% proteins detected</p>\
+  <p class='alert alert-warning' style='width: 680px; margin-right: 10px; float: left;'><b>yellow</b> no assembly - likely >50% core metabolism proteins annotated<br>coverage >= 0.5 fold - at least 50% proteins detected</p>\
+  <p class='alert alert-error' style='width: 680px; margin-right: 10px; float: left;'><b>red</b> no assembly - no meaningful comparison of annotated features<br>coverage less than 0.5 fold or less than 50% proteins detected</p><h3 style='clear: both;'>settings</h3><table style='text-align: left; margin-bottom: 30px;'><tr><th style='padding-right: 15px;'>genome length (#bp)</th><td id='genome_length_mirror'></td></tr><tr><th>run size (#reads)</th><td id='run_size_mirror'></td></tr><tr><th>read length (#bp)</th><td id='read_length_mirror'></td></tr></table>";
 	    
 	    if (widget.result_table) {
 		widget.result_table.settings.data = { data: result_table_data, header: result_table_header };
@@ -562,6 +566,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    if (! update) {
 		if (pnames[table.settings.tdata[i].name]) {
 		    table.settings.tdata[i].group = group;
+		    stm.DataStore.metagenome[table.settings.tdata[i].ID].group = group;
 		}
 	    }
 	    if (! check_selection.hasOwnProperty(table.settings.tdata[i].group) || (check_selection[table.settings.tdata[i].group].alpha < table.settings.tdata[i]["alpha diversity"])) {
@@ -1210,15 +1215,12 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	widget = Retina.WidgetInstances.wizard[index];
 	data = data || widget.sample_table.settings.tdata;
 	for (i=0;i<data.length;i++) {
+	    console.log(data[i].ID);
 	    if (stm.DataStore.metagenome[data[i].ID]) {
 		stm.DataStore.metagenome[data[i].ID].group = data[i].group;
 	    }
 	}
-	
-	// for (i=0;i<widget.group_select.settings.data.length;i++) {
-	//     widget.group_select.settings.data[i].group = stm.DataStore.metagenome[widget.group_select.settings.data[i].id].group;
-	// }
-	// widget.group_select.render();
+
 	widget.assign_group(true);
     }
     
