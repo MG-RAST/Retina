@@ -129,7 +129,7 @@
 		        Retina.Renderer.create("graph", data).render();
 		        break;
 	            case 'barchart':
-	            data = widget.annotation_barchart(mgs, mg_stats, outputs[out].category, outputs[out].data);
+	            data = widget.annotation_barchart(mg_stats, outputs[out].category, outputs[out].data);
 	            if (! data) {
                     content.removeChild(tag);
 		            content.removeChild(div);
@@ -139,7 +139,7 @@
 		        Retina.Renderer.create("graph", data).render();
 		        break;
 	            case 'plot':
-	            data = widget.mgs_plot(mgs, mg_stats, outputs[out].category);
+	            data = widget.mgs_plot(mg_stats, outputs[out].category);
 	            if (! data) {
                     content.removeChild(tag);
 		            content.removeChild(div);
@@ -348,7 +348,7 @@
 			             { p: "The pie charts below illustrate the distribution of taxonomic domains, phyla, and orders for the annotations. Each slice indicates the percentage of reads with predicted proteins and ribosomal RNA genes annotated to the indicated taxonomic level. This information is based on all the annotation source databases used by MG-RAST." } ] };
     };
     
-    widget.annotation_barchart = function(mgs, mg_stats, dcat, dtype) {
+    widget.annotation_barchart = function(mg_stats, dcat, dtype) {
         var annotSet = {};
         var annotMg = {};
         var barData = [];
@@ -356,7 +356,7 @@
         var annMax  = 0;
         for (var i in mg_stats) {
             try {
-                barData.push({ name: mgs[i].id, data: [], fill: colors[i] });
+                barData.push({ name: mg_stats[i].id, data: [], fill: colors[i] });
                 var thisAnnot = mg_stats[i][dcat][dtype];
                 var thisData  = {};
                 for (var j in thisAnnot) {
@@ -364,14 +364,14 @@
                     thisData[ thisAnnot[j][0] ] = thisAnnot[j][1];
                     annMax = Math.max(annMax, thisAnnot[j][0].length);
                 }
-                annotMg[ mgs[i].id ] = thisData;
+                annotMg[ mg_stats[i].id ] = thisData;
             } catch (err) {
     	        continue;
     	    }
         }
         var annot = Object.keys(annotSet).sort();
-        for (var m in mgs) {
-            var mid = mgs[m].id;
+        for (var m in mg_stats) {
+            var mid = mg_stats[m].id;
             if (! annotMg.hasOwnProperty(mid)) {
                 continue;
             }
@@ -406,7 +406,7 @@
     	return data;
     };
     
-    widget.mgs_plot = function(mgs, mg_stats, type, kmer) {
+    widget.mgs_plot = function(mg_stats, type, kmer) {
         var xt, yt;
         var labels = [];
         var points = [];
@@ -414,7 +414,7 @@
         var yscale = 'linear';
         switch (type) {
             case 'drisee':
-            for (var m in mgs) {
+            for (var m in mg_stats) {
                 try {
                     var xy = [];
         	        for (var i in mg_stats[m].qc.drisee.percents.data) {
@@ -424,7 +424,7 @@
         	            continue;
         	        }
         	        points.push(xy);
-        	        labels.push(mgs[m].id);
+        	        labels.push(mg_stats[m].id);
         	    } catch (err) {
         	        continue;
         	    }
@@ -460,7 +460,7 @@
                 yscale = 'log';
                 break;
             }
-            for (var m in mgs) {
+            for (var m in mg_stats) {
                 try {
                     var xy = [];
                     for (var i in mg_stats[m].qc.kmer['15_mer']['data']) {
@@ -468,21 +468,21 @@
                         xy.push( [ mg_stats[m].qc.kmer['15_mer']['data'][i][xi], thisY ] );
                     }
                     points.push(xy);
-        	        labels.push(mgs[m].id);
+        	        labels.push(mg_stats[m].id);
                 } catch (err) {
             	    continue;
             	}
         	}
             break;
             case 'rarefaction':
-            for (var m in mgs) {
+            for (var m in mg_stats) {
                 try {
                     var xy = [];
                     for (var i=0; i<mg_stats[m].rarefaction.length; i+=2) {
                         xy.push( [ mg_stats[m].rarefaction[i][0], mg_stats[m].rarefaction[i][1] ] );
                     }
                     points.push(xy);
-        	        labels.push(mgs[m].id);
+        	        labels.push(mg_stats[m].id);
                 } catch (err) {
             	    continue;
             	}
