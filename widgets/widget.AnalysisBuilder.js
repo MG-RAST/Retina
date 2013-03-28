@@ -14,13 +14,9 @@
     widget.loaded_ids = {};
 
     widget.setup = function () {
-	return [ Retina.add_renderer({"name": "graph", "resource": "renderers/", "filename": "renderer.graph.js"}),
-      		 Retina.add_renderer({"name": "table", "resource": "renderers/", "filename": "renderer.table.js"}),
-      		 Retina.add_renderer({"name": "paragraph", "resource": "renderers/", "filename": "renderer.paragraph.js"}),
-		     this.loadRenderer("listselect"),
-		     this.loadRenderer("graph"),
-		     this.loadRenderer("table")
-	       ];
+        return [ Retina.add_renderer({"name": "listselect", "resource": "renderers/", "filename": "renderer.listselect.js"}),
+		         this.loadRenderer('listselect')
+		       ];
     };
     
     widget.transfer = function (data, cell_handling, nbid) {

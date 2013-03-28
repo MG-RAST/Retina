@@ -38,9 +38,10 @@
     // which would make the table renderer available to use before the display function is called
     // you can add multiple comma separated promises
     widget.setup = function () {
-	window.addEventListener("message", stm.receiveMessage, false);
-	return [ Retina.add_renderer({"name": "listselect", "resource": "renderers/", "filename": "renderer.listselect.js"}),
-		 this.loadRenderer('listselect') ];
+	    window.addEventListener("message", stm.receiveMessage, false);
+	    return [ Retina.add_renderer({"name": "listselect", "resource": "renderers/", "filename": "renderer.listselect.js"}),
+		         this.loadRenderer('listselect')
+		       ];
     };
     
     // this will be called whenever the widget is displayed
@@ -71,7 +72,7 @@
 	    }
 	    document.getElementsByTagName('head')[0].appendChild(link);
 	    var dash_html = '\
-	        <button class="btn" type="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" data-toggle="button" style="width: 150px; width: 150px; position: absolute; top: 60px; right: 90px;">Analysis Builder</button>\
+	        <button class="btn" type="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" data-toggle="button" style="width: 150px; width: 150px; position: absolute; top: 60px; right: 90px;">'+params.builder+'</button>\
                 <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[1].export_visual(1, null, true);" title="show full notebook text in new window" style="position: absolute; top: 60px; right: 50px;">\
                    <i class="icon-align-justify icon-white"></i>\
                 </button>\
@@ -200,7 +201,7 @@
 								     "multiple": false,
 								     "no_button": true,
 								     "callback": Retina.WidgetInstances.NotebookDashboard[index].nb_select_change
-								   });					      
+								   });
 	
         widget.nb_ver_list = Retina.Renderer.create('listselect', { "target": document.getElementById('version_div'),
 								    "data": [],
