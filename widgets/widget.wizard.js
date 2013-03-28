@@ -313,8 +313,8 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    var read_length = document.getElementById('read_length') ? parseInt(document.getElementById('read_length').value) : 125;
 	    var num_reads = document.getElementById('run_size') ? parseInt(document.getElementById('run_size').value) : 100000000;
 
-	    var level = 4;
-	    var data = widget.extract_data({ ids: show_ids, type: "organism", level: level });
+	    var level = 6;
+	    var data = widget.extract_data({ ids: show_ids, type: "organism", level: level, filter_bacteria: true });
 
 	    var rows = [];
 	    for (i=0;i<data.rows.length;i++) {
@@ -353,7 +353,9 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 		    }
 		    var cell_val = parseInt(rows[i][h + 1]);
 		    var landerwaterman = widget.depth_details({ series: name, value: cell_val, nodraw: true });
-		    d.push(cell_val);
+		    if (i<41) {
+			d.push(cell_val);
+		    }
 		    var cov = landerwaterman.coverage;
 		    if (cov > 1) { cov = cov.toFixed(0); } else { cov = cov.toFixed(4); }
 		    if (landerwaterman.coverage >= 30) {
@@ -434,7 +436,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 </td><td><button class='btn btn-large' style='margin-left: 250px; margin-top: -70px;' onclick='document.getElementById(\"tab_pcoa\").click();'><i class='icon-backward' style='position: relative; top: 2px;'></i> previous</button><button class='btn btn-large' style='margin-left: 20px; margin-top: -70px;' onclick='document.getElementById(\"tab_result\").click();'>next <i class='icon-forward' style='position: relative; top: 2px;'></i></button><br>\
 <div id='depth_settings_form'><h3>settings</h3>\
 <table>\
-  <tr><td style='padding-bottom: 9px;'>genome length (#bp)</td><td><select id='genome_length_master' onclick='document.getElementById(\"genome_length\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"genome_length\").value=this.options[this.selectedIndex].value;'><option value='4.6'>E. coli</option><option value='4.2'>B. subtilis</option><option value='0.8'>M. Pneumoniae</option><option value='5'>manual</option></select></td><td><div class='input-append' style='margin-bottom: 9px;'><input class='span2' type='text' id='genome_length' value='4.6' style='width: 112px;'><span class='add-on'>Mbp</span></div></td></tr>\
+  <tr><td style='padding-bottom: 9px;'>genome length (#bp)</td><td><select id='genome_length_master' onclick='document.getElementById(\"genome_length\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"genome_length\").value=this.options[this.selectedIndex].value;'><option value='3'>default</option><option value='4.6'>E. coli</option><option value='4.2'>B. subtilis</option><option value='0.8'>M. Pneumoniae</option><option value='5'>manual</option></select></td><td><div class='input-append' style='margin-bottom: 9px;'><input class='span2' type='text' id='genome_length' value='3' style='width: 112px;'><span class='add-on'>Mbp</span></div></td></tr>\
   <tr><td style='padding-bottom: 9px;'>run size (#reads)</td><td><select id='run_size_master' onclick='document.getElementById(\"run_size\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"run_size\").value=this.options[this.selectedIndex].value;'><option value='200000000'>HiSeq Lane</option><option value='100000000' selected>&frac12; HiSeq Lane</option><option value='50000000'>&frac14; HiSeq Lane</option><option>manual</option></select></td><td><input type='text' style='width: 150px;' id='run_size' value='100000000'></td></tr>\
   <tr><td style='padding-bottom: 9px;'>read length (#bp)</td><td><select id='read_length_master' onclick='document.getElementById(\"read_length\").value=this.options[this.selectedIndex].value;' onchange='document.getElementById(\"read_length\").value=this.options[this.selectedIndex].value;'><option value='100'>100 bp</option><option selected value='125'>125 bp</option><option value='150'>150 bp</option><option value='125'>manual</option></select></td><td><div style='margin-bottom: 9px;' class='input-append'><input class='span2' type='text' id='read_length' value='125'><span class='add-on'>bp</span></div></td></tr>\
   <tr><td></td><td></td><td><button class='btn btn-large' onclick='Retina.WidgetInstances.wizard["+index+"].render_depth("+index+");'>update graphs</button></td></tr>\
@@ -771,6 +773,9 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	for (h=0;h<ids.length;h++) {
 	    var data = stm.DataStore.abundanceprofile[ids[h]+"_"+type+"_"+source];
 	    for (i=0;i<data.data.length;i++) {
+		if (params.filter_bacteria && (data.rows[i].metadata[md_field][0] != 'Bacteria')) {
+		    continue;
+		}
 		if (! td.hasOwnProperty(data.rows[i].metadata[md_field][level - 1])) {
 		    td[data.rows[i].metadata[md_field][level - 1]] = [];
 		    for (k=0; k<level; k++) {
