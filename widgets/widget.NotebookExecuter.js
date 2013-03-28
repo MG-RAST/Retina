@@ -47,6 +47,11 @@
         }
     };
     
+    widget.nb_execute = function (nbid) {
+        stm.send_message(nbid, 'IPython.notebook.kernel.restart();', 'action');
+        setTimeout("stm.send_message('"+nbid+"', 'IPython.notebook.execute_all_cells();', 'action');", 2000);
+    };
+    
     // action to be preformed when a notebook tab is created
     widget.nb_created = function (nbid) {
     };
@@ -189,14 +194,14 @@
     	
     	var sample_select_ul = document.createElement('ul');
     	sample_select_ul.setAttribute('class', 'nav nav-tabs');
-    	sample_select_ul.setAttribute('style', "margin-left: 20px; margin-bottom: 10px;");
+    	sample_select_ul.setAttribute('style', "margin-left: 30px; margin-bottom: 10px;");
 
     	var sample_select_disp = document.createElement('div');
     	sample_select_disp.setAttribute('class', 'tab-content');
 
     	var sample_select_li = document.createElement('li');
     	sample_select_li.setAttribute('class', 'active');
-    	sample_select_li.innerHTML = '<a href="#sample_select_li" data-toggle="tab">select the samples you want to analyze</a>';
+    	sample_select_li.innerHTML = '<a href="#sample_select_li" data-toggle="tab">select the samples to run in a notebook</a>';
     	sample_select_ul.appendChild(sample_select_li);
 
     	var sample_select_disp_div = document.createElement('div');
@@ -206,28 +211,29 @@
     	sample_select_disp.appendChild(sample_select_disp_div);
     	
     	var ls_multi_container = document.createElement('div');
-    	ls_multi_container.setAttribute('style', 'float: left; margin-left: 20px;');
+    	ls_multi_container.setAttribute('style', 'float: left; margin-left: 35px;');
 
     	var ls_multi = document.createElement('div');
     	ls_multi_container.appendChild(ls_multi);
-
     	sample_select_disp_div.appendChild(ls_multi_container);
 
-    	sample_select_disp.appendChild(sample_select_disp_div);
-
+        sample_select_disp.appendChild(sample_select_disp_div);
     	div.appendChild(sample_select_ul);
     	div.appendChild(sample_select_disp);
 
     	var control_sample_select = document.createElement('div');
-    	control_sample_select.setAttribute('style', 'float: left; margin-left: 20px;');
+    	control_sample_select.setAttribute('style', 'float: left; margin-left: 35px;');
     	sample_select_disp_div.appendChild(control_sample_select);
     	
     	control_sample_select.innerHTML = '<table style="text-align: left; margin-top: 10px;">\
     <tr><th style="width: 100px;">variable name</th>\
       <td style="padding-right: 20px;"><input type="text" id="sample_select_variable_name" value="sample_set" style="margin-bottom: 0px; width: 165px;"></td>\
       <th style="width: 75px;">comment</th>\
-      <td rowspan=3 style="margin-top: 10px; vertical-align: bottom;" ><textarea id="sample_select_comment" style="width: 175px;">load the initial data</textarea></td></tr>\
-    <tr><th>cell content</th>\
+      <td rowspan=3 style="margin-top: 10px; vertical-align: bottom;">\
+        <textarea id="sample_select_comment" style="width: 175px;">load the initial data</textarea></td>\
+      <td rowspan=3 style="vertical-align: middle;"><div style="margin-left: 150px;">\
+        <button class="btn btn-primary" type="button" style="width: 100px; font-weight:bold;" onclick="Retina.WidgetInstances.NotebookExecuter[0].">Execute<br>Notebook</button></div></td>\
+    </tr><tr><th>cell content</th>\
       <td><select id="sample_select_content_handling" style="margin-bottom: 0px; width: 175px;">\
         <option selected>replace current cell</option>\
         <option>append to current cell</option>\

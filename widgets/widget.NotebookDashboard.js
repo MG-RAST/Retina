@@ -72,7 +72,7 @@
 	    }
 	    document.getElementsByTagName('head')[0].appendChild(link);
 	    var dash_html = '\
-	        <button class="btn" type="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" data-toggle="button" style="width: 150px; width: 150px; position: absolute; top: 60px; right: 90px;">'+params.builder+'</button>\
+	        <button class="btn" type="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" data-toggle="button" style="width: 150px; position: absolute; top: 60px; right: 90px;">'+params.builder+'</button>\
                 <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[1].export_visual(1, null, true);" title="show full notebook text in new window" style="position: absolute; top: 60px; right: 50px;">\
                    <i class="icon-align-justify icon-white"></i>\
                 </button>\
