@@ -28,7 +28,6 @@
 	        msgstring += 'if (ipy.read_cell() == \'\') { ipy.write_cell(null, \''+command+'\'); } else { ';
 	        msgstring += 'ipy.write_cell(ipy.add_cell(), \''+command+'\'); }';
 	    }
-	    msgstring += "IPython.notebook.execute_selected_cell();";
 	    if (! nbid) {
 	        nbid = Retina.WidgetInstances.NotebookExecuter[0].current_nb();
 	    }
