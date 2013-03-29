@@ -97,7 +97,7 @@
     stm.repositories = function () { return stm.repository(); };
     
     // set up / reset the DataHandler, adding initial repositories
-    stm.init = function (repo, nocheck) {
+    stm.init = function (repo, nocheck, name) {
 	stm.DataStore = [];
 	stm.TypeData = [];
 	stm.TypeData['object_count'] = [];
@@ -107,7 +107,7 @@
 	stm.DataRepositoriesCount = 0;
 	stm.DataRepositoryDefault = null;
 	if (repo) {
-	    return stm.add_repository(repo, null, nocheck);
+	    return stm.add_repository(repo, null, nocheck, name);
 	}
     };
     
@@ -161,38 +161,44 @@
     };
     
     // adds / replaces a repository in the stm.DataRepositories list
-    stm.add_repository = function (repository, resolve_resources, offline_mode) {
-	if (repository) {
-	    if (offline_mode) {
-		stm.DataRepositories['default'] = { url: repository, name: 'default' };
-		stm.DataRepositoriesCount++;
-		if (stm.DataRepositoryDefault == null) {
-		    stm.DataRepositoryDefault = stm.DataRepositories['default'];
-		}
-	    } else {
-		var promises = [];
-		var promise = jQuery.Deferred();
-		promises.push(jQuery.getJSON(repository, function (data) {
-		    repository = data;
-		    stm.DataRepositories[repository.service] = repository;
-		    if (resolve_resources) {
-			for (var i=0; i<repository.resources.length; i++) {
-			    promises.push(jQuery.getJSON(repository.resources[i].url, function (data) {
-				stm.TypeData[data.name] = data;
-			    }));
-			}
-		    }
-		    stm.DataRepositoriesCount++;
-		    if (stm.DataRepositoryDefault == null) {
-			stm.DataRepositoryDefault = stm.DataRepositories[repository.service];
-		    }
-		}));
-		jQuery.when.apply(this, promises).then(function() {
-		    promise.resolve();
-		});
-		return promise;
+    stm.add_repository = function (repository, resolve_resources, offline_mode, repository_name) {
+	    if (repository) {
+	        if (offline_mode) {
+	            repository_name = repository_name || 'default';
+		        stm.DataRepositories[repository_name] = { url: repository, name: repository_name };
+		        stm.DataRepositoriesCount++;
+		        if (stm.DataRepositoryDefault == null) {
+		            stm.DataRepositoryDefault = stm.DataRepositories[repository_name];
+		        }
+	        } else {
+		        var promises = [];
+		        var promise = jQuery.Deferred();
+		        var repository_url = repository;
+		        promises.push(jQuery.getJSON(repository, function (data) {
+		            repository = data;
+		            repository_name = repository_name || repository.service;
+		            if (! repository.url) {
+		                repository.url = repository_url;
+		            }
+		            stm.DataRepositories[repository_name] = repository;
+		            if (resolve_resources) {
+			            for (var i=0; i<repository.resources.length; i++) {
+			                promises.push(jQuery.getJSON(repository.resources[i].url, function (data) {
+				                stm.TypeData[data.name] = data;
+			                }));
+			            }
+		            }
+		            stm.DataRepositoriesCount++;
+		            if (stm.DataRepositoryDefault == null) {
+			            stm.DataRepositoryDefault = stm.DataRepositories[repository_name];
+		            }
+		        }));
+		        jQuery.when.apply(this, promises).then(function() {
+		            promise.resolve();
+		        });
+		        return promise;
+	        }
 	    }
-	}
     };
     
     // removes a repository from the stm.DataRepositories list
