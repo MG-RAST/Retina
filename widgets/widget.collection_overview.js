@@ -481,7 +481,7 @@
             for (var m in mg_stats) {
                 try {
                     var xy = [];
-                    for (var i in mg_stats[m].qc.kmer['15_mer']['data']) {
+                    for (var i = 0; i < mg_stats[m].qc.kmer['15_mer']['data'].length; i+=4) {
                         var thisY = (yi == 5) ? 1 - parseFloat(mg_stats[m].qc.kmer['15_mer']['data'][i][yi]) : mg_stats[m].qc.kmer['15_mer']['data'][i][yi];
                         xy.push( [ mg_stats[m].qc.kmer['15_mer']['data'][i][xi], thisY ] );
                     }
@@ -496,7 +496,7 @@
             for (var m in mg_stats) {
                 try {
                     var xy = [];
-                    for (var i=0; i<mg_stats[m].rarefaction.length; i+=2) {
+                    for (var i=0; i<mg_stats[m].rarefaction.length; i+=4) {
                         xy.push( [ mg_stats[m].rarefaction[i][0], mg_stats[m].rarefaction[i][1] ] );
                     }
                     points.push(xy);

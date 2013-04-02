@@ -635,7 +635,7 @@
                 break;
             }
 	        try {
-	            for (var i = 0; i < mg_stats.qc.kmer['15_mer']['data'].length; i++) {
+	            for (var i = 0; i < mg_stats.qc.kmer['15_mer']['data'].length; i+=2) {
 	                var thisY = (yi == 5) ? 1 - parseFloat(mg_stats.qc.kmer['15_mer']['data'][i][yi]) : mg_stats.qc.kmer['15_mer']['data'][i][yi];
                     points.push([ mg_stats.qc.kmer['15_mer']['data'][i][xi], thisY ]);
                 }
