@@ -10,7 +10,7 @@
     });
     
     // ipython notebook server ip
-    widget.nb_server = 'http://140.221.84.229:7051';
+    widget.nb_server = 'http://140.221.84.226:7051';
     
     // uuid of template notebook
     widget.nb_template = 'ea7baf0c-1858-4d27-b2d7-0c054865a338';
