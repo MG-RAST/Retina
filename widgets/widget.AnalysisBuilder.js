@@ -364,7 +364,7 @@
 	            case 'metagenome':
 	            var space_buff = Array(dataname.length+6).join(" ");
 	            var dataopts = has_wgs ? "method='WGS', function_source='Subsystems'" : "method='Amplicon'";
-	            senddata += dataname+" = { 'statistics': get_collection(mgids=id_list, def_name=\""+dataname+"['statistics']\"),\n";
+	            senddata += dataname+" = { 'statistics': Collection(mgids=id_list, cache=True, stats=True, def_name=\""+dataname+"['statistics']\"),\n";
 	            senddata += space_buff+"'abundances': get_analysis_set(ids=id_list, "+dataopts+", def_name=\""+dataname+"['abundances']\") }";
 	            break;
 	            case 'plant':
@@ -514,7 +514,7 @@
 	chart_div.setAttribute('id', 'chart');
 	chart_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
 <tr><th>type</th><td><select id="graph_type" style="margin-bottom: 0px;"><option>row</option><option>stackedRow</option><option>column</option><option>stackedColumn</option><option>line</option><option>pie</option><option>stackedArea</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="graph_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
-<tr><th>title</th><td><input type="text" id="graph_title" value="" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="graph_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th>title</th><td><input type="text" id="graph_title" value="" style="margin-bottom: 0px;"></td><th>cell content</th><td><select id="graph_content_handling" style="margin-bottom: 0px;"><option>append to current cell</option><option>create new cell</option><option>replace current cell</option></select></td></tr>\
 <tr><th>height</th><td><input type="text" id="graph_height" value="auto" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="graph_comment"></textarea></td></tr>\
 <tr><th>width</th><td><input type="text" id="graph_width" value="auto" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>x-axis title</th><td><input type="text" id="graph_x_title" value="" style="margin-bottom: 0px;"></td></tr>\
@@ -564,7 +564,7 @@
 	table_div.setAttribute('id', 'table');
 	table_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
 <tr><th>data variable</th><td><input type="text" id="table_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
-<tr><th>cell content</th><td><select id="table_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th>cell content</th><td><select id="table_content_handling" style="margin-bottom: 0px;"><option>append to current cell</option><option>create new cell</option><option>replace current cell</option></select></td></tr>\
 <tr><th style="vertical-align: top;">comment</th><td><textarea id="table_comment"></textarea></td></tr>\
 </table>';
 
@@ -687,7 +687,7 @@
 	plot_div.setAttribute('id', 'plot');
 	plot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
 <tr><th>connected</th><td><select id="plot_connected" style="margin-bottom: 0px;"><option value="True">yes</option><option value="False">no</option></select></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="plot_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
-<tr><th>show dots</th><td><select id="plot_dots" style="margin-bottom: 0px;"><option value="False">no</option><option value="True">yes</option></select></td><th>cell content</th><td><select id="plot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th>show dots</th><td><select id="plot_dots" style="margin-bottom: 0px;"><option value="False">no</option><option value="True">yes</option></select></td><th>cell content</th><td><select id="plot_content_handling" style="margin-bottom: 0px;"><option>append to current cell</option><option>create new cell</option><option>replace current cell</option></select></td></tr>\
 <tr><th>title</th><td><input type="text" id="plot_title" value="" style="margin-bottom: 0px;"></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="plot_comment"></textarea></td></tr>\
 <tr><th>x-axis maximum value</th><td><input type="text" id="plot_x_max" value="auto" style="margin-bottom: 0px;"></td></tr>\
 <tr><th>y-axis maximum value</th><td><input type="text" id="plot_y_max" value="auto" style="margin-bottom: 0px;"></td></tr>\
@@ -768,7 +768,7 @@
 	deviationplot_div.setAttribute('id', 'deviationplot');
 	deviationplot_div.innerHTML = '<table style="vertical-align: middle; text-align: left;">\
 <tr><th>height</th><td><input type="text" id="deviationplot_height" style="margin-bottom: 0px;" value="80"></td><td rowspan=5 style="width: 10px;"></td><th>data variable</th><td><input type="text" id="deviationplot_data" value="" style="margin-bottom: 0px;" readonly onclick="if(confirm(\'This field should be assigned using the available variables selector.\\nDo you still want to edit this field manually?\\nEntering a non-set variable will cause a python error.\')){this.removeAttribute(\'readonly\');this.focus;}"></td></tr>\
-<tr><th>width</th><td><input type="text" id="deviationplot_width" value="400" style="margin-bottom: 0px;"></td></td><th>cell content</th><td><select id="deviationplot_content_handling" style="margin-bottom: 0px;"><option>create new cell</option><option>replace current cell</option><option>append to current cell</option></select></td></tr>\
+<tr><th>width</th><td><input type="text" id="deviationplot_width" value="400" style="margin-bottom: 0px;"></td></td><th>cell content</th><td><select id="deviationplot_content_handling" style="margin-bottom: 0px;"><option>append to current cell</option><option>create new cell</option><option>replace current cell</option></select></td></tr>\
 <tr><th></th><td></td><th style="vertical-align: top;">comment</th><td rowspan=3><textarea id="deviationplot_comment"></textarea></td></tr>\
 </table>';
 
@@ -946,70 +946,76 @@
 	var data = document.getElementById('data_sample_select').options;
 	for (i=0;i<data.length;i++) {
 	    if (data[i].selected) {
-		sd.push("'"+data[i].value+"'");
+		    sd.push("'"+data[i].value+"'");
 	    }
 	}
 	switch (document.getElementById('sample_type_select').value) {
 	    case 'metagenome':
-	    senddata += "selected_ids = [ "+sd.join(", ")+" ]\n";
 	    if (document.getElementById('data_select').value == 'abundance') {
 	        var level = (document.getElementById('abund_type_select').value == 'organism') ? document.getElementById('tax_select').value : document.getElementById('func_select').value;
 	        var norm  = (document.getElementById('norm_select').value == 'norm')? '1' : '0';
 	        Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'abundance', 'parent': dataname};
-	        senddata += dataname+"['abundances'].set_display_mgs(ids=selected_ids)\n";
+	        senddata += dataname+"['abundances'].set_display_mgs(ids=["+sd.join(", ")+"])\n";
 	        senddata += data_var+" = {'annot': '"+document.getElementById('abund_type_select').value+"', 'level': '"+level+"', 'normalize': "+norm+", 'arg_list': True}";
         } else if (document.getElementById('data_select').value == 'statistics') {
+            senddata += dataname+"['statistics'].display.set_display_mgs(ids=["+sd.join(", ")+"])\n";
             switch (document.getElementById('stat_select').value) {
                 case 'rare':
                 // selected metagenomes - plot
                 Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'plot', 'parent': dataname};
-                senddata += data_var+" = "+dataname+"['statistics'].plot_rarefaction(mgids=selected_ids, arg_list=True)";
+                senddata += dataname+"['statistics'].display.rarefaction(arg_list=True, target='"+data_var+"')";
                 break;
                 case 'drisee':
-                // single metagenome - plot
+                // selected metagenomes - plot
                 Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'plot', 'parent': dataname};
-                senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
-                senddata += "drisee_data = Drisee(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
-                senddata += data_var+" = drisee_data.plot(arg_list=True)";
+                senddata += dataname+"['statistics'].display.drisee(arg_list=True, target='"+data_var+"')";
                 break;
                 case 'kmer':
-                // single metagenome - plot
+                // selected metagenomes - plot
                 Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'plot', 'parent': dataname};
-                senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
-                senddata += "kmer_data = Kmer(mgObj="+dataname+"['statistics'].metagenomes[primary_id])\n";
-                senddata += data_var+" = kmer_data.plot_abundance(arg_list=True)";
+                senddata += dataname+"['statistics'].display.kmer(arg_list=True, target='"+data_var+"')";
+                break;
+                case 'seq_chart':
+                // selected metagenomes - graph
+                Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'graph', 'parent': dataname};
+                senddata += dataname+"['statistics'].display.summary_chart(arg_list=True, target='"+data_var+"')";
+                break;
+                case 'seq_stats':
+                // selected metagenomes - table
+                Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'table', 'parent': dataname};
+                senddata += dataname+"['statistics'].display.summary_stats(arg_list=True, target='"+data_var+"')";
                 break;
                 case 'metadata':
                 // selected metagenomes - table
                 Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'table', 'parent': dataname};
-                senddata += data_var+" = "+dataname+"['statistics'].show_metadata(mgids=selected_ids, arg_list=True)";
+                senddata += dataname+"['statistics'].display.metadata(arg_list=True, target='"+data_var+"')";
                 break;
                 case 'alpha':
                 // single and selected metagenomes - deviationplot
                 Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'deviationplot', 'parent': dataname};
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
-                senddata += "alpha_list = "+dataname+"['statistics'].get_stat(stat='alpha_diversity_shannon', mgid=primary_id, mgid_set=selected_ids)\n";
+                senddata += "alpha_list = "+dataname+"['statistics'].get_stat(stat='alpha_diversity_shannon', mgid=primary_id)\n";
                 senddata += data_var+" = { 'data': alpha_list}";
                 break;
                 case 'bp':
                 // single and selected metagenomes - deviationplot
                 Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'deviationplot', 'parent': dataname};
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
-                senddata += "bp_list = "+dataname+"['statistics'].get_stat(stat='bp_count_raw', mgid=primary_id, mgid_set=selected_ids)\n";
+                senddata += "bp_list = "+dataname+"['statistics'].get_stat(stat='bp_count_raw', mgid=primary_id)\n";
                 senddata += data_var+" = { 'data': bp_list }";
                 break;
                 case 'length':
                 // single and selected metagenomes - deviationplot
                 Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'deviationplot', 'parent': dataname};
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
-                senddata += "length_list = "+dataname+"['statistics'].get_stat(stat='average_length_raw', mgid=primary_id, mgid_set=selected_ids)\n";
+                senddata += "length_list = "+dataname+"['statistics'].get_stat(stat='average_length_raw', mgid=primary_id)\n";
                 senddata += data_var+" = { 'data': length_list }";
                 break;
                 case 'gc':
                 // single and selected metagenomes - deviationplot
                 Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'deviationplot', 'parent': dataname};
                 senddata += "primary_id = '"+document.getElementById('primary_select').value+"'\n";
-                senddata += "gc_list = "+dataname+"['statistics'].get_stat(stat='average_gc_content_raw', mgid=primary_id, mgid_set=selected_ids)\n";
+                senddata += "gc_list = "+dataname+"['statistics'].get_stat(stat='average_gc_content_raw', mgid=primary_id)\n";
                 senddata += data_var+" = { 'data': gc_list }";
                 break;
                 default:
@@ -1118,10 +1124,12 @@
         <option value='function'>Function</option>\
       </select></td></tr>\
     <tr name='stat_row' style='display: none;'><th>stat view</th><td>\
-      <select style='margin-bottom: 0px; width: 175px;' id='stat_select' onchange='if(/^(rare|metadata)$/.test(this.options[this.selectedIndex].value)){document.getElementById(\"primary_row\").style.display=\"none\";}else{document.getElementById(\"primary_row\").style.display=\"\";}Retina.WidgetInstances.AnalysisBuilder[0].variable_name();'>\
+      <select style='margin-bottom: 0px; width: 175px;' id='stat_select' onchange='if(/^(alpha|bp|length|gc)$/.test(this.options[this.selectedIndex].value)){document.getElementById(\"primary_row\").style.display=\"\";}else{document.getElementById(\"primary_row\").style.display=\"none\";}Retina.WidgetInstances.AnalysisBuilder[0].variable_name();'>\
         <option value='rare'>Rarefaction Curve</option>\
         <option value='drisee'>DRISEE Profile</option>\
         <option value='kmer'>k-mer Profile</option>\
+        <option value='seq_chart'>Sequence Summary</option>\
+        <option value='seq_stats'>Sequence Statistics</option>\
         <option value='metadata'>Metadata</option>\
         <option value='alpha'>Alpha-Diversity</option>\
         <option value='bp'>bp Profile</option>\
@@ -1226,7 +1234,7 @@
             for (var i in widget.loaded_ids[nbid][name]['data']) {
                 var id = widget.loaded_ids[nbid][name]['data'][i];
                 var dname = stm.DataStore[type][id].hasOwnProperty('name') ? stm.DataStore[type][id].name : stm.DataStore[type][id].scientific_name;
-                idopts += "<option value='"+id+"'>"+dname+"</option>";
+                idopts += "<option value='"+id+"' selected>"+dname+"</option>";
             }
             document.getElementById('data_sample_select').innerHTML = idopts;
             if (type == 'metagenome') {
@@ -1261,29 +1269,29 @@
 	} else {
 	    var allowed = {};
 	    switch (tab) {
-	    case 'graph':
-		allowed = { 'abundance': 1 };
-		break;
-	    case 'table':
-		allowed = { 'table': 1 };
-		break;
-	    case 'heat':
-		allowed = { 'abundance': 1 };
-		break;
-	    case 'pcoa':
-		allowed = { 'abundance': 1 };
-		break;
-	    case 'boxplot':
-		allowed = { 'abundance': 1 };
-		break;
-	    case 'plot':
-		allowed = { 'plot': 1 };
-		break;
-	    case 'deviationplot':
-		allowed = { 'deviationplot': 1 };
-		break;
-		default:
-		break;
+	        case 'graph':
+		    allowed = { 'abundance': 1, 'graph': 1 };
+		    break;
+	        case 'table':
+		    allowed = { 'table': 1 };
+		    break;
+	        case 'heat':
+		    allowed = { 'abundance': 1 };
+		    break;
+	        case 'pcoa':
+		    allowed = { 'abundance': 1 };
+		    break;
+	        case 'boxplot':
+		    allowed = { 'abundance': 1 };
+		    break;
+	        case 'plot':
+		    allowed = { 'plot': 1 };
+		    break;
+	        case 'deviationplot':
+		    allowed = { 'deviationplot': 1 };
+		    break;
+		    default:
+		    break;
 	    }
 
 	    v.style.display = '';
