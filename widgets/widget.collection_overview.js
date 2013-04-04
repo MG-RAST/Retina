@@ -305,6 +305,10 @@
         var ann_aa_reads  = (ann_reads && (ann_reads > ann_rna_reads)) ? ann_reads - ann_rna_reads : 0;
         var unkn_aa_reads = aa_reads - ann_aa_reads;
         var unknown_all   = raw_seqs - (qc_fail_seqs + unkn_aa_reads + ann_aa_reads + ann_rna_reads);
+        if (raw_seqs < (qc_fail_seqs + ann_rna_reads)) {
+            var diff = (qc_fail_seqs + ann_rna_reads) - raw_seqs;
+            unknown_all = (diff > unknown_all) ? 0 : unknown_all - diff;
+        }
         // fuzzy math
         if (is_rna) {
             qc_fail_seqs  = raw_seqs - qc_rna_seqs;
