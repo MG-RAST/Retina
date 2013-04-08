@@ -10,7 +10,7 @@
     });
     
     // ipython notebook server ip
-    widget.nb_server = 'http://140.221.84.229:7051';
+    widget.nb_server = 'http://140.221.84.226:7051';
     
     // uuid of template notebook
     widget.nb_template = 'ea7baf0c-1858-4d27-b2d7-0c054865a338';
@@ -38,9 +38,10 @@
     // which would make the table renderer available to use before the display function is called
     // you can add multiple comma separated promises
     widget.setup = function () {
-	window.addEventListener("message", stm.receiveMessage, false);
-	return [ Retina.add_renderer({"name": "listselect", "resource": "renderers/", "filename": "renderer.listselect.js"}),
-		 this.loadRenderer('listselect') ];
+	    window.addEventListener("message", stm.receiveMessage, false);
+	    return [ Retina.add_renderer({"name": "listselect", "resource": "renderers/", "filename": "renderer.listselect.js"}),
+		         this.loadRenderer('listselect')
+		       ];
     };
     
     // this will be called whenever the widget is displayed
@@ -71,7 +72,7 @@
 	    }
 	    document.getElementsByTagName('head')[0].appendChild(link);
 	    var dash_html = '\
-	        <button class="btn" type="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" data-toggle="button" style="width: 150px; width: 150px; position: absolute; top: 60px; right: 90px;">Analysis Builder</button>\
+	        <button class="btn" type="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" data-toggle="button" style="width: 150px; position: absolute; top: 60px; right: 90px;">'+params.builder+'</button>\
                 <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[1].export_visual(1, null, true);" title="show full notebook text in new window" style="position: absolute; top: 60px; right: 50px;">\
                    <i class="icon-align-justify icon-white"></i>\
                 </button>\
@@ -200,7 +201,7 @@
 								     "multiple": false,
 								     "no_button": true,
 								     "callback": Retina.WidgetInstances.NotebookDashboard[index].nb_select_change
-								   });					      
+								   });
 	
         widget.nb_ver_list = Retina.Renderer.create('listselect', { "target": document.getElementById('version_div'),
 								    "data": [],
@@ -223,7 +224,7 @@
     widget.nb_select_refresh = function (index) {
         // clear current nbs
         stm.delete_object_type('notebook');
-        stm.get_objects({"type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
+        stm.get_objects({"repository": "mgrast", "type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
             Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
             // returns [editable_nbs, current_nbs]
             var sorted_nb_sets = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
@@ -291,7 +292,7 @@
             return;
         }
         // now we delete
-        stm.get_objects({"type": "notebook", "id": 'delete/'+this_nb.uuid, "options": {"verbosity": "minimal"}}).then(function () {
+        stm.get_objects({"repository": "mgrast", "type": "notebook", "id": 'delete/'+this_nb.uuid, "options": {"verbosity": "minimal"}}).then(function () {
             Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
             alert('Deleted notebook '+this_nb.name+' ('+this_nb.uuid+')');
         });
@@ -327,7 +328,7 @@
         if (! new_name) {
             alert("Please enter a new name for notebook copy.");
         } else {
-            stm.get_objects({"type": "notebook", "id": sel_nb[1]+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
+            stm.get_objects({"repository": "mgrast", "type": "notebook", "id": sel_nb[1]+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
                 setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name.replace(/'/g, "\\'")+"')", 1000);
                 jQuery('#nb_select_modal').modal('hide');
@@ -344,7 +345,7 @@
         } else if (! Retina.WidgetInstances.NotebookDashboard[index].nb_template_id) {
             alert("Error creating notebook. Please try again.");
         } else {
-            stm.get_objects({"type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template_id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
+            stm.get_objects({"repository": "mgrast", "type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template_id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
                 setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name.replace(/'/g, "\\'")+"')", 1000);
                 jQuery('#nb_select_modal').modal('hide');

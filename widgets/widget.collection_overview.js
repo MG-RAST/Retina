@@ -23,9 +23,23 @@
     };
     
     widget.mg_select_list = undefined;
+    widget.sub_mgs = [];
+    widget.curr_mgs = [];
+    widget.curr_mg_stats = [];
+    
+    widget.get_mgs = function (index, stats) {
+        var mg_ids = Retina.WidgetInstances.collection_overview[index].sub_mgs;
+        var mg_set = stats ? Retina.WidgetInstances.collection_overview[index].curr_mg_stats : Retina.WidgetInstances.collection_overview[index].curr_mgs;
+        if (mg_ids.length > 0) {
+            return mg_set.filter(function (i) { return (mg_ids.indexOf(i.id) !== -1); });
+        } else {
+            return mg_set;
+        }
+    };
     
     widget.display = function (wparams) {
-        var widget = Retina.WidgetInstances.collection_overview[0];
+        widget = this;
+	    var index = widget.index;
         // check if id given
         if (wparams.ids) {
             jQuery('#mg_modal').modal('hide');
@@ -46,17 +60,17 @@
         }
 	    // get ids first
         else {
-            widget.metagenome_modal(wparams.target);
+            widget.metagenome_modal(index, wparams.target);
             return;
         }
 	
 	    // make some shortcuts
 	    var content = wparams.target;
-	    var mgs = [];
-	    var mg_stats = [];
+	    widget.curr_mgs = [];
+    	widget.curr_mg_stats = [];
 	    for (var i in wparams.ids) {
-	        mgs.push( stm.DataStore.metagenome[wparams.ids[i]] );
-	        mg_stats.push( stm.DataStore.metagenome_statistics[wparams.ids[i]] );
+	        widget.curr_mgs.push( stm.DataStore.metagenome[wparams.ids[i]] );
+	        widget.curr_mg_stats.push( stm.DataStore.metagenome_statistics[wparams.ids[i]] );
         }
 	
 	    // set the output area
@@ -112,7 +126,7 @@
 	            Retina.Renderer.create("paragraph", {target: div, data: [{header: outputs[out].data}]}).render();
 	            break;
 	            case 'paragraph':
-		        data = widget[outputs[out].data](mgs, mg_stats);
+		        data = widget[outputs[out].data](index);
 		        if (! data) {
                     content.removeChild(tag);
 		            content.removeChild(div);
@@ -124,12 +138,12 @@
 		        Retina.Renderer.create("paragraph", data).render();
 		        break;
 		        case 'stackcolumn':
-		        data = widget.summary_stackcolumn(mgs, mg_stats);
+		        data = widget.summary_stackcolumn(index);
 		        data.target = div;
 		        Retina.Renderer.create("graph", data).render();
 		        break;
 	            case 'barchart':
-	            data = widget.annotation_barchart(mg_stats, outputs[out].category, outputs[out].data);
+	            data = widget.annotation_barchart(index, outputs[out].category, outputs[out].data);
 	            if (! data) {
                     content.removeChild(tag);
 		            content.removeChild(div);
@@ -139,7 +153,7 @@
 		        Retina.Renderer.create("graph", data).render();
 		        break;
 	            case 'plot':
-	            data = widget.mgs_plot(mg_stats, outputs[out].category);
+	            data = widget.mgs_plot(index, outputs[out].category);
 	            if (! data) {
                     content.removeChild(tag);
 		            content.removeChild(div);
@@ -149,7 +163,7 @@
                 Retina.Renderer.create("plot", data).render();
                 break;
                 case 'table':
-                data = widget.build_table(mgs, mg_stats, outputs[out].category);
+                data = widget.build_table(index, outputs[out].category);
                 data.target = div;
                 Retina.Renderer.create("table", data).render();
                 break;
@@ -159,27 +173,27 @@
 	    }
     };
     
-    widget.metagenome_modal = function(target) {
+    widget.metagenome_modal = function(index, target) {
         jQuery('#mg_modal').modal('show');
-        if (! Retina.WidgetInstances.collection_overview[0].mg_select_list) {
+        if (! Retina.WidgetInstances.collection_overview[index].mg_select_list) {
             jQuery.getJSON('data/mg_migs_public.json', function(data) {
                 for (var d in data) {
                     if (data.hasOwnProperty(d)) {
                         stm.load_data({"data": data[d], "type": d});
                     }
                 }
-                Retina.WidgetInstances.collection_overview[0].metagenome_selector(target);
+                Retina.WidgetInstances.collection_overview[index].metagenome_selector(index, target);
             }).fail( function() {
                 stm.get_objects({"type": "metagenome", "options": {"verbosity": "migs", "limit": 0}}).then(function() {
-                    Retina.WidgetInstances.collection_overview[0].metagenome_selector(target);
+                    Retina.WidgetInstances.collection_overview[index].metagenome_selector(index, target);
                 });
             });
         } else {
-            Retina.WidgetInstances.collection_overview[0].mg_select_list.render();
+            Retina.WidgetInstances.collection_overview[index].mg_select_list.render();
         }
     };
     
-    widget.metagenome_selector = function(target) {
+    widget.metagenome_selector = function(index, target) {
         var metagenome_data = [];
         for (i in stm.DataStore["metagenome"]) {
     	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
@@ -200,7 +214,7 @@
     		     metagenome_data.push(md);
     	    }
     	}
-    	Retina.WidgetInstances.collection_overview[0].mg_select_list = Retina.Renderer.create('listselect', {
+    	Retina.WidgetInstances.collection_overview[index].mg_select_list = Retina.Renderer.create('listselect', {
     	    "target": document.getElementById('mg_modal_body'),
 			"data": metagenome_data,
 		    "value": "id",
@@ -213,13 +227,13 @@
     	            alert("You have not selected any metagenomes.\nPlease place the metagenomes of your choice in the right side box'.");
         	        return;
     	        }
-		        Retina.WidgetInstances.collection_overview[0].display({"target": target, "ids": data});
+		        Retina.WidgetInstances.collection_overview[index].display({"target": target, "ids": data});
 	        }
 		});
-		Retina.WidgetInstances.collection_overview[0].mg_select_list.render();
+		Retina.WidgetInstances.collection_overview[index].mg_select_list.render();
     };
     
-    widget.toc_list = function(mgs, mg_stats) {
+    widget.toc_list = function(index) {
         return { data: [ { header: "Table of Contents" },
 			             { fancy_table: {
 			                 data: [ [ "<a href='#overview_table'>Overview Info</a>",
@@ -236,7 +250,9 @@
 			            ] };
     };
 
-    widget.summary_stackcolumn = function(mgs, mg_stats) {
+    widget.summary_stackcolumn = function(index) {
+        var mgs = Retina.WidgetInstances.collection_overview[index].get_mgs(index, false);
+        var mg_stats = Retina.WidgetInstances.collection_overview[index].get_mgs(index, true);
 	    var scData = [];
 	    var labels = [];
 	    var legend = ["Failed QC", "Unknown", "Unknown Protein", "Annotated Protein", "ribosomal RNA"];
@@ -246,7 +262,7 @@
 	    }
 	    for (var m in mgs) {
 	        labels.push(mgs[m].id);
-	        var scNums = widget._summary_fuzzy_math(mgs[m], mg_stats[m]);
+	        var scNums = Retina.WidgetInstances.collection_overview[index]._summary_fuzzy_math(mgs[m], mg_stats[m]);
 	        for (var i in scNums) {
 	            scData[i].data[m] = parseInt(scNums[i]);
 	        }
@@ -315,7 +331,7 @@
         return [ qc_fail_seqs, unknown_all, unkn_aa_reads, ann_aa_reads, ann_rna_reads ];
     };
     
-    widget.drisee_introtext = function(mgs, mg_stats) {
+    widget.drisee_introtext = function(index) {
 	    return { style: "clear: both", data: [ { header: "DRISEE" },
 			 { p: "Duplicate Read Inferred Sequencing Error Estimation (<a href='http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1002541'>Keegan et al., PLoS Computational Biology, 2012</a>)" },
 			 { p: "DRISEE is a tool that utilizes artificial duplicate reads (ADRs) to provide a platform independent assessment of sequencing error in metagenomic (or genomic) sequencing data. DRISEE is designed to consider shotgun data. Currently, it is not appropriate for amplicon data." },
@@ -323,32 +339,33 @@
         ] };
     };
     
-    widget.kmer_introtext = function(mgs, mg_stats) {
+    widget.kmer_introtext = function(index) {
 	    return { style: "clear: both", data: [ { header: "Kmer Profile" },
 	        { p: "The kmer abundance spectra are tools to summarize the redundancy (repetitiveness) of sequence datasets by counting the number of occurrences of 15 and 6 bp sequences." },
 	        { p: "The kmer rank abundance graph plots the kmer coverage as a function of abundance rank, with the most abundant sequences at left." }
 	     ] };
     };
     
-    widget.rarefaction_introtext = function(mgs, mg_stats) {
+    widget.rarefaction_introtext = function(index) {
         return { data: [ { header: "Rarefaction Curve" },
 	        { p: "The plot below shows the rarefaction curve of annotated species richness. This curve is a plot of the total number of distinct species annotations as a function of the number of sequences sampled. On the left, a steep slope indicates that a large fraction of the species diversity remains to be discovered. If the curve becomes flatter to the right, a reasonable number of individuals is sampled: more intensive sampling is likely to yield only few additional species." },
 	        { p: "Sampling curves generally rise very quickly at first and then level off towards an asymptote as fewer new species are found per unit of individuals collected. These rarefaction curves are calculated from the table of species abundance. The curves represent the average number of different species annotations for subsamples of the the complete dataset." }
 	    ] };
     };
     
-    widget.ontology_introtext = function(mgs, mg_stats) {
+    widget.ontology_introtext = function(index) {
 	    return { style: "clear: both",
 	             data: [ { header: "Functional Category Hits Distribution" },
 			             { p: "The pie charts below illustrate the distribution of functional categories for COGs, KOs, NOGs, and Subsystems at the highest level supported by these functional hierarchies. Each slice indicates the percentage of reads with predicted protein functions annotated to the category for the given source. " } ] };
     };
     
-    widget.taxonomy_introtext = function(mgs, mg_stats) {
+    widget.taxonomy_introtext = function(index) {
 	    return { data: [ { header: "Taxonomic Hits Distribution" },
 			             { p: "The pie charts below illustrate the distribution of taxonomic domains, phyla, and orders for the annotations. Each slice indicates the percentage of reads with predicted proteins and ribosomal RNA genes annotated to the indicated taxonomic level. This information is based on all the annotation source databases used by MG-RAST." } ] };
     };
     
-    widget.annotation_barchart = function(mg_stats, dcat, dtype) {
+    widget.annotation_barchart = function(index, dcat, dtype) {
+        var mg_stats = Retina.WidgetInstances.collection_overview[index].get_mgs(index, true);
         var annotSet = {};
         var annotMg = {};
         var barData = [];
@@ -406,7 +423,8 @@
     	return data;
     };
     
-    widget.mgs_plot = function(mg_stats, type, kmer) {
+    widget.mgs_plot = function(index, type, kmer) {
+        var mg_stats = Retina.WidgetInstances.collection_overview[index].get_mgs(index, true);
         var xt, yt;
         var labels = [];
         var points = [];
@@ -463,7 +481,7 @@
             for (var m in mg_stats) {
                 try {
                     var xy = [];
-                    for (var i in mg_stats[m].qc.kmer['15_mer']['data']) {
+                    for (var i = 0; i < mg_stats[m].qc.kmer['15_mer']['data'].length; i+=4) {
                         var thisY = (yi == 5) ? 1 - parseFloat(mg_stats[m].qc.kmer['15_mer']['data'][i][yi]) : mg_stats[m].qc.kmer['15_mer']['data'][i][yi];
                         xy.push( [ mg_stats[m].qc.kmer['15_mer']['data'][i][xi], thisY ] );
                     }
@@ -478,7 +496,7 @@
             for (var m in mg_stats) {
                 try {
                     var xy = [];
-                    for (var i=0; i<mg_stats[m].rarefaction.length; i+=2) {
+                    for (var i=0; i<mg_stats[m].rarefaction.length; i+=4) {
                         xy.push( [ mg_stats[m].rarefaction[i][0], mg_stats[m].rarefaction[i][1] ] );
                     }
                     points.push(xy);
@@ -551,7 +569,9 @@
         return data;
     };
     
-    widget.build_table = function(mgs, mg_stats, type) {
+    widget.build_table = function(index, type) {
+        var mgs = Retina.WidgetInstances.collection_overview[index].get_mgs(index, false);
+        var mg_stats = Retina.WidgetInstances.collection_overview[index].get_mgs(index, true);
         var widget = Retina.WidgetInstances.collection_overview[0];
         var cname = [];
         var tdata = [];
