@@ -11,7 +11,10 @@
     stm.SourceOrigin = "*";
     stm.TargetOrigin = "*";
     stm.Authentication = null;
-    
+    stm.Config = null;
+    jQuery.getJSON('../config.json', function(data) {
+        stm.Config = data;
+    });
 
     // receive messages sent from other frames
     //window.addEventListener("message", receiveMessage, false);
