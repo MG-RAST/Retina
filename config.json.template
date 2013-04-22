@@ -2,5 +2,5 @@
     "notebook_server": "",
     "template_nbid": "",
     "auth_url": "",
-    "ipynb_token": ""
+    "auth_type": ""
 }
