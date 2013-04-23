@@ -11,6 +11,7 @@
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
     
     <!--basic javascript files-->
+    <script type="text/javascript" src="js/config.js"></script>
     <script type="text/javascript" src="js/stm.js"></script>
     <script type="text/javascript" src="js/retina.js"></script>
     
@@ -21,8 +22,8 @@
     <script type="text/javascript">
     jQuery(function () {
         var builder_widget = 'AnalysisBuilder';
-      	stm.init('https://kbase.us/services/search-api/search', false, 'kbase').then(function() {
-      	    stm.add_repository('http://kbase.us/services/communities/', false, false, 'mgrast').then(function () {
+      	stm.init(stm.Config.kbase_api, false, 'kbase').then(function() {
+      	    stm.add_repository(stm.Config.mgrast_api, false, false, 'mgrast').then(function () {
 	            Retina.init({ library_resource: "js/" });
 	            Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
 	            Retina.add_widget({"name": builder_widget, "resource": "widgets/", "filename": "widget."+builder_widget+".js"});
