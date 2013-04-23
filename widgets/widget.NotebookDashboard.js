@@ -221,9 +221,16 @@
     // populate nb listselect with newest version of each notebook, empty version listselect
     widget.nb_select_refresh = function (index) {
         // clear current nbs
-        var opts = {"verbosity": "minimal", "limit": 0, "type": "generic"};
         stm.delete_object_type('notebook');
+        Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.settings.data = [];
+        Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.render();
+        Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.settings.data = [];
+        Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.render();
+        Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.settings.data = [];
+        Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.render();
+
         // get 'generic' notebooks
+        var opts = {"verbosity": "minimal", "limit": 0, "type": "generic"};
         stm.get_objects({"repository": "mgrast", "type": "notebook", "options": opts}).then(function () {
             opts.type =  Retina.WidgetInstances.NotebookDashboard[index].nb_type;
             // get this builder notebooks
@@ -235,8 +242,6 @@
                 Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.render();
                 Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.settings.data = sorted_nb_sets[1];
                 Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.render();
-                Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.settings.data = [];
-                Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.render();
                 setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].ipy_refresh()", 500);
             });
         });
@@ -349,7 +354,7 @@
         } else if (! Retina.WidgetInstances.NotebookDashboard[index].nb_template_id) {
             alert("Error creating notebook. Please try again.");
         } else {
-            stm.get_objects({"repository": "mgrast", "type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template_id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
+            stm.get_objects({"repository": "mgrast", "type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template_id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name, "type": Retina.WidgetInstances.NotebookDashboard[index].nb_type}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
                 setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name.replace(/'/g, "\\'")+"')", 1000);
                 jQuery('#nb_select_modal').modal('hide');
@@ -546,7 +551,7 @@ pre {\
     widget.perform_login = function (index) {
 	    var login = document.getElementById('login').value;
 	    var pass = document.getElementById('password').value;
-	    var auth_url = stm.Config.auth_url+'?auth='+stm.Config.auth_type+Retina.Base64.encode(login+":"+pass);
+	    var auth_url = stm.Config.mgrast_api+'?auth='+stm.Config.globus_key+Retina.Base64.encode(login+":"+pass);
 	    jQuery.get(auth_url, function(data) {
             var d = JSON.parse(data);
 	        if (data && d && d.token) {
@@ -571,6 +576,7 @@ pre {\
     widget.perform_logout = function (index) {
 	    document.getElementById('login_name_span').style.display = "";
 	    document.getElementById('login_name').innerHTML = "";
+	    stm.Authentication = undefined;
 	    stm.delete_object_type('metagenome');
 	    Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
 	    Retina.WidgetInstances.NotebookDashboard[index].builder_widget.display({target: document.getElementById('data_builder_div')});
