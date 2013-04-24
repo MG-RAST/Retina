@@ -9,12 +9,9 @@
         }
     });
     
-    // ipython notebook server ip
-    widget.nb_server = 'http://140.221.84.229:7051';
-    
-    // uuid of template notebook
-    widget.nb_template = 'ea7baf0c-1858-4d27-b2d7-0c054865a338';
+    // notebook variables
     widget.nb_template_id = undefined;
+    widget.nb_type = 'generic';
     
     // current selected notebook [ uuid (notebook), id (shock) ]
     widget.nb_selected = [];
@@ -72,7 +69,7 @@
 	    }
 	    document.getElementsByTagName('head')[0].appendChild(link);
 	    var dash_html = '\
-	        <button class="btn" type="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" data-toggle="button" style="width: 150px; position: absolute; top: 60px; right: 90px;">'+params.builder+'</button>\
+	        <button id="builder_btn" class="btn" type="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" data-toggle="button" style="width: 150px; position: absolute; top: 60px; right: 90px;">'+params.builder+'</button>\
                 <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[1].export_visual(1, null, true);" title="show full notebook text in new window" style="position: absolute; top: 60px; right: 50px;">\
                    <i class="icon-align-justify icon-white"></i>\
                 </button>\
@@ -177,17 +174,20 @@
                 <li id="hidden_tab" class="hide"><a data-toggle="tab" href="#hidden_dash">IPython</a></li>\
                 <li id="selector_tab" class="show"><a href="#" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].select_nb_click('+index+');"><i class="icon-plus"></i></a></li>\
             </ul>\
-            <div id="tab_div" class="tab-content"><div id="hidden_dash" class="tab-pane hide"><iframe id="ipython_dash" src="'+widget.nb_server+'" width="95%" height="750"></iframe></div>\
+            <div id="tab_div" class="tab-content"><div id="hidden_dash" class="tab-pane hide"><iframe id="ipython_dash" src="'+stm.Config.notebook_server+'" width="95%" height="750"></iframe></div>\
             </div>';
         jQuery('#'+dash_div).html(dash_html);
         jQuery('#'+iframe_div).html(iframe_html);
 	    
 	    widget.builder_widget = Retina.Widget.create(params.builder, { target: document.getElementById('data_builder_div') });
+	    if (widget.builder_widget.nb_type) {
+	        widget.nb_type = widget.builder_widget.nb_type;
+        }
 	
 	    // create empty renderers
         widget.nb_primary_list = Retina.Renderer.create('listselect', { "target": document.getElementById('nb_primary_div'),
 									"data": [],
-									"value": 'uuid',
+									"value": 'nbid',
 									"filter": ['name', 'datetime', 'created', 'status'],
 									"multiple": false,
 									"no_button": true,
@@ -196,7 +196,7 @@
 	
         widget.nb_copy_list = Retina.Renderer.create('listselect', { "target": document.getElementById('nb_copy_div'),
 								     "data": [],
-								     "value": 'uuid',
+								     "value": 'nbid',
 								     "filter": ['name', 'datetime', 'created', 'status'],
 								     "multiple": false,
 								     "no_button": true,
@@ -224,17 +224,29 @@
     widget.nb_select_refresh = function (index) {
         // clear current nbs
         stm.delete_object_type('notebook');
-        stm.get_objects({"repository": "mgrast", "type": "notebook", "options": {"verbosity": "minimal", "limit": 0}}).then(function () {
-            Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
-            // returns [editable_nbs, current_nbs]
-            var sorted_nb_sets = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
-            Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.settings.data = sorted_nb_sets[0];
-            Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.render();
-            Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.settings.data = sorted_nb_sets[1];
-            Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.render();
-            Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.settings.data = [];
-            Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.render();
-            setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].ipy_refresh()", 500);
+        Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.settings.data = [];
+        Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.render();
+        Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.settings.data = [];
+        Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.render();
+        Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.settings.data = [];
+        Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.render();
+        jQuery('#nb_primary_tbl').html("");
+
+        // get 'generic' notebooks
+        var opts = {"verbosity": "minimal", "limit": 0, "type": "generic"};
+        stm.get_objects({"repository": "mgrast", "type": "notebook", "options": opts}).then(function () {
+            opts.type =  Retina.WidgetInstances.NotebookDashboard[index].nb_type;
+            // get this builder notebooks
+            stm.get_objects({"repository": "mgrast", "type": "notebook", "options": opts}).then(function () {
+                Retina.WidgetInstances.NotebookDashboard[index].nb_selected = [];
+                // returns [editable_nbs, current_nbs]
+                var sorted_nb_sets = Retina.WidgetInstances.NotebookDashboard[index].nb_sort(index);
+                Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.settings.data = sorted_nb_sets[0];
+                Retina.WidgetInstances.NotebookDashboard[index].nb_primary_list.render();
+                Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.settings.data = sorted_nb_sets[1];
+                Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.render();
+                setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].ipy_refresh()", 500);
+            });
         });
     };
     
@@ -248,7 +260,7 @@
                 <tr><td>Name</td><td>'+snbs[0].name+'</td></tr>\
                 <tr><td>Last Modified</td><td>'+snbs[0].datetime+'</td></tr>\
                 <tr><td>Status</td><td>'+snbs[0].status+'</td></tr>\
-                <tr><td>ID</td><td>'+snbs[0].uuid+'</td></tr>\
+                <tr><td>ID</td><td>'+snbs[0].nbid+'</td></tr>\
                 <tr><td>Description</td><td>'+desc+'</td></tr>\
             </table>';
         jQuery('#nb_primary_tbl').html(html);
@@ -281,20 +293,20 @@
             return;
         }
         var this_nb  = Retina.WidgetInstances.NotebookDashboard[index].sorted_nbs[sel_nb[0]][0];
-        var has_uuid = jQuery('#'+this_nb.uuid);
+        var has_uuid = jQuery('#'+this_nb.nbid);
         if (has_uuid.length > 0) {
-            alert('Notebook '+this_nb.name+' ('+this_nb.uuid+') is already open.\nPlease close tab if you wish to delete.');
+            alert('Notebook '+this_nb.name+' ('+this_nb.nbid+') is already open.\nPlease close tab if you wish to delete.');
             return;
         }
         // if ((this_nb.permission == 'view') || (this_nb.status == 'public')) {
         if (this_nb.permission == 'view') {
-            alert('Insufficient permissions to delete notebook '+this_nb.name+' ('+this_nb.uuid+')');
+            alert('Insufficient permissions to delete notebook '+this_nb.name+' ('+this_nb.nbid+')');
             return;
         }
         // now we delete
-        stm.get_objects({"repository": "mgrast", "type": "notebook", "id": 'delete/'+this_nb.uuid, "options": {"verbosity": "minimal"}}).then(function () {
+        stm.get_objects({"repository": "mgrast", "type": "notebook", "id": 'delete/'+this_nb.nbid, "options": {"verbosity": "minimal"}}).then(function () {
             Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
-            alert('Deleted notebook '+this_nb.name+' ('+this_nb.uuid+')');
+            alert('Deleted notebook '+this_nb.name+' ('+this_nb.nbid+')');
         });
     };
     
@@ -306,13 +318,13 @@
             return;
         }
         var this_nb  = Retina.WidgetInstances.NotebookDashboard[index].sorted_nbs[sel_nb[0]][0];
-        var has_uuid = jQuery('#'+this_nb.uuid);
+        var has_uuid = jQuery('#'+this_nb.nbid);
         if (has_uuid.length > 0) {
-            alert('Notebook '+this_nb.name+' ('+this_nb.uuid+') is already open');
+            alert('Notebook '+this_nb.name+' ('+this_nb.nbid+') is already open');
             return;
         }
         Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
-        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+this_nb.uuid+"','"+this_nb.name.replace(/'/g, "\\'")+"')", 1000);
+        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+this_nb.nbid+"','"+this_nb.name.replace(/'/g, "\\'")+"')", 1000);
         jQuery('#nb_select_modal').modal('hide');
     };
 
@@ -345,18 +357,19 @@
         } else if (! Retina.WidgetInstances.NotebookDashboard[index].nb_template_id) {
             alert("Error creating notebook. Please try again.");
         } else {
-            stm.get_objects({"repository": "mgrast", "type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template_id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name}}).then(function () {
+            stm.get_objects({"repository": "mgrast", "type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template_id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name, "type": Retina.WidgetInstances.NotebookDashboard[index].nb_type}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
                 setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name.replace(/'/g, "\\'")+"')", 1000);
+                jQuery('#new_nb_name').val("");
                 jQuery('#nb_select_modal').modal('hide');
-                document.getElementById('data_pick').style.display='';
+                jQuery('#builder_btn').click();
             });
         }
     };
 
     widget.nb_create_tab = function (index, uuid, name) {
         // create html
-        var url = Retina.WidgetInstances.NotebookDashboard[index].nb_server+'/'+uuid;
+        var url = stm.Config.notebook_server+'/'+uuid;
         var li_elem  = '<li class="active" id="'+uuid+'_li"><a data-toggle="tab" href="#'+uuid+'_tab" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].builder_widget.nb_created(\''+uuid+'\');">'+name+'<i class="icon-remove" onclick="jQuery(\'#notebook_to_close\').val(\''+uuid+'\');jQuery(\'#nb_close_modal\').modal(\'show\');" style="position: relative; left: 5px; bottom: 4px;"></a></li>';
         var div_elem = '<div id="'+uuid+'_tab" class="tab-pane active"><iframe id="'+uuid+'" src="'+url+'" width="95%" height="750">Your Browser does not support iFrames</iframe></div>';
         // add tab
@@ -419,11 +432,11 @@
         var uuid_nbs = {};
         var all_nbs  = stm.DataStore["notebook"];
         for (var id in all_nbs) {
-            var uuid = all_nbs[id].uuid;
+            var uuid = all_nbs[id].nbid;
             if (! (uuid && id && all_nbs[id].name)) {
                 continue;
             }
-            if (uuid == Retina.WidgetInstances.NotebookDashboard[index].nb_template) {
+            if (uuid == stm.Config.template_nbid) {
                 Retina.WidgetInstances.NotebookDashboard[index].nb_template_id = id;
                 continue;
             }
@@ -441,11 +454,12 @@
             uuid_nbs[u].sort( function(a,b) {
                 return (a.created < b.created) ? 1 : ((b.created < a.created) ? -1 : 0);
             });
+            // remove deleted
             if (uuid_nbs[u][0].status == 'deleted') {
                 delete uuid_nbs[u];
                 continue;
             }
-            if (uuid_nbs[u][0].permission == 'edit') {
+            if ((uuid_nbs[u][0].permission == 'edit') && ((uuid_nbs[u][0].status == 'public') || (uuid_nbs[u][0].status == 'private'))) {
                 editable_nbs.push(uuid_nbs[u][0]);
             }
             current_nbs.push(uuid_nbs[u][0]);
@@ -541,7 +555,7 @@ pre {\
     widget.perform_login = function (index) {
 	    var login = document.getElementById('login').value;
 	    var pass = document.getElementById('password').value;
-	    var auth_url = "http://api.metagenomics.anl.gov/api2.cgi/?auth=kbgo4711"+Retina.Base64.encode(login+":"+pass);
+	    var auth_url = stm.Config.mgrast_api+'?auth='+stm.Config.globus_key+Retina.Base64.encode(login+":"+pass);
 	    jQuery.get(auth_url, function(data) {
             var d = JSON.parse(data);
 	        if (data && d && d.token) {
@@ -566,6 +580,7 @@ pre {\
     widget.perform_logout = function (index) {
 	    document.getElementById('login_name_span').style.display = "";
 	    document.getElementById('login_name').innerHTML = "";
+	    stm.Authentication = undefined;
 	    stm.delete_object_type('metagenome');
 	    Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
 	    Retina.WidgetInstances.NotebookDashboard[index].builder_widget.display({target: document.getElementById('data_builder_div')});
