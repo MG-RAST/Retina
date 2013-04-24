@@ -69,7 +69,7 @@
 	    }
 	    document.getElementsByTagName('head')[0].appendChild(link);
 	    var dash_html = '\
-	        <button class="btn" type="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" data-toggle="button" style="width: 150px; position: absolute; top: 60px; right: 90px;">'+params.builder+'</button>\
+	        <button id="builder_btn" class="btn" type="button" onclick="if(this.className==\'btn\'){document.getElementById(\'data_pick\').style.display=\'\';}else{document.getElementById(\'data_pick\').style.display=\'none\';}" data-toggle="button" style="width: 150px; position: absolute; top: 60px; right: 90px;">'+params.builder+'</button>\
                 <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[1].export_visual(1, null, true);" title="show full notebook text in new window" style="position: absolute; top: 60px; right: 50px;">\
                    <i class="icon-align-justify icon-white"></i>\
                 </button>\
@@ -180,7 +180,9 @@
         jQuery('#'+iframe_div).html(iframe_html);
 	    
 	    widget.builder_widget = Retina.Widget.create(params.builder, { target: document.getElementById('data_builder_div') });
-	    widget.nb_type = widget.builder_widget.nb_type;
+	    if (widget.builder_widget.nb_type) {
+	        widget.nb_type = widget.builder_widget.nb_type;
+        }
 	
 	    // create empty renderers
         widget.nb_primary_list = Retina.Renderer.create('listselect', { "target": document.getElementById('nb_primary_div'),
@@ -357,8 +359,9 @@
             stm.get_objects({"repository": "mgrast", "type": "notebook", "id": Retina.WidgetInstances.NotebookDashboard[index].nb_template_id+'/'+new_uuid, "options": {"verbosity": "minimal", "name": new_name, "type": Retina.WidgetInstances.NotebookDashboard[index].nb_type}}).then(function () {
                 Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
                 setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+new_uuid+"','"+new_name.replace(/'/g, "\\'")+"')", 1000);
+                jQuery('#new_nb_name').val("");
                 jQuery('#nb_select_modal').modal('hide');
-                document.getElementById('data_pick').style.display='';
+                jQuery('#builder_btn').click();
             });
         }
     };
