@@ -230,6 +230,7 @@
         Retina.WidgetInstances.NotebookDashboard[index].nb_copy_list.render();
         Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.settings.data = [];
         Retina.WidgetInstances.NotebookDashboard[index].nb_ver_list.render();
+        jQuery('#nb_primary_tbl').html("");
 
         // get 'generic' notebooks
         var opts = {"verbosity": "minimal", "limit": 0, "type": "generic"};
