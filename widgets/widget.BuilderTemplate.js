@@ -12,9 +12,8 @@
         }
     });
 
-    // this can be accessed anywhere within this widget
-    // or through a reference to this widget
-    // widget.someVariable = 'someValue';
+    // notebook type - rename this for the type this builder works with
+    widget.nb_type = 'generic';
 
     // this will be called by Retina automatically to initialize the widget
     // note that the display function will not be called until this is finished

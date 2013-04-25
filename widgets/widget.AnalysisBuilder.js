@@ -8,6 +8,8 @@
         }
     });
     
+    // notebook type
+    widget.nb_type = 'analysis';
     // nb_id -> data_variable_name -> { 'type': viz_type, 'parent': sample_variable_name }
     widget.used_variables = {};
     // nb_id -> sample_variable_name -> { 'type': data_type, 'data': [ data_ids ] }

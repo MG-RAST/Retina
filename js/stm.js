@@ -11,7 +11,7 @@
     stm.SourceOrigin = "*";
     stm.TargetOrigin = "*";
     stm.Authentication = null;
-    
+    stm.Config = RetinaConfig;
 
     // receive messages sent from other frames
     //window.addEventListener("message", receiveMessage, false);
@@ -39,7 +39,7 @@
 	else {
 	    alert('invalid message received');
 	}
-    }
+    };
 
     // send data to another iframe
     stm.send_message = function (frame, data, type, no_clear) {
@@ -98,17 +98,17 @@
     
     // set up / reset the DataHandler, adding initial repositories
     stm.init = function (repo, nocheck, name) {
-	stm.DataStore = [];
-	stm.TypeData = [];
-	stm.TypeData['object_count'] = [];
-	stm.TypeData['type_count'] = 0;
-	CallbackList = [];
-	stm.DataRepositories = [];
-	stm.DataRepositoriesCount = 0;
-	stm.DataRepositoryDefault = null;
-	if (repo) {
-	    return stm.add_repository(repo, null, nocheck, name);
-	}
+	    stm.DataStore = [];
+	    stm.TypeData = [];
+	    stm.TypeData['object_count'] = [];
+	    stm.TypeData['type_count'] = 0;
+	    CallbackList = [];
+	    stm.DataRepositories = [];
+	    stm.DataRepositoriesCount = 0;
+	    stm.DataRepositoryDefault = null;
+	    if (repo) {
+	        return stm.add_repository(repo, null, nocheck, name);
+	    }
     };
     
     // generic data loader
