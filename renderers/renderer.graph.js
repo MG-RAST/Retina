@@ -98,6 +98,8 @@
         index  - the zero based index of this bar within its series
         series_index - the zero based index of this series
 
+  normalize_stacked_area (boolean)
+      If set to false the stacked area chart will not normalize the values
 */
 (function () {
     var renderer = Retina.Renderer.extend({
@@ -130,6 +132,7 @@
 		'legend_position': 'left',
 		'show_grid': false,
 		'short_axis_labels': false,
+		'normalize_stacked_area': true,
 		'width': 800,
 		'height': 400,
 		'data': [ ] }
@@ -229,6 +232,7 @@
 	    svg.linearGradient(defs, 'fadePurple', [[0, '#ee5be0'], [1, '#bd2fa6']]);
 
 	    svg.graph.shortAxisLabels = renderer.settings.short_axis_labels;
+	    svg.graph.normalizeStackedArea = renderer.settings.normalize_stacked_area;
 
 	    svg.graph.noDraw().title(renderer.settings.title, renderer.settings.title_color, renderer.settings.title_settings);
 	    svg.graph.noDraw().format('white', renderer.settings.show_grid ? 'gray' : 'white' );
