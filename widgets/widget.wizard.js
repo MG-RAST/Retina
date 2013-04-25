@@ -405,6 +405,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    }
 
 	    document.getElementById('result_settings_div').innerHTML = "<p style='width: 940px; margin-bottom: 30px;'>The table below shows you the expected genome coverage and the percentage of detected proteins for your selected samples. The result shown should be taken as a rough estimate.</p>\
+  <p style='width: 940px; margin-bottom: 30px;'>This tool is designed to work for Bacteria and Archaea, while the underlying technology might work for Viruses and Eukarya as well, we have not tested it. The tool is therefore limited to Bacteria and Archaea. We assume an average genome size of 3MBp.</p>\
   <p class='alert alert-success' style='width: 680px; margin-right: 10px; float: left;'><b>green</b> strong assembly candidate - enables comparative analysis - every core metabolism protein annotated<br>coverage >= 30 fold</p>\
   <p class='alert alert-info' style='width: 680px; margin-right: 10px; float: left;'><b>blue</b> weak assembly candidate - enables comparative analysis - likely every core metabolism proteins annotated.<br>coverage >= 1 fold - at least 95% proteins detected</p>\
   <p class='alert alert-warning' style='width: 680px; margin-right: 10px; float: left;'><b>yellow</b> no assembly - likely >50% core metabolism proteins annotated<br>coverage >= 0.5 fold - at least 50% proteins detected</p>\
@@ -773,7 +774,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	for (h=0;h<ids.length;h++) {
 	    var data = stm.DataStore.abundanceprofile[ids[h]+"_"+type+"_"+source];
 	    for (i=0;i<data.data.length;i++) {
-		if (params.filter_bacteria && (data.rows[i].metadata[md_field][0] != 'Bacteria')) {
+		if (params.filter_bacteria && ((data.rows[i].metadata[md_field][0] != 'Bacteria') && (data.rows[i].metadata[md_field][0] != 'Archaea'))) {
 		    continue;
 		}
 		if (! td.hasOwnProperty(data.rows[i].metadata[md_field][level - 1])) {
