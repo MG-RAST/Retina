@@ -2616,9 +2616,16 @@
 	_drawAreas: function(graph, numSer, numVal, dims, xScale, yScale) {
 	    var totals = graph._getTotals();
 	    var accum = [];
+	    var max = 0;
+	    for (var i=0;i<totals.length;i++) {
+		if (totals[i] > max) {
+		    max = totals[i];
+		}
+	    }
 	    for (var i = 0; i < numVal; i++) {
 		accum[i] = 0;
 	    }
+
 	    var paths = [];
 	    for (var s = 0; s < numSer; s++) {
 		paths[s] = "";
@@ -2626,19 +2633,28 @@
 		for (var i = 0; i < series._values.length; i++) {
 		    accum[i] += series._values[i];
 		    paths[s] += (i===0) ? "M" : "L";
-		    paths[s] += (dims[graph.X] + xScale * i) + "," + (dims[graph.Y] + yScale * (totals[i] - accum[i]) / totals[i]);
+		    var yVal = (dims[graph.Y] + yScale * (totals[i] - accum[i]) / totals[i]);
+		    if (! graph.normalizeStackedArea) {
+			yVal = dims[graph.Y] + yScale - (yScale / max * (accum[i] - series._values[i]));
+		    }
+		    paths[s] += (dims[graph.X] + xScale * i) + "," + yVal;
 		    if (i == series._values.length - 1) {
-			paths[s] += "L" + (dims[graph.X] + xScale * (i+1)) + "," + (dims[graph.Y] + yScale * (totals[i] - accum[i]) / totals[i]);
+			paths[s] += "L" + (dims[graph.X] + xScale * (i+1)) + "," + yVal;
 		    }
 		}
-		if (s===0) {
+
+		if (s===0 && graph.normalizeStackedArea) {
 		    paths[s] += "L"+(dims[graph.X] + xScale * series._values.length)+","+(dims[graph.Y] + dims[graph.H])+"L"+dims[graph.X]+","+(dims[graph.Y] + dims[graph.H]);
 		} else {
 		    for (var i = series._values.length - 1; i > -1 ; i--) {
-			if (i == series._values.length - 1) {
-			    paths[s] += "L" + (dims[graph.X] + xScale * (i+1)) + "," + (dims[graph.Y] + yScale * (totals[i] - accum[i] + series._values[i]) / totals[i]);
+			var yVal = (dims[graph.Y] + yScale * (totals[i] - accum[i] + series._values[i]) / totals[i]);
+			if (! graph.normalizeStackedArea) {
+			    yVal = dims[graph.Y] + yScale - (yScale / max * accum[i]);
 			}
-			paths[s] += "L"+(dims[graph.X] + xScale * i) + "," + (dims[graph.Y] + yScale * (totals[i] - accum[i] + series._values[i]) / totals[i]);
+			if (i == series._values.length - 1) {
+			    paths[s] += "L" + (dims[graph.X] + xScale * (i+1)) + "," + yVal;
+			}
+			paths[s] += "L"+(dims[graph.X] + xScale * i) + "," + yVal;
 		    }
 		}
 	    }
