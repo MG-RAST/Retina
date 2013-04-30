@@ -84,7 +84,7 @@
     widget.perform_login = function (index) {
 	var login = document.getElementById('login').value;
 	var pass = document.getElementById('password').value;
-	var auth_url = "http://api.metagenomics.anl.gov/api2.cgi/?auth=kbgo4711"+Retina.Base64.encode(login+":"+pass);
+	var auth_url = stm.Config.mgrast_api+'?auth='+stm.Config.globus_key+Retina.Base64.encode(login+":"+pass);
 	jQuery.get(auth_url, function(data) {
             var d = JSON.parse(data);
 	    if (data && d && d.token) {
