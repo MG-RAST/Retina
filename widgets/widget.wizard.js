@@ -48,7 +48,7 @@
 <p id="progressBar"></p>\
 </div>';
 	    target.appendChild(progress);
-	    jQuery.getJSON('data/mg_migs_public.json', function(data) {
+	    jQuery.getJSON('data/mg_mixs_public.json', function(data) {
 		for (var d in data) {
                     if (data.hasOwnProperty(d)) {
 			stm.load_data({"data": data[d], "type": d});
@@ -56,7 +56,7 @@
 		}
 		widget.display(wparams);
             }).fail( function() {
-		stm.get_objects({"type": "metagenome", "options": {"status": "public", "verbosity": "migs", "limit": 0}}).then(function() {
+		stm.get_objects({"type": "metagenome", "options": {"status": "public", "verbosity": "mixs", "limit": 0}}).then(function() {
                     widget.display(wparams);
 		});
 	    });
@@ -526,8 +526,8 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	var series = [];
 	var new_points = [];
 	for (i=0;i<widget.ids.length;i++) {
-	    if (stm.DataStore.metagenome[widget.ids[i]].hasOwnProperty(datum) || (stm.DataStore.metagenome[widget.ids[i]].migs && stm.DataStore.metagenome[widget.ids[i]].migs.hasOwnProperty(datum))) {
-		var check = stm.DataStore.metagenome[widget.ids[i]].hasOwnProperty(datum) ? stm.DataStore.metagenome[widget.ids[i]][datum] : stm.DataStore.metagenome[widget.ids[i]].migs[datum];
+	    if (stm.DataStore.metagenome[widget.ids[i]].hasOwnProperty(datum) || (stm.DataStore.metagenome[widget.ids[i]].mixs && stm.DataStore.metagenome[widget.ids[i]].mixs.hasOwnProperty(datum))) {
+		var check = stm.DataStore.metagenome[widget.ids[i]].hasOwnProperty(datum) ? stm.DataStore.metagenome[widget.ids[i]][datum] : stm.DataStore.metagenome[widget.ids[i]].mixs[datum];
 		if (! md.hasOwnProperty(check)) {
 		    md[check] = colorcount;
 		    series.push({ name: check, color: colors[colorcount], shape: 'circle', filled: true });
@@ -672,8 +672,8 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    grouper.innerHTML = "<table><tr><td><h3 style='margin-top: 35px;'>current selection</h3><select multiple id='pcoa_group_list' size=12></select><h3>group name</h3><div class='input-append'><input type='text' id='pcoa_group_name' value='group 1'><button class='btn' onclick='Retina.WidgetInstances.wizard[1].assign_group()'>assign group</button></div></td><td style='vertical-align: top;padding-top: 35px;'><h3>metadata</h3><div class='input-append'><select id='pcoa_metadata_select'></select><button class='btn' onclick='Retina.WidgetInstances.wizard[1].color_pcoa();'>color PCoA</button></div></td></tr></table>";
 	    
 	    var opts = "<option>group</option>";
-	    for (i in stm.DataStore.metagenome[widget.ids[0]].migs) {
-		if (stm.DataStore.metagenome[widget.ids[0]].migs.hasOwnProperty(i)) {
+	    for (i in stm.DataStore.metagenome[widget.ids[0]].mixs) {
+		if (stm.DataStore.metagenome[widget.ids[0]].mixs.hasOwnProperty(i)) {
 		    opts += "<option>"+i+"</option>";
 		}
 	    }
