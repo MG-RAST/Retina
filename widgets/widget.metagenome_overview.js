@@ -72,7 +72,7 @@
 	    { type: 'paragraph', data: 'piechart_footnote' },
 	    { type: 'paragraph', data: 'project_information' },
 	    { type: 'paragraph', data: 'analysis_statistics' },
-	    { type: 'paragraph', data: 'migs_metadata' },
+	    { type: 'paragraph', data: 'mixs_metadata' },
 	    { type: 'paragraph', data: 'drisee_introtext' },
 	    (widget.curr_mg.sequence_type == 'Amplicon') ? null: { type: 'plot', data: 'drisee_plot', category: 'drisee' },
 	    { type: 'paragraph', data: 'kmer_introtext' },
@@ -195,7 +195,7 @@
     widget.metagenome_modal = function(index, target) {
         jQuery('#mg_modal').modal('show');
         if (! Retina.WidgetInstances.metagenome_overview[index].mg_select_list) {
-            jQuery.getJSON('data/mg_migs_public.json', function(data) {
+            jQuery.getJSON('data/mg_mixs_public.json', function(data) {
                 for (var d in data) {
                     if (data.hasOwnProperty(d)) {
                         stm.load_data({"data": data[d], "type": d});
@@ -203,7 +203,7 @@
                 }
                 Retina.WidgetInstances.metagenome_overview[index].metagenome_selector(index, target);
             }).fail( function() {
-                stm.get_objects({"type": "metagenome", "options": {"verbosity": "migs", "limit": 0}}).then(function() {
+                stm.get_objects({"type": "metagenome", "options": {"verbosity": "mixs", "limit": 0}}).then(function() {
                     Retina.WidgetInstances.metagenome_overview[index].metagenome_selector(index, target);
                 });
             });
@@ -325,7 +325,7 @@
 			             { fancy_table: { data: [
 			                 [ "<a href='#project_information'>Project</a>" ],
 			                 [ "<a href='#analysis_statistics'>Statistics</a>" ],
-			                 [ "<a href='#migs_metadata'>MIxS Metadata</a>" ],
+			                 [ "<a href='#mixs_metadata'>MIxS Metadata</a>" ],
 			                 [ "<a href='#drisee_introtext'>DRISEE</a>" ],
 			                 [ "<a href='#kmer_introtext'>Kmer Profile</a>" ],
 			                 [ "<a href='#bp_introtext'>Nucleotide Histogram</a>" ],
@@ -794,8 +794,8 @@
 			            ] };
     };
     
-    widget.migs_metadata = function(index, hide_link) {
-        var md = Retina.WidgetInstances.metagenome_overview[index].curr_mg.migs;
+    widget.mixs_metadata = function(index, hide_link) {
+        var md = Retina.WidgetInstances.metagenome_overview[index].curr_mg.mixs;
         var data = { width: "span6",
 		             style: "float: right;",
 		             data: [ { header: "GSC MIxS Info" },

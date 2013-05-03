@@ -75,7 +75,7 @@
 <p id="progressBar"></p>\
 </div>';
         params.target.innerHTML = progress;
-	    stm.get_objects({"repository": "mgrast", "type": "metagenome", "options": {"status": "private", "verbosity": "migs", "limit": 0}}).then(function() {
+	    stm.get_objects({"repository": "mgrast", "type": "metagenome", "options": {"status": "private", "verbosity": "mixs", "limit": 0}}).then(function() {
             Retina.WidgetInstances.AnalysisBuilder[0].display(params);
         });
     };
@@ -107,7 +107,7 @@
         return;
 	}
 	if (! stm.DataStore.hasOwnProperty('metagenome')) {
-	    jQuery.getJSON('data/mg_migs_public.json', function(data) {
+	    jQuery.getJSON('data/mg_mixs_public.json', function(data) {
 	        for (var d in data) {
                 if (data.hasOwnProperty(d)) {
                     stm.load_data({"data": data[d], "type": d});
@@ -115,7 +115,7 @@
             }
             widget.display(params);
         }).fail( function() {
-            stm.get_objects({"repository":"mgrast","type":"metagenome","options":{"status":"public","verbosity":"migs","limit":'0'}}).then(function () {
+            stm.get_objects({"repository":"mgrast","type":"metagenome","options":{"status":"public","verbosity":"mixs","limit":'0'}}).then(function () {
                 widget.display(params);
             });
         });
