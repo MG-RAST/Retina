@@ -176,7 +176,7 @@
     widget.metagenome_modal = function(index, target) {
         jQuery('#mg_modal').modal('show');
         if (! Retina.WidgetInstances.collection_overview[index].mg_select_list) {
-            jQuery.getJSON('data/mg_migs_public.json', function(data) {
+            jQuery.getJSON('data/mg_mixs_public.json', function(data) {
                 for (var d in data) {
                     if (data.hasOwnProperty(d)) {
                         stm.load_data({"data": data[d], "type": d});
@@ -184,7 +184,7 @@
                 }
                 Retina.WidgetInstances.collection_overview[index].metagenome_selector(index, target);
             }).fail( function() {
-                stm.get_objects({"type": "metagenome", "options": {"verbosity": "migs", "limit": 0}}).then(function() {
+                stm.get_objects({"type": "metagenome", "options": {"verbosity": "mixs", "limit": 0}}).then(function() {
                     Retina.WidgetInstances.collection_overview[index].metagenome_selector(index, target);
                 });
             });
@@ -685,16 +685,16 @@
                       ["Sequencing Method"] ];
             options = { 'sorted': false, 'disable_sort': {}, 'hide_options': true, 'rows_per_page': tdata.length, 'filter': {} };
             for (var m in mgs) {
-                tdata[0].push( mgs[m].migs['sequence_type'] );
-                tdata[1].push( mgs[m].migs['project'] );
-                tdata[2].push( mgs[m].migs['latitude']+" , "+mgs[m].migs['longitude'] );
-                tdata[3].push( mgs[m].migs['country']+" , "+mgs[m].migs['location'] );
-                tdata[4].push( mgs[m].migs['collection_date'] );
-                tdata[5].push( mgs[m].migs['biome'] );
-                tdata[6].push( mgs[m].migs['feature'] );
-                tdata[7].push( mgs[m].migs['material'] );
-                tdata[8].push( mgs[m].migs['package'] );
-                tdata[9].push( mgs[m].migs['seq_method'] );
+                tdata[0].push( mgs[m].mixs['sequence_type'] );
+                tdata[1].push( mgs[m].mixs['project'] );
+                tdata[2].push( mgs[m].mixs['latitude']+" , "+mgs[m].mixs['longitude'] );
+                tdata[3].push( mgs[m].mixs['country']+" , "+mgs[m].mixs['location'] );
+                tdata[4].push( mgs[m].mixs['collection_date'] );
+                tdata[5].push( mgs[m].mixs['biome'] );
+                tdata[6].push( mgs[m].mixs['feature'] );
+                tdata[7].push( mgs[m].mixs['material'] );
+                tdata[8].push( mgs[m].mixs['package'] );
+                tdata[9].push( mgs[m].mixs['seq_method'] );
             }
             break;
             case 'metadata':

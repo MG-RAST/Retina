@@ -39,7 +39,7 @@
 <p id="progressBar"></p>\
 </div>';
 	    target.appendChild(progress);
-	    stm.get_objects( { type: 'metagenome', options: { verbosity: 'migs', limit: 0 } } ).then(function(){widget.display(wparams);});
+	    stm.get_objects( { type: 'metagenome', options: { verbosity: 'mixs', limit: 0 } } ).then(function(){widget.display(wparams);});
 	    return;
 	}
 	
