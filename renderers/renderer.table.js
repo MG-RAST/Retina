@@ -168,7 +168,8 @@
 	      if (renderer.settings.sort_autodetect) {
 		  for (var i=0; i<header.length; i++) {
 		      if (!renderer.settings.sorttype[i]) {
-			  if (isNaN(parseFloat(tdata[0][header[i]]))) {
+			  var testval = tdata[0][header[i]].replace(/<(.|\n)*?>/g, "");
+			  if (isNaN(parseFloat(testval))) {
 			      renderer.settings.sorttype[i] = "string";
 			  } else {
 			      renderer.settings.sorttype[i] = "number";
@@ -505,26 +506,26 @@
 	      if (renderer.settings.sorted) {
 		  disp = tdata;
 	      } else {
-		  disp = tdata.sort(function (a,b) {
+		  disp = tdata.sort(function (a,b) {		      
 		      if (sortdir == 'desc') {
 			  var c = a; a=b; b=c;
 		      }
 		      if (sorttype[sortcol]) {
 			  switch (sorttype[sortcol]) {
 			  case "number":
-			      if (parseFloat(a[header[sortcol]])==parseFloat(b[header[sortcol]])) return 0;
-			      if (parseFloat(a[header[sortcol]])<parseFloat(b[header[sortcol]])) return -1;
+			      if (parseFloat(a[header[sortcol]].replace(/<(.|\n)*?>/g, ""))==parseFloat(b[header[sortcol]].replace(/<(.|\n)*?>/g, ""))) return 0;
+			      if (parseFloat(a[header[sortcol]].replace(/<(.|\n)*?>/g, ""))<parseFloat(b[header[sortcol]].replace(/<(.|\n)*?>/g, ""))) return -1;
 			      return 1;
 			      break;
 			  case "string":
-			      if (a[header[sortcol]]==b[header[sortcol]]) return 0;
-			      if (a[header[sortcol]]<b[header[sortcol]]) return -1;
+			      if (a[header[sortcol]].replace(/<(.|\n)*?>/g, "")==b[header[sortcol]].replace(/<(.|\n)*?>/g, "")) return 0;
+			      if (a[header[sortcol]].replace(/<(.|\n)*?>/g, "")<b[header[sortcol]].replace(/<(.|\n)*?>/g, "")) return -1;
 			      return 1;
 			      break;
 			  }
 		      } else {
-			  if (a[header[sortcol]]==b[header[sortcol]]) return 0;
-			  if (a[header[sortcol]]<b[header[sortcol]]) return -1;
+			  if (a[header[sortcol]].replace(/<(.|\n)*?>/g, "")==b[header[sortcol]].replace(/<(.|\n)*?>/g, "")) return 0;
+			  if (a[header[sortcol]].replace(/<(.|\n)*?>/g, "")<b[header[sortcol]].replace(/<(.|\n)*?>/g, "")) return -1;
 			  return 1;
 		      }
 		  });
