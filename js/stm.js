@@ -473,11 +473,23 @@
 	}
 	dstring = dstring.slice(0,-1);
 	dstring += "}";
-	var w = window.open('', '_blank', '');
+	stm.saveAs(dstring,"session.dump");
+	/*var w = window.open('', '_blank', '');
 	w.document.open();
 	w.document.write(dstring);
 	w.document.close();
-	w.document.title = "session.dump";
+	w.document.title = "session.dump";*/
+    };
+
+    // save as dialog
+    stm.saveAs = function (data, filename) {
+	data = 'data:application/octet-stream;base64,' + window.btoa(data);
+	var anchor = document.createElement('a');
+	anchor.setAttribute('download', filename || "download.txt");
+	anchor.setAttribute('href', data);
+	document.body.appendChild(anchor);
+	anchor.click();
+	document.body.removeChild(anchor);
     };
 
 }).call(this);
