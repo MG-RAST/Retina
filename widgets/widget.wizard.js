@@ -184,7 +184,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 <div class="tab-pane active span10" id="welcome" style="padding-left: 15px;"><h2 style="margin-bottom: 15px;">Wizard Steps</h2><p style="margin-bottom: 20px;">The Experimental Design Wizard consists of three steps. You can get to the next step by clicking the <b>next</b> button, or by selecting the appropriate tab above. You can always go back to the previous steps to adjust your selections. The steps are:</p>\
 <ul style="margin-left: 150px; margin-top: 50px; list-style: none;">\
     <li>'+widget.number('1')+'<p style="width: 600px;"><b>Sample Subselection</b><br>In this section you can group and subselect your samples based on metadata, the results of a preliminary comparative analysis (PCoA), or any other criteria you choose.</p><br><br></li>\
-    <li>'+widget.number('2')+'<p style="width: 600px;padding-left: 36px;"><b>Sequence Depth Estimation Summary</b><br>This tool provides a summary that indicates the likelihood that you will be able to generate an assembly for each taxa as well as the expected proportion of proteins that should be annotated in each taxa without assembly.<br>Estimates are based on the composition of your 16s and typical settings for and Illumina-based WGS sequencing run.</p><br><br></li>\
+    <li>'+widget.number('2')+'<p style="width: 600px;padding-left: 36px;"><b>Sequence Depth Estimation Summary</b><br>This tool provides a summary that indicates the likelihood that you will be able to generate an assembly for each taxa as well as the expected proportion of proteins that should be annotated in each taxa without assembly.<br>Estimates use <a href="http://www.ncbi.nlm.nih.gov/pubmed/3294162" target=_blank>Lander Waterman based metrics</a>, the composition of your 16s samples, and typical settings for and Illumina-based WGS sequencing run.</p><br><br></li>\
     <li>'+widget.number('3')+'<p style="width: 600px;"><b>Sequence Depth Detailed Reports</b><br>Here you can access the complete assembly and gene detection predictions for all taxa in each of your samples.</p><br><br></li>\
 </ul>\
 <p style="margin-bottom: 20px;"><button class="btn btn-large" style="margin-left: 250px;" onclick="if(confirm(\'Really return to the sample selection?\\nThe statistical data will have to be reloaded.\')){window.top.location=\'wizard.html\';}"><i class="icon-backward" style="position: relative; top: 2px;"></i> previous</button><button class="btn btn-large" style="margin-left: 20px;" onclick="document.getElementById(\'tab_pcoa\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></p></div>\
@@ -203,7 +203,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 
     widget.render_result = function () {
 	var target = document.getElementById('result');
-	target.innerHTML = "<button class='btn btn-large' style='position: absolute; top: 180px; left: 1100px;' onclick='document.getElementById(\"tab_depth\").click();'> <i class='icon-backward' style='position: relative; top: 2px;'></i> previous</button><h2 style='margin-bottom: 10px;'>Sequence Depth Detailed Reports</h2><div id='result_settings_div'></div><div id='result_table_div'></div>";
+	target.innerHTML = "<button class='btn btn-large' style='position: absolute; top: 180px; left: 1100px;' onclick='document.getElementById(\"tab_depth\").click();'> <i class='icon-backward' style='position: relative; top: 2px;'></i> previous</button><h2 style='margin-bottom: 10px;'>Sequence Depth Detailed Reports</h2><div id='result_settings_div'></div><input type='button' class='btn' value='download table data' onclick='stm.saveAs(stm.DataStore.intermediate[\"result\"],\"sequence depth detailed report.csv\");' style='float: right; margin-right: 10px;margin-bottom: 10px;'><div id='result_table_div'></div>";
 
 	
     }
@@ -332,16 +332,17 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    var result_table_data = [];
 	    var result_table_header = [ 'genus' ];
 	    var genus_rows_hash = [];
-	    var ds = [false];
+	    var ds = ['string'];
 	    for (h=0;h<show_ids.length;h++) {		
 		rows.sort(function(a,b){return b[h+1] - a[h+1];});
 		var name = stm.DataStore.metagenome[show_ids[h]].name;
 		result_table_header.push(name + ' coverage');
 		result_table_header.push(name + ' proteins');
-		ds.push(true);
-		ds.push(true);
+		ds.push('number');
+		ds.push('number');
 		var d = [];
 		var fills = [];
+		var dumpstore = name+" abundance data\n";
 		label_data.push([]);
 		for (i=0;i<rows.length;i++) {
 		    if (! genus_rows_hash[rows[i][0]]) {
@@ -372,15 +373,21 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 			genus_rows_hash[rows[i][0]][h] = [ "<span style='color: "+colors[1]+";'>"+cov+"</span>", "<span style='color: "+colors[1]+";'>"+landerwaterman.percent_proteins_detected+"%</span>" ];
 		    }
 		    label_data[h].push(rows[i][0]);
+		    dumpstore += rows[i][0]+"\t"+cell_val+"\n";
 		}
-		
+
+		if (! stm.DataStore.hasOwnProperty('intermediate')) {
+		    stm.DataStore['intermediate'] = {};
+		}
+		stm.DataStore.intermediate[name] = dumpstore;
+
 		graph_data.push( [ { name: name, data: d, fill: fills } ] );
 		widget.name_id_hash[name] = h;
 		var group = '';
 		if (stm.DataStore.metagenome[show_ids[h]].group && stm.DataStore.metagenome[show_ids[h]].group != '-') {
 		    group = ' ('+stm.DataStore.metagenome[show_ids[h]].group+')';
 		}
-		spaces += "<tr><td><div id='abundance_result"+h+"'></div></td><td style='vertical-align: top;'><h4>"+name+group+"</h4><div id='abundance_result_detail"+h+"'></div></td></tr>";
+		spaces += "<tr><td><div id='abundance_result"+h+"'></div></td><td style='vertical-align: top;'><h4>"+name+group+" <input type='button' value='download data' onclick='stm.saveAs(stm.DataStore.intermediate[\""+name+"\"],\""+name+"-abundances.csv\");' class='btn' style='margin-left: 20px;'></h4><div id='abundance_result_detail"+h+"'></div></td></tr>";
 	    }
 	    var genuses = Retina.keys(genus_rows_hash).sort();
 	    var numsamples = show_ids.length;
@@ -404,13 +411,22 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 		numseqtext = num_reads + " sequences";
 	    }
 
-	    document.getElementById('result_settings_div').innerHTML = "<p style='width: 940px; margin-bottom: 30px;'>The table below shows you the expected genome coverage and the percentage of detected proteins for your selected samples. The result shown should be taken as a rough estimate.</p>\
+	    document.getElementById('result_settings_div').innerHTML = "<p style='width: 940px; margin-bottom: 30px;'>The table below shows you the expected genome coverage and the percentage of detected proteins for your selected samples. The results shown should be taken as a rough estimate.</p>\
   <p style='width: 940px; margin-bottom: 30px;'>This tool is designed to work for Bacteria and Archaea, while the underlying technology might work for Viruses and Eukarya as well, we have not tested it. The tool is therefore limited to Bacteria and Archaea. We assume an average genome size of 3MBp.</p>\
   <p class='alert alert-success' style='width: 680px; margin-right: 10px; float: left;'><b>green</b> strong assembly candidate - enables comparative analysis - every core metabolism protein annotated<br>coverage >= 30 fold</p>\
-  <p class='alert alert-info' style='width: 680px; margin-right: 10px; float: left;'><b>blue</b> weak assembly candidate - enables comparative analysis - likely every core metabolism proteins annotated.<br>coverage >= 1 fold - at least 95% proteins detected</p>\
+  <p class='alert alert-info' style='width: 680px; margin-right: 10px; float: left;'><b>blue</b> weak assembly candidate - weak assembly candidate - enables comparative analysis - likely every core metabolism protein is annotated.<br>coverage >= 1 fold - at least 95% proteins detected</p>\
   <p class='alert alert-warning' style='width: 680px; margin-right: 10px; float: left;'><b>yellow</b> no assembly - likely >50% core metabolism proteins annotated<br>coverage >= 0.5 fold - at least 50% proteins detected</p>\
-  <p class='alert alert-error' style='width: 680px; margin-right: 10px; float: left;'><b>red</b> no assembly - no meaningful comparison of annotated features<br>coverage less than 0.5 fold or less than 50% proteins detected</p><h3 style='clear: both;'>settings</h3><table style='text-align: left; margin-bottom: 30px;'><tr><th style='padding-right: 15px;'>genome length (#bp)</th><td id='genome_length_mirror'></td></tr><tr><th>run size (#reads)</th><td id='run_size_mirror'></td></tr><tr><th>read length (#bp)</th><td id='read_length_mirror'></td></tr></table>";
-	    
+  <p class='alert alert-error' style='width: 680px; margin-right: 10px; float: left;'><b>red</b> no assembly - meaningful comparison of samples is not possible<br>coverage less than 0.5 fold or less than 50% proteins detected</p><h3 style='clear: both;'>settings</h3><table style='text-align: left; margin-bottom: 30px;'><tr><th style='padding-right: 15px;'>genome length (#bp)</th><td id='genome_length_mirror'></td></tr><tr><th>run size (#reads)</th><td id='run_size_mirror'></td></tr><tr><th>read length (#bp)</th><td id='read_length_mirror'></td></tr></table>";
+
+	    var dumpstore = result_table_header.join("\t")+"\n";
+	    for (i=0;i<result_table_data.length;i++) {
+		dumpstore += result_table_data[i].join("\t").replace(/<(.|\n)*?>/g, "")+"\n";
+	    }
+	    if (! stm.DataStore.hasOwnProperty('intermediate')) {
+		stm.DataStore['intermediate'] = {};
+	    }
+	    stm.DataStore.intermediate['result'] = dumpstore;
+
 	    if (widget.result_table) {
 		widget.result_table.settings.data = { data: result_table_data, header: result_table_header };
 		widget.result_table.settings.tdata = null;
@@ -418,7 +434,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 		widget.result_table = Retina.Renderer.create("table", { target: document.getElementById('result_table_div'),
 									rows_per_page: -1,
 									filter: { 0: { type: "select" } },
-									disable_sort: ds,
+									sorttype: ds,
 									data: { data: result_table_data, header: result_table_header } } );
 		
 	    }
@@ -431,7 +447,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
   <h2>Sequence Depth Estimation Summary</h2>\
   <p>The graphs below show the rank abundance plots for your selected samples. Click on a bar to get details about the individual taxa. You can also change the settings for your WGS sequencing run. Default settings are for half of an Illumina lane with 125bp reads for a genome estimated to be the same size as E coli. These settings can be changed using the dropdown menus to select preprogrammed values or by typing the desired value into the text boxes. Click 'update graphs' to apply new settings.</p>\
   <p class='alert alert-success'>The green bars represent strong assembly candidates. These taxa are present with high enough coverage to enable assembly or comparative analysis of annotated features. It is very likely that every core metabolism protein will be annotated.</p>\
-  <p class='alert alert-info'>The blue bars represent weak assembly candidates. These taxa have an estimated coverage too low to ensure complete assembly, but high enough to enable comparative analysis of annotated features. It is likely that the full set core metabolism proteins will be annotated.</p>\
+  <p class='alert alert-info'>The blue bars represent weak assembly candidates. These taxa have an estimated coverage too low to ensure complete assembly, but high enough to enable comparative analysis of annotated features. It is likely that the full compliment of core metabolism proteins will be annotated.</p>\
   <p class='alert alert-warning'>The yellow bars represent taxa that have an estimated coverage too low for any assembly. It is likely that more than 50% of the core metabolism proteins will be hit.</p>\
   <p class='alert alert-error'>The red bars represent sparse data. The expected abundances for these taxa are too low to enable assembly or meaningful comparison of annotated features.</p>\
 </td><td><button class='btn btn-large' style='margin-left: 250px; margin-top: -70px;' onclick='document.getElementById(\"tab_pcoa\").click();'><i class='icon-backward' style='position: relative; top: 2px;'></i> previous</button><button class='btn btn-large' style='margin-left: 20px; margin-top: -70px;' onclick='document.getElementById(\"tab_result\").click();'>next <i class='icon-forward' style='position: relative; top: 2px;'></i></button><br>\
@@ -664,7 +680,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 <button class="btn alert alert-info btn-large" style="height: 66px;" onclick="document.getElementById(\'use_group_div\').style.display=\'none\';document.getElementById(\'use_representatives_div\').style.display=\'\';document.getElementById(\'use_all_div\').style.display=\'none\';">I expect my samples to form groups that correspond to metadata.<br>I want to pick a representative from each group.</button>\
 <button class="btn alert alert-info btn-large" style="height: 66px;" onclick="document.getElementById(\'use_group_div\').style.display=\'none\';document.getElementById(\'use_representatives_div\').style.display=\'none\';document.getElementById(\'use_all_div\').style.display=\'\';">I want to skip the Groups Tool</button></div></p>\
 <table id="use_group_div" style="display: none; margin-left: 100px;"><tr><td><button class="btn btn-large" style="margin-right: 50px;" onclick="document.getElementById(\'tab_welcome\').click();"> <i class="icon-backward" style="position: relative; top: 2px;"></i> previous</button></td><td><div style="width: 600px; margin-bottom: 0px;" class="alert alert-info"><ul><li>Click-drag a square over the samples in the graph that should be included.<br>The selection will appear in the <b>current selection</b> box</li><li>Click the <b>next</b> button, when you are satisfied with your selection</li></ul></div></td><td><button class="btn btn-large" style="margin-left: 50px;" onclick="var l=[];for(i=0;i<document.getElementById(\'pcoa_group_list\').options.length;i++){l.push(Retina.WidgetInstances.wizard['+index+'].name_mgid_hash[document.getElementById(\'pcoa_group_list\').options[i].value]);}Retina.WidgetInstances.wizard['+index+'].depth_mgs=l;document.getElementById(\'tab_depth\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></td></tr></table>\
-<table id="use_representatives_div" style="display: none; margin-left: 100px;"><tr><td><button class="btn btn-large" style="margin-right: 50px;" onclick="document.getElementById(\'tab_welcome\').click();"> <i class="icon-backward" style="position: relative; top: 2px;"></i> previous</button></td><td><div style="width: 600px; margin-bottom: 0px;" class="alert alert-info"><ul><li>Select the metadata you want to group by and click the <b>color PCoA</b> button</li><li>Click-drag a square over the samples in the graph that should belong to one group.<br>You will see your selection in the <b>current selection</b> box.</li><li>Pick a group name and click the <b>assign group</b> button.<br>Your selection will be reflected in the table below the graph.</li><li>Repeat this step until you have assigned a group to each sample.<br>A representative for each group will be chosen automatically based on best alpha diversity.<br>You can manually change the selection by using the checkboxes in the <b>include</b> column.</li><li>Once you are satisfied with the selection, click the <b>next</b> button to proceed to step 2.</li><li>Selected groupings will appear in the "groups" section of the table beneath the PCoA plot</li><li>You can also edit groupings by typing the desired group names into the table</li></ul></div></td><td><button class="btn btn-large" style="margin-left: 50px;" onclick="document.getElementById(\'tab_depth\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></td></tr></table>\
+<table id="use_representatives_div" style="display: none; margin-left: 100px;"><tr><td><button class="btn btn-large" style="margin-right: 50px;" onclick="document.getElementById(\'tab_welcome\').click();"> <i class="icon-backward" style="position: relative; top: 2px;"></i> previous</button></td><td><div style="width: 600px; margin-bottom: 0px;" class="alert alert-info"><ul><li>Select the metadata you want to group by with the "Metadata" drop-down menu and click the <b>color PCoA</b> button</li><li>Click-drag a square over the samples in the graph that should belong to one group.<br>You will see your selection in the <b>current selection</b> box.</li><li>Pick a group name and click the <b>assign group</b> button.<br>Your selection will be reflected in the table below the graph.</li><li>Repeat this step until you have assigned a group to each sample.<br>A representative for each group will be chosen automatically based on best alpha diversity.<br>You can manually change the selection by using the checkboxes in the <b>include</b> column.</li><li>Once you are satisfied with the selection, click the <b>next</b> button to proceed to step 2.</li><li>Selected groupings will appear in the "groups" section of the table beneath the PCoA plot</li><li>You can also edit groupings by typing the desired group names into the table</li></ul></div></td><td><button class="btn btn-large" style="margin-left: 50px;" onclick="document.getElementById(\'tab_depth\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></td></tr></table>\
 <table id="use_all_div" style="display: none; margin-left: 100px;"><tr><td><button class="btn btn-large" style="margin-right: 50px;" onclick="document.getElementById(\'tab_welcome\').click();"> <i class="icon-backward" style="position: relative; top: 2px;"></i> previous</button></td><td><div style="width: 600px; margin-bottom: 0px;" class="alert alert-info"><ul><li>Click the <b>next</b> button to proceed to step 2 with all samples selected</li></ul></div></td><td><button class="btn btn-large" style="margin-left: 50px;" onclick="Retina.WidgetInstances.wizard['+index+'].depth_mgs=Retina.WidgetInstances.wizard['+index+'].ids;document.getElementById(\'tab_depth\').click();">next <i class="icon-forward" style="position: relative; top: 2px;"></i></button></td></tr></table>\
 </div>';
 
