@@ -313,10 +313,10 @@
 		    break;
 		case 'shock':
 		    var d = JSON.parse(xhr.responseText);
-		    if (d.E == null) {
-			stm.load_data({ "data": d.D, "type": type });
+		    if (d.error == null) {
+			stm.load_data({ "data": d.data, "type": type });
 		    } else {
-			alert(d.E);
+			alert(d.error);
 			console.log(d);
 		    }
 		    break;
