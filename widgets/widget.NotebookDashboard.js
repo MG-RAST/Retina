@@ -556,9 +556,8 @@ pre {\
 	    var login = document.getElementById('login').value;
 	    var pass = document.getElementById('password').value;
 	    var auth_url = stm.Config.mgrast_api+'?auth='+stm.Config.globus_key+Retina.Base64.encode(login+":"+pass);
-	    jQuery.get(auth_url, function(data) {
-            var d = JSON.parse(data);
-	        if (data && d && d.token) {
+	    jQuery.get(auth_url, function(d) {
+	        if (d && d.token) {
 		        var uname = d.token.substr(3, d.token.indexOf('|') - 3);
 		        document.getElementById('login_name_span').style.display = "none";
 		        document.getElementById('login_name').innerHTML = uname;
