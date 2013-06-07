@@ -150,9 +150,15 @@
                                 <div class="row">\
                                     <div id="nb_primary_div" class="span2"></div>\
                                     <div id="nb_primary_tbl" class="span3"></div>\
+                                </div><div style="float:right;">\
+                                    <button class="btn btn-success" style="margin-left:15px;margin-bottom:10px;" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_launch_click('+index+');">Launch</button>\
+                                </div><div style="float:right;">\
+                                    <button class="btn btn-danger" style="margin-left:15px;margin-bottom:10px;" onclick="if(confirm(\'Do you really want to delete this notebook?\')){Retina.WidgetInstances.NotebookDashboard['+index+'].nb_delete_click('+index+');}">Delete</button>\
+                                </div><div id="share_nb" style="float:right;display:none;">\
+                                    <button class="btn btn-info" style="margin-left:15px;margin-bottom:10px;" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_share_click('+index+');">Share</button>\
+                                </div><div id="publish_nb" style="float:right;display:none;">\
+                                    <button class="btn btn-warning" style="margin-left:15px;margin-bottom:10px;" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_publish_click('+index+');">Publish</button>\
                                 </div>\
-                                <div style="float:right;"><button class="btn btn-success" style="margin-left:20px;margin-bottom:10px;" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_launch_click('+index+');">Launch</button></div>\
-                                <div style="float:right;"><button class="btn btn-danger" style="margin-left:20px;margin-bottom:10px;" onclick="if(confirm(\'Do you really want to delete this notebook?\')){Retina.WidgetInstances.NotebookDashboard['+index+'].nb_delete_click('+index+');}">Delete</button></div>\
                             </div>\
                             <div id="copy_nb_tab" class="tab-pane">\
                                 <div class="row">\
@@ -285,47 +291,76 @@
         jQuery('#nb_select_modal').modal('show');
     };
     
-    // delete selected - we make a copy (with new timestamp) flagged as deleted
-    widget.nb_delete_click = function (index) {
-        var sel_nb = Retina.WidgetInstances.NotebookDashboard[index].nb_selected;
+    // helper function
+    widget._nb_click_check = function (index, action) {
         if (sel_nb.length == 0) {
             alert("No notebook is selected");
-            return;
+            return undefined;
         }
         var this_nb  = Retina.WidgetInstances.NotebookDashboard[index].sorted_nbs[sel_nb[0]][0];
         var has_uuid = jQuery('#'+this_nb.nbid);
         if (has_uuid.length > 0) {
-            alert('Notebook '+this_nb.name+' ('+this_nb.nbid+') is already open.\nPlease close tab if you wish to delete.');
-            return;
+            alert('Notebook '+this_nb.name+' ('+this_nb.nbid+') is currently open.\nPlease close tab if you wish to '+action);
+            return undefined;
         }
-        // if ((this_nb.permission == 'view') || (this_nb.status == 'public')) {
         if (this_nb.permission == 'view') {
-            alert('Insufficient permissions to delete notebook '+this_nb.name+' ('+this_nb.nbid+')');
-            return;
+            alert('Insufficient permissions to '+action+' notebook '+this_nb.name+' ('+this_nb.nbid+')');
+            return undefined;
         }
-        // now we delete
-        stm.get_objects({"repository": "mgrast", "type": "notebook", "id": 'delete/'+this_nb.nbid, "options": {"verbosity": "minimal"}}).then(function () {
-            Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
-            alert('Deleted notebook '+this_nb.name+' ('+this_nb.nbid+')');
-        });
+        if (((action == 'share') || (action == 'publish')) && (this_nb.status != 'private')) {
+            alert('Insufficient permissions to '+action+' notebook '+this_nb.name+' ('+this_nb.nbid+')');
+            return undefined;
+        }
+        return this_nb;
+    };
+    
+    // delete selected - we make a copy (with new timestamp) flagged as deleted
+    widget.nb_delete_click = function (index) {
+        var this_nb = Retina.WidgetInstances.NotebookDashboard[index]._nb_click_check(index, 'delete');
+        if (this_nb) {
+            stm.get_objects({"repository": "mgrast", "type": "notebook", "id": 'delete/'+this_nb.nbid, "options": {"verbosity": "minimal"}}).then(function () {
+                Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
+                alert('Deleted notebook '+this_nb.name+' ('+this_nb.nbid+')');
+            });
+        }
     };
     
     // launch latest notebook
     widget.nb_launch_click = function (index) {
-        var sel_nb = Retina.WidgetInstances.NotebookDashboard[index].nb_selected;
-        if (sel_nb.length == 0) {
-            alert("No notebook is selected");
-            return;
+        var this_nb = Retina.WidgetInstances.NotebookDashboard[index]._nb_click_check(index, 'launch');
+        if (this_nb) {
+            Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
+            setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+this_nb.nbid+"','"+this_nb.name.replace(/'/g, "\\'")+"')", 1000);
+            jQuery('#nb_select_modal').modal('hide');
         }
-        var this_nb  = Retina.WidgetInstances.NotebookDashboard[index].sorted_nbs[sel_nb[0]][0];
-        var has_uuid = jQuery('#'+this_nb.nbid);
-        if (has_uuid.length > 0) {
-            alert('Notebook '+this_nb.name+' ('+this_nb.nbid+') is already open');
-            return;
+    };
+    
+    // share selected - we add shared email to notebook ACLs in shock
+    widget.nb_share_click = function (index) {
+        var this_nb = Retina.WidgetInstances.NotebookDashboard[index]._nb_click_check(index, 'share');
+        if (this_nb) {
+            var email = prompt("Please enter email of user to share with","");
+            if ((email != null) && (email != "")) {
+                stm.get_objects({"repository": "mgrast", "type": "notebook", "id": 'share/'+this_nb.nbid, "options": {"verbosity": "minimal", "email": email}}).then(function () {
+                    Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
+                    alert('Shared notebook '+this_nb.name+' ('+this_nb.nbid+') with '+email);
+                });
+            }
         }
-        Retina.WidgetInstances.NotebookDashboard[index].ipy_refresh();
-        setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_create_tab("+index+",'"+this_nb.nbid+"','"+this_nb.name.replace(/'/g, "\\'")+"')", 1000);
-        jQuery('#nb_select_modal').modal('hide');
+    };
+    
+    // publish selected - remove all read ACLs in shock, set permission='view', status='public'
+    widget.nb_publish_click = function (index) {
+        var this_nb = Retina.WidgetInstances.NotebookDashboard[index]._nb_click_check(index, 'publish');
+        if (this_nb) {
+            var desc = prompt("Please a description for this notebook","");
+            if ((desc != null) && (desc != "")) {
+                stm.get_objects({"repository": "mgrast", "type": "notebook", "id": 'publish/'+this_nb.nbid, "options": {"verbosity": "minimal", "description": desc}}).then(function () {
+                    Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
+                    alert('Published notebook '+this_nb.name+' ('+this_nb.nbid+')');
+                });
+            }
+        }
     };
 
     // copy selected and launch copy
@@ -466,7 +501,7 @@
         }
         // set sorted_nbs
         Retina.WidgetInstances.NotebookDashboard[index].sorted_nbs = uuid_nbs;
-	    // return sorted list of latest nbs
+	    // return sorted list of latest nbss
         editable_nbs.sort( function(a,b){ return (a.created < b.created) ? 1 : ((b.created < a.created) ? -1 : 0); });
         current_nbs.sort( function(a,b){ return (a.created < b.created) ? 1 : ((b.created < a.created) ? -1 : 0); });
         return [editable_nbs, current_nbs];
@@ -556,9 +591,8 @@ pre {\
 	    var login = document.getElementById('login').value;
 	    var pass = document.getElementById('password').value;
 	    var auth_url = stm.Config.mgrast_api+'?auth='+stm.Config.globus_key+Retina.Base64.encode(login+":"+pass);
-	    jQuery.get(auth_url, function(data) {
-            var d = JSON.parse(data);
-	        if (data && d && d.token) {
+	    jQuery.get(auth_url, function(d) {
+	        if (d && d.token) {
 		        var uname = d.token.substr(3, d.token.indexOf('|') - 3);
 		        document.getElementById('login_name_span').style.display = "none";
 		        document.getElementById('login_name').innerHTML = uname;
@@ -568,6 +602,8 @@ pre {\
 		        Retina.WidgetInstances.NotebookDashboard[index].builder_widget.perform_login({target: document.getElementById('data_builder_div')});
 		        jQuery('#loginModal').modal('hide');
 		        jQuery('#msgModal').modal('show');
+		        jQuery('#share_nb').show();
+		        jQuery('#publish_nb').show();
 		        jQuery('.tab-pane').children('iframe').each(function() {
 		            Retina.WidgetInstances.NotebookDashboard[index].send_auth(this.id, d.token);
                 });
@@ -584,6 +620,8 @@ pre {\
 	    stm.delete_object_type('metagenome');
 	    Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
 	    Retina.WidgetInstances.NotebookDashboard[index].builder_widget.display({target: document.getElementById('data_builder_div')});
+	    jQuery('#share_nb').hide();
+	    jQuery('#publish_nb').hide();
 	    jQuery('.tab-pane').children('iframe').each(function() {
 	        Retina.WidgetInstances.NotebookDashboard[index].send_auth(this.id, undefined);
         });
