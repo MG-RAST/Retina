@@ -24,21 +24,22 @@
         var builder_widget = 'AnalysisBuilder';
       	stm.init(stm.Config.kbase_api, false, 'kbase').then(function() {
       	    stm.add_repository(stm.Config.mgrast_api, false, false, 'mgrast').then(function () {
+      	        stm.add_repository(stm.Config.ipynbo_api, false, true, 'ipynbo');
 	            Retina.init({ library_resource: "js/" });
 	            Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
 	            Retina.add_widget({"name": builder_widget, "resource": "widgets/", "filename": "widget."+builder_widget+".js"});
       	        Retina.load_widget("NotebookDashboard").then(function () {
       	            var val  = document.URL;
-		            var logo = "kbase";
+		            var logo = "KBase";
 		            if (val.indexOf("mgrast") > -1) {
-		                logo = "mgrast";
+		                logo = "MG-RAST";
 		            }
 		            Retina.load_widget(builder_widget).then(function () {
 		                var cache = true;
 		                Retina.Widget.create('NotebookDashboard', {"target": "dashboard", "notebook": "nb_iframe", "builder": builder_widget, "cache": cache, "logo": logo});	
 		            });
 	            });
-      	    });
+  	        });
   	    });
     });
     </script>

@@ -11,6 +11,7 @@
     
     // notebook variables
     widget.nb_template_id = undefined;
+    widget.nb_server = undefined;
     widget.nb_type = 'generic';
     
     // current selected notebook [ uuid (notebook), id (shock) ]
@@ -52,7 +53,7 @@
 	    var link = document.createElement('link');
         link.type = 'image/x-icon';
         link.rel = 'shortcut icon';
-	    if (params.logo == 'mgrast') {
+	    if (params.logo == 'MG-RAST') {
 	        // make this look like mgrast page
 	        jQuery('#login_space').hide();
 	        document.title = 'MGNB - The MG-RAST Notebook';
@@ -60,7 +61,7 @@
 	        jQuery('#title_img').attr('src', 'images/MGRAST_logo.png');
 	        jQuery('#title_img').css('background', 'black');
             link.href = 'images/MGRAST_favicon.ico';
-	    } else if (params.logo == 'kbase') {
+	    } else if (params.logo == 'KBase') {
 	        document.title = 'KBNB - The KBase Notebook';
 	        jQuery('#title_bar').html('KBNB - The KBase Notebook');
 	        jQuery('#title_img').attr('src', 'images/KbaseLogoTransparent.gif');
@@ -79,16 +80,14 @@
             <div id="data_pick" style="display: none; height: 395px; margin-top: 5px;">\
 	            <div id="data_builder_div"></div>\
 	        </div>\
-	        <div id="result" style="display: none;"><h3 style="position: relative; top: 200px; left: 25%;">your analysis currently has no results</h3></div>';
-        if (params.logo == 'kbase') {
-            dash_html += '\
+	        <div id="result" style="display: none;"><h3 style="position: relative; top: 200px; left: 25%;">your analysis currently has no results</h3></div>\
 	        <div id="loginModal" class="modal show fade" tabindex="-1" style="width: 400px;" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">\
 	          <div class="modal-header">\
-	            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="jQuery(\'#nb_select_modal\').modal(\'show\');">&times;</button>\
-	            <h3 id="loginModalLabel">Authenticate to KBase</h3>\
+	            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>\
+	            <h3 id="loginModalLabel">Authenticate to '+params.logo+'</h3>\
 	          </div>\
 	          <div class="modal-body">\
-	            <p>Enter your KBase credentials.</p>\
+	            <p>Enter your '+params.logo+' credentials.</p>\
                     <div id="failure"></div>\
                     <table>\
                       <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">login</th><td><input type="text" id="login"></td></tr>\
@@ -96,8 +95,8 @@
                     </table>\
 	          </div>\
 	          <div class="modal-footer">\
-	            <button class="btn btn-danger pull-left" data-dismiss="modal" aria-hidden="true" onclick="jQuery(\'#nb_select_modal\').modal(\'show\');">Cancel</button>\
-	            <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard[0].perform_login('+index+');">Log In</button>\
+	            <button class="btn btn-danger pull-left" data-dismiss="modal" aria-hidden="true">Cancel</button>\
+	            <button class="btn btn-success" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].perform_login('+index+');">Log In</button>\
 	          </div>\
 	        </div>\
 	        <div id="msgModal" class="modal hide fade" tabindex="-1" style="width: 400px;" role="dialog" aria-labelledby="msgModalLabel" aria-hidden="true">\
@@ -111,9 +110,7 @@
 	          <div class="modal-footer">\
 	            <button class="btn btn-success" aria-hidden="true" data-dismiss="modal" onclick="jQuery(\'#nb_select_modal\').modal(\'show\');">OK</button>\
 	          </div>\
-	        </div>';
-        }
-        dash_html += '\
+	        </div>\
             <div id="nb_close_modal" class="modal hide fade" tabindex="-1" style="width: 400px;" role="dialog" aria-hidden="true">\
 	          <div class="modal-header">\
 	            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>\
@@ -125,8 +122,8 @@
 	          </div>\
 	          <div class="modal-footer">\
 	            <button class="btn btn-danger pull-left" data-dismiss="modal" aria-hidden="true">Cancel</button>\
-	            <button class="btn btn-success" aria-hidden="true" data-dismiss="modal" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_close_tab('+index+', false);">Close</button>\
-	            <button class="btn btn-success" aria-hidden="true" data-dismiss="modal" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_close_tab('+index+', true);">Save & Close</button>\
+	            <button class="btn btn-success" aria-hidden="true" data-dismiss="modal" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_close_tab('+index+', false, undefined);">Close</button>\
+	            <button class="btn btn-success" aria-hidden="true" data-dismiss="modal" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].nb_close_tab('+index+', true, undefined);">Save & Close</button>\
 	          </div>\
 	        </div>\
 	        <div id="nb_select_modal" class="modal show fade" tabindex="-1" role="dialog" style="width: 590px; margin: -250px 0 0 -295px;">\
@@ -176,12 +173,8 @@
                 </div>\
             </div>';
         var iframe_html = '<div class="tabbable" style="margin-top: 15px; margin-left: 15px;" id="ipython_iframe">\
-            <ul id="tab_list" class="nav nav-tabs">\
-                <li id="hidden_tab" class="hide"><a data-toggle="tab" href="#hidden_dash">IPython</a></li>\
-                <li id="selector_tab" class="show"><a href="#" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].select_nb_click('+index+');"><i class="icon-plus"></i></a></li>\
-            </ul>\
-            <div id="tab_div" class="tab-content"><div id="hidden_dash" class="tab-pane hide"><iframe id="ipython_dash" src="'+stm.Config.notebook_server+'" width="95%" height="750"></iframe></div>\
-            </div>';
+            <ul id="tab_list" class="nav nav-tabs"></ul>\
+            <div id="tab_div" class="tab-content"></div></div>';
         jQuery('#'+dash_div).html(dash_html);
         jQuery('#'+iframe_div).html(iframe_html);
 	    
@@ -219,11 +212,7 @@
 								  });
 	    // populate nb selects
         widget.nb_select_refresh(index);
-        if (params.logo == 'kbase') {
-            jQuery('#loginModal').modal('show');
-        } else {
-            jQuery('#nb_select_modal').modal('show');
-        }
+        jQuery('#loginModal').modal('show');
     };
     
     // populate nb listselect with newest version of each notebook, empty version listselect
@@ -404,7 +393,7 @@
 
     widget.nb_create_tab = function (index, uuid, name) {
         // create html
-        var url = stm.Config.notebook_server+'/'+uuid;
+        var url = Retina.WidgetInstances.NotebookDashboard[index].nb_server+'/'+uuid;
         var li_elem  = '<li class="active" id="'+uuid+'_li"><a data-toggle="tab" href="#'+uuid+'_tab" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].builder_widget.nb_created(\''+uuid+'\');">'+name+'<i class="icon-remove" onclick="jQuery(\'#notebook_to_close\').val(\''+uuid+'\');jQuery(\'#nb_close_modal\').modal(\'show\');" style="position: relative; left: 5px; bottom: 4px;"></a></li>';
         var div_elem = '<div id="'+uuid+'_tab" class="tab-pane active"><iframe id="'+uuid+'" src="'+url+'" width="95%" height="750">Your Browser does not support iFrames</iframe></div>';
         // add tab
@@ -416,8 +405,10 @@
         setTimeout("Retina.WidgetInstances.NotebookDashboard["+index+"].nb_init("+index+", '"+uuid+"')", 7000);
     };
 
-    widget.nb_close_tab = function (index, save) {
-        var uuid = document.getElementById('notebook_to_close').value;
+    widget.nb_close_tab = function (index, save, uuid) {
+        if (! uuid) {
+            uuid = document.getElementById('notebook_to_close').value;
+        }
         var extra = 10;
         if (save) {
             stm.send_message(uuid, 'ipy.notebook_save();', 'action');
@@ -452,7 +443,9 @@
     };
 
     widget.ipy_refresh = function () {
-        stm.send_message('ipython_dash', 'IPython.notebook_list.load_list();', 'action');
+        if (document.getElementById('ipython_dash')) {
+            stm.send_message('ipython_dash', 'IPython.notebook_list.load_list();', 'action');
+        }
     };
 
     widget.transfer = function (iframe, cell, data, append) {
@@ -594,23 +587,36 @@ pre {\
 	    jQuery.get(auth_url, function(d) {
 	        if (d && d.token) {
 		        var uname = d.token.substr(3, d.token.indexOf('|') - 3);
-		        document.getElementById('login_name_span').style.display = "none";
-		        document.getElementById('login_name').innerHTML = uname;
-		        document.getElementById('failure').innerHTML = "";
 		        stm.Authentication = d.token;
-		        Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
-		        Retina.WidgetInstances.NotebookDashboard[index].builder_widget.perform_login({target: document.getElementById('data_builder_div')});
-		        jQuery('#loginModal').modal('hide');
-		        jQuery('#msgModal').modal('show');
-		        jQuery('#share_nb').show();
-		        jQuery('#publish_nb').show();
-		        jQuery('.tab-pane').children('iframe').each(function() {
-		            Retina.WidgetInstances.NotebookDashboard[index].send_auth(this.id, d.token);
-                });
+		        if (stm.Config.notebook_server) {
+		            Retina.WidgetInstances.NotebookDashboard[index].nb_server = stm.Config.notebook_server;
+		            Retina.WidgetInstances.NotebookDashboard[index]._have_ipython(index, uname);
+		        } else {
+		            // query NBO and get ipy proxy url for this user
+		            stm.get_objects({"repository":"ipynbo","return_type":"ipynbo","method":"POST","type":"proxy"}).then(function(){
+		                if (stm.DataStore["proxy"].hasOwnProperty('proxy')) {
+                            Retina.WidgetInstances.NotebookDashboard[index].nb_server = stm.DataStore["proxy"].proxy;
+        		            Retina.WidgetInstances.NotebookDashboard[index]._have_ipython(index, uname);
+    		            } else {
+    		                document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> proxy failed.</div>';
+    		            }    		            
+                    });
+		        }
 	        } else {
-		        document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> Login failed.</div>';
+		        document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> authentication failed.</div>';
 	        }
 	    });
+    };
+
+    widget._have_ipython = function (index, uname) {
+        document.getElementById('login_name_span').style.display = "none";
+        document.getElementById('login_name').innerHTML = uname;
+        document.getElementById('failure').innerHTML = "";
+        Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
+        Retina.WidgetInstances.NotebookDashboard[index].builder_widget.perform_login({target: document.getElementById('data_builder_div')});
+        Retina.WidgetInstances.NotebookDashboard[index]._dash_login(index);
+        jQuery('#loginModal').modal('hide');
+        jQuery('#msgModal').modal('show');
     };
 
     widget.perform_logout = function (index) {
@@ -618,13 +624,33 @@ pre {\
 	    document.getElementById('login_name').innerHTML = "";
 	    stm.Authentication = undefined;
 	    stm.delete_object_type('metagenome');
+	    stm.delete_object_type('proxy');
 	    Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
 	    Retina.WidgetInstances.NotebookDashboard[index].builder_widget.display({target: document.getElementById('data_builder_div')});
-	    jQuery('#share_nb').hide();
-	    jQuery('#publish_nb').hide();
 	    jQuery('.tab-pane').children('iframe').each(function() {
-	        Retina.WidgetInstances.NotebookDashboard[index].send_auth(this.id, undefined);
+	        Retina.WidgetInstances.NotebookDashboard[index].nb_close_tab(index, false, this.id);
         });
+        Retina.WidgetInstances.NotebookDashboard[index].nb_server = undefined;
+        Retina.WidgetInstances.NotebookDashboard[index]._dash_logout();
     };
 
+    // on sucessful login add ipython dash and notebook dash to tabs
+    widget._dash_login = function (index) {
+        if (! Retina.WidgetInstances.NotebookDashboard[index].nb_server) {
+            alert('No IPython server available');
+            return;
+        }
+        var li_hide  = '<li id="hidden_tab" class="hide"><a data-toggle="tab" href="#hidden_dash">IPython</a></li>';
+        var li_sel   = '<li id="selector_tab" class="show"><a href="#" onclick="Retina.WidgetInstances.NotebookDashboard['+index+'].select_nb_click('+index+');"><i class="icon-plus"></i></a></li>';
+        var div_hide = '<div id="hidden_dash" class="tab-pane hide"><iframe id="ipython_dash" src="'+Retina.WidgetInstances.NotebookDashboard[index].nb_server+'" width="95%" height="750"></iframe></div>';
+        jQuery('#tab_list').append(li_hide);
+        jQuery('#tab_list').append(li_sel);
+        jQuery('#tab_div').append(div_hide);
+    };
+    
+    widget._dash_logout = function () {
+        jQuery('#hidden_tab').remove();
+        jQuery('#selector_tab').remove();
+        jQuery('#hidden_dash').remove();
+    };
 })();

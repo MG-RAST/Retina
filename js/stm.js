@@ -199,6 +199,7 @@
 		        return promise;
 	        }
 	    }
+	    return undefined;
     };
     
     // removes a repository from the stm.DataRepositories list
@@ -262,6 +263,11 @@
 	    repo = stm.default_repository();
 	}
 
+    var method = 'GET';
+    if (params.hasOwnProperty('method')) {
+        method = params['method'];
+    }
+
 	var type = params['type'];
 	var id = params['id'];
 	if (params.hasOwnProperty('return_type') && (params.return_type == 'search')) {
@@ -288,55 +294,69 @@
 	var xhr = new XMLHttpRequest(); 
 	xhr.addEventListener("progress", updateProgress, false);
 	if ("withCredentials" in xhr) {
-	    xhr.open('GET', base_url, true);
+	    xhr.open(method, base_url, true);
 	} else if (typeof XDomainRequest != "undefined") {
 	    xhr = new XDomainRequest();
-	    xhr.open('GET', base_url);
+	    xhr.open(method, base_url);
 	} else {
 	    alert("your browser does not support CORS requests");
 	    console.log("your browser does not support CORS requests");
-	    return;
+	    return undefined;
 	}
+	
 	xhr.onload = function() {
 	    var progressIndicator = document.getElementById('progressIndicator');
 	    if (progressIndicator) {
-		document.getElementById('progressBar').innerHTML = "waiting for respose...";
+		    document.getElementById('progressBar').innerHTML = "waiting for respose...";
 		//progressIndicator.style.display = "none";
 	    }
 	    if (params.hasOwnProperty('return_type')) {
-		switch (params.return_type) {
-		case 'text':
-		    var d = {};
-		    d['id'] = params['id'];
-		    d['data'] = xhr.responseText;
-		    stm.load_data({ "data": d, "type": type });
-		    break;
-		case 'shock':
-		    var d = JSON.parse(xhr.responseText);
-		    if (d.error == null) {
-			stm.load_data({ "data": d.data, "type": type });
-		    } else {
-			alert(d.error);
-			console.log(d);
+	        var d = {};
+		    switch (params.return_type) {
+		        case 'text':
+		        d['id'] = params['id'];
+		        d['data'] = xhr.responseText;
+		        stm.load_data({ "data": d, "type": type });
+		        break;
+		        case 'shock':
+		        d = JSON.parse(xhr.responseText);
+		        if (d.error == null) {
+			        stm.load_data({ "data": d.data, "type": type });
+		        } else {
+			        alert(d.error+' ('+d.status+')');
+			        console.log(d);
+		        }
+		        break;
+	            case 'search':
+		        d = JSON.parse(xhr.responseText);
+		        if (d.found && d.found > 0 && d.body && d.body.length) {
+			        for (i=0;i<d.body.length;i++) {
+			            if (d.body[i].hasOwnProperty('gid')) { d.body[i].id = d.body[i].gid; }
+			            if (d.body[i].hasOwnProperty('fid')) { d.body[i].id = d.body[i].fid; }
+			            if (d.body[i].hasOwnProperty('kbfid')) { d.body[i].id = d.body[i].kbfid; }
+			        }
+			        stm.load_data({ "data": d.body, "type": type });
+		        } else {
+			        alert('could not retrieve requested data');
+			        console.log(d);
+		        }
+		        break;
+		        case 'ipynbo':
+		        d = JSON.parse(xhr.responseText);
+		        if (d.error == null) {
+			        stm.load_data({ "data": d.data, "type": type });
+		        } else {
+			        alert(d.error+' ('+d.status+')');
+			        console.log(d);
+		        }
+		        break;
+		        default:
+		        alert("Invalid return_type "+params.return_type);
+		        console.log("Invalid return_type "+params.return_type);
+		        break;
 		    }
-		    break;
-		case 'search':
-		    var d = JSON.parse(xhr.responseText);
-		    if (d.found && d.found > 0 && d.body && d.body.length) {
-			for (i=0;i<d.body.length;i++) {
-			    if (d.body[i].hasOwnProperty('gid')) { d.body[i].id = d.body[i].gid; }
-			    if (d.body[i].hasOwnProperty('fid')) { d.body[i].id = d.body[i].fid; }
-			    if (d.body[i].hasOwnProperty('kbfid')) { d.body[i].id = d.body[i].kbfid; }
-			}
-			stm.load_data({ "data": d.body, "type": type });
-		    } else {
-			alert('could not retrieve requested data');
-			console.log(d);
-		    }
-		    break;
-		}
 	    } else {
-		stm.load_data({ "data": JSON.parse(xhr.responseText), "type": type });
+		    stm.load_data({ "data": JSON.parse(xhr.responseText), "type": type });
 	    }
 
 	    promise.resolve();
