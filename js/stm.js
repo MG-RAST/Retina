@@ -165,7 +165,7 @@
 	    if (repository) {
 	        if (offline_mode) {
 	            repository_name = repository_name || 'default';
-		        stm.DataRepositories[repository_name] = { url: repository, name: repository_name };
+	            stm.DataRepositories[repository_name] = repository;
 		        stm.DataRepositoriesCount++;
 		        if (stm.DataRepositoryDefault == null) {
 		            stm.DataRepositoryDefault = stm.DataRepositories[repository_name];
