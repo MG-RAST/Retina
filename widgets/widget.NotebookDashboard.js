@@ -3,7 +3,7 @@
         about: {
             title: "Notebook Dashboard Widget",
             name: "NotebookDashboard",
-	    version: 1,
+	        version: 1,
             author: "Travis Harrison",
             requires: [ ]
         }
@@ -55,7 +55,6 @@
         link.rel = 'shortcut icon';
 	    if (params.logo == 'MG-RAST') {
 	        // make this look like mgrast page
-	        jQuery('#login_space').hide();
 	        document.title = 'MGNB - The MG-RAST Notebook';
 	        jQuery('#title_bar').html('MGNB - The MG-RAST Notebook');
 	        jQuery('#title_img').attr('src', 'images/MGRAST_logo.png');
@@ -282,6 +281,7 @@
     
     // helper function
     widget._nb_click_check = function (index, action) {
+        var sel_nb = Retina.WidgetInstances.NotebookDashboard[index].nb_selected;
         if (sel_nb.length == 0) {
             alert("No notebook is selected");
             return undefined;
