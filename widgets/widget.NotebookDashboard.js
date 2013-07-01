@@ -586,7 +586,6 @@ pre {\
 	    var auth_url = stm.Config.mgrast_api+'?auth='+stm.Config.globus_key+Retina.Base64.encode(login+":"+pass);
 	    jQuery.get(auth_url, function(d) {
 	        if (d && d.token) {
-	            console.log(d.token);
 		        var uname = d.token.substr(3, d.token.indexOf('|') - 3);
 		        stm.Authentication = d.token;
 		        if (stm.Config.notebook_server) {
