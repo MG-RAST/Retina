@@ -382,7 +382,7 @@
             try {
                 var thisAnnot = mgs[i].statistics[dcat][dtype];
                 allMax.push( Math.max.apply(Math, thisAnnot.map(function(x) {
-                    return x[1];
+                    return parseInt(x[1]);
                 })) );
             } catch (err) {
         	    continue;
@@ -398,7 +398,7 @@
                 var thisData  = {};
                 for (var j in thisAnnot) {
                     // skip if value too low to view
-                    if (thisAnnot[j][1] < skip) {
+                    if (parseInt(thisAnnot[j][1]) < skip) {
                         continue;
                     }
                     annotSet[ thisAnnot[j][0] ] = 1;

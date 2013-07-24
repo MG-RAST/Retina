@@ -497,9 +497,16 @@
         var annMax  = 0;
         var annSort = annData.sort(function(a,b) {
             return b[1] - a[1];
-        });        
+        });
+        var skip = Math.max.apply(Math, annData.map(function(x){ return x[1]; })) / 20;
+
         for (var i = 0; i < annSort.length; i++) {
-    	    pieData.push({ name: annSort[i][0], data: [ parseInt(annSort[i][1]) ], fill: colors[i] });
+            var val = parseInt(annSort[i][1]);
+            // skip if value too low to view
+            if (val < skip) {
+                continue;
+            }
+    	    pieData.push({ name: annSort[i][0], data: [ val ], fill: colors[i] });
     	    annMax = Math.max(annMax, annSort[i][0].length);
     	}
     	var pwidth  = 250;
