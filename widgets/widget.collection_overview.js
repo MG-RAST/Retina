@@ -25,11 +25,10 @@
     widget.mg_select_list = undefined;
     widget.sub_mgs = [];
     widget.curr_mgs = [];
-    widget.curr_mg_stats = [];
     
-    widget.get_mgs = function (index, stats) {
+    widget.get_mgs = function (index) {
         var mg_ids = Retina.WidgetInstances.collection_overview[index].sub_mgs;
-        var mg_set = stats ? Retina.WidgetInstances.collection_overview[index].curr_mg_stats : Retina.WidgetInstances.collection_overview[index].curr_mgs;
+        var mg_set = Retina.WidgetInstances.collection_overview[index].curr_mgs;
         if (mg_ids.length > 0) {
             return mg_set.filter(function (i) { return (mg_ids.indexOf(i.id) !== -1); });
         } else {
@@ -41,18 +40,19 @@
         widget = this;
 	    var index = widget.index;
         // check if id given
-        if (wparams.ids) {
+        if (wparams.ids.length > 0) {
             jQuery('#mg_modal').modal('hide');
 	        // check if required data is loaded (use stats)
-	        var stats_promises = [];
+	        var mg_promises = [];
 	        for (var i in wparams.ids) {
-	            if (! (stm.DataStore.hasOwnProperty('metagenome_statistics') && stm.DataStore.metagenome_statistics.hasOwnProperty(wparams.ids[i]))) {
-	                stats_promises.push(stm.get_objects({ "type": "metagenome", "id": wparams.ids[i], "options": { "verbosity": "full" } }));
-    	            stats_promises.push(stm.get_objects({ "type": "metagenome_statistics", "id": wparams.ids[i], "options": { "verbosity": "full" } }));
+	            if (! ( stm.DataStore.hasOwnProperty('metagenome') &&
+    	                stm.DataStore.metagenome.hasOwnProperty(wparams.ids[i]) &&
+    	                stm.DataStore.metagenome[wparams.ids[i]].hasOwnProperty('statistics') )) {
+	                mg_promises.push(stm.get_objects({ "type": "metagenome", "id": wparams.ids[i], "options": {"verbosity": "full"} }));
 	            }
             }
-            if (stats_promises.length > 0) {
-	            jQuery.when.apply(this, stats_promises).then(function() {
+            if (mg_promises.length > 0) {
+	            jQuery.when.apply(this, mg_promises).then(function() {
 		            widget.display(wparams);
 	            });
 	            return;
@@ -67,10 +67,8 @@
 	    // make some shortcuts
 	    var content = wparams.target;
 	    widget.curr_mgs = [];
-    	widget.curr_mg_stats = [];
 	    for (var i in wparams.ids) {
 	        widget.curr_mgs.push( stm.DataStore.metagenome[wparams.ids[i]] );
-	        widget.curr_mg_stats.push( stm.DataStore.metagenome_statistics[wparams.ids[i]] );
         }
 	
 	    // set the output area
@@ -101,6 +99,7 @@
 	        { type: 'barchart', data: 'domain', category: 'taxonomy' },
 	        { type: 'barchart', data: 'phylum', category: 'taxonomy' },
 	        { type: 'barchart', data: 'class', category: 'taxonomy' },
+	        { type: 'barchart', data: 'order', category: 'taxonomy' },
 	        { type: 'paragraph', data: 'rarefaction_introtext' },
 	        { type: 'plot', data: 'rarefaction_plot', category: 'rarefaction' },
 	        { type: 'title', data: 'Metadata' },
@@ -184,7 +183,7 @@
                 }
                 Retina.WidgetInstances.collection_overview[index].metagenome_selector(index, target);
             }).fail( function() {
-                stm.get_objects({"type": "metagenome", "options": {"verbosity": "mixs", "limit": 0}}).then(function() {
+                stm.get_objects({"type": "metagenome", "options": {"verbosity": "mixs", "limit": 100000, "order": "created"}}).then(function() {
                     Retina.WidgetInstances.collection_overview[index].metagenome_selector(index, target);
                 });
             });
@@ -199,15 +198,17 @@
     	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
     		     var md = { "name": stm.DataStore["metagenome"][i]["name"],
     			   "id": i,
-    			   "project": stm.DataStore["metagenome"][i]["project"],
+    			   "project": stm.DataStore["metagenome"][i]["project_name"]+" ("+stm.DataStore["metagenome"][i]["project_id"]+")",
+       			   "PI": stm.DataStore["metagenome"][i]["PI_lastname"]+", "+stm.DataStore["metagenome"][i]["PI_firstname"],
     			   "status": stm.DataStore["metagenome"][i]["status"],
+    			   "created": stm.DataStore["metagenome"][i]["created"],
     			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
     			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
     			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
     			   "biome": stm.DataStore["metagenome"][i]["biome"],
     			   "feature": stm.DataStore["metagenome"][i]["feature"],
     			   "material": stm.DataStore["metagenome"][i]["material"],
-    			   "package": stm.DataStore["metagenome"][i]["package"],
+    			   "env_package": stm.DataStore["metagenome"][i]["env_package_type"],
     			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
     			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"]
     			 };
@@ -219,7 +220,7 @@
 			"data": metagenome_data,
 		    "value": "id",
             "label": "name",
-	        "filter": ["name", "id", "project", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"],
+	        "filter": ["name", "id", "project", "PI", "status", "created", "lat/long", "location", "collection date", "biome", "feature", "material", "env_package", "sequencing method", "sequencing type"],
 	        "sort": true,
 	        "multiple": true,
 		    "callback": function (data) {
@@ -251,8 +252,7 @@
     };
 
     widget.summary_stackcolumn = function(index) {
-        var mgs = Retina.WidgetInstances.collection_overview[index].get_mgs(index, false);
-        var mg_stats = Retina.WidgetInstances.collection_overview[index].get_mgs(index, true);
+        var mgs = Retina.WidgetInstances.collection_overview[index].get_mgs(index);
 	    var scData = [];
 	    var labels = [];
 	    var legend = ["Failed QC", "Unknown", "Unknown Protein", "Annotated Protein", "ribosomal RNA"];
@@ -262,7 +262,7 @@
 	    }
 	    for (var m in mgs) {
 	        labels.push(mgs[m].id);
-	        var scNums = Retina.WidgetInstances.collection_overview[index]._summary_fuzzy_math(mgs[m], mg_stats[m]);
+	        var scNums = Retina.WidgetInstances.collection_overview[index]._summary_fuzzy_math(mgs[m]);
 	        for (var i in scNums) {
 	            scData[i].data[m] = parseInt(scNums[i]);
 	        }
@@ -287,9 +287,9 @@
 	    return data;
     };
     
-    widget._summary_fuzzy_math = function(mg, mg_stats) {
+    widget._summary_fuzzy_math = function(mg) {
         // get base numbers
-        var stats  = mg_stats.sequence_stats;
+        var stats  = mg.statistics.sequence_stats;
         var is_rna = (mg.sequence_type == 'Amplicon') ? 1 : 0;
         var raw_seqs    = ('sequence_count_raw' in stats) ? parseFloat(stats.sequence_count_raw) : 0;
         var qc_rna_seqs = ('sequence_count_preprocessed_rna' in stats) ? parseFloat(stats.sequence_count_preprocessed_rna) : 0;
@@ -369,30 +369,50 @@
     };
     
     widget.annotation_barchart = function(index, dcat, dtype) {
-        var mg_stats = Retina.WidgetInstances.collection_overview[index].get_mgs(index, true);
+        var mgs = Retina.WidgetInstances.collection_overview[index].get_mgs(index);
         var annotSet = {};
         var annotMg = {};
         var barData = [];
-        var colors  = GooglePalette(mg_stats.length);
+        var colors  = GooglePalette(mgs.length);
         var annMax  = 0;
-        for (var i in mg_stats) {
+        
+        // first get total max
+        var allMax = [];
+        for (var i in mgs) {
             try {
-                barData.push({ name: mg_stats[i].id, data: [], fill: colors[i] });
-                var thisAnnot = mg_stats[i][dcat][dtype];
+                var thisAnnot = mgs[i].statistics[dcat][dtype];
+                allMax.push( Math.max.apply(Math, thisAnnot.map(function(x) {
+                    return x[1];
+                })) );
+            } catch (err) {
+        	    continue;
+        	}
+        }
+        var skip = Math.max.apply(Math, allMax) / 100;
+        
+        // now build data structs
+        for (var i in mgs) {
+            try {
+                barData.push({ name: mgs[i].id, data: [], fill: colors[i] });
+                var thisAnnot = mgs[i].statistics[dcat][dtype];
                 var thisData  = {};
                 for (var j in thisAnnot) {
+                    // skip if value too low to view
+                    if (thisAnnot[j][1] < skip) {
+                        continue;
+                    }
                     annotSet[ thisAnnot[j][0] ] = 1;
                     thisData[ thisAnnot[j][0] ] = thisAnnot[j][1];
                     annMax = Math.max(annMax, thisAnnot[j][0].length);
                 }
-                annotMg[ mg_stats[i].id ] = thisData;
+                annotMg[ mgs[i].id ] = thisData;
             } catch (err) {
     	        continue;
     	    }
         }
         var annot = Object.keys(annotSet).sort();
-        for (var m in mg_stats) {
-            var mid = mg_stats[m].id;
+        for (var m in mgs) {
+            var mid = mgs[m].id;
             if (! annotMg.hasOwnProperty(mid)) {
                 continue;
             }
@@ -428,7 +448,7 @@
     };
     
     widget.mgs_plot = function(index, type, kmer) {
-        var mg_stats = Retina.WidgetInstances.collection_overview[index].get_mgs(index, true);
+        var mgs = Retina.WidgetInstances.collection_overview[index].get_mgs(index);
         var xt, yt;
         var labels = [];
         var points = [];
@@ -436,17 +456,17 @@
         var yscale = 'linear';
         switch (type) {
             case 'drisee':
-            for (var m in mg_stats) {
+            for (var m in mgs) {
                 try {
                     var xy = [];
-        	        for (var i in mg_stats[m].qc.drisee.percents.data) {
-        	            xy.push( [ mg_stats[m].qc.drisee.percents.data[i][0], mg_stats[m].qc.drisee.percents.data[i][7] ] );
+        	        for (var i in mgs[m].statistics.qc.drisee.percents.data) {
+        	            xy.push( [ mgs[m].statistics.qc.drisee.percents.data[i][0], mgs[m].statistics.qc.drisee.percents.data[i][7] ] );
         	        }
         	        if (! xy.length) {
         	            continue;
         	        }
         	        points.push(xy);
-        	        labels.push(mg_stats[m].id);
+        	        labels.push(mgs[m].id);
         	    } catch (err) {
         	        continue;
         	    }
@@ -482,29 +502,29 @@
                 yscale = 'log';
                 break;
             }
-            for (var m in mg_stats) {
+            for (var m in mgs) {
                 try {
                     var xy = [];
-                    for (var i = 0; i < mg_stats[m].qc.kmer['15_mer']['data'].length; i+=4) {
-                        var thisY = (yi == 5) ? 1 - parseFloat(mg_stats[m].qc.kmer['15_mer']['data'][i][yi]) : mg_stats[m].qc.kmer['15_mer']['data'][i][yi];
-                        xy.push( [ mg_stats[m].qc.kmer['15_mer']['data'][i][xi], thisY ] );
+                    for (var i = 0; i < mgs[m].statistics.qc.kmer['15_mer']['data'].length; i+=4) {
+                        var thisY = (yi == 5) ? 1 - parseFloat(mgs[m].statistics.qc.kmer['15_mer']['data'][i][yi]) : mgs[m].statistics.qc.kmer['15_mer']['data'][i][yi];
+                        xy.push( [ mgs[m].statistics.qc.kmer['15_mer']['data'][i][xi], thisY ] );
                     }
                     points.push(xy);
-        	        labels.push(mg_stats[m].id);
+        	        labels.push(mgs[m].id);
                 } catch (err) {
             	    continue;
             	}
         	}
             break;
             case 'rarefaction':
-            for (var m in mg_stats) {
+            for (var m in mgs) {
                 try {
                     var xy = [];
-                    for (var i=0; i<mg_stats[m].rarefaction.length; i+=4) {
-                        xy.push( [ mg_stats[m].rarefaction[i][0], mg_stats[m].rarefaction[i][1] ] );
+                    for (var i=0; i<mgs[m].statistics.rarefaction.length; i+=4) {
+                        xy.push( [ mgs[m].statistics.rarefaction[i][0], mgs[m].statistics.rarefaction[i][1] ] );
                     }
                     points.push(xy);
-        	        labels.push(mg_stats[m].id);
+        	        labels.push(mgs[m].id);
                 } catch (err) {
             	    continue;
             	}
@@ -574,8 +594,7 @@
     };
     
     widget.build_table = function(index, type) {
-        var mgs = Retina.WidgetInstances.collection_overview[index].get_mgs(index, false);
-        var mg_stats = Retina.WidgetInstances.collection_overview[index].get_mgs(index, true);
+        var mgs = Retina.WidgetInstances.collection_overview[index].get_mgs(index);
         var widget = Retina.WidgetInstances.collection_overview[0];
         var cname = [];
         var tdata = [];
@@ -654,21 +673,22 @@
                       ["Alignment: Identified rRNA Features"],
                       ["Annotation: Identified Functional Categories"] ];
             options = { 'sorted': false, 'disable_sort': {}, 'hide_options': true, 'rows_per_page': tdata.length, 'filter': {} };
-            for (var s in mg_stats) {
-                tdata[0].push( widget._to_num('bp_count_raw', mg_stats[s].sequence_stats)+" bp" );
-                tdata[1].push( widget._to_num('sequence_count_raw', mg_stats[s].sequence_stats) );
-                tdata[2].push( widget._to_num('average_length_raw', mg_stats[s].sequence_stats)+" ± "+widget._to_num('standard_deviation_length_raw', mg_stats[s].sequence_stats)+" bp" );
-                tdata[3].push( widget._to_num('average_gc_content_raw', mg_stats[s].sequence_stats)+" ± "+widget._to_num('standard_deviation_gc_content_raw', mg_stats[s].sequence_stats)+" %" );
-                tdata[4].push( widget._to_num('sequence_count_dereplication_removed', mg_stats[s].sequence_stats) );
-                tdata[5].push( widget._to_num('bp_count_preprocessed', mg_stats[s].sequence_stats)+" bp" );
-                tdata[6].push( widget._to_num('sequence_count_preprocessed', mg_stats[s].sequence_stats) );
-                tdata[7].push( widget._to_num('average_length_preprocessed', mg_stats[s].sequence_stats)+" ± "+widget._to_num('standard_deviation_length_preprocessed', mg_stats[s].sequence_stats)+" bp" );
-                tdata[8].push( widget._to_num('average_gc_content_preprocessed', mg_stats[s].sequence_stats)+" ± "+widget._to_num('standard_deviation_gc_content_preprocessed', mg_stats[s].sequence_stats)+" %" );
-                tdata[9].push( widget._to_num('sequence_count_processed_aa', mg_stats[s].sequence_stats) );
-                tdata[10].push( widget._to_num('sequence_count_processed_rna', mg_stats[s].sequence_stats) );
-                tdata[11].push( widget._to_num('sequence_count_sims_aa', mg_stats[s].sequence_stats) );
-                tdata[12].push( widget._to_num('sequence_count_sims_rna', mg_stats[s].sequence_stats) );
-                tdata[13].push( widget._to_num('sequence_count_ontology', mg_stats[s].sequence_stats) );
+            for (var m in mgs) {
+                var stats = mgs[m].statistics.sequence_stats;
+                tdata[0].push( widget._to_num('bp_count_raw', stats)+" bp" );
+                tdata[1].push( widget._to_num('sequence_count_raw', stats) );
+                tdata[2].push( widget._to_num('average_length_raw', stats)+" ± "+widget._to_num('standard_deviation_length_raw', stats)+" bp" );
+                tdata[3].push( widget._to_num('average_gc_content_raw', stats)+" ± "+widget._to_num('standard_deviation_gc_content_raw', stats)+" %" );
+                tdata[4].push( widget._to_num('sequence_count_dereplication_removed', stats) );
+                tdata[5].push( widget._to_num('bp_count_preprocessed', stats)+" bp" );
+                tdata[6].push( widget._to_num('sequence_count_preprocessed', stats) );
+                tdata[7].push( widget._to_num('average_length_preprocessed', stats)+" ± "+widget._to_num('standard_deviation_length_preprocessed', stats)+" bp" );
+                tdata[8].push( widget._to_num('average_gc_content_preprocessed', stats)+" ± "+widget._to_num('standard_deviation_gc_content_preprocessed', stats)+" %" );
+                tdata[9].push( widget._to_num('sequence_count_processed_aa', stats) );
+                tdata[10].push( widget._to_num('sequence_count_processed_rna', stats) );
+                tdata[11].push( widget._to_num('sequence_count_sims_aa', stats) );
+                tdata[12].push( widget._to_num('sequence_count_sims_rna', stats) );
+                tdata[13].push( widget._to_num('sequence_count_ontology', stats) );
             }
             break;
             case 'mixs':
@@ -686,14 +706,14 @@
             options = { 'sorted': false, 'disable_sort': {}, 'hide_options': true, 'rows_per_page': tdata.length, 'filter': {} };
             for (var m in mgs) {
                 tdata[0].push( mgs[m].mixs['sequence_type'] );
-                tdata[1].push( mgs[m].mixs['project'] );
+                tdata[1].push( mgs[m].mixs['project_name'] );
                 tdata[2].push( mgs[m].mixs['latitude']+" , "+mgs[m].mixs['longitude'] );
                 tdata[3].push( mgs[m].mixs['country']+" , "+mgs[m].mixs['location'] );
                 tdata[4].push( mgs[m].mixs['collection_date'] );
                 tdata[5].push( mgs[m].mixs['biome'] );
                 tdata[6].push( mgs[m].mixs['feature'] );
                 tdata[7].push( mgs[m].mixs['material'] );
-                tdata[8].push( mgs[m].mixs['package'] );
+                tdata[8].push( mgs[m].mixs['env_package_type'] );
                 tdata[9].push( mgs[m].mixs['seq_method'] );
             }
             break;
