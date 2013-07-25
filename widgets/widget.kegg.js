@@ -47,7 +47,7 @@
             }
             widget.display(wparams);
         }).fail( function() {
-            stm.get_objects({"type":"metagenome","options":{"status":"public","verbosity":"mixs","limit":'0'}}).then(function(){
+            stm.get_objects({"type":"metagenome","options":{"status":"public","verbosity":"mixs","limit":'100000'}}).then(function(){
                 widget.display(wparams);
             });
         });
@@ -60,15 +60,19 @@
 	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
 		var md = { "name": stm.DataStore["metagenome"][i]["name"],
 			   "id": i,
-			   "project": stm.DataStore["metagenome"][i]["project"],
+			   "project": stm.DataStore["metagenome"][i]["project_name"]+" ("+stm.DataStore["metagenome"][i]["project_id"]+")",
+   			   "PI": stm.DataStore["metagenome"][i]["PI_lastname"]+", "+stm.DataStore["metagenome"][i]["PI_firstname"],
+   			   "status": stm.DataStore["metagenome"][i]["status"],
+   			   "created": stm.DataStore["metagenome"][i]["created"],
 			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
 			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
 			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
 			   "biome": stm.DataStore["metagenome"][i]["biome"],
 			   "feature": stm.DataStore["metagenome"][i]["feature"],
 			   "material": stm.DataStore["metagenome"][i]["material"],
-			   "package": stm.DataStore["metagenome"][i]["package"],
-			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"]
+			   "env_package": stm.DataStore["metagenome"][i]["env_package_type"],
+			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
+			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"]
 			 };
 		metagenome_data.push(md);
 	    }
@@ -101,7 +105,7 @@
 	    style: 'float: left;',
 	    data: metagenome_data,
 	    value: "id",
-	    filter: [ "name", "id", "project", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method" ],
+	    filter: ["name", "id", "project", "PI", "status", "created", "lat/long", "location", "collection date", "biome", "feature", "material", "env_package", "sequencing method", "sequencing type"],
 	    callback: function (data) {
 		widget.redraw(data,null);
 	    }

@@ -183,7 +183,7 @@
                 }
                 Retina.WidgetInstances.collection_overview[index].metagenome_selector(index, target);
             }).fail( function() {
-                stm.get_objects({"type": "metagenome", "options": {"verbosity": "mixs", "limit": 100000, "order": "created"}}).then(function() {
+                stm.get_objects({"type": "metagenome", "options": {"verbosity": "mixs", "limit": '100000'}}).then(function() {
                     Retina.WidgetInstances.collection_overview[index].metagenome_selector(index, target);
                 });
             });
