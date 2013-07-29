@@ -12,7 +12,7 @@
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/jquery.svg.css">
     <script>
-    stm.init('http://api.metagenomics.anl.gov').then(function() {
+    stm.init(stm.Config.mgrast_api).then(function() {
 	Retina.init( { library_resource: "js/" } ).then( function () {
 	    Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
 	    Retina.load_widget("login").then( function() {
