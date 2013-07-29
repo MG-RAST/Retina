@@ -75,7 +75,7 @@
 <p id="progressBar"></p>\
 </div>';
         params.target.innerHTML = progress;
-	    stm.get_objects({"repository": "mgrast", "type": "metagenome", "options": {"status": "private", "verbosity": "mixs", "limit": 0}}).then(function() {
+	    stm.get_objects({"repository":"mgrast","type":"metagenome","options":{"status":"private","verbosity":"mixs","limit":'100000'}}).then(function() {
             Retina.WidgetInstances.AnalysisBuilder[0].display(params);
         });
     };
@@ -100,7 +100,7 @@
             }
             widget.display(params);
         }).fail( function() {
-            stm.get_objects({"repository":"kbase","return_type":"search","type":"genome","id":"kb","options":{"count":'10000'}}).then(function () {
+            stm.get_objects({"repository":"kbase","return_type":"search","type":"genome","id":"kb","options":{"count":'100000'}}).then(function () {
                 widget.display(params);
             });
         });
@@ -115,7 +115,7 @@
             }
             widget.display(params);
         }).fail( function() {
-            stm.get_objects({"repository":"mgrast","type":"metagenome","options":{"status":"public","verbosity":"mixs","limit":'0'}}).then(function () {
+            stm.get_objects({"repository":"mgrast","type":"metagenome","options":{"status":"public","verbosity":"mixs","limit":'100000'}}).then(function () {
                 widget.display(params);
             });
         });
@@ -150,13 +150,14 @@
 	 	        "project": "-",
 	 	        "type": "single genome",
 	            "status": "public",
+	            "created": "-",
 	 	        "lat/long": "-",
 	 	        "location": "-",
 	 	        "collection date": "-",
 	 	        "biome": "-",
 	 	        "feature": "-",
 	 	        "material": "-",
-	 	        "package": "-",
+	 	        "env_package": "-",
 	 	        "sequencing method": "-",
 	            "sequencing type": "-",
 	 	        "domain": stm.DataStore["genome"][i]["domain"],
@@ -175,13 +176,14 @@
 		        "project": "-",
 		        "type": "plant genome",
 		        "status": "public",
+		        "created": "-",
 		        "lat/long": "-",
 		        "location": "-",
 		        "collection date": "-",
 		        "biome": "-",
 		        "feature": "-",
 		        "material": "-",
-		        "package": "-",
+		        "env_package": "-",
 		        "sequencing method": "-",
 		        "sequencing type": "-",
 		        "domain": "Eukaryota",
@@ -200,13 +202,14 @@
 			   "project": stm.DataStore["metagenome"][i]["project"],
 			   "type": "metagenome",
 			   "status": stm.DataStore["metagenome"][i]["status"],
+			   "created": stm.DataStore["metagenome"][i]["created"],
 			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
 			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
 			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
 			   "biome": stm.DataStore["metagenome"][i]["biome"],
 			   "feature": stm.DataStore["metagenome"][i]["feature"],
 			   "material": stm.DataStore["metagenome"][i]["material"],
-			   "package": stm.DataStore["metagenome"][i]["package"],
+			   "env_package": stm.DataStore["metagenome"][i]["env_package_type"],
 			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
 			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"],
 			   "domain": "-",
@@ -286,7 +289,7 @@
 	    label: "name",
 	    sort: true,
 	    extra_wide: true,
-	    filter: [ "name", "id", "project", "type", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type", "domain", "prokaryotic", "complete" ],
+	    filter: [ "name", "id", "project", "type", "status", "created", "lat/long", "location", "collection date", "biome", "feature", "material", "env_package", "sequencing method", "sequencing type", "domain", "prokaryotic", "complete" ],
 	    callback: function (data) {
 	        if ((! data) || (data.length == 0)) {
 	            alert("You have not selected any samples.\nPlease place the samples of your choice in the right side box'.");

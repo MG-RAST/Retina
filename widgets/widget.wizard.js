@@ -56,7 +56,7 @@
 		}
 		widget.display(wparams);
             }).fail( function() {
-		stm.get_objects({"type": "metagenome", "options": {"status": "public", "verbosity": "mixs", "limit": 0}}).then(function() {
+		stm.get_objects({"type": "metagenome", "options": {"status": "public", "verbosity": "mixs", "limit": '100000'}}).then(function() {
                     widget.display(wparams);
 		});
 	    });
@@ -70,14 +70,17 @@
 		stm.DataStore["metagenome"][i].group = '-';
 		var md = { "name": stm.DataStore["metagenome"][i]["name"],
 			   "id": i,
-			   "project": stm.DataStore["metagenome"][i]["project"],
+			   "project": stm.DataStore["metagenome"][i]["project_name"]+" ("+stm.DataStore["metagenome"][i]["project_id"]+")",
+   			   "PI": stm.DataStore["metagenome"][i]["PI_lastname"]+", "+stm.DataStore["metagenome"][i]["PI_firstname"],
+   			   "status": stm.DataStore["metagenome"][i]["status"],
+   			   "created": stm.DataStore["metagenome"][i]["created"],
 			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
 			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
 			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
 			   "biome": stm.DataStore["metagenome"][i]["biome"],
 			   "feature": stm.DataStore["metagenome"][i]["feature"],
 			   "material": stm.DataStore["metagenome"][i]["material"],
-			   "package": stm.DataStore["metagenome"][i]["package"],
+			   "env_package": stm.DataStore["metagenome"][i]["env_package_type"],
 			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
 			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"]
 			 };
@@ -111,10 +114,10 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 						   multiple: true,
 						   data: metagenome_data,
 						   value: "id",
-						   button: { text: 'next ',
-							     icon: "<i class='icon-forward' style='position: relative; top: 2px;'></i>",
-							     class: 'btn btn-large',
-							     style: 'margin-bottom: 10px; margin-left: 465px;' },
+						   button: { 'text': 'next ',
+							     'icon': "<i class='icon-forward' style='position: relative; top: 2px;'></i>",
+							     'class': 'btn btn-large',
+							     'style': 'margin-bottom: 10px; margin-left: 465px;' },
 						   callback: function (data) {
 						       widget.ids = data;
 						       widget.display(wparams);
@@ -133,10 +136,9 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 		var total = widget.ids.length * 3;
 		var stats_promises = [];
 		for (i=0; i<widget.ids.length; i++) {
-		    stats_promises.push(stm.get_objects({ "type": "metagenome", "id": widget.ids[i], options: { verbosity: 'full' } }).then(function(){ num_resolved++; document.getElementById('stats_progress').innerHTML = num_resolved + " of " + total; document.getElementById('stats_progress_bar').style.width = parseInt(num_resolved / total * 100)+"%"; }));
-		    stats_promises.push(stm.get_objects({ "type": "metagenome_statistics", "id": widget.ids[i], options: { verbosity: 'full' } }).then(function(){ num_resolved++; document.getElementById('stats_progress').innerHTML = num_resolved + " of " + total; document.getElementById('stats_progress_bar').style.width = parseInt(num_resolved / total * 100)+"%"; }));
-//		    stats_promises.push(stm.get_objects({ "type": "abundanceprofile", "id": widget.ids[i], options: { "source": "Subsystems", "type": "function" } }).then(function(){ num_resolved++; document.getElementById('stats_progress').innerHTML = num_resolved + " of " + total; document.getElementById('stats_progress_bar').style.width = parseInt(num_resolved / total * 100)+"%"; }));
-		    stats_promises.push(stm.get_objects({ "type": "abundanceprofile", "id": widget.ids[i], options: { "source": "M5RNA", "type": "organism" } }).then(function(){ num_resolved++; document.getElementById('stats_progress').innerHTML = num_resolved + " of " + total; document.getElementById('stats_progress_bar').style.width = parseInt(num_resolved / total * 100)+"%"; }));
+		    stats_promises.push(stm.get_objects({ "type": "metagenome", "id": widget.ids[i], "options": {"verbosity": 'full'} }).then(function(){ num_resolved++; document.getElementById('stats_progress').innerHTML = num_resolved + " of " + total; document.getElementById('stats_progress_bar').style.width = parseInt(num_resolved / total * 100)+"%"; }));
+//		    stats_promises.push(stm.get_objects({ "type": "matrix", "id": "function", options: {"source": "Subsystems", "id": widget.ids[i]} }).then(function(){ num_resolved++; document.getElementById('stats_progress').innerHTML = num_resolved + " of " + total; document.getElementById('stats_progress_bar').style.width = parseInt(num_resolved / total * 100)+"%"; }));
+		    stats_promises.push(stm.get_objects({ "type": "matrix", "id": "organism", "options": {"source": "M5RNA", "id": widget.ids[i], "hit_type": "lca"} }).then(function(){ num_resolved++; document.getElementById('stats_progress').innerHTML = num_resolved + " of " + total; document.getElementById('stats_progress_bar').style.width = parseInt(num_resolved / total * 100)+"%"; }));
 		}
 		
 		jQuery.when.apply(this, stats_promises).then(function() {
@@ -206,7 +208,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	target.innerHTML = "<button class='btn btn-large' style='position: absolute; top: 180px; left: 1100px;' onclick='document.getElementById(\"tab_depth\").click();'> <i class='icon-backward' style='position: relative; top: 2px;'></i> previous</button><h2 style='margin-bottom: 10px;'>Sequence Depth Detailed Reports</h2><div id='result_settings_div'></div><input type='button' class='btn' value='download table data' onclick='stm.saveAs(stm.DataStore.intermediate[\"result\"],\"sequence depth detailed report.csv\");' style='float: right; margin-right: 10px;margin-bottom: 10px;'><div id='result_table_div'></div>";
 
 	
-    }
+    };
 
     widget.rerender_depth = function (params) {
 	var genome_size = document.getElementById('depth_genomesize') ? parseInt(document.getElementById('depth_genomesize').value) : 5000000;
@@ -234,11 +236,11 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	Retina.WidgetInstances.wizard[1].depth_graph.settings.data = new_data;
 	Retina.WidgetInstances.wizard[1].depth_graph.settings.x_labels = new_labels;
 	Retina.WidgetInstances.wizard[1].depth_graph.render();
-    }
+    };
 
     widget.depth_details = function (params) {
 	var id = widget.name_id_hash[params.series];
-	var val = params.value / parseInt(stm.DataStore.metagenome_statistics[widget.name_mgid_hash[params.series]].sequence_stats.sequence_count_raw);
+	var val = params.value / parseInt(stm.DataStore.metagenome[widget.name_mgid_hash[params.series]].statistics.sequence_stats.sequence_count_raw);
 	var percent = val * 100;
 	percent = percent.formatString(4);
 
@@ -262,7 +264,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 <tr><th>proteins covered</th><td>"+lw.percent_proteins_detected+"%</td></tr>\
 </table>";
 	}
-    }
+    };
 
     /* calculates lander waterman data
        params:
@@ -566,7 +568,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	pcoa.settings.legend_position = 'right';
 	pcoa.settings.target.innerHTML = "";
 	pcoa.render();
-    }
+    };
 
     widget.assign_group = function (update) {
 	var points = Retina.WidgetInstances.wizard[1].pcoa_selection;
@@ -624,7 +626,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 		table.settings.tdata[i].include = "<input type='checkbox'"+checked+" onclick='Retina.WidgetInstances.wizard[1].toggle_mg(this, \""+id+"\");'>";
 	    }
 	}
-    }
+    };
 
     widget.render_pcoa = function (index) {
 	if (document.getElementById('pcoa').className == 'tab-pane active') {
@@ -656,7 +658,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    for (i=0;i<widget.ids.length;i++) {
 		var mg = stm.DataStore.metagenome[widget.ids[i]];
 		var id = widget.ids[i];
-		tdata.push([ mg.id, mg.name, stm.DataStore.metagenome[id].group ? stm.DataStore.metagenome[id].group : "-", parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2), "<input type='checkbox' checked onclick='Retina.WidgetInstances.wizard[1].toggle_mg(this, \""+id+"\");'>" ]);
+		tdata.push([ mg.id, mg.name, stm.DataStore.metagenome[id].group ? stm.DataStore.metagenome[id].group : "-", parseFloat(stm.DataStore.metagenome[id].statistics.sequence_stats.alpha_diversity_shannon).formatString(2), "<input type='checkbox' checked onclick='Retina.WidgetInstances.wizard[1].toggle_mg(this, \""+id+"\");'>" ]);
 	    }
 	    var table_data = { data: tdata, header: [ "ID", "name", "group", "alpha diversity", "include" ] };
 	    var table = widget.sample_table = Retina.Renderer.create("table", { target: tablespace,
@@ -715,7 +717,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 		var retlist = retstr.result[0].replace(/\"/g, "").split(/\n/);
 		var pcoa_result = { "components": [], "samples": {} };
 		for (i=0;i<retlist.length;i++) {
-		    var row = retlist[i].split(/\t/)
+		    var row = retlist[i].split(/\t/);
 		    if (row[0].match(/^PCO/)) {
 			pcoa_result.components.push({ "val": parseFloat(row[1]), "min": null, "max": null });
 		    } else {
@@ -769,13 +771,15 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    }
 	}
 	return transposed;
-    }
+    };
 
     widget.extract_data = function (params) {
 	var ids = params.ids;
 	var normalize = params.normalize || false;
 	var type = params.type || 'function';
 	var level = params.level || 1;
+	var hit = (type == 'function') ? "all" : "lca";
+	var group = (type == 'function') ? "function" : "strain";
 	var source = (type == 'function') ? (params.source || 'Subsystems') : (params.source || 'M5RNA');
 	var md_field = (type == 'function') ? "ontology" : "taxonomy";
 
@@ -788,7 +792,8 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	// extract the data from the api datastructure into a table structure
 	var td = [];
 	for (h=0;h<ids.length;h++) {
-	    var data = stm.DataStore.abundanceprofile[ids[h]+"_"+type+"_"+source];
+	    //var data = stm.DataStore.abundanceprofile[ids[h]+"_"+type+"_"+source];
+	    var data = stm.DataStore.matrix[ids[h]+"_"+type+"_"+group+"_"+source+"_"+hit+"_abundance_5_60_15_0"];
 	    for (i=0;i<data.data.length;i++) {
 		if (params.filter_bacteria && ((data.rows[i].metadata[md_field][0] != 'Bacteria') && (data.rows[i].metadata[md_field][0] != 'Archaea'))) {
 		    continue;
@@ -849,13 +854,13 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	if (normalize) {
 	    for (i=0;i<hdata.length;i++) {
 		for (h=0;h<hdata[i].length;h++) {
-		    hdata[i][h] = hdata[i][h] / (maxvals[h] - minvals[h])
+		    hdata[i][h] = hdata[i][h] / (maxvals[h] - minvals[h]);
 		}
 	    }
 	}
 
 	return { table_header: theader, table_data: tdata, matrix_data: hdata, columns: hcols, rows: hrows };
-    }
+    };
 
     widget.render_overview = function (id, index) {
 	if (document.getElementById('overview').className == 'tab-pane active') {
@@ -865,9 +870,9 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	document.getElementById('overview').innerHTML = '<div style="float: right;"><h3>select sample</h3><div id="overview_mg_select"></div></div><h3 id="overview_header"></h3>\
 <table><tr><td><div id="stats_overview_table"></div></td><td><div id="breakdown"></div></td></tr></table>\
 <table style="width: 600px;">\
-<tr><th align=left>Alpha Diversity (Shannon Index)</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon).formatString(2)+'</td><td><div id="alphadiversity"></div></td></tr>\
-<tr><th align=left>Mean DRISEE error</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.drisee_score_raw).formatString(2)+'</td><td><div id="drisee_dist"></div></td></tr>\
-<tr><th align=left>Mean GC Content</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_preprocessed).formatString(2)+' %</td><td><div id="gc_dist"></div></td></tr>\
+<tr><th align=left>Alpha Diversity (Shannon Index)</th><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.alpha_diversity_shannon).formatString(2)+'</td><td><div id="alphadiversity"></div></td></tr>\
+<tr><th align=left>Mean DRISEE error</th><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.drisee_score_raw).formatString(2)+'</td><td><div id="drisee_dist"></div></td></tr>\
+<tr><th align=left>Mean GC Content</th><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.average_gc_content_preprocessed).formatString(2)+' %</td><td><div id="gc_dist"></div></td></tr>\
 </table>\
 <table><tr><td><div id="nuc_hist"></div></td><td><div id="drisee"></div></td></tr></table>\
 <div id="rarefaction"></div>\
@@ -892,20 +897,20 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
   <tr><td></td><th>Upload</th><th>Post QC</th></tr>\
  </thead>\
  <tbody>\
-  <tr><th>number of base pairs</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.bp_count_raw).formatString(0)+' bp</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.bp_count_preprocessed).formatString(0)+' bp</td></tr>\
-  <tr><th>number of reads</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_raw).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_preprocessed).formatString(0)+'</td></tr>\
-<tr><th>mean read length</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_length_raw).formatString(0)+' bp</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_length_preprocessed).formatString(0)+' bp</td></tr>\
-  <tr><th>mean GC percent</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_raw).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_preprocessed).formatString(0)+'</td></tr>\
+  <tr><th>number of base pairs</th><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.bp_count_raw).formatString(0)+' bp</td><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.bp_count_preprocessed).formatString(0)+' bp</td></tr>\
+  <tr><th>number of reads</th><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.sequence_count_raw).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.sequence_count_preprocessed).formatString(0)+'</td></tr>\
+<tr><th>mean read length</th><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.average_length_raw).formatString(0)+' bp</td><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.average_length_preprocessed).formatString(0)+' bp</td></tr>\
+  <tr><th>mean GC percent</th><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.average_gc_content_raw).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.average_gc_content_preprocessed).formatString(0)+'</td></tr>\
   <tr><td></td><th>predicted features</th><th>alignment (identified)</th></tr>\
-  <tr><th>protein</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_processed).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_sims_aa).formatString(0)+'</td></tr>\
-  <tr><th>tRNA</th><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_processed_rna).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_sims_rna).formatString(0)+'</td></tr>\
+  <tr><th>protein</th><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.sequence_count_processed).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.sequence_count_sims_aa).formatString(0)+'</td></tr>\
+  <tr><th>tRNA</th><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.sequence_count_processed_rna).formatString(0)+'</td><td>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.sequence_count_sims_rna).formatString(0)+'</td></tr>\
   <tr><td></td><th colspan=2>Annotation</th></tr>\
-  <tr><th>Identified Functional Categories</th><td colspan=2>'+parseInt(stm.DataStore.metagenome_statistics[id].sequence_stats.sequence_count_ontology).formatString(0)+'</td></tr>\
+  <tr><th>Identified Functional Categories</th><td colspan=2>'+parseInt(stm.DataStore.metagenome[id].statistics.sequence_stats.sequence_count_ontology).formatString(0)+'</td></tr>\
  </tbody>\
 </table>';
 
     	    // sequence distribution
-    	    var stats = stm.DataStore.metagenome_statistics[id].sequence_stats;
+    	    var stats = stm.DataStore.metagenome[id].statistics.sequence_stats;
     	    var breakdown_data = [ { name: 'Failed QC' , data: [ parseInt(stats.sequence_count_raw) - parseInt(stats.sequence_count_processed) ], fill: 'gray' },
 				   { name: 'Unknown' , data: [ parseInt(stats.sequence_count_processed) - parseInt(stats.sequence_count_processed_aa) - parseInt(stats.sequence_count_sims_rna) ], fill: '#EE5F5B' },
     				   { name: 'Unknown Protein' , data: [ parseInt(stats.sequence_count_processed_aa) - parseInt(stats.sequence_count_sims_aa) ], fill: '#FBB450' },
@@ -933,7 +938,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
     				 { name: 'C', data: [], fill: 'blue', lineColor: 'blue' },
     				 { name: 'G', data: [], fill: 'orange', lineColor: 'orange' },
     				 { name: 'N', data: [], fill: 'brown', lineColor: 'brown' } ];
-    	    var bp_prof = stm.DataStore.metagenome_statistics[id].qc.bp_profile.percents.data;
+    	    var bp_prof = stm.DataStore.metagenome[id].statistics.qc.bp_profile.percents.data;
     	    for (i=0; i<bp_prof.length; i++) {
     		for (h=0; h<5; h++) {
     		    nucprof_data[h].data.push(bp_prof[i][h+1]);
@@ -958,7 +963,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
     	    widget.nuc.render();
 	    
     	    // drisee
-	    if (stm.DataStore.metagenome_statistics[id].qc.drisee.percents.data) {
+	    if (stm.DataStore.metagenome[id].statistics.qc.drisee.percents.data) {
     		var drisee_data = { series: [ { name: 'A', color: 'green' },
     					      { name: 'T', color: 'red' },
     					      { name: 'C', color: 'blue' },
@@ -967,7 +972,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
     					      { name: 'InDel', color: 'black' },
     					      { name: 'Total', color: 'purple' }],
     				    points: [ [], [], [], [], [], [], [] ] };
-    		var drisee_prof = stm.DataStore.metagenome_statistics[id].qc.drisee.percents.data;
+    		var drisee_prof = stm.DataStore.metagenome[id].statistics.qc.drisee.percents.data;
     		for (i=0; i<drisee_prof.length; i++) {
     		    for (h=0; h<7; h++) {
     			drisee_data.points[h].push({ x: drisee_prof[i][0], y: drisee_prof[i][h+1]});
@@ -996,7 +1001,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
     	    // rarefaction curve
     	    var rare_data = { series: [ { name: 'A', color: 'blue' } ],
     			      points: [ [] ] };
-    	    var rare_prof = stm.DataStore.metagenome_statistics[id].rarefaction;
+    	    var rare_prof = stm.DataStore.metagenome[id].statistics.rarefaction;
     	    var rmax_x = 0;
     	    var rmax_y = 0;
     	    for (i=0; i<rare_prof.length; i++) {
@@ -1034,7 +1039,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    // gc histogram upload
     	    var gchistu_data = { series: [ { name: 'A', color: 'blue' } ],
     				 points: [ [] ] };
-    	    var gchistu_prof = stm.DataStore.metagenome_statistics[id].gc_histogram.upload;
+    	    var gchistu_prof = stm.DataStore.metagenome[id].statistics.gc_histogram.upload;
     	    var gumax_x = 0;
     	    var gumax_y = 0;
     	    for (i=0; i<gchistu_prof.length; i++) {
@@ -1072,7 +1077,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    // gc histogram post qc
     	    var gchist_data = { series: [ { name: 'A', color: 'blue' } ],
     				points: [ [] ] };
-    	    var gchist_prof = stm.DataStore.metagenome_statistics[id].gc_histogram.post_qc;
+    	    var gchist_prof = stm.DataStore.metagenome[id].statistics.gc_histogram.post_qc;
     	    var gmax_x = 0;
     	    var gmax_y = 0;
     	    for (i=0; i<gchist_prof.length; i++) {
@@ -1110,7 +1115,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    // sequence length histogram upload
     	    var seqlenu_data = { series: [ { name: 'A', color: 'blue' } ],
     				 points: [ [] ] };
-    	    var seqlenu_prof = stm.DataStore.metagenome_statistics[id].length_histogram.upload;
+    	    var seqlenu_prof = stm.DataStore.metagenome[id].statistics.length_histogram.upload;
     	    var sumax_x = 0;
     	    var sumax_y = 0;
     	    for (i=0; i<seqlenu_prof.length; i++) {
@@ -1148,7 +1153,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    // sequence length histogram post qc
     	    var seqlen_data = { series: [ { name: 'A', color: 'blue' } ],
     				points: [ [] ] };
-    	    var seqlen_prof = stm.DataStore.metagenome_statistics[id].length_histogram.post_qc;
+    	    var seqlen_prof = stm.DataStore.metagenome[id].statistics.length_histogram.post_qc;
     	    var smax_x = 0;
     	    var smax_y = 0;
     	    for (i=0; i<seqlen_prof.length; i++) {
@@ -1183,12 +1188,12 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    }
     	    widget.seqlen.render();
 	    
-	    var alpha_data = [ parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.alpha_diversity_shannon) ];
+	    var alpha_data = [ parseFloat(stm.DataStore.metagenome[id].statistics.sequence_stats.alpha_diversity_shannon) ];
 	    for (i=0;i<widget.ids.length;i++) {
 		if (widget.ids[i] == id) {
 		    continue;
 		}
-		alpha_data.push(parseFloat(stm.DataStore.metagenome_statistics[widget.ids[i]].sequence_stats.alpha_diversity_shannon));
+		alpha_data.push(parseFloat(stm.DataStore.metagenome[widget.ids[i]].statistics.sequence_stats.alpha_diversity_shannon));
 	    }
 	    var alphadiversitysettings = { target: document.getElementById('alphadiversity'), 
 					   data: alpha_data };
@@ -1199,12 +1204,12 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    }
 	    widget.alphadiversity.render();
 	    
-	    var driseedist_data = [ parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.drisee_score_raw) ];
+	    var driseedist_data = [ parseFloat(stm.DataStore.metagenome[id].statistics.sequence_stats.drisee_score_raw) ];
 	    for (i=0;i<widget.ids.length;i++) {
 		if (widget.ids[i] == id) {
 		    continue;
 		}
-		driseedist_data.push(parseFloat(stm.DataStore.metagenome_statistics[widget.ids[i]].sequence_stats.drisee_score_raw));
+		driseedist_data.push(parseFloat(stm.DataStore.metagenome[widget.ids[i]].statistics.sequence_stats.drisee_score_raw));
 	    }
 	    var driseedistsettings = { target: document.getElementById('drisee_dist'),
 				       data: driseedist_data };
@@ -1215,12 +1220,12 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    }
 	    widget.driseedist.render();
 	    
-	    var gcdist_data = [ parseFloat(stm.DataStore.metagenome_statistics[id].sequence_stats.average_gc_content_preprocessed) ];
+	    var gcdist_data = [ parseFloat(stm.DataStore.metagenome[id].statistics.sequence_stats.average_gc_content_preprocessed) ];
 	    for (i=0;i<widget.ids.length;i++) {
 		if (widget.ids[i] == id) {
 		    continue;
 		}
-		gcdist_data.push(parseFloat(stm.DataStore.metagenome_statistics[widget.ids[i]].sequence_stats.average_gc_content_preprocessed));
+		gcdist_data.push(parseFloat(stm.DataStore.metagenome[widget.ids[i]].statistics.sequence_stats.average_gc_content_preprocessed));
 	    }
 	    var gcdistsettings = { target: document.getElementById('gc_dist'),
 				   data: gcdist_data };
@@ -1244,7 +1249,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	}
 
 	widget.assign_group(true);
-    }
+    };
     
     widget.number = function (number) {
 	return '<p style="font-size: 16px; float: left; font-weight: bold; height: 18px; text-align: center; vertical-align: middle; margin-right: 8px; border: 5px solid #0088CC; width: 18px; border-radius: 14px 14px 14px 14px; position: relative; bottom: 5px; right: 9px;">'+number+'</p>';

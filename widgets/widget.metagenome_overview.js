@@ -24,7 +24,6 @@
     
     widget.mg_select_list = undefined;
     widget.curr_mg = undefined;
-    widget.curr_mg_stats = undefined;
     
     widget.display = function (wparams) {
         widget = this;
@@ -33,12 +32,10 @@
         if (wparams.id) {
             jQuery('#mg_modal').modal('hide');
 	        // check if required data is loaded (use stats)
-	        if (! (stm.DataStore.hasOwnProperty('metagenome_statistics') && stm.DataStore.metagenome_statistics.hasOwnProperty(wparams.id))) {
-	            // make a promise list
-	            var stats_promises = [];
-	            stats_promises.push(stm.get_objects({ "type": "metagenome", "id": wparams.id, "options": { "verbosity": "full" } }));
-	            stats_promises.push(stm.get_objects({ "type": "metagenome_statistics", "id": wparams.id, "options": { "verbosity": "full" } }));
-	            jQuery.when.apply(this, stats_promises).then(function() {
+	        if (! ( stm.DataStore.hasOwnProperty('metagenome') &&
+	                stm.DataStore.metagenome.hasOwnProperty(wparams.id) &&
+	                stm.DataStore.metagenome[wparams.id].hasOwnProperty('statistics') )) {
+	            stm.get_objects({"type": "metagenome", "id": wparams.id, "options": {"verbosity": "full"}}).then(function() {
 		            widget.display(wparams);
 	            });
 	            return;
@@ -51,7 +48,6 @@
 	
 	// make some shortcuts
 	widget.curr_mg = stm.DataStore.metagenome[wparams.id];
-	widget.curr_mg_stats = stm.DataStore.metagenome_statistics[wparams.id];
 	var content = wparams.target;
 	
 	// set the output area
@@ -162,7 +158,7 @@
             Retina.Renderer.create("graph", data).render();
             break;
             case 'areagraph':
-            if (! widget.curr_mg_stats.qc.bp_profile.percents.data) {
+            if (! widget.curr_mg.statistics.qc.bp_profile.percents.data) {
 		        content.removeChild(tag);
 		        content.removeChild(div);
                 break;
@@ -203,7 +199,7 @@
                 }
                 Retina.WidgetInstances.metagenome_overview[index].metagenome_selector(index, target);
             }).fail( function() {
-                stm.get_objects({"type": "metagenome", "options": {"verbosity": "mixs", "limit": 0}}).then(function() {
+                stm.get_objects({"type": "metagenome", "options": {"verbosity": "mixs", "limit": '100000'}}).then(function() {
                     Retina.WidgetInstances.metagenome_overview[index].metagenome_selector(index, target);
                 });
             });
@@ -218,15 +214,17 @@
     	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
     		     var md = { "name": stm.DataStore["metagenome"][i]["name"],
     			   "id": i,
-    			   "project": stm.DataStore["metagenome"][i]["project"],
+    			   "project": stm.DataStore["metagenome"][i]["project_name"]+" ("+stm.DataStore["metagenome"][i]["project_id"]+")",
+    			   "PI": stm.DataStore["metagenome"][i]["PI_lastname"]+", "+stm.DataStore["metagenome"][i]["PI_firstname"],
     			   "status": stm.DataStore["metagenome"][i]["status"],
+    			   "created": stm.DataStore["metagenome"][i]["created"],
     			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
     			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
     			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
     			   "biome": stm.DataStore["metagenome"][i]["biome"],
     			   "feature": stm.DataStore["metagenome"][i]["feature"],
     			   "material": stm.DataStore["metagenome"][i]["material"],
-    			   "package": stm.DataStore["metagenome"][i]["package"],
+    			   "env_package": stm.DataStore["metagenome"][i]["env_package_type"],
     			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
     			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"]
     			 };
@@ -238,7 +236,7 @@
 			"data": metagenome_data,
 		    "value": "id",
             "label": "name",
-	        "filter": ["name", "id", "project", "status", "lat/long", "location", "collection date", "biome", "feature", "material", "package", "sequencing method", "sequencing type"],
+	        "filter": ["name", "id", "project", "PI", "status", "created", "lat/long", "location", "collection date", "biome", "feature", "material", "env_package", "sequencing method", "sequencing type"],
 	        "sort": true,
 	        "multiple": false,
 		    "callback": function (mgid) {
@@ -301,10 +299,9 @@
     
     widget.metagenome_summary = function(index) {
         var mg = Retina.WidgetInstances.metagenome_overview[index].curr_mg;
-        var mg_stats = Retina.WidgetInstances.metagenome_overview[index].curr_mg_stats;
 	    // hash the basic stats
-	    var stats  = mg_stats.sequence_stats;
-	    var fuzzy  = Retina.WidgetInstances.metagenome_overview[index]._summary_fuzzy_math(mg, mg_stats);
+	    var stats  = mg.statistics.sequence_stats;
+	    var fuzzy  = Retina.WidgetInstances.metagenome_overview[index]._summary_fuzzy_math(mg);
 	    var is_rna = (mg.sequence_type == 'Amplicon') ? 1 : 0;
 	    var total  = parseInt(stats['sequence_count_raw']);
         var ptext  = " Of the remainder, "+fuzzy[3].formatString()+" sequences ("+widget._to_per(fuzzy[3], total)+") contain predicted proteins with known functions and "+fuzzy[2].formatString()+" sequences ("+widget._to_per(fuzzy[2], total)+") contain predicted proteins with unknown function.";
@@ -340,9 +337,8 @@
 
     widget.summary_piechart = function(index) {
         var mg = Retina.WidgetInstances.metagenome_overview[index].curr_mg;
-        var mg_stats = Retina.WidgetInstances.metagenome_overview[index].curr_mg_stats;
 	    var pieData = [];
-	    var pieNums = Retina.WidgetInstances.metagenome_overview[index]._summary_fuzzy_math(mg, mg_stats);
+	    var pieNums = Retina.WidgetInstances.metagenome_overview[index]._summary_fuzzy_math(mg);
 	    var legend  = ["Failed QC", "Unknown", "Unknown Protein", "Annotated Protein", "ribosomal RNA"];
 	    var colors  = ["#6C6C6C", "#dc3912", "#ff9900", "#109618", "#3366cc", "#990099"];
 	    for (var i = 0; i < pieNums.length; i++) {
@@ -360,9 +356,9 @@
 	    return data;
     };
     
-    widget._summary_fuzzy_math = function(mg, mg_stats) {
+    widget._summary_fuzzy_math = function(mg) {
         // get base numbers
-        var stats  = mg_stats.sequence_stats;
+        var stats  = mg.statistics.sequence_stats;
         var is_rna = (mg.sequence_type == 'Amplicon') ? 1 : 0;
         var raw_seqs    = ('sequence_count_raw' in stats) ? parseFloat(stats.sequence_count_raw) : 0;
         var qc_rna_seqs = ('sequence_count_preprocessed_rna' in stats) ? parseFloat(stats.sequence_count_preprocessed_rna) : 0;
@@ -427,11 +423,10 @@
     
     widget.drisee_introtext = function(index) {
         var mg = Retina.WidgetInstances.metagenome_overview[index].curr_mg;
-        var mg_stats = Retina.WidgetInstances.metagenome_overview[index].curr_mg_stats;
         var message = '';
         if (mg.sequence_type == 'Amplicon') {
             message = "DRISEE cannot be run on Amplicon datasets.";
-        } else if (! mg_stats.qc.drisee.percents.data) {
+        } else if (! mg.statistics.qc.drisee.percents.data) {
             message = "DRISEE could not produce a profile; the sample failed to meet the minimal ADR requirements to calculate an error profile (see Keegan et al. 2012)";
         } else {
             message = "DRISEE successfully calculated an error profile.";
@@ -496,16 +491,22 @@
     };
     
     widget.annotation_piechart = function(index, dcat, dtype) {
-        var mg_stats = Retina.WidgetInstances.metagenome_overview[index].curr_mg_stats;
+        var annData = Retina.WidgetInstances.metagenome_overview[index].curr_mg.statistics[dcat][dtype];
         var pieData = [];
-        var annData = mg_stats[dcat][dtype];
         var colors  = GooglePalette(annData.length);
         var annMax  = 0;
         var annSort = annData.sort(function(a,b) {
             return b[1] - a[1];
-        });        
+        });
+        var skip = Math.max.apply(Math, annData.map(function(x){ return x[1]; })) / 20;
+
         for (var i = 0; i < annSort.length; i++) {
-    	    pieData.push({ name: annSort[i][0], data: [ parseInt(annSort[i][1]) ], fill: colors[i] });
+            var val = parseInt(annSort[i][1]);
+            // skip if value too low to view
+            if (val < skip) {
+                continue;
+            }
+    	    pieData.push({ name: annSort[i][0], data: [ val ], fill: colors[i] });
     	    annMax = Math.max(annMax, annSort[i][0].length);
     	}
     	var pwidth  = 250;
@@ -528,7 +529,7 @@
     };
 
     widget.taxon_linegraph = function(index, level, num) {
-        var taxons = Retina.WidgetInstances.metagenome_overview[index].curr_mg_stats.taxonomy;
+        var taxons = Retina.WidgetInstances.metagenome_overview[index].curr_mg.statistics.taxonomy;
         var lineData = [{ name: level+' rank abundance', data: []}];
         var xlabels  = [];
         var annSort  = taxons[level].sort(function(a,b) {
@@ -558,9 +559,9 @@
     };
 
     widget.bp_areagraph = function(index) {
-        var mg_stats = Retina.WidgetInstances.metagenome_overview[index].curr_mg_stats;
-        var labels = mg_stats.qc.bp_profile.percents.columns;
-        var bpdata = mg_stats.qc.bp_profile.percents.data;
+        var mg = Retina.WidgetInstances.metagenome_overview[index].curr_mg;
+        var labels = mg.statistics.qc.bp_profile.percents.columns;
+        var bpdata = mg.statistics.qc.bp_profile.percents.data;
         var xt = 'bp '+labels[0];
         var yt = 'Percent bp';
         var names  = labels.slice(1);
@@ -597,14 +598,14 @@
     };
 
     widget.mg_plot = function(index, type, kmer) {
-        var mg_stats = Retina.WidgetInstances.metagenome_overview[index].curr_mg_stats;
+        var mg = Retina.WidgetInstances.metagenome_overview[index].curr_mg;
         var data, x, y, labels, points, xt, yt;
         var xscale = 'linear';
         var yscale = 'linear';
 	    switch (type) {
 	        case 'drisee':
 	        try {
-	            data = Retina.WidgetInstances.metagenome_overview[0].multi_plot(0, [1,2,3,4,5,6,7], mg_stats.qc.drisee.percents.columns, mg_stats.qc.drisee.percents.data, 'bp position', 'percent error');
+	            data = Retina.WidgetInstances.metagenome_overview[0].multi_plot(0, [1,2,3,4,5,6,7], mg.statistics.qc.drisee.percents.columns, mg.statistics.qc.drisee.percents.data, 'bp position', 'percent error');
 	        } catch (err) {
         	    data = undefined;
         	}
@@ -639,9 +640,9 @@
                 break;
             }
 	        try {
-	            for (var i = 0; i < mg_stats.qc.kmer['15_mer']['data'].length; i+=2) {
-	                var thisY = (yi == 5) ? 1 - parseFloat(mg_stats.qc.kmer['15_mer']['data'][i][yi]) : mg_stats.qc.kmer['15_mer']['data'][i][yi];
-                    points.push([ mg_stats.qc.kmer['15_mer']['data'][i][xi], thisY ]);
+	            for (var i = 0; i < mg.statistics.qc.kmer['15_mer']['data'].length; i+=2) {
+	                var thisY = (yi == 5) ? 1 - parseFloat(mg.statistics.qc.kmer['15_mer']['data'][i][yi]) : mg.statistics.qc.kmer['15_mer']['data'][i][yi];
+                    points.push([ mg.statistics.qc.kmer['15_mer']['data'][i][xi], thisY ]);
                 }
                 data = Retina.WidgetInstances.metagenome_overview[0].single_plot(points, xt, yt, xscale, yscale);
             } catch (err) {
@@ -650,7 +651,7 @@
             break;
             case 'rarefaction':
             try {
-                data = Retina.WidgetInstances.metagenome_overview[0].single_plot(mg_stats.rarefaction, 'number of reads', 'species count', xscale, yscale);
+                data = Retina.WidgetInstances.metagenome_overview[0].single_plot(mg.statistics.rarefaction, 'number of reads', 'species count', xscale, yscale);
             } catch (err) {
             	data = undefined;
             }
@@ -771,7 +772,7 @@
     };
 
     widget.analysis_statistics = function(index) {
-        var stats = Retina.WidgetInstances.metagenome_overview[index].curr_mg_stats.sequence_stats;
+        var stats = Retina.WidgetInstances.metagenome_overview[index].curr_mg.statistics.sequence_stats;
 	    return { width: "span6",
 		         style: "float: left;",
 		         data: [ { header: "Analysis Statistics" },
