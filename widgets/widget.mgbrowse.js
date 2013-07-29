@@ -76,6 +76,12 @@
 		    Retina.WidgetInstances.mgbrowse[1].state.query[params.query[i].field] = { "searchword": params.query[i].searchword, "comparison": params.query[i].comparison || "=" };
 		}
 	    }
+	    if (params.goto != null) {
+		Retina.WidgetInstances.mgbrowse[1].state.offset = params.goto;
+	    }
+	    if (params.limit) {
+		Retina.WidgetInstances.mgbrowse[1].state.limit = params.limit;
+	    }
 	}
 
 	var query = "";

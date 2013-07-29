@@ -711,14 +711,18 @@
 	    goto_text.onkeypress = function (e) {
 		e = e || window.event;
 		if (e.keyCode == 13) {
-		    Retina.RendererInstances.table[index].settings.offset = parseInt(this.value) - 1;
-		    if (Retina.RendererInstances.table[index].settings.offset < 0) {
-			Retina.RendererInstances.table[index].settings.offset = 0;
+		    if (typeof renderer.settings.navigation_callback == "function") {
+			renderer.settings.navigation_callback({'goto': parseInt(this.value) - 1 });
+		    } else {
+			Retina.RendererInstances.table[index].settings.offset = parseInt(this.value) - 1;
+			if (Retina.RendererInstances.table[index].settings.offset < 0) {
+			    Retina.RendererInstances.table[index].settings.offset = 0;
+			}
+			if (Retina.RendererInstances.table[index].settings.offset > rows) {
+			    Retina.RendererInstances.table[index].settings.offset = rows;
+			}
+			Retina.RendererInstances.table[index].render();
 		    }
-		    if (Retina.RendererInstances.table[index].settings.offset > rows) {
-			Retina.RendererInstances.table[index].settings.offset = rows;
-		    }
-		    Retina.RendererInstances.table[index].render();
 		}
 	    };
 	    
@@ -744,9 +748,13 @@
 	    perpage.onkeypress = function (e) {
 		e = e || window.event;
 		if (e.keyCode == 13) {
-		    Retina.RendererInstances.table[index].settings.offset = 0;
-		    Retina.RendererInstances.table[index].settings.rows_per_page = parseInt(this.value);
-		    Retina.RendererInstances.table[index].render();
+		    if (typeof renderer.settings.navigation_callback == "function") {
+			renderer.settings.navigation_callback({'limit': parseInt(this.value) });
+		    } else {
+			Retina.RendererInstances.table[index].settings.offset = 0;
+			Retina.RendererInstances.table[index].settings.rows_per_page = parseInt(this.value);
+			Retina.RendererInstances.table[index].render();
+		    }
 		}
 	    };
 	    var ppspan1 = document.createElement("span");
