@@ -30,9 +30,9 @@
 	            Retina.add_widget({"name": builder_widget, "resource": "widgets/", "filename": "widget."+builder_widget+".js"});
       	        Retina.load_widget("NotebookDashboard").then(function () {
       	            var val  = document.URL;
-		            var logo = "KBase";
-		            if (val.indexOf("mgrast") > -1) {
-		                logo = "MG-RAST";
+		            var logo = "MG-RAST";
+		            if (val.indexOf("kbase") > -1) {
+		                logo = "KBase";
 		            }
 		            Retina.load_widget(builder_widget).then(function () {
 		                var cache = true;
