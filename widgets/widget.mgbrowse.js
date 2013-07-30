@@ -18,21 +18,20 @@
     widget.state = { "initial": true,
 		     "sort": "name",
 		     "sortDir": "asc",
-		     "limit": 10,
+		     "limit": 15,
 		     "offset": 0,
 		     "query": {},
-		     "api_url": 'http://dunkirk.mcs.anl.gov/~jbischof/mgrast/api2.cgi/search/metagenome?' };
+		     "api_url": stm.Config.mgrast_api+'/metagenome?' };
         
     widget.display = function (wparams) {
+        console.log(wparams);
         widget = this;
 	var index = widget.index;
-
 	var content = widget.target = wparams.target;
+	var result_table_header = wparams.header || [ "id", "name", "project_id", "project_name", "PI_lastname", "biome", "feature", "material", "env_package_type", "location", "country", "longitude", "latitude", "collection_date", "sequence_type", "seq_method", "status", "created" ];
 	
-	var result_table_header = wparams.header || [ "country", "location","status","name","sequence_type","job","feature","PI_lastname","biome","id","project_name","project_id","material" ];
-
 	widget.result_table = Retina.Renderer.create("table", { target: document.getElementById('result'),
-								rows_per_page: 10,
+								rows_per_page: 15,
 								filter_autodetect: false,
 								sort_autodetect: false,
 								synchronous: false,
