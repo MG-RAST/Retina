@@ -64,6 +64,19 @@
         clicked_cell - content of the clicked cell
         clicked_row_index - zero based index of the clicked row
         clicked_cell_index - zero based index of the clicked cell
+
+  edit_callback (FUNCTION)
+      The function to be called when a cell is edited. This function is passed the table data. It is organised as a list of hashes with each column name pointing at the value of the cell.
+
+  synchronous (BOOLEAN)
+      This is true by default. If set to false, the table expects its data to be set, filtered and browsed externally. It will issue a callback to the navigation callback function on any of those events, expecting an external data update.
+
+  navigation_callback (FUNCTION)
+      The function to be called when a navigation / filter action is issued and the table is in asynchronous state (synchronous set to false). It will be passed either a string ("previous", "next", "first", "last") or an object that can contain one of the following structures:
+        sort: { sort: $fieldname, dir: [ "asc" | "desc" ] }
+        query: [ { searchword: $filter_value, field: $column_name_to_search, comparison: $comparison_operator }, ... ]
+        goto: $row_index
+        limit: $number_of_rows_per_page
     
 */
 (function () {
@@ -81,18 +94,19 @@
 		'sortcol': 0,
 		'sorted': false,
 		'offset': 0,
-		'invisible_columns' : { },
-		'disable_sort': { },
+		'invisible_columns' : {},
+		'disable_sort': {},
 		'sortdir': 'asc',
 		'sorttype': {},
 		'filter_autodetect': false,
 		'filter_autodetect_select_max': 10,
 		'sort_autodetect': false,
-		'filter': { },
+		'filter': {},
 		'hide_options': false,
 		'filter_changed': false,
 		'editable': {},
 		'edit_callback': null,
+		'navigation_callback': null,
 		'target': 'table_space',
 		'data': 'exampleData()',
 		'synchronous': true,
@@ -184,12 +198,16 @@
 	    var filter = renderer.settings.filter;
 	    var filter_present = false;
 	    for (i in filter) {
-		if (typeof(filter[i].searchword) != "undefined" && filter[i].searchword.length > 0) {
-		    filter_present = true;
-		    break;
+		if (filter.hasOwnProperty(i)) {
+		    if (filter[i].hasOwnProperty('searchword') && filter[i].searchword.length > 0) {
+			filter_present = true;
+			break;
+		    }
 		}
 	    }
-	    if (filter_present) {
+
+	    // check for data filtering
+	    if (filter_present && renderer.settings.synchronous) {
 		var newdata = [];
 		if (renderer.settings.filter_changed) {
 		    renderer.settings.offset = 0;
@@ -265,9 +283,7 @@
 	    var sortdir = renderer.settings.sortdir;
 	    var sorttype = renderer.settings.sorttype;
 	    var target = renderer.settings.target;
-	    
-	    // check for data filtering
-	    
+	    	    
 	    // check width and height
 	    var defined_width = "";
 	    if (renderer.settings.width) {
@@ -393,8 +409,20 @@
 				e = e || window.event;
 				if (e.keyCode == 13) {
 				    Retina.RendererInstances.table[index].settings.filter[this.i].searchword = this.value;
-				    Retina.RendererInstances.table[index].settings.filter_changed = true;
-				    Retina.RendererInstances.table[index].render();
+				    if (typeof renderer.settings.navigation_callback == "function") {
+					var query = [];
+					for (x in Retina.RendererInstances.table[index].settings.filter) {
+					    if (Retina.RendererInstances.table[index].settings.filter.hasOwnProperty(x)) {
+						if (Retina.RendererInstances.table[index].settings.filter[x].searchword.length > 0) {
+						    query.push( { "searchword": Retina.RendererInstances.table[index].settings.filter[x].searchword, "field": Retina.RendererInstances.table[index].settings.header[x], "comparison": Retina.RendererInstances.table[index].settings.filter[x].operator || "=" } );
+						}
+					    }
+					}
+					renderer.settings.navigation_callback( { "query": query } );
+				    } else {
+					Retina.RendererInstances.table[index].settings.filter_changed = true;
+					Retina.RendererInstances.table[index].render();
+				    }
 				}
 			    };
 			    

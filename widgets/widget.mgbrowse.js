@@ -21,7 +21,7 @@
 		     "limit": 10,
 		     "offset": 0,
 		     "query": {},
-		     "api_url": 'http://dunkirk.mcs.anl.gov/~jbischof/mgrast/api2.cgi/search/metagenome?' };
+		     "api_url": 'http://dev.metagenomics.anl.gov/api.cgi/metagenome?' };
         
     widget.display = function (wparams) {
         widget = this;
@@ -30,10 +30,18 @@
 	var content = widget.target = wparams.target;
 	
 	var result_table_header = wparams.header || [ "country", "location","status","name","sequence_type","job","feature","PI_lastname","biome","id","project_name","project_id","material" ];
+	var result_table_filter = wparams.filter;
+	if (result_table_filter == null) {
+	    result_table_filter = {};
+	    for (i=0;i<result_table_header.length;i++) {
+		result_table_filter[i] = { "type": "text" };
+	    }
+	}
 
 	widget.result_table = Retina.Renderer.create("table", { target: document.getElementById('result'),
 								rows_per_page: 10,
 								filter_autodetect: false,
+								filter: result_table_filter,
 								sort_autodetect: false,
 								synchronous: false,
 								navigation_callback: widget.update,
@@ -65,7 +73,7 @@
 		    Retina.WidgetInstances.mgbrowse[1].state.offset = 0;
 		}
 	    }
-	}
+	} 
 	if (typeof params == 'object') {
 	    if (params.sort) {
 		Retina.WidgetInstances.mgbrowse[1].state.sort = params.sort;
@@ -91,7 +99,7 @@
 	    }
 	}
 
-	var url = Retina.WidgetInstances.mgbrowse[1].state.api_url + query + "order=" + Retina.WidgetInstances.mgbrowse[1].state.sort + "&direction=" + Retina.WidgetInstances.mgbrowse[1].state.sortDir + "&match=any" + "&limit=" + Retina.WidgetInstances.mgbrowse[1].state.limit + "&offset=" + Retina.WidgetInstances.mgbrowse[1].state.offset;
+	var url = Retina.WidgetInstances.mgbrowse[1].state.api_url + query + "order=" + Retina.WidgetInstances.mgbrowse[1].state.sort + "&direction=" + Retina.WidgetInstances.mgbrowse[1].state.sortDir + "&match=any&verbosity=mixs" + "&limit=" + Retina.WidgetInstances.mgbrowse[1].state.limit + "&offset=" + Retina.WidgetInstances.mgbrowse[1].state.offset;
 	
 	jQuery.getJSON(url, function(data) {
             Retina.WidgetInstances.mgbrowse[1].result_table.settings.tdata = data.data;
