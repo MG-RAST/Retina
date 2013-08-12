@@ -148,6 +148,7 @@
 	        var gd = { "name": stm.DataStore["genome"][i]["scientific_name"],
 	 	        "id": i,
 	 	        "project": "-",
+	 	        "PI": "-",
 	 	        "type": "single genome",
 	            "status": "public",
 	            "created": "-",
@@ -174,6 +175,7 @@
 	        var pd = { "name": stm.DataStore["genome"][i]["scientific_name"],
 		        "id": i,
 		        "project": "-",
+		        "PI": "-",
 		        "type": "plant genome",
 		        "status": "public",
 		        "created": "-",
@@ -199,7 +201,8 @@
 	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
 		     var md = { "name": stm.DataStore["metagenome"][i]["name"],
 			   "id": i,
-			   "project": stm.DataStore["metagenome"][i]["project"],
+			   "project": stm.DataStore["metagenome"][i]["project_name"]+" ("+stm.DataStore["metagenome"][i]["project_id"]+")",
+			   "PI": stm.DataStore["metagenome"][i]["PI_lastname"]+", "+stm.DataStore["metagenome"][i]["PI_firstname"],
 			   "type": "metagenome",
 			   "status": stm.DataStore["metagenome"][i]["status"],
 			   "created": stm.DataStore["metagenome"][i]["created"],
@@ -289,7 +292,7 @@
 	    label: "name",
 	    sort: true,
 	    extra_wide: true,
-	    filter: [ "name", "id", "project", "type", "status", "created", "lat/long", "location", "collection date", "biome", "feature", "material", "env_package", "sequencing method", "sequencing type", "domain", "prokaryotic", "complete" ],
+	    filter: [ "name", "id", "project", "PI", "type", "status", "created", "lat/long", "location", "collection date", "biome", "feature", "material", "env_package", "sequencing method", "sequencing type", "domain", "prokaryotic", "complete" ],
 	    callback: function (data) {
 	        if ((! data) || (data.length == 0)) {
 	            alert("You have not selected any samples.\nPlease place the samples of your choice in the right side box'.");
