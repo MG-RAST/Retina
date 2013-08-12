@@ -28,7 +28,7 @@
 	        Retina.add_widget({"name": builder_widget, "resource": "widgets/", "filename": "widget."+builder_widget+".js"});
       	    Retina.load_widget("NotebookDashboard").then(function () {
 		        Retina.load_widget(builder_widget).then(function () {
-		            Retina.Widget.create('NotebookDashboard', {"target": "dashboard", "notebook": "nb_iframe", "builder": builder_widget, "logo": "kbase"});	
+		            Retina.Widget.create('NotebookDashboard', {"target": "dashboard", "notebook": "nb_iframe", "builder": builder_widget, "logo": "KBase"});	
 		        });
 	        });
       	});
