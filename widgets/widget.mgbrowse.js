@@ -24,10 +24,8 @@
 		     "api_url": stm.Config.mgrast_api+'/metagenome?' };
     
     widget.display = function (wparams) {
-        console.log(wparams);
         widget = this;
-	var index = widget.index;
-	var content = widget.target = wparams.target;
+
 	var result_table_header = wparams.header || [ "id", "name", "project_id", "project_name", "PI_lastname", "biome", "feature", "material", "env_package_type", "location", "country", "longitude", "latitude", "collection_date", "sequence_type", "seq_method", "status", "created" ];
 
 	var result_table_filter = wparams.filter;
@@ -37,7 +35,8 @@
 		result_table_filter[i] = { "type": "text" };
 	    }
 	}
-	widget.result_table = Retina.Renderer.create("table", { target: document.getElementById('result'),
+	widget.result_table = Retina.Renderer.create("table", {
+	                            target: wparams.target,
 								rows_per_page: 15,
 								filter_autodetect: false,
 								filter: result_table_filter,
@@ -75,29 +74,39 @@
 	} 
 	if (typeof params == 'object') {
 	    if (params.sort) {
-		Retina.WidgetInstances.mgbrowse[1].state.sort = params.sort;
-		Retina.WidgetInstances.mgbrowse[1].state.sortDir = params.dir;
+	        if (params.sort == 'default') {
+	            Retina.WidgetInstances.mgbrowse[1].state.sort = 'name';
+    		    Retina.WidgetInstances.mgbrowse[1].state.sortDir = 'asc';
+	        } else {
+		        Retina.WidgetInstances.mgbrowse[1].state.sort = params.sort;
+		        Retina.WidgetInstances.mgbrowse[1].state.sortDir = params.dir;
+	        }
 	    }
 	    if (params.query) {
-		for (i=0;i<params.query.length;i++) {
-		    Retina.WidgetInstances.mgbrowse[1].state.query[params.query[i].field] = { "searchword": params.query[i].searchword, "comparison": params.query[i].comparison || "=" };
-		}
+	        if (typeof params.query == 'object') {
+		        for (i=0;i<params.query.length;i++) {
+		            Retina.WidgetInstances.mgbrowse[1].state.query[params.query[i].field] = { "searchword": params.query[i].searchword, "comparison": params.query[i].comparison || "=" };
+		        }
+	        } else {
+	            Retina.WidgetInstances.mgbrowse[1].state.query = {};
+	        }
 	    }
 	    if (params.goto != null) {
-		Retina.WidgetInstances.mgbrowse[1].state.offset = params.goto;
+		    Retina.WidgetInstances.mgbrowse[1].state.offset = params.goto;
 	    }
 	    if (params.limit) {
-		Retina.WidgetInstances.mgbrowse[1].state.limit = params.limit;
+		    Retina.WidgetInstances.mgbrowse[1].state.limit = params.limit;
 	    }
 	}
 
 	var query = "";
 	for (i in Retina.WidgetInstances.mgbrowse[1].state.query) {
 	    if (Retina.WidgetInstances.mgbrowse[1].state.query.hasOwnProperty(i) && Retina.WidgetInstances.mgbrowse[1].state.query[i].searchword.length) {
-		query += i + Retina.WidgetInstances.mgbrowse[1].state.query[i].comparison + Retina.WidgetInstances.mgbrowse[1].state.query[i].searchword + "&";
+		    query += i + Retina.WidgetInstances.mgbrowse[1].state.query[i].comparison + Retina.WidgetInstances.mgbrowse[1].state.query[i].searchword + "&";
 	    }
 	}
 
+    console.log(Retina.WidgetInstances.mgbrowse[1].state);
 	var url = Retina.WidgetInstances.mgbrowse[1].state.api_url + query + "order=" + Retina.WidgetInstances.mgbrowse[1].state.sort + "&direction=" + Retina.WidgetInstances.mgbrowse[1].state.sortDir + "&match=any&verbosity=mixs" + "&limit=" + Retina.WidgetInstances.mgbrowse[1].state.limit + "&offset=" + Retina.WidgetInstances.mgbrowse[1].state.offset;
 	
 	jQuery.getJSON(url, function(data) {
