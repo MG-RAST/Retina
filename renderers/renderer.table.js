@@ -761,11 +761,15 @@
 	    clear_btn.setAttribute("value", "clear all filters");
 	    clear_btn.style.marginLeft = "10px";
 	    clear_btn.onclick = function () {
-		for (i in Retina.RendererInstances.table[index].settings.filter) {
-		    Retina.RendererInstances.table[index].settings.filter[i].searchword = "";
-		}
-		Retina.RendererInstances.table[index].settings.sorted = false;
-		Retina.RendererInstances.table[index].render();
+		    for (i in Retina.RendererInstances.table[index].settings.filter) {
+		        Retina.RendererInstances.table[index].settings.filter[i].searchword = "";
+		    }
+		    if (typeof renderer.settings.navigation_callback == "function") {
+		        renderer.settings.navigation_callback({"goto": 0, "query": "default", "sort": "default"});
+	        } else {
+		        Retina.RendererInstances.table[index].settings.sorted = false;
+		        Retina.RendererInstances.table[index].render();
+	        }
 	    };
 	    
 	    // rows per page
