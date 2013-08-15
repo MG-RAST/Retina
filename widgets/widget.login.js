@@ -91,7 +91,7 @@
 		document.getElementById('login_name_span').style.display = "none";
 		document.getElementById('login_name').innerHTML = uname;
 		document.getElementById('failure').innerHTML = "";
-		stm.Authorization = d.token;
+		stm.Authentication = d.token;
 		jQuery('#loginModal').modal('hide');
 		jQuery('#msgModal').modal('show');
 		if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
@@ -115,6 +115,7 @@
     widget.perform_logout = function (index) {
 	document.getElementById('login_name_span').style.display = "";
 	document.getElementById('login_name').innerHTML = "";
+	stm.Authentication = null;
 	if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
 	    Retina.WidgetInstances.login[index].callback.call({ 'action': 'logout'});
 	}
