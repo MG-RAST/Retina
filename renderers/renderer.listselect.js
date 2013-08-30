@@ -54,6 +54,9 @@
 
    asynch_limit (INTEGER)
       The number of items initially loaded in asynchronous mode, default is 100.
+
+   asynch_filter_min_length (INTEGER)
+      The number of characters that need to be entered into the filter before the filter callback is performed. Default is 3.
 */
 (function () {
     var renderer = Retina.Renderer.extend({
@@ -82,6 +85,7 @@
 		'synchronous': true,
 		'navigation_callback': null,
 		'asynch_limit': 100,
+		'asynch_filter_min_length': 3,
 		'style': "" },
 	},
 	exampleData: function () {
@@ -148,7 +152,7 @@
 		if (Retina.RendererInstances.listselect[index].settings.synchronous) {
 		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
 		} else {
-		    if (filter_input.value.length > 2) {
+		    if (filter_input.value.length >= Retina.RendererInstances.listselect[index].settings.asynch_filter_min_length) {
 			Retina.RendererInstances.listselect[index].update(index);
 		    }
 		}
