@@ -44,6 +44,19 @@
    button (OBJECT)
       This allows setting of the class, style, text and icon attributes of the button, i.e. { class: 'btn btn-error', style: 'border: 1px dotted black;', icon: '<i class="icon-ok icon-white"></i>', text: 'search' }
 
+   synchronous (BOOLEAN)
+      This is true by default. If set to false, the listselect expects its data to be set, filtered and browsed externally. It will issue a callback to the navigation callback function on any of those events, expecting an external data update.
+
+   navigation_callback (FUNCTION)
+      The function to be called when a navigation / filter action is issued and the listselect is in asynchronous state (synchronous set to false). It will be passed either a string ("more", "reset") or an object that can contain one of the following structures:
+        query: [ { searchword: $filter_value, field: $column_name_to_search, comparison: $comparison_operator }, ... ]
+        limit: $number_of_rows_per_page
+
+   asynch_limit (INTEGER)
+      The number of items initially loaded in asynchronous mode, default is 100.
+
+   asynch_filter_min_length (INTEGER)
+      The number of characters that need to be entered into the filter before the filter callback is performed. Default is 3.
 */
 (function () {
     var renderer = Retina.Renderer.extend({
@@ -60,14 +73,19 @@
 		'filter_type': 'substring',
 		'filter_attribute': null,
 		'filtered_data': [],
+		'selection_data': [],
 		'filter_breadcrumbs': [],
 		'selection': {},
-		'data': {},
+		'data': [],
 		'target': null,
 		'sort': false,
 		'multiple': false, 
 		'no_button': false,
 		'extra_wide': false,
+		'synchronous': true,
+		'navigation_callback': null,
+		'asynch_limit': 100,
+		'asynch_filter_min_length': 3,
 		'style': "" },
 	},
 	exampleData: function () {
@@ -97,6 +115,15 @@
 
 	    // get the selection list
 	    var selection_list = document.createElement('select');
+	    if (typeof renderer.settings.navigation_callback == "function") {
+		selection_list.addEventListener('scroll', function(event) {
+		    event = event || window.event;
+		    if (event.target.scrollTop == event.target.scrollTopMax) {
+			Retina.RendererInstances.listselect[index].settings.scroll_position = event.target.scrollTop;
+			Retina.RendererInstances.listselect[index].settings.navigation_callback("more");
+		    }
+		});
+	    }
 	    if (renderer.settings.extra_wide) {
 		selection_list.setAttribute('style', 'width: 415px');
 	    }
@@ -119,9 +146,16 @@
 	    filter_input.addEventListener('keyup', function (event) {
 		if (event.keyCode == 13) {
 		    Retina.RendererInstances.listselect[index].addBreadcrumb(index);
+		    return;
 		}
 		Retina.RendererInstances.listselect[index].settings.filter_value = filter_input.value;
-		Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
+		if (Retina.RendererInstances.listselect[index].settings.synchronous) {
+		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
+		} else {
+		    if (filter_input.value.length >= Retina.RendererInstances.listselect[index].settings.asynch_filter_min_length) {
+			Retina.RendererInstances.listselect[index].update(index);
+		    }
+		}
 	    });
 	    var filter_select = document.createElement('button');
 	    filter_select.setAttribute('class', 'btn dropdown-toggle');
@@ -175,6 +209,13 @@
 		button_left.addEventListener('click', function () {
 		    for (x=0; x<result_list.options.length; x++) {
 			if (result_list.options[x].selected) {
+			    for (y=0;y<Retina.RendererInstances.listselect[index].settings.selection_data.length;y++) {
+				if (Retina.RendererInstances.listselect[index].settings.selection_data[y][Retina.RendererInstances.listselect[index].settings.value] == result_list.options[x].value) {
+				    Retina.RendererInstances.listselect[index].settings.selection_data.splice(y,1);
+				    break;
+				}
+			    }
+
 			    delete Retina.RendererInstances.listselect[index].settings.selection[result_list.options[x].value];			
 			}
 		    }
@@ -189,6 +230,12 @@
 		    for (x=0; x<selection_list.options.length; x++) {
 			if (selection_list.options[x].selected) {
 			    Retina.RendererInstances.listselect[index].settings.selection[selection_list.options[x].value] = 1;
+			    for (y=0;y<Retina.RendererInstances.listselect[index].settings.data.length;y++) {
+				if (Retina.RendererInstances.listselect[index].settings.data[y][Retina.RendererInstances.listselect[index].settings.value] == selection_list.options[x].value) {
+				    Retina.RendererInstances.listselect[index].settings.selection_data.push(Retina.RendererInstances.listselect[index].settings.data[y]);
+				    break;
+				}
+			    }
 			}
 		    }
 		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list, index);
@@ -199,6 +246,7 @@
 		button_x.innerHTML = '<i class="icon-remove"></i>';
 		button_x.addEventListener('click', function () {
 		    Retina.RendererInstances.listselect[index].settings.selection = {};
+		    Retina.RendererInstances.listselect[index].settings.selection_data = [];
 		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list, index);
 		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
 		});
@@ -230,13 +278,14 @@
 		        submit_button.addEventListener('click', function () {
 			        Retina.RendererInstances.listselect[index].settings.callback(selection_list.options[selection_list.selectedIndex].value);
 		        });
-	        }
-        }
-
+	            }
+            }
+	    
 	    // build the output
 	    target.appendChild(filter);
 	    target.appendChild(filter_breadcrumbs);
 	    target.appendChild(selection_list);
+	    selection_list.scrollTop = Retina.RendererInstances.listselect[index].settings.scroll_position || 0;
 	    if (renderer.settings.multiple) {
 		    target.appendChild(button_span);
 		    target.appendChild(result_list);
@@ -244,6 +293,9 @@
 	    } else if (! renderer.settings.no_button) {
 	        target.appendChild(submit_button);
 	    }
+	    filter_input.focus();
+	    filter_input.selectionStart = filter_input.value.length;
+	    filter_input.selectionEnd = filter_input.value.length;
 	},
 	// add a breadcrumb to the list
 	addBreadcrumb: function (index) {
@@ -251,8 +303,11 @@
 	    if (renderer.settings.filter_value != "") {
 		renderer.settings.filter_breadcrumbs.push([renderer.settings.filter_attribute, renderer.settings.filter_value]);
 		renderer.settings.filter_value = "";
-		renderer.settings.filter_attribute = null;
-		renderer.render();
+		if (renderer.settings.synchronous) {
+		    renderer.render();
+		} else {
+		    renderer.update(index);
+		}
 	    }
 	},
 	// remove a breadcrumb from the list
@@ -260,16 +315,18 @@
 	    renderer = Retina.RendererInstances.listselect[index];
 	    renderer.settings.filter_breadcrumbs.splice(button.name, 1);
 	    renderer.settings.filter_value = '';
-	    renderer.render();
+	    if (renderer.settings.synchronous) {
+		renderer.render();
+	    } else {
+		renderer.update(index);
+	    }
 	},
 	// redraw the result list (right)
 	redrawResultlist: function (result_list, index) {  
 	    renderer = Retina.RendererInstances.listselect[index];
 	    var result_list_array = [];
-	    for (i=0; i<renderer.settings.data.length; i++) {
-		if (renderer.settings.selection[renderer.settings.data[i][renderer.settings.value]]) {
-		    result_list_array.push( [ renderer.settings.data[i][renderer.settings.value], '<option value="'+renderer.settings.data[i][renderer.settings.value]+'" title="'+renderer.settings.data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.data[i][renderer.settings.filter_attribute]+'</option>'] );
-		}
+	    for (i=0; i<renderer.settings.selection_data.length; i++) {
+		result_list_array.push( [ renderer.settings.selection_data[i][renderer.settings.value], '<option value="'+renderer.settings.selection_data[i][renderer.settings.value]+'" title="'+renderer.settings.selection_data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.selection_data[i][renderer.settings.filter_attribute]+'</option>'] );
 	    }
 	    if (renderer.settings.sort) {
 		result_list_array.sort(renderer.listsort);
@@ -283,6 +340,7 @@
 	// redraw the selection list (left)
 	redrawSelection: function (selection_list, index) {
 	    renderer = Retina.RendererInstances.listselect[index];
+
 	    // initialize the filter
 	    renderer.settings.filtered_data = renderer.settings.data;
 
@@ -290,15 +348,15 @@
 	    for (i=0; i<renderer.settings.filter_breadcrumbs.length; i++) {
 		renderer.settings.filtered_data = renderer.filter({ data: renderer.settings.filtered_data, value: renderer.settings.filter_breadcrumbs[i][1], type: renderer.settings.filter_type, attribute: renderer.settings.filter_breadcrumbs[i][0] }, index);
 	    }
-
+	    
 	    // filter the list with the current filter
 	    renderer.settings.filtered_data = renderer.filter({ data: renderer.settings.filtered_data, value: renderer.settings.filter_value, type: renderer.settings.filter_type, attribute: renderer.settings.filter_attribute }, index);
-
+	    
 	    // sort the list
 	    if (renderer.settings.sort) {
 		renderer.settings.filtered_data.sort(renderer.objectsort);
 	    }
-
+	    
 	    // create the selection list
 	    var settings_string = "";
 	    for (i=0; i<renderer.settings.filtered_data.length; i++) {
@@ -307,9 +365,24 @@
 		}
 	    }
 	    selection_list.innerHTML = settings_string;
-	    
+
 	    return;
 	},
+
+	update: function (index) {
+	    renderer = Retina.RendererInstances.listselect[index];
+	    var query = [];
+	    for (i=0; i<renderer.settings.filter_breadcrumbs.length; i++) {
+		query.push( { "field": renderer.settings.filter_breadcrumbs[i][0],
+			      "searchword": renderer.settings.filter_breadcrumbs[i][1] } );
+	    }
+	    if (renderer.settings.filter_value.length) {
+		query.push( { "field": renderer.settings.filter_attribute,
+			      "searchword": renderer.settings.filter_value } );
+	    }
+	    renderer.settings.navigation_callback( { "clear": true, "query": query } );
+	},
+
 	// filter the data according to all breadcrumbs and the current filter
 	filter: function(settings, index) {
 	    renderer = Retina.RendererInstances.listselect[index];
