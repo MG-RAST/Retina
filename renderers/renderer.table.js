@@ -134,6 +134,19 @@
 		header: ["column A", "column B", "column C"]
 	    };
         },
+	update_visible_columns: function (index) {
+	    renderer = Retina.RendererInstances.table[index];
+	    var t = document.getElementById('table_colsel_table_'+index);
+	    var r = t.firstChild.childNodes;
+	    var inv = {};
+	    for (i=0;i<r.length;i++) {
+		if (! r[i].firstChild.firstChild.checked) {
+		    inv[i] = 1;
+		}
+	    }
+	    renderer.settings.invisible_columns = inv;
+	    renderer.render();
+	},
 	render: function () {
 	    renderer = this;
 	    var index = renderer.index;
@@ -736,6 +749,7 @@
 	    var goto_text = document.createElement("input");
 	    goto_text.setAttribute("value", offset + 1);
 	    goto_text.setAttribute("class", "span1");
+	    goto_text.setAttribute("style", "position: relative; top: 4px; height: 16px;");
 	    goto_text.onkeypress = function (e) {
 		e = e || window.event;
 		if (e.keyCode == 13) {
@@ -776,7 +790,7 @@
 	    var perpage = document.createElement("input");
 	    perpage.setAttribute("type", "text");
 	    perpage.setAttribute("value", rows);
-	    perpage.setAttribute("style", "width: 30px;");
+	    perpage.setAttribute("style", "position: relative; top: 4px; height: 16px; width: 30px;");
 	    perpage.onkeypress = function (e) {
 		e = e || window.event;
 		if (e.keyCode == 13) {
@@ -829,28 +843,38 @@
 	    col_sel_btn.setAttribute("type", "button");
 	    col_sel_btn.setAttribute("value", "select columns");
 	    var col_sel = document.createElement("div");
-	    col_sel.style.position = "absolute";
-	    col_sel.style.width = "150px";
-	    col_sel.style.height = "150px";
-	    col_sel.style.border = "1px solid black";
+	    col_sel.setAttribute('style', "position: absolute; top: 5px; left: 570px; min-width: 150px; border: 1px solid #BBB; background-color: white; z-index: 1000; display: none; box-shadow: 4px 4px 4px #666; padding: 2px;");
+	    col_sel_btn.addEventListener("click", function () {
+		if (col_sel.style.display == "none") {
+		    col_sel.style.display = "";
+		} else {
+		    col_sel.style.display = "none";
+		}
+	    });
+	    var colsel_html = "<input type='button' class='btn btn-mini' style='float: right;' value='OK' onclick='Retina.RendererInstances.table["+index+"].update_visible_columns("+index+");'><table id='table_colsel_table_"+index+"'>";
+	    for (ii=0;ii<renderer.settings.header.length;ii++) {
+		var checked = " checked";
+		if (renderer.settings.invisible_columns[ii]) {
+		    checked = "";
+		}
+		colsel_html += "<tr><td><input style='margin-right: 5px;' type='checkbox'"+checked+"></td><td>"+renderer.settings.header[ii]+"</td></tr>";
+	    }
+	    colsel_html += "</table>";
+	    col_sel.innerHTML = colsel_html;
 	    col_sel_span.appendChild(col_sel_btn);
 	    col_sel_span.appendChild(col_sel);
 	    
 	    var options_icon = document.createElement("div");
 	    options_icon.innerHTML = "<i class='icon-cog'></i>";
 	    options_icon.title ='table options, click to show';
-	    options_icon.style.cursor = 'pointer';
-	    options_icon.style.position = 'relative';
 	    options_icon.className = "btn";
-	    options_icon.style.top = '-5px';
+	    options_icon.setAttribute("style", "cursor: pointer; position: relative; top: -1px; margin-bottom: 7px;");
 	    options_icon.onclick = function () {
 		this.nextSibling.style.display = "";
 		this.style.display = "none";
 	    }
 	    var options_span = document.createElement("div");
-	    options_span.style.display = 'none';
-	    options_span.style.position = 'relative';
-	    options_span.style.top = "-5px";
+	    options_span.setAttribute('style', "display: none; position: relative; top: -5px;");
 	    options_span.innerHTML = "<div title='close options' onclick='this.parentNode.previousSibling.style.display=\"\";this.parentNode.style.display=\"none\";' style='cursor: pointer; margin-right: 5px;' class='btn'><i class='icon-remove'></div>";
 	    
 	    // append navigation to target element
@@ -863,7 +887,7 @@
 		options_span.appendChild(ppspan1);
 		options_span.appendChild(perpage);
 		options_span.appendChild(ppspan2);
-		//options_span.appendChild(col_sel_span);
+		options_span.appendChild(col_sel_span);
 	    }
 	    target.appendChild(table_element);
 	    target.appendChild(bottom_table);	  
