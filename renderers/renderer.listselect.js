@@ -86,6 +86,7 @@
 		'navigation_callback': null,
 		'asynch_limit': 100,
 		'asynch_filter_min_length': 3,
+		'return_object': false,
 		'style': "" },
 	},
 	exampleData: function () {
@@ -265,21 +266,54 @@
 		    if (renderer.settings.multiple) {
 		        submit_button.addEventListener('click', function () {
 			        var selection_result = [];
-			        for (x=0; x<result_list.options.length; x++) {
-			            selection_result.push(result_list.options[x].value);			
+			        if (renderer.settings.return_object) {
+			            for (x=0; x<result_list.options.length; x++) {
+			                for (y=0; y<renderer.settings.data.length; y++) {
+                                if (result_list.options[x].value == renderer.settings.data[y][renderer.settings.value]) {
+                                    selection_result.push(renderer.settings.data[y]);
+                                    break;
+                                }
+                            }
+		                }
+			        } else {
+			            for (x=0; x<result_list.options.length; x++) {
+                            selection_result.push(result_list.options[x].value);
+		                }
 			        }
 			        Retina.RendererInstances.listselect[index].settings.callback(selection_result);
 		        });
 		    } else if (renderer.settings.no_button) {
 		        selection_list.addEventListener('change', function () {
-                    Retina.RendererInstances.listselect[index].settings.callback(selection_list.options[selection_list.selectedIndex].value);
+		            var selection_result;
+		            if (renderer.settings.return_object) {
+                        for (x=0; x<renderer.settings.data.length; x++) {
+                            if (selection_list.options[selection_list.selectedIndex].value == renderer.settings.data[x][renderer.settings.value]) {
+                                selection_result = renderer.settings.data[x];
+                                break;
+                            }
+                        }
+	                } else {
+	                    selection_result = selection_list.options[selection_list.selectedIndex].value;
+	                }
+                    Retina.RendererInstances.listselect[index].settings.callback(selection_result);
 	            });
 		    } else {
 		        submit_button.addEventListener('click', function () {
-			        Retina.RendererInstances.listselect[index].settings.callback(selection_list.options[selection_list.selectedIndex].value);
+			        var selection_result;
+		            if (renderer.settings.return_object) {
+                        for (x=0; x<renderer.settings.data.length; x++) {
+                            if (selection_list.options[selection_list.selectedIndex].value == renderer.settings.data[x][renderer.settings.value]) {
+                                selection_result = renderer.settings.data[x];
+                                break;
+                            }
+                        }
+	                } else {
+	                    selection_result = selection_list.options[selection_list.selectedIndex].value;
+	                }
+	                Retina.RendererInstances.listselect[index].settings.callback(selection_result);
 		        });
-	            }
-            }
+	        }
+        }
 	    
 	    // build the output
 	    target.appendChild(filter);
