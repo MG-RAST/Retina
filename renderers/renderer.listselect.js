@@ -87,7 +87,7 @@
 		'asynch_limit': 100,
 		'asynch_filter_min_length': 3,
 		'return_object': false,
-		'style': "" },
+		'style': "" }
 	},
 	exampleData: function () {
 	    return { };

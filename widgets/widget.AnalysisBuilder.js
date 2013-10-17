@@ -884,8 +884,8 @@
             document.getElementById(\"blank_options_tbl\").style.display=\"\";\
         }\
         Retina.WidgetInstances.AnalysisBuilder[0].variable_name();\
-        Retina.WidgetInstances.AnalysisBuilder[0].populate_sample_vars();'>
-        <option>metagenome</option>
+        Retina.WidgetInstances.AnalysisBuilder[0].populate_sample_vars();'>\
+        <option>metagenome</option>\
       </select></td></tr>\
     <tr><th>variable</th><td>\
       <select style='margin-bottom: 0px; width: 175px;' id='sample_name_select' onchange='Retina.WidgetInstances.AnalysisBuilder[0].populate_sample_ids();'>\
