@@ -12,8 +12,8 @@
     widget.nb_type = 'analysis';
     // nb_id -> data_variable_name -> { 'type': viz_type, 'parent': sample_variable_name }
     widget.used_variables = {};
-    // nb_id -> sample_variable_name -> { 'type': data_type, 'data': [ data_ids ] }
-    widget.loaded_ids = {};
+    // nb_id -> sample_variable_name -> { 'type': data_type, 'data': [ data_objs ] }
+    widget.loaded_data = {};
 
     widget.setup = function () {
         return [ Retina.add_renderer({"name": "listselect", "resource": "renderers/", "filename": "renderer.listselect.js"}),
@@ -55,72 +55,20 @@
 
     widget.nb_created = function (nbid) {
         Retina.WidgetInstances.AnalysisBuilder[0].used_variables[nbid] = {};
-        Retina.WidgetInstances.AnalysisBuilder[0].loaded_ids[nbid] = {};
+        Retina.WidgetInstances.AnalysisBuilder[0].loaded_data[nbid] = {};
         Retina.WidgetInstances.AnalysisBuilder[0].set_data_tab(nbid);
         Retina.WidgetInstances.AnalysisBuilder[0].populate_varnames(nbid);
     };
     
     widget.nb_deleted = function (nbid) {
         delete Retina.WidgetInstances.AnalysisBuilder[0].used_variables[nbid];
-        delete Retina.WidgetInstances.AnalysisBuilder[0].loaded_ids[nbid];
+        delete Retina.WidgetInstances.AnalysisBuilder[0].loaded_data[nbid];
         Retina.WidgetInstances.AnalysisBuilder[0].populate_varnames('delete');
         Retina.WidgetInstances.AnalysisBuilder[0].populate_sample_vars('delete');
-    };
-
-    widget.perform_login = function (params) {
-        var progress = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 100px; width: 400px; right: 38%;">\
-<button type="button" class="close" data-dismiss="alert">×</button>\
-<h4><img src="images/loading.gif"> Please wait...</h4>\
-<p>The data to be displayed is currently loading.</p>\
-<p id="progressBar"></p>\
-</div>';
-        params.target.innerHTML = progress;
-	    stm.get_objects({"repository":"mgrast","type":"metagenome","options":{"status":"private","verbosity":"mixs","limit":'100000'}}).then(function() {
-            Retina.WidgetInstances.AnalysisBuilder[0].display(params);
-        });
     };
     
     widget.display = function (params) {
     widget = Retina.WidgetInstances.AnalysisBuilder[0];
-	
-	var progress = '<div class="alert alert-block alert-info" id="progressIndicator" style="position: absolute; top: 100px; width: 400px; right: 38%;">\
-<button type="button" class="close" data-dismiss="alert">×</button>\
-<h4><img src="images/loading.gif"> Please wait...</h4>\
-<p>The data to be displayed is currently loading.</p>\
-<p id="progressBar"></p>\
-</div>';
-    params.target.innerHTML = progress;
-    
-	if (! stm.DataStore.hasOwnProperty('genome')) {
-	    jQuery.getJSON('data/genome_public.json', function(data) {
-	        for (var d in data) {
-                if (data.hasOwnProperty(d)) {
-                    stm.load_data({"data": data[d], "type": d});
-                }
-            }
-            widget.display(params);
-        }).fail( function() {
-            stm.get_objects({"repository":"kbase","return_type":"search","type":"genome","id":"kb","options":{"count":'100000'}}).then(function () {
-                widget.display(params);
-            });
-        });
-        return;
-	}
-	if (! stm.DataStore.hasOwnProperty('metagenome')) {
-	    jQuery.getJSON('data/mg_mixs_public.json', function(data) {
-	        for (var d in data) {
-                if (data.hasOwnProperty(d)) {
-                    stm.load_data({"data": data[d], "type": d});
-                }
-            }
-            widget.display(params);
-        }).fail( function() {
-            stm.get_objects({"repository":"mgrast","type":"metagenome","options":{"status":"public","verbosity":"mixs","limit":'100000'}}).then(function () {
-                widget.display(params);
-            });
-        });
-        return;
-    }
 	
 	// get the content div
 	var content = params.target;
@@ -140,90 +88,7 @@
 
 	content.appendChild(ul);
 	content.appendChild(div);
-
-	var sample_data = [];
-    // load genome samples
-	for (i in stm.DataStore["genome"]) {
-	    if (stm.DataStore["genome"].hasOwnProperty(i)) {
-	        var gd = { "name": stm.DataStore["genome"][i]["scientific_name"],
-	 	        "id": i,
-	 	        "project": "-",
-	 	        "PI": "-",
-	 	        "type": "single genome",
-	            "status": "public",
-	            "created": "-",
-	 	        "lat/long": "-",
-	 	        "location": "-",
-	 	        "collection date": "-",
-	 	        "biome": "-",
-	 	        "feature": "-",
-	 	        "material": "-",
-	 	        "env_package": "-",
-	 	        "sequencing method": "-",
-	            "sequencing type": "-",
-	 	        "domain": stm.DataStore["genome"][i]["domain"],
-	 	        "prokaryotic": stm.DataStore["genome"][i]["prokaryotic"] ? "yes" : "no",
-	 	        "complete": stm.DataStore["genome"][i]["complete"] ? "yes" : "no",
-	 	        "taxonomy": stm.DataStore["genome"][i].hasOwnProperty("taxonomy") ? stm.DataStore["genome"][i]["taxonomy"] : "-"
-	        };
-	        sample_data.push(gd);
-        }
-	}
-	// load plant samples
-	for (i in stm.DataStore["genome"]) {
-	    if (stm.DataStore["genome"].hasOwnProperty(i) && stm.DataStore["genome"][i].hasOwnProperty("taxonomy") && /Streptophyta/.test(stm.DataStore["genome"][i]["taxonomy"])) {
-	        var pd = { "name": stm.DataStore["genome"][i]["scientific_name"],
-		        "id": i,
-		        "project": "-",
-		        "PI": "-",
-		        "type": "plant genome",
-		        "status": "public",
-		        "created": "-",
-		        "lat/long": "-",
-		        "location": "-",
-		        "collection date": "-",
-		        "biome": "-",
-		        "feature": "-",
-		        "material": "-",
-		        "env_package": "-",
-		        "sequencing method": "-",
-		        "sequencing type": "-",
-		        "domain": "Eukaryota",
-            	"prokaryotic": "no",
-            	"complete": stm.DataStore["genome"][i]["complete"] ? "yes" : "no",
-            	"taxonomy": stm.DataStore["genome"][i]["taxonomy"]
-		    };
-	        sample_data.push(pd);
-        }
-	}
-	// load metagenome samples
-	for (i in stm.DataStore["metagenome"]) {
-	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
-		     var md = { "name": stm.DataStore["metagenome"][i]["name"],
-			   "id": i,
-			   "project": stm.DataStore["metagenome"][i]["project_name"]+" ("+stm.DataStore["metagenome"][i]["project_id"]+")",
-			   "PI": stm.DataStore["metagenome"][i]["PI_lastname"]+", "+stm.DataStore["metagenome"][i]["PI_firstname"],
-			   "type": "metagenome",
-			   "status": stm.DataStore["metagenome"][i]["status"],
-			   "created": stm.DataStore["metagenome"][i]["created"],
-			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
-			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
-			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
-			   "biome": stm.DataStore["metagenome"][i]["biome"],
-			   "feature": stm.DataStore["metagenome"][i]["feature"],
-			   "material": stm.DataStore["metagenome"][i]["material"],
-			   "env_package": stm.DataStore["metagenome"][i]["env_package_type"],
-			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
-			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"],
-			   "domain": "-",
-           	   "prokaryotic": "-",
-           	   "complete": "-",
-           	   "taxonomy": "-"
-			 };
-		     sample_data.push(md);
-	    }
-	}
-
+    
 	// sample select
 	var sample_select = document.createElement('li');
 	sample_select.setAttribute('class', 'active');
@@ -284,16 +149,10 @@
   </select></td></tr>\
 <tr><td></td></tr></table>';
 
-	widget.sample_select = Retina.Renderer.create('listselect', {
-	    target: ls_multi,
-	    multiple: true,
-	    data: sample_data,
-	    value: "id",
-	    label: "name",
-	    sort: true,
-	    extra_wide: true,
-	    filter: [ "name", "id", "project", "PI", "type", "status", "created", "lat/long", "location", "collection date", "biome", "feature", "material", "env_package", "sequencing method", "sequencing type", "domain", "prokaryotic", "complete" ],
-	    callback: function (data) {
+    widget.sample_select = Retina.Widget.create('mgbrowse', {
+        target: ls_multi,
+        type: 'listselect',
+        callback: function (data) {
 	        if ((! data) || (data.length == 0)) {
 	            alert("You have not selected any samples.\nPlease place the samples of your choice in the right side box'.");
     	        return;
@@ -317,79 +176,46 @@
         	    return;
         	}
         	// add this notebook to data id list
-            if (! widget.loaded_ids.hasOwnProperty(current_nb)) {
-                widget.loaded_ids[current_nb] = {};
+            if (! widget.loaded_data.hasOwnProperty(current_nb)) {
+                widget.loaded_data[current_nb] = {};
             }
         	// check if the variable name has been used before
-        	if (widget.loaded_ids[current_nb].hasOwnProperty(dataname)) {
+        	if (widget.loaded_data[current_nb].hasOwnProperty(dataname)) {
         	    if (confirm('You have used to variable name "'+dataname+'" for another sample set.\nAre you sure you want to continue?\nThis would overwrite the previous samples in that variable.')) {
-        		    delete(widget.loaded_ids[current_nb][dataname]);
+        		    delete(widget.loaded_data[current_nb][dataname]);
         	    } else {
         		    return;
         	    }
         	}
-		    // get ids by type
-		    var has_wgs = false;
-		    var quote_id = [];
-		    var type_data = {};
-		    for (var t in stm.DataStore) {
-		        type_data[t] = [];
-	        }
-		    for (var i=0; i<data.length; i++) {
-		        for (var t in stm.DataStore) {
-		            if (stm.DataStore[t].hasOwnProperty(data[i])) {
-		                type_data[t].push(data[i]);
-		                quote_id.push("'"+data[i]+"'");
-		                var data_obj = stm.DataStore[t][data[i]];
-		                if ((t == 'metagenome') && ((data_obj["sequence_type"] == 'WGS') || (data_obj["sequence_type"] == 'MT'))) {
-		                    has_wgs = true;
-		                }
-		            }
-		        }
-	        }
-	        // verify all same type
-	        var type_num  = 0;
-	        var this_type = '';
-	        for (var t in type_data) {
-	            if (type_data[t].length > 0) {
-	                type_num += 1;
-	                this_type = t;
-	            }
-	        }
-	        if (type_num > 1) {
-	            alert('You may only select samples of the same type.');
-        	    return;
-	        }
-	        // populate global list / create text to send
-	        widget.loaded_ids[current_nb][dataname] = {'type': this_type, 'data': type_data[this_type]};
+        	// verify data
+            var has_wgs = false;
+            var quote_id = [];
+            for (var i=0; i<data.length; i++) {
+                quote_id.push("'"+data[i]['id']+"'");
+                if ((data_obj["sequence_type"] == 'WGS') || (data_obj["sequence_type"] == 'MT')) {
+                    has_wgs = true;
+                }
+            }
+            
+	        // populate global list
+	        widget.loaded_data[current_nb][dataname] = {'type': 'metagenome', 'data': data};
 	        
-	        var senddata   = "";
+	        // create text to send
+	        var senddata = "";
 	        if (document.getElementById('sample_select_comment').value) {
 		        senddata += "# "+document.getElementById('sample_select_comment').value.split(/\n/).join("\n# ") + "\n";
 		    }
 		    senddata += "id_list = [ "+quote_id.join(", ")+" ]\n";
-	        switch (this_type) {
-	            case 'metagenome':
-	            var space_buff = Array(dataname.length+6).join(" ");
-	            var dataopts = has_wgs ? "method='WGS', function_source='Subsystems'" : "method='Amplicon'";
-	            senddata += dataname+" = { 'statistics': Collection(mgids=id_list, cache=True, stats=True, def_name=\""+dataname+"['statistics']\"),\n";
-	            senddata += space_buff+"'abundances': get_analysis_set(ids=id_list, "+dataopts+", def_name=\""+dataname+"['abundances']\") }";
-	            break;
-	            case 'plant':
-	            senddata += dataname+" = get_plant_set(gids=id_list, def_name='"+dataname+"')\n";
-	            break;
-	            case 'genome':
-	            senddata += dataname+" = get_genome_set(gids=id_list, def_name='"+dataname+"')\n";
-	            break;
-	            default:
-	            break;
-	        }
+	        var space_buff = Array(dataname.length+6).join(" ");
+	        var dataopts = has_wgs ? "method='WGS', function_source='Subsystems'" : "method='Amplicon'";
+	        senddata += dataname+" = { 'statistics': Collection(mgids=id_list, cache=True, stats=True, def_name=\""+dataname+"['statistics']\"),\n";
+	        senddata += space_buff+"'abundances': get_analysis_set(ids=id_list, "+dataopts+", def_name=\""+dataname+"['abundances']\") }";
+	        
 	        // send it
 		    widget.transfer(senddata, document.getElementById('sample_select_content_handling').value, current_nb);
 		    widget.set_data_tab(current_nb);
 	    }
 	});
-	widget.sample_select.render();
 
 	// data load / convert
 	var data_sel = document.createElement('li');
@@ -1031,16 +857,6 @@
             }
         }
         break;
-        case 'plant':
-        senddata += "primary_plant = "+dataname+"['"+document.getElementById('plant_primary_select').value+"']\n";
-        if (document.getElementById('plant_data_select').value == 'trait') {
-            Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'table', 'parent': dataname};
-            senddata += data_var+" = primary_plant.show_traits(arg_list=True)";
-        } else if (document.getElementById('plant_data_select').value == 'variant') {
-            Retina.WidgetInstances.AnalysisBuilder[0].used_variables[current_nb][data_var] = {'type': 'plot', 'parent': dataname};
-            senddata += data_var+" = primary_plant.plot_variations(count="+document.getElementById('variant_count').value+", arg_list=True)";
-        }
-        break;
         default:
         break;
     }
@@ -1068,19 +884,9 @@
             document.getElementById(\"blank_options_tbl\").style.display=\"\";\
         }\
         Retina.WidgetInstances.AnalysisBuilder[0].variable_name();\
-        Retina.WidgetInstances.AnalysisBuilder[0].populate_sample_vars();'>";
-        if (current_nb && widget.loaded_ids.hasOwnProperty(current_nb)) {
-            var types = [];
-            for (var x in widget.loaded_ids[current_nb]) {
-                if (types.indexOf(widget.loaded_ids[current_nb][x]['type']) === -1) {
-                    types.push(widget.loaded_ids[current_nb][x]['type']);
-                }
-            }
-            for (var t in types) {
-                html += "<option>"+types[t]+"</option>";
-            }
-        }    
-        html += "</select></td></tr>\
+        Retina.WidgetInstances.AnalysisBuilder[0].populate_sample_vars();'>
+        <option>metagenome</option>
+      </select></td></tr>\
     <tr><th>variable</th><td>\
       <select style='margin-bottom: 0px; width: 175px;' id='sample_name_select' onchange='Retina.WidgetInstances.AnalysisBuilder[0].populate_sample_ids();'>\
       </select></td></tr>\
@@ -1147,18 +953,6 @@
     <tr name='stat_row' id='primary_row' style='display: none;'><th>primary data</th><td>\
       <select style='margin-bottom: 0px; width: 175px;' id='primary_select'></select></td></tr>\
     </table>\
-    <table id='plant_options_tbl' style='display:none;'><tr><th style='width: 85px;'>data type</th><td>\
-      <select style='margin-bottom: 0px; width: 175px;' id='plant_data_select' onchange='if(this.options[this.selectedIndex].value==\"trait\"){document.getElementById(\"variant_row\").style.display=\"none\";}else{document.getElementById(\"variant_row\").style.display=\"\";}Retina.WidgetInstances.AnalysisBuilder[0].variable_name();'>\
-        <option value='trait' selected>traits</option>\
-        <option value='variant'>variations</option>\
-      </select></td></tr>\
-    <tr id='variant_row' style='display: none;'><th>counts</th><td>\
-        <input type='text' id='variant_count' value='5' style='margin-bottom: 0px; width: 165px;'></td></tr>\
-    <tr><th>primary data</th><td>\
-        <select style='margin-bottom: 0px; width: 175px;' id='plant_primary_select'></select></td></tr>\
-    </table>\
-    <table id='genome_options_tbl' style='display:none;'>\
-        <tr><th style='width: 85px;'>data type</th><td style='width: 175px;'>genome selects</td></tr></table>\
     <table id='blank_options_tbl' style='display:none;'>\
         <tr><td style='width: 260px;'></td></tr></table>\
   </td><td>\
@@ -1178,7 +972,6 @@
         document.getElementById('data_li').innerHTML = html;
         document.getElementById("sample_type_select").onchange();
         document.getElementById("abund_type_select").onchange();
-        document.getElementById("plant_data_select").onchange();
         widget.variable_name(current_nb);
         widget.populate_sample_vars(current_nb);
     };
@@ -1195,8 +988,6 @@
             } else {
                 temp_name = document.getElementById('stat_select').value+"_args_";
             }
-        } else if (document.getElementById('sample_type_select').value == 'plant') {
-            temp_name = document.getElementById('plant_data_select').value+"_args_";
         }
         var num = 1;
         if (widget.used_variables.hasOwnProperty(nbid)) {
@@ -1214,10 +1005,10 @@
         }
         var type = document.getElementById('sample_type_select').value;
         document.getElementById('sample_name_select').innerHTML = "";
-        if (nbid && (nbid != 'delete') && widget.loaded_ids.hasOwnProperty(nbid)) {
+        if (nbid && (nbid != 'delete') && widget.loaded_data.hasOwnProperty(nbid)) {
             var snopts = "";
-            for (var name in widget.loaded_ids[nbid]) {
-                if (widget.loaded_ids[nbid][name]['type'] == type) {
+            for (var name in widget.loaded_data[nbid]) {
+                if (widget.loaded_data[nbid][name]['type'] == type) {
                     snopts += "<option>"+name+"</option>";
                 }
             }
@@ -1235,20 +1026,17 @@
         var type = document.getElementById('sample_type_select').value;
         document.getElementById('data_sample_select').innerHTML = "";
         document.getElementById('primary_select').innerHTML = "";
-        document.getElementById('plant_primary_select').innerHTML = "";
-        if ( nbid && (nbid != 'delete') && widget.loaded_ids.hasOwnProperty(nbid) &&
-             widget.loaded_ids[nbid].hasOwnProperty(name) && (widget.loaded_ids[nbid][name]['type'] == type) ) {
+        if ( nbid && (nbid != 'delete') && widget.loaded_data.hasOwnProperty(nbid) &&
+             widget.loaded_data[nbid].hasOwnProperty(name) && (widget.loaded_data[nbid][name]['type'] == type) ) {
             var idopts = "";
-            for (var i in widget.loaded_ids[nbid][name]['data']) {
-                var id = widget.loaded_ids[nbid][name]['data'][i];
-                var dname = stm.DataStore[type][id].hasOwnProperty('name') ? stm.DataStore[type][id].name : stm.DataStore[type][id].scientific_name;
+            for (var i in widget.loaded_data[nbid][name]['data']) {
+                var id = widget.loaded_data[nbid][name]['data'][i]['id'];
+                var dname = widget.loaded_data[nbid][name]['data'][i]['name'];
                 idopts += "<option value='"+id+"' selected>"+dname+"</option>";
             }
             document.getElementById('data_sample_select').innerHTML = idopts;
             if (type == 'metagenome') {
                 document.getElementById('primary_select').innerHTML = idopts;
-            } else if (type == 'plant') {
-                document.getElementById('plant_primary_select').innerHTML = idopts;
             }
         }
     };

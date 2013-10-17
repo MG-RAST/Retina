@@ -613,7 +613,6 @@ pre {\
         document.getElementById('login_name').innerHTML = uname;
         document.getElementById('failure').innerHTML = "";
         Retina.WidgetInstances.NotebookDashboard[index].nb_select_refresh(index);
-        Retina.WidgetInstances.NotebookDashboard[index].builder_widget.perform_login({target: document.getElementById('data_builder_div')});
         Retina.WidgetInstances.NotebookDashboard[index]._dash_login(index);
         jQuery('#loginModal').modal('hide');
         jQuery('#msgModal').modal('show');
