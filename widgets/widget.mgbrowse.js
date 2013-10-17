@@ -44,27 +44,31 @@
 	if (widget.state.type == "listselect") {
 	    widget.state.limit = 100;
 	    widget.result_list = Retina.Renderer.create("listselect", {
-		target: wparams.target,
-		asynch_limit: widget.state.limit,
-		synchronous: false,
-		navigation_callback: widget.update,
-		data: [],
-		filter: result_columns,
-		multiple: true,
-		filter_attribute: 'name',
-		value: "id"
-	    } );
+		    target: wparams.target,
+		    callback: wparams.callback || null,
+		    asynch_limit: widget.state.limit,
+		    synchronous: false,
+		    navigation_callback: widget.update,
+		    data: [],
+		    filter: result_columns,
+		    multiple: true,
+		    extra_wide: true,
+		    return_object: true,
+		    filter_attribute: 'name',
+		    value: "id"
+	    });
+	    widget.result_list.render();
 	} else {	
 	    widget.result_table = Retina.Renderer.create("table", {
-		target: wparams.target,
-		rows_per_page: 15,
-		filter_autodetect: false,
-		filter: result_table_filter,
-		sort_autodetect: false,
-		synchronous: false,
-		navigation_callback: widget.update,
-		data: { data: [], header: result_columns } } );
-
+		    target: wparams.target,
+		    rows_per_page: 15,
+		    filter_autodetect: false,
+		    filter: result_table_filter,
+		    sort_autodetect: false,
+		    synchronous: false,
+		    navigation_callback: widget.update,
+		    data: { data: [], header: result_columns }
+		});
 	    widget.result_table.render();
 	}
 
@@ -139,25 +143,26 @@
 	}
 
 	var url = Retina.WidgetInstances.mgbrowse[1].state.api_url + query + "order=" + Retina.WidgetInstances.mgbrowse[1].state.sort + "&direction=" + Retina.WidgetInstances.mgbrowse[1].state.sortDir + "&match=any&verbosity=mixs" + "&limit=" + Retina.WidgetInstances.mgbrowse[1].state.limit + "&offset=" + Retina.WidgetInstances.mgbrowse[1].state.offset;
+	var headers = stm.Authentication ? {'AUTH': stm.Authentication} : {};
 	
-	jQuery.getJSON(url, function(data) {
+	jQuery.ajax({ url: url, headers: headers, dataType: "json", success: function(data) {
 	    if (Retina.WidgetInstances.mgbrowse[1].state.type == "table") {
-		Retina.WidgetInstances.mgbrowse[1].result_table.settings.tdata = data.data;
-		Retina.WidgetInstances.mgbrowse[1].result_table.settings.filter_changed = false;
-		Retina.WidgetInstances.mgbrowse[1].result_table.settings.sorted = true;
-		Retina.WidgetInstances.mgbrowse[1].result_table.settings.numrows = Retina.WidgetInstances.mgbrowse[1].state.numrows = data.total_count;
-		Retina.WidgetInstances.mgbrowse[1].result_table.settings.offset = Retina.WidgetInstances.mgbrowse[1].state.offset;
-		Retina.WidgetInstances.mgbrowse[1].result_table.render();
+		    Retina.WidgetInstances.mgbrowse[1].result_table.settings.tdata = data.data;
+		    Retina.WidgetInstances.mgbrowse[1].result_table.settings.filter_changed = false;
+		    Retina.WidgetInstances.mgbrowse[1].result_table.settings.sorted = true;
+		    Retina.WidgetInstances.mgbrowse[1].result_table.settings.numrows = Retina.WidgetInstances.mgbrowse[1].state.numrows = data.total_count;
+		    Retina.WidgetInstances.mgbrowse[1].result_table.settings.offset = Retina.WidgetInstances.mgbrowse[1].state.offset;
+		    Retina.WidgetInstances.mgbrowse[1].result_table.render();
 	    } else {
-		Retina.WidgetInstances.mgbrowse[1].state.total_count = data.total_count;
-		if (typeof params == 'string' && params == "more") {
-		    Retina.WidgetInstances.mgbrowse[1].result_list.settings.data = Retina.WidgetInstances.mgbrowse[1].result_list.settings.data.concat(data.data);
-		} else {
-		    Retina.WidgetInstances.mgbrowse[1].result_list.settings.data = data.data;
-		}
-		Retina.WidgetInstances.mgbrowse[1].result_list.render();
+		    Retina.WidgetInstances.mgbrowse[1].state.total_count = data.total_count;
+		    if (typeof params == 'string' && params == "more") {
+		        Retina.WidgetInstances.mgbrowse[1].result_list.settings.data = Retina.WidgetInstances.mgbrowse[1].result_list.settings.data.concat(data.data);
+		    } else {
+		        Retina.WidgetInstances.mgbrowse[1].result_list.settings.data = data.data;
+		    }
+		    Retina.WidgetInstances.mgbrowse[1].result_list.render();
 	    }
-	});
+	}});
     };
     
 })();
