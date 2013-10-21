@@ -18,16 +18,18 @@
 		        Retina.Widget.create('login', {"target": document.getElementById("login_space")});
 		    });
 	        Retina.add_widget({"name": "metagenome_overview", "resource": "widgets/",  "filename": "widget.metagenome_overview.js"});
+	        Retina.add_widget({"name": "mgbrowse", "resource": "widgets/",  "filename": "widget.mgbrowse.js"});
 	        Retina.load_widget("metagenome_overview").then( function() {
 		        var val = document.URL;
 		        var param = "metagenome";
 		        var mgid  = "";
-		        var cache = true;
 		        if (val.indexOf(param) > -1) {
 		            var url = val.substr(val.indexOf(param));
 		            mgid = url.replace(param+"=","");
 		        }
-		        Retina.Widget.create('metagenome_overview', {"target": document.getElementById("content"), "id": mgid, "cache": cache});
+		        Retina.load_widget('mgbrowse').then(function () {
+		            Retina.Widget.create('metagenome_overview', {"target": document.getElementById("content"), "id": mgid});
+		        });
 	        });
 	    });
     });
@@ -50,14 +52,7 @@
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
           <h3>Metagenome Selector</h3>
         </div>
-        <div id="mg_modal_body" class="modal-body">
-          <div class="alert alert-block alert-info" id="progressIndicator" style="top: 100px; width: 300px;">
-            <button type="button" class="close" data-dismiss="alert">×</button>
-            <h4><img src="images/loading.gif"> Please wait...</h4>
-            <p>The data to be displayed is currently loading.</p>
-            <p id="progressBar"></p>
-          </div>
-        </div>
+        <div id="mg_modal_body" class="modal-body"></div>
         <div class="modal-footer">
           <button class="btn btn-danger pull-left" data-dismiss="modal" aria-hidden="true">Cancel</button>
         </div>
