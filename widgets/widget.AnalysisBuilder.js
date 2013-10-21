@@ -152,6 +152,7 @@
     widget.sample_select = Retina.Widget.create('mgbrowse', {
         target: ls_multi,
         type: 'listselect',
+        wide: true,
         callback: function (data) {
 	        if ((! data) || (data.length == 0)) {
 	            alert("You have not selected any samples.\nPlease place the samples of your choice in the right side box'.");
