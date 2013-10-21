@@ -29,7 +29,6 @@
 	        Retina.add_widget({"name": builder_widget, "resource": "widgets/", "filename": "widget."+builder_widget+".js"});
 	        Retina.add_widget({"name": "mgbrowse", "resource": "widgets/",  "filename": "widget.mgbrowse.js"});
       	    Retina.load_widget("NotebookDashboard").then(function () {
-      	        var cache = true;
       	        var val   = document.URL;
 		        var logo  = "MG-RAST";
 		        if (val.indexOf("kbase") > -1) {
@@ -37,7 +36,7 @@
 		        }
 		        Retina.load_widget(builder_widget).then(function () {
 		            Retina.load_widget('mgbrowse').then(function () {
-		                Retina.Widget.create('NotebookDashboard', {"target": "dashboard", "notebook": "nb_iframe", "builder": builder_widget, "cache": cache, "logo": logo});
+		                Retina.Widget.create('NotebookDashboard', {"target": "dashboard", "notebook": "nb_iframe", "builder": builder_widget, "logo": logo});
 		            });
 	            });
 	        });
