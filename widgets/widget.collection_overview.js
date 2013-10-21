@@ -172,66 +172,26 @@
 	    }
     };
     
+    // mg selector modal, use API selectlist
     widget.metagenome_modal = function(index, target) {
         jQuery('#mg_modal').modal('show');
         if (! Retina.WidgetInstances.collection_overview[index].mg_select_list) {
-            jQuery.getJSON('data/mg_mixs_public.json', function(data) {
-                for (var d in data) {
-                    if (data.hasOwnProperty(d)) {
-                        stm.load_data({"data": data[d], "type": d});
-                    }
+            Retina.WidgetInstances.collection_overview[index].mg_select_list = Retina.Widget.create('mgbrowse', {
+                target: document.getElementById('mg_modal_body'),
+                type: 'listselect',
+                wide: false,
+                callback: function (data) {
+                    if ((! data) || (data.length == 0)) {
+        	            alert("You have not selected any metagenomes.\nPlease place the metagenomes of your choice in the right side box'.");
+            	        return;
+        	        }
+        	        mgids = data.map(function (x) { return x['id']; });
+    		        Retina.WidgetInstances.collection_overview[index].display({"target": target, "ids": mgids});
                 }
-                Retina.WidgetInstances.collection_overview[index].metagenome_selector(index, target);
-            }).fail( function() {
-                stm.get_objects({"type": "metagenome", "options": {"verbosity": "mixs", "limit": '100000'}}).then(function() {
-                    Retina.WidgetInstances.collection_overview[index].metagenome_selector(index, target);
-                });
             });
         } else {
-            Retina.WidgetInstances.collection_overview[index].mg_select_list.render();
+            Retina.WidgetInstances.collection_overview[index].mg_select_list.update();
         }
-    };
-    
-    widget.metagenome_selector = function(index, target) {
-        var metagenome_data = [];
-        for (i in stm.DataStore["metagenome"]) {
-    	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
-    		     var md = { "name": stm.DataStore["metagenome"][i]["name"],
-    			   "id": i,
-    			   "project": stm.DataStore["metagenome"][i]["project_name"]+" ("+stm.DataStore["metagenome"][i]["project_id"]+")",
-       			   "PI": stm.DataStore["metagenome"][i]["PI_lastname"]+", "+stm.DataStore["metagenome"][i]["PI_firstname"],
-    			   "status": stm.DataStore["metagenome"][i]["status"],
-    			   "created": stm.DataStore["metagenome"][i]["created"],
-    			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
-    			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
-    			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
-    			   "biome": stm.DataStore["metagenome"][i]["biome"],
-    			   "feature": stm.DataStore["metagenome"][i]["feature"],
-    			   "material": stm.DataStore["metagenome"][i]["material"],
-    			   "env_package": stm.DataStore["metagenome"][i]["env_package_type"],
-    			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
-    			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"]
-    			 };
-    		     metagenome_data.push(md);
-    	    }
-    	}
-    	Retina.WidgetInstances.collection_overview[index].mg_select_list = Retina.Renderer.create('listselect', {
-    	    "target": document.getElementById('mg_modal_body'),
-			"data": metagenome_data,
-		    "value": "id",
-            "label": "name",
-	        "filter": ["name", "id", "project", "PI", "status", "created", "lat/long", "location", "collection date", "biome", "feature", "material", "env_package", "sequencing method", "sequencing type"],
-	        "sort": true,
-	        "multiple": true,
-		    "callback": function (data) {
-		        if ((! data) || (data.length == 0)) {
-    	            alert("You have not selected any metagenomes.\nPlease place the metagenomes of your choice in the right side box'.");
-        	        return;
-    	        }
-		        Retina.WidgetInstances.collection_overview[index].display({"target": target, "ids": data});
-	        }
-		});
-		Retina.WidgetInstances.collection_overview[index].mg_select_list.render();
     };
     
     widget.toc_list = function(index) {

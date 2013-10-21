@@ -49,6 +49,7 @@
 	// make some shortcuts
 	widget.curr_mg = stm.DataStore.metagenome[wparams.id];
 	var content = wparams.target;
+	var seq_type = widget.curr_mg.sequence_type;
 	
 	// set the output area
 	content.innerHTML = '';
@@ -70,17 +71,17 @@
 	    { type: 'paragraph', data: 'analysis_statistics' },
 	    { type: 'paragraph', data: 'mixs_metadata' },
 	    { type: 'paragraph', data: 'drisee_introtext' },
-	    (widget.curr_mg.sequence_type == 'Amplicon') ? null: { type: 'plot', data: 'drisee_plot', category: 'drisee' },
+	    (seq_type == 'Amplicon') ? null : { type: 'plot', data: 'drisee_plot', category: 'drisee' },
 	    { type: 'paragraph', data: 'kmer_introtext' },
-	    (widget.curr_mg.sequence_type == 'Amplicon') ? null: { type: 'plot', data: 'kmer_plot', category: 'kmer' },
+	    { type: 'plot', data: 'kmer_plot', category: 'kmer' },
 	    { type: 'paragraph', data: 'bp_introtext' },
-	    (widget.curr_mg.sequence_type == 'Amplicon') ? null: { type: 'areagraph', data: 'bp_plot', category: 'bp' },
-	    { type: 'paragraph', data: 'ontology_introtext' },
-	    { type: 'add_element', data: ont_tbl },
-	    { type: 'piechart', data: 'Subsystems', category: 'ontology', pos: 'left' },
-	    { type: 'piechart', data: 'KO', category: 'ontology', pos: 'right' },
-	    { type: 'piechart', data: 'COG', category: 'ontology', pos: 'left' },
-	    { type: 'piechart', data: 'NOG', category: 'ontology', pos: 'right' },
+	    { type: 'areagraph', data: 'bp_plot', category: 'bp' },
+	    (seq_type == 'Amplicon') ? null : { type: 'paragraph', data: 'ontology_introtext' },
+	    (seq_type == 'Amplicon') ? null : { type: 'add_element', data: ont_tbl },
+	    (seq_type == 'Amplicon') ? null : { type: 'piechart', data: 'Subsystems', category: 'ontology', pos: 'left' },
+	    (seq_type == 'Amplicon') ? null : { type: 'piechart', data: 'KO', category: 'ontology', pos: 'right' },
+	    (seq_type == 'Amplicon') ? null : { type: 'piechart', data: 'COG', category: 'ontology', pos: 'left' },
+	    (seq_type == 'Amplicon') ? null : { type: 'piechart', data: 'NOG', category: 'ontology', pos: 'right' },
 	    { type: 'paragraph', data: 'taxonomy_introtext' },
 	    { type: 'add_element', data: tax_tbl },
 	    { type: 'piechart', data: 'domain', category: 'taxonomy', pos: 'left' },
@@ -188,62 +189,26 @@
 	}
     };
     
+    // mg selector modal, use API selectlist
     widget.metagenome_modal = function(index, target) {
         jQuery('#mg_modal').modal('show');
         if (! Retina.WidgetInstances.metagenome_overview[index].mg_select_list) {
-            jQuery.getJSON('data/mg_mixs_public.json', function(data) {
-                for (var d in data) {
-                    if (data.hasOwnProperty(d)) {
-                        stm.load_data({"data": data[d], "type": d});
-                    }
+            Retina.WidgetInstances.metagenome_overview[index].mg_select_list = Retina.Widget.create('mgbrowse', {
+                target: document.getElementById('mg_modal_body'),
+                type: 'listselect',
+                wide: false,
+                multiple: false,
+                callback: function (data) {
+                    if ((! data) || (data.length == 0)) {
+        	            alert("You have not selected a metagenome");
+            	        return;
+        	        }
+    		        Retina.WidgetInstances.metagenome_overview[index].display({"target": target, "id": data['id']});
                 }
-                Retina.WidgetInstances.metagenome_overview[index].metagenome_selector(index, target);
-            }).fail( function() {
-                stm.get_objects({"type": "metagenome", "options": {"verbosity": "mixs", "limit": '100000'}}).then(function() {
-                    Retina.WidgetInstances.metagenome_overview[index].metagenome_selector(index, target);
-                });
             });
         } else {
-            Retina.WidgetInstances.metagenome_overview[index].mg_select_list.render();
+            Retina.WidgetInstances.metagenome_overview[index].mg_select_list.update();
         }
-    };
-    
-    widget.metagenome_selector = function(index, target) {
-        var metagenome_data = [];
-        for (i in stm.DataStore["metagenome"]) {
-    	    if (stm.DataStore["metagenome"].hasOwnProperty(i)) {
-    		     var md = { "name": stm.DataStore["metagenome"][i]["name"],
-    			   "id": i,
-    			   "project": stm.DataStore["metagenome"][i]["project_name"]+" ("+stm.DataStore["metagenome"][i]["project_id"]+")",
-    			   "PI": stm.DataStore["metagenome"][i]["PI_lastname"]+", "+stm.DataStore["metagenome"][i]["PI_firstname"],
-    			   "status": stm.DataStore["metagenome"][i]["status"],
-    			   "created": stm.DataStore["metagenome"][i]["created"],
-    			   "lat/long": stm.DataStore["metagenome"][i]["latitude"]+"/"+stm.DataStore["metagenome"][i]["longitude"],
-    			   "location": stm.DataStore["metagenome"][i]["location"]+" - "+stm.DataStore["metagenome"][i]["country"],
-    			   "collection date": stm.DataStore["metagenome"][i]["collection_date"],
-    			   "biome": stm.DataStore["metagenome"][i]["biome"],
-    			   "feature": stm.DataStore["metagenome"][i]["feature"],
-    			   "material": stm.DataStore["metagenome"][i]["material"],
-    			   "env_package": stm.DataStore["metagenome"][i]["env_package_type"],
-    			   "sequencing method": stm.DataStore["metagenome"][i]["seq_method"],
-    			   "sequencing type": stm.DataStore["metagenome"][i]["sequence_type"]
-    			 };
-    		     metagenome_data.push(md);
-    	    }
-    	}
-    	Retina.WidgetInstances.metagenome_overview[index].mg_select_list = Retina.Renderer.create('listselect', {
-    	    "target": document.getElementById('mg_modal_body'),
-			"data": metagenome_data,
-		    "value": "id",
-            "label": "name",
-	        "filter": ["name", "id", "project", "PI", "status", "created", "lat/long", "location", "collection date", "biome", "feature", "material", "env_package", "sequencing method", "sequencing type"],
-	        "sort": true,
-	        "multiple": false,
-		    "callback": function (mgid) {
-		        Retina.WidgetInstances.metagenome_overview[index].display({"target": target, "id": mgid});
-	        }
-		});
-		Retina.WidgetInstances.metagenome_overview[index].mg_select_list.render();
     };
     
     widget.general_overview = function (index) {
@@ -443,23 +408,14 @@
     widget.kmer_introtext = function(index) {
         var mg = Retina.WidgetInstances.metagenome_overview[index].curr_mg;
         var retval = { style: "clear: both", data: [ { header: "Kmer Profile" } ] };
-	    if (mg.sequence_type == 'Amplicon') {
-            retval.data.push( { p: "Since this is an amplicon dataset, no Kmer profile could be generated." } );
-        } else {
-            retval.data.push( { p: "The kmer abundance spectra are tools to summarize the redundancy (repetitiveness) of sequence datasets by counting the number of occurrences of 15 and 6 bp sequences." } );
-            retval.data.push( { p: "The kmer rank abundance graph plots the kmer coverage as a function of abundance rank, with the most abundant sequences at left." } );
-        }
+	    retval.data.push( { p: "The kmer rank abundance graph plots the kmer coverage as a function of abundance rank, with the most abundant sequences at left." } );
 	    return retval;
     };
     
     widget.bp_introtext = function(index) {
         var mg = Retina.WidgetInstances.metagenome_overview[index].curr_mg;
         var retval = { style: "clear: both", data: [ { header: "Nucleotide Histogram" } ] };
-	    if (mg.sequence_type == 'Amplicon') {
-            retval.data.push( { p: "Since this is an amplicon dataset, no Nucleotide histogram could be generated." } );
-        } else {
-            retval.data.push( { p: "These graphs show the fraction of base pairs of each type (A, C, G, T, or ambiguous base 'N') at each position starting from the beginning of each read up to the first 100 base pairs. Amplicon datasets should show consensus sequences; shotgun datasets should have roughly equal proportions of basecalls." } );
-        }
+	    retval.data.push( { p: "These graphs show the fraction of base pairs of each type (A, C, G, T, or ambiguous base 'N') at each position starting from the beginning of each read up to the first 100 base pairs. Amplicon datasets should show consensus sequences; shotgun datasets should have roughly equal proportions of basecalls." } );
 	    return retval;
     };
     
