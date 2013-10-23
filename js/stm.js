@@ -141,7 +141,7 @@
 	    }
 	    if (typeof(new_data[0]) != 'object') {
 		var dataids = [];
-		for (i=0; i<new_data.length; i++) {
+		for (var i=0; i<new_data.length; i++) {
 		    dataids.push( { 'id': new_data[i] } );
 		}
 		new_data = dataids;
@@ -330,7 +330,7 @@
 	            case 'search':
 		        d = JSON.parse(xhr.responseText);
 		        if (d.found && d.found > 0 && d.body && d.body.length) {
-			        for (i=0;i<d.body.length;i++) {
+			        for (var i=0;i<d.body.length;i++) {
 			            if (d.body[i].hasOwnProperty('gid')) { d.body[i].id = d.body[i].gid; }
 			            if (d.body[i].hasOwnProperty('fid')) { d.body[i].id = d.body[i].fid; }
 			            if (d.body[i].hasOwnProperty('kbfid')) { d.body[i].id = d.body[i].kbfid; }
@@ -478,10 +478,10 @@
     stm.dump = function () {
 	var dstring = "";
 	dstring += "{";
-	for (i in stm.DataStore) {
+	for (var i in stm.DataStore) {
 	    if (stm.DataStore.hasOwnProperty(i)) {
 		dstring += '"'+i+'":[';
-		for (h in stm.DataStore[i]) {
+		for (var h in stm.DataStore[i]) {
 		    if (stm.DataStore[i].hasOwnProperty(h)) {
 			dstring += JSON.stringify(stm.DataStore[i][h]);
 			dstring += ",";

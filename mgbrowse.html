@@ -19,7 +19,7 @@
 		    });
 	        Retina.add_widget({"name": "mgbrowse", "resource": "widgets/",  "filename": "widget.mgbrowse.js"});
 	        Retina.load_widget("mgbrowse").then( function() {
-		        Retina.Widget.create('mgbrowse', {"target": document.getElementById("content")});
+		        Retina.Widget.create('mgbrowse', {"target": document.getElementById("content"), "type":"listselect", "wide": true});
 	        });
 	    });
     });
@@ -36,8 +36,7 @@
   	    </div>
       </div>
     </div>
-    <div class="container" style="margin-top: 100px; margin-bottom: 100px; width: 1000px;">
-      <div id='content'></div>
-    </div>
+    <div id='content' style='margin-left: 20px; margin-right: 20px; margin-top: 80px;'></div>
+    
   </body>
 </html>

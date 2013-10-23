@@ -27,14 +27,14 @@
 	
 	var rendererResources = settings.renderer_resources;
 	if (rendererResources) {
-	    for (i in rendererResources) {
+	    for (var i in rendererResources) {
 		promises.push(Retina.query_renderer_resource(rendererResources[i]));
 	    }
 	}
 	
 	var widgetResources = settings.widget_resources;
 	if (widgetResources) {
-	    for (i in widgetResources) {
+	    for (var i in widgetResources) {
 		promises.push(Retina.query_widget_resource(widgetResources[i]));
 	    }
 	}
@@ -47,9 +47,9 @@
 		// adjust bootstrap to the library location
 		var cssRuleCode = document.all ? 'rules' : 'cssRules'; // account for IE and FF
 		var styles = document.styleSheets;
-		for (i=0;i<styles.length;i++) {
+		for (var i=0;i<styles.length;i++) {
 	    	    if (styles[i].href && styles[i].href.indexOf('bootstrap.min.css') > -1) {
-	    		for (h=0; h<styles[i][cssRuleCode].length; h++) {
+	    		for (var h=0; h<styles[i][cssRuleCode].length; h++) {
 	    		    if (styles[i][cssRuleCode][h].selectorText == '[class^="icon-"], [class*=" icon-"]') {
 	    			styles[i][cssRuleCode][h].style.backgroundImage = "url('http://raw.github.com/MG-RAST/Retina/master/images/glyphicons-halflings.png')";
 	    		    }
@@ -423,7 +423,7 @@
 	
 	jQuery.getJSON(resource, function (data) {
 	    renderer_resources.push(resource);
-	    for (i = 0; i < data.length; i++) {
+	    for (var i = 0; i < data.length; i++) {
 		var rend = {};
 		rend.resource = resource;
 		rend.name = data[i].substring(data[i].indexOf(".") + 1, data[i].lastIndexOf("."));
@@ -443,7 +443,7 @@
 	var renderer_select = document.getElementById(list);
 	if (renderer_select) {
 	    renderer_select.options.length = 0;
-	    for (i in available_renderers) {
+	    for (var i in available_renderers) {
 		renderer_select.add(new Option(i, i), null);
 	    }
 	}
@@ -454,7 +454,7 @@
 	
 	jQuery.getJSON(resource, function (data) {
 	    widget_resources.push(resource);
-	    for (ii=0; ii < data.length; ii++) {
+	    for (var ii=0; ii < data.length; ii++) {
 		var widget = {};
 		widget.resource = resource;
 		widget.name = data[ii].substring(data[ii].indexOf(".") + 1, data[ii].lastIndexOf("."));
