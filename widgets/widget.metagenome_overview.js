@@ -9,17 +9,17 @@
     });
     
     widget.setup = function () {
-	    return [ Retina.add_renderer({"name": "listselect", "resource": "./renderers/",  "filename": "renderer.listselect.js" }),
+	return [ Retina.add_renderer({"name": "listselect", "resource": "./renderers/",  "filename": "renderer.listselect.js" }),
                  Retina.load_renderer("listselect"),
-	             Retina.add_renderer({"name": "paragraph", "resource": "./renderers/",  "filename": "renderer.paragraph.js" }),
-		         Retina.load_renderer("paragraph"),
-		         Retina.add_renderer({"name": "graph", "resource": "./renderers/",  "filename": "renderer.graph.js" }),
-		         Retina.load_renderer("graph"),
-		         Retina.add_renderer({"name": "plot", "resource": "./renderers/",  "filename": "renderer.plot.js" }),
- 		         Retina.load_renderer("plot"),
- 		         Retina.add_renderer({"name": "table", "resource": "./renderers/",  "filename": "renderer.table.js" }),
-  		         Retina.load_renderer("table")
-	           ];
+	         Retina.add_renderer({"name": "paragraph", "resource": "./renderers/",  "filename": "renderer.paragraph.js" }),
+		 Retina.load_renderer("paragraph"),
+		 Retina.add_renderer({"name": "graph", "resource": "./renderers/",  "filename": "renderer.graph.js" }),
+		 Retina.load_renderer("graph"),
+		 Retina.add_renderer({"name": "plot", "resource": "./renderers/",  "filename": "renderer.plot.js" }),
+ 		 Retina.load_renderer("plot"),
+ 		 Retina.add_renderer({"name": "table", "resource": "./renderers/",  "filename": "renderer.table.js" }),
+  		 Retina.load_renderer("table")
+	       ];
     };
     
     widget.mg_select_list = undefined;
