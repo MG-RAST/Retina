@@ -22,24 +22,24 @@
     <script type="text/javascript">
     jQuery(function () {
         var builder_widget = 'AnalysisBuilder';
-      	stm.init(stm.Config.kbase_api, false, 'kbase').then(function() {
-      	    stm.add_repository(stm.Config.mgrast_api, false, false, 'mgrast').then(function () {
-      	        stm.add_repository(stm.Config.ipynbo_api, false, true, 'ipynbo');
-	            Retina.init({ library_resource: "js/" });
-	            Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
-	            Retina.add_widget({"name": builder_widget, "resource": "widgets/", "filename": "widget."+builder_widget+".js"});
-      	        Retina.load_widget("NotebookDashboard").then(function () {
-      	            var val  = document.URL;
-		            var logo = "MG-RAST";
-		            if (val.indexOf("kbase") > -1) {
-		                logo = "KBase";
-		            }
-		            Retina.load_widget(builder_widget).then(function () {
-		                var cache = true;
-		                Retina.Widget.create('NotebookDashboard', {"target": "dashboard", "notebook": "nb_iframe", "builder": builder_widget, "cache": cache, "logo": logo});	
+      	stm.init(stm.Config.mgrast_api, false, 'mgrast').then(function () {
+      	    stm.add_repository(stm.Config.ipynbo_api, false, true, 'ipynbo');
+	        Retina.init({ library_resource: "js/" });
+	        Retina.add_widget({"name": "NotebookDashboard", "resource": "widgets/", "filename": "widget.NotebookDashboard.js"});
+	        Retina.add_widget({"name": builder_widget, "resource": "widgets/", "filename": "widget."+builder_widget+".js"});
+	        Retina.add_widget({"name": "mgbrowse", "resource": "widgets/",  "filename": "widget.mgbrowse.js"});
+      	    Retina.load_widget("NotebookDashboard").then(function () {
+      	        var val   = document.URL;
+		        var logo  = "MG-RAST";
+		        if (val.indexOf("kbase") > -1) {
+		            logo = "KBase";
+		        }
+		        Retina.load_widget(builder_widget).then(function () {
+		            Retina.load_widget('mgbrowse').then(function () {
+		                Retina.Widget.create('NotebookDashboard', {"target": "dashboard", "notebook": "nb_iframe", "builder": builder_widget, "logo": logo});
 		            });
 	            });
-  	        });
+	        });
   	    });
     });
     </script>
