@@ -56,6 +56,7 @@
 		extra_wide: wparams.wide || false,
 		return_object: true,
 		filter_attribute: 'name',
+		asynch_filter_attribute: 'name',
 		value: "id"
 	    });
 	    widget.result_list.render();
