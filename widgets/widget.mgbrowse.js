@@ -16,155 +16,55 @@
   	    Retina.load_renderer("listselect")
 	];
     };
-
-    widget.state = { "initial": true,
-		     "sort": "name",
-		     "sortDir": "asc",
-		     "limit": 15,
-		     "offset": 0,
-		     "total_count": 0,
-		     "query": {},
-		     "cv": ["project_id", "country", "sequence_type", "seq_method", "status"],
-		     "api_url": stm.Config.mgrast_api+'/metagenome?' };
     
     widget.display = function (wparams) {
         widget = this;
 
-	widget.state.type = wparams.type || "table";
+	wparams.type || "table";
 
 	var result_columns = wparams.header || [ "id", "name", "project_id", "project_name", "PI_lastname", "biome", "feature", "material", "env_package_type", "location", "country", "longitude", "latitude", "collection_date", "sequence_type", "seq_method", "status", "created" ];
 
 	var result_table_filter = wparams.filter;
 	if (result_table_filter == null) {
 	    result_table_filter = {};
-	    for (i=0;i<result_columns.length;i++) {
+	    for (var i=0;i<result_columns.length;i++) {
 		result_table_filter[i] = { "type": "text" };
 	    }
 	}
 
-	if (widget.state.type == "listselect") {
-	    widget.state.limit = 100;
+	if (wparams.type == "listselect") {
 	    widget.result_list = Retina.Renderer.create("listselect", {
-		    target: wparams.target,
-		    callback: wparams.callback || null,
-		    asynch_limit: widget.state.limit,
-		    synchronous: false,
-		    navigation_callback: widget.update,
-		    data: [],
-		    filter: result_columns,
-		    multiple: (wparams.multiple === false) ? false : true,
-		    extra_wide: wparams.wide || false,
-		    return_object: true,
-		    filter_attribute: 'name',
-		    value: "id"
+		target: wparams.target,
+		callback: wparams.callback || null,
+		asynch_limit: 100,
+		synchronous: false,
+		navigation_url: stm.Config.mgrast_api+'/metagenome?match=all&verbosity=mixs',
+		data: [],
+		filter: result_columns,
+		multiple: (wparams.multiple === false) ? false : true,
+		extra_wide: wparams.wide || false,
+		return_object: true,
+		filter_attribute: 'name',
+		asynch_filter_attribute: 'name',
+		value: "id"
 	    });
-	    widget.result_list.render();
+	    //widget.result_list.render();
+	    widget.result_list.update_data({},1);
 	} else {	
 	    widget.result_table = Retina.Renderer.create("table", {
-		    target: wparams.target,
-		    rows_per_page: 15,
-		    filter_autodetect: false,
-		    filter: result_table_filter,
-		    sort_autodetect: false,
-		    synchronous: false,
-		    navigation_callback: widget.update,
-		    data: { data: [], header: result_columns }
-		});
+		target: wparams.target,
+		rows_per_page: 14,
+		filter_autodetect: false,
+		filter: result_table_filter,
+		sort_autodetect: false,
+		synchronous: false,
+		invisible_columns: {0:1,2:1,6:1,7:1,8:1,11:1,12:1,15:1,16:1,17:1},
+		navigation_url: stm.Config.mgrast_api+'/metagenome?match=all&verbosity=mixs',
+		data: { data: [], header: result_columns }
+	    });
 	    widget.result_table.render();
+	    widget.result_table.update({},1);
 	}
-
-	if (widget.state.initial) {
-	    widget.state.initial = false;
-	    widget.update();
-	}
-    };
-
-    widget.update = function (params) {
-	    if (typeof params == 'string') {
-	        if (params == 'first') {
-		        Retina.WidgetInstances.mgbrowse[1].state.offset = 0;
-	        }
-	        if (params == 'previous') {
-		        Retina.WidgetInstances.mgbrowse[1].state.offset -= Retina.WidgetInstances.mgbrowse[1].state.limit;
-		        if (Retina.WidgetInstances.mgbrowse[1].state.offset < 0) {
-		            Retina.WidgetInstances.mgbrowse[1].state.offset = 0;
-		        }
-	        }
-	        if (params == 'next' || params == 'more') {
-		        Retina.WidgetInstances.mgbrowse[1].state.offset += widget.state.limit;
-		        if (params == 'more' && Retina.WidgetInstances.mgbrowse[1].state.total_count <= Retina.WidgetInstances.mgbrowse[1].state.limit) {
-		            return;
-		        }
-	        }
-	        if (params == 'last') {
-		        Retina.WidgetInstances.mgbrowse[1].state.offset = Retina.WidgetInstances.mgbrowse[1].state.numrows - Retina.WidgetInstances.mgbrowse[1].state.limit;
-		        if (Retina.WidgetInstances.mgbrowse[1].state.offset < 0) {
-		            Retina.WidgetInstances.mgbrowse[1].state.offset = 0;
-		        }
-	        }
-	    } 
-	    if (typeof params == 'object') {
-	        if (params.sort) {
-	            if (params.sort == 'default') {
-	                Retina.WidgetInstances.mgbrowse[1].state.sort = 'name';
-    		        Retina.WidgetInstances.mgbrowse[1].state.sortDir = 'asc';
-	            } else {
-		            Retina.WidgetInstances.mgbrowse[1].state.sort = params.sort;
-		            Retina.WidgetInstances.mgbrowse[1].state.sortDir = params.dir;
-	            }
-	        }
-	        if (params.query) {
-		        if (Retina.WidgetInstances.mgbrowse[1].state.type == "listselect") {
-		            Retina.WidgetInstances.mgbrowse[1].state.offset = 0;
-		        }
-		        if (params.clear) {
-		            Retina.WidgetInstances.mgbrowse[1].state.query = {};
-		        }
-	            if (typeof params.query == 'object') {
-		            for (i=0;i<params.query.length;i++) {
-		                var searchword = (widget.state.cv.indexOf(params.query[i].field) > -1) ? params.query[i].searchword : "*"+params.query[i].searchword+"*";
-		                Retina.WidgetInstances.mgbrowse[1].state.query[params.query[i].field] = { "searchword": searchword, "comparison": params.query[i].comparison || "=" };
-		            }
-	            } else {
-	                Retina.WidgetInstances.mgbrowse[1].state.query = {};
-	            }
-	        }
-	        if (params.goto != null) {
-		        Retina.WidgetInstances.mgbrowse[1].state.offset = params.goto;
-	        }
-	        if (params.limit) {
-		        Retina.WidgetInstances.mgbrowse[1].state.limit = params.limit;
-	        }
-	    }
-
-	    var query = "";
-	    for (i in Retina.WidgetInstances.mgbrowse[1].state.query) {
-	        if (Retina.WidgetInstances.mgbrowse[1].state.query.hasOwnProperty(i) && Retina.WidgetInstances.mgbrowse[1].state.query[i].searchword.length) {
-		        query += i + Retina.WidgetInstances.mgbrowse[1].state.query[i].comparison + Retina.WidgetInstances.mgbrowse[1].state.query[i].searchword + "&";
-	        }
-	    }
-
-	    var url = Retina.WidgetInstances.mgbrowse[1].state.api_url + query + "order=" + Retina.WidgetInstances.mgbrowse[1].state.sort + "&direction=" + Retina.WidgetInstances.mgbrowse[1].state.sortDir + "&match=any&verbosity=mixs" + "&limit=" + Retina.WidgetInstances.mgbrowse[1].state.limit + "&offset=" + Retina.WidgetInstances.mgbrowse[1].state.offset;
-	    var headers = stm.Authentication ? {'AUTH': stm.Authentication} : {};
-	
-	    jQuery.ajax({ url: url, headers: headers, dataType: "json", success: function(data) {
-	        if (Retina.WidgetInstances.mgbrowse[1].state.type == "table") {
-		        Retina.WidgetInstances.mgbrowse[1].result_table.settings.tdata = data.data;
-		        Retina.WidgetInstances.mgbrowse[1].result_table.settings.filter_changed = false;
-		        Retina.WidgetInstances.mgbrowse[1].result_table.settings.sorted = true;
-		        Retina.WidgetInstances.mgbrowse[1].result_table.settings.numrows = Retina.WidgetInstances.mgbrowse[1].state.numrows = data.total_count;
-		        Retina.WidgetInstances.mgbrowse[1].result_table.settings.offset = Retina.WidgetInstances.mgbrowse[1].state.offset;
-		        Retina.WidgetInstances.mgbrowse[1].result_table.render();
-	        } else {
-		        Retina.WidgetInstances.mgbrowse[1].state.total_count = data.total_count;
-		        if (typeof params == 'string' && params == "more") {
-		            Retina.WidgetInstances.mgbrowse[1].result_list.settings.data = Retina.WidgetInstances.mgbrowse[1].result_list.settings.data.concat(data.data);
-		        } else {
-		            Retina.WidgetInstances.mgbrowse[1].result_list.settings.data = data.data;
-		        }
-		        Retina.WidgetInstances.mgbrowse[1].result_list.render();
-	        }
-	    }});
     };
     
 })();

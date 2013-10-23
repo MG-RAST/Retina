@@ -107,6 +107,7 @@
 		'editable': {},
 		'edit_callback': null,
 		'navigation_callback': null,
+		'navigation_url': null,
 		'target': 'table_space',
 		'data': 'exampleData()',
 		'synchronous': true,
@@ -139,7 +140,7 @@
 	    var t = document.getElementById('table_colsel_table_'+index);
 	    var r = t.firstChild.childNodes;
 	    var inv = {};
-	    for (i=0;i<r.length;i++) {
+	    for (var i=0;i<r.length;i++) {
 		if (! r[i].firstChild.firstChild.checked) {
 		    inv[i] = 1;
 		}
@@ -150,6 +151,10 @@
 	render: function () {
 	    renderer = this;
 	    var index = renderer.index;
+
+	    if (renderer.settings.navigation_url) {
+		renderer.settings.navigation_callback = renderer.update;
+	    }
 	    
 	    renderer.settings.target.innerHTML = "";
 	    
@@ -179,9 +184,9 @@
 	    } else {
 		
 		// the data has not been parsed, do it now
-		for (i=0;i<renderer.settings.data.data.length; i++) {
+		for (var i=0;i<renderer.settings.data.data.length; i++) {
 		    tdata[tdata.length] = {};
-		    for (h=0;h<renderer.settings.data.data[i].length;h++) {
+		    for (var h=0;h<renderer.settings.data.data[i].length;h++) {
 			tdata[tdata.length - 1][header[h]] = renderer.settings.data.data[i][h] || "";
 		    }
 		}
@@ -210,7 +215,7 @@
 	    // create filter elements
 	    var filter = renderer.settings.filter;
 	    var filter_present = false;
-	    for (i in filter) {
+	    for (var i in filter) {
 		if (filter.hasOwnProperty(i)) {
 		    if (filter[i].hasOwnProperty('searchword') && filter[i].searchword.length > 0) {
 			filter_present = true;
@@ -224,7 +229,7 @@
 		var newdata = [];
 		if (renderer.settings.filter_changed) {
 		    renderer.settings.offset = 0;
-		    for (i in filter) {
+		    for (var i in filter) {
 			var re;
 			if (filter[i].case_sensitive) {
 			    re = new RegExp(filter[i].searchword);
@@ -240,9 +245,9 @@
 			    }
 			}
 		    }
-		    for (h=0; h<tdata.length; h++) {
+		    for (var h=0; h<tdata.length; h++) {
 			var pass = 1;
-			for (i in filter) {
+			for (var i in filter) {
 			    if (typeof(filter[i].searchword) != "undefined" && filter[i].searchword.length > 0) {
 				if (filter[i].operator) {
 				    switch (filter[i].operator[filter[i].active_operator]) {
@@ -313,7 +318,7 @@
 	    table_element.setAttribute("style", "margin-bottom: 2px;");
 	    var thead = document.createElement("thead");
 	    var tr = document.createElement("tr");
-	    for (i=0;i<header.length;i++) {
+	    for (var i=0;i<header.length;i++) {
 		
 		// check if this column is visible
 		if (! renderer.settings.invisible_columns[i]) {
@@ -335,7 +340,7 @@
 				Retina.RendererInstances.table[index].settings.sortcol = this.i;
 				Retina.RendererInstances.table[index].settings.sortdir = 'desc';
 				if (typeof renderer.settings.navigation_callback == "function") {
-				    renderer.settings.navigation_callback({'sort': Retina.RendererInstances.table[index].settings.header[this.i] , 'dir': 'desc'});
+				    renderer.settings.navigation_callback({'sort': Retina.RendererInstances.table[index].settings.header[this.i] , 'dir': 'desc'}, index);
 				} else {
 				    Retina.RendererInstances.table[index].settings.sorted = false;
 				    Retina.RendererInstances.table[index].render();
@@ -350,7 +355,7 @@
 				Retina.RendererInstances.table[index].settings.sortcol = this.i;
 				Retina.RendererInstances.table[index].settings.sortdir = 'asc';
 				if (typeof renderer.settings.navigation_callback == "function") {
-				    renderer.settings.navigation_callback({'sort': Retina.RendererInstances.table[index].settings.header[this.i] , 'dir': 'asc'});
+				    renderer.settings.navigation_callback({'sort': Retina.RendererInstances.table[index].settings.header[this.i] , 'dir': 'asc'}, index);
 				} else {
 				    Retina.RendererInstances.table[index].settings.sorted = false;
 				    Retina.RendererInstances.table[index].render();
@@ -364,7 +369,7 @@
 			    Retina.RendererInstances.table[index].settings.sortcol = this.i;
 			    Retina.RendererInstances.table[index].settings.sortdir = 'asc';
 			    if (typeof renderer.settings.navigation_callback == "function") {
-				renderer.settings.navigation_callback({'sort': Retina.RendererInstances.table[index].settings.header[this.i] , 'dir': 'asc'});
+				renderer.settings.navigation_callback({'sort': Retina.RendererInstances.table[index].settings.header[this.i] , 'dir': 'asc'}, index);
 			    } else {
 				Retina.RendererInstances.table[index].settings.sorted = false;
 				Retina.RendererInstances.table[index].render();
@@ -376,7 +381,7 @@
 			    Retina.RendererInstances.table[index].settings.sortcol = this.i;
 			    Retina.RendererInstances.table[index].settings.sortdir = 'desc';
 			    if (typeof renderer.settings.navigation_callback == "function") {
-				renderer.settings.navigation_callback({'sort': Retina.RendererInstances.table[index].settings.header[this.i] , 'dir': 'desc'});
+				renderer.settings.navigation_callback({'sort': Retina.RendererInstances.table[index].settings.header[this.i] , 'dir': 'desc'}, index);
 			    } else {
 				Retina.RendererInstances.table[index].settings.sorted = false;
 				Retina.RendererInstances.table[index].render();
@@ -394,7 +399,7 @@
 			    }
 			    var selopts = [];
 			    var numopts = 0;
-			    for (h=0;h<tdata.length;h++) {				  
+			    for (var h=0;h<tdata.length;h++) {				  
 				if (! selopts[tdata[h][header[i]]]) {
 				    numopts++;
 				}
@@ -424,14 +429,14 @@
 				    Retina.RendererInstances.table[index].settings.filter[this.i].searchword = this.value;
 				    if (typeof renderer.settings.navigation_callback == "function") {
 					var query = [];
-					for (x in Retina.RendererInstances.table[index].settings.filter) {
-					    if (Retina.RendererInstances.table[index].settings.filter.hasOwnProperty(x)) {
+					for (var x in Retina.RendererInstances.table[index].settings.filter) {
+					    if (Retina.RendererInstances.table[index].settings.filter.hasOwnProperty(x) && Retina.RendererInstances.table[index].settings.filter[x].hasOwnProperty('searchword')) {
 						if (Retina.RendererInstances.table[index].settings.filter[x].searchword.length > 0) {
 						    query.push( { "searchword": Retina.RendererInstances.table[index].settings.filter[x].searchword, "field": Retina.RendererInstances.table[index].settings.header[x], "comparison": Retina.RendererInstances.table[index].settings.filter[x].operator || "=" } );
 						}
 					    }
 					}
-					renderer.settings.navigation_callback( { "query": query } );
+					renderer.settings.navigation_callback( { "query": query }, index );
 				    } else {
 					Retina.RendererInstances.table[index].settings.filter_changed = true;
 					Retina.RendererInstances.table[index].render();
@@ -485,12 +490,12 @@
 			    filter_elem.setAttribute("style", "float: left; width: 100px; display: none;");
 			    filter_elem.add(new Option("-show all-", ""), null);
 			    var selopts = [];
-			    for (h=0;h<tdata.length;h++) {
+			    for (var h=0;h<tdata.length;h++) {
 				if (tdata[h][header[i]].length) {
 				    selopts[tdata[h][header[i]]] = 1;
 				}
 			    }
-			    for (h in selopts) {
+			    for (var h in selopts) {
 				if (h == renderer.settings.filter[i].searchword) {
 				    filter_elem.add(new Option(h,h, true), null);
 				} else {
@@ -606,9 +611,9 @@
 	    }
 	    
 	    // create the table rows
-	    for (i=0;i<disp.length;i++) {
+	    for (var i=0;i<disp.length;i++) {
 		var tinner_row = document.createElement("tr");
-		for (h=0; h<header.length; h++) {
+		for (var h=0; h<header.length; h++) {
 		    if (! renderer.settings.invisible_columns[h]) {
 			var tinner_cell = document.createElement("td");
 			tinner_cell.innerHTML = disp[i][header[h]];
@@ -676,7 +681,7 @@
 		first.setAttribute("class", "icon-fast-backward");
 		first.setAttribute("title", "first");
 		first.setAttribute("style", "cursor: pointer;");
-		first.onclick = typeof renderer.settings.navigation_callback == "function" ? function () { renderer.settings.navigation_callback('first') } : function () {
+		first.onclick = typeof renderer.settings.navigation_callback == "function" ? function () { renderer.settings.navigation_callback('first', index) } : function () {
 		    Retina.RendererInstances.table[index].settings.offset = 0;
 		    Retina.RendererInstances.table[index].render();
 		}
@@ -684,7 +689,7 @@
 		prev.setAttribute("class", "icon-step-backward");
 		prev.setAttribute("title", "previous");
 		prev.setAttribute("style", "cursor: pointer;");
-		prev.onclick = typeof renderer.settings.navigation_callback == "function" ? function () { renderer.settings.navigation_callback('previous') } : function () {
+		prev.onclick = typeof renderer.settings.navigation_callback == "function" ? function () { renderer.settings.navigation_callback('previous', index) } : function () {
 		    Retina.RendererInstances.table[index].settings.offset -= rows;
 		    if (Retina.RendererInstances.table[index].settings.offset < 0) {
 			Retina.RendererInstances.table[index].settings.offset = 0;
@@ -704,7 +709,7 @@
 		last.setAttribute("class", "icon-fast-forward");
 		last.setAttribute("title", "last");
 		last.setAttribute("style", "cursor: pointer;");
-		last.onclick = typeof renderer.settings.navigation_callback == "function" ? function () { renderer.settings.navigation_callback('last') } : function () {
+		last.onclick = typeof renderer.settings.navigation_callback == "function" ? function () { renderer.settings.navigation_callback('last', index) } : function () {
 		    Retina.RendererInstances.table[index].settings.offset = tdata.length - rows;
 		    if (Retina.RendererInstances.table[index].settings.offset < 0) {
 			Retina.RendererInstances.table[index].settings.offset = 0;
@@ -715,7 +720,7 @@
 		next.setAttribute("class", "icon-step-forward");
 		next.setAttribute("title", "next");
 		next.setAttribute("style", "cursor: pointer;");
-		next.onclick = typeof renderer.settings.navigation_callback == "function" ? function () { renderer.settings.navigation_callback('next') } : function () {
+		next.onclick = typeof renderer.settings.navigation_callback == "function" ? function () { renderer.settings.navigation_callback('next', index) } : function () {
 		    Retina.RendererInstances.table[index].settings.offset += rows;
 		    if (Retina.RendererInstances.table[index].settings.offset > tdata.length - 1) {
 			Retina.RendererInstances.table[index].settings.offset = tdata.length - rows;
@@ -749,12 +754,13 @@
 	    var goto_text = document.createElement("input");
 	    goto_text.setAttribute("value", offset + 1);
 	    goto_text.setAttribute("class", "span1");
+	    goto_text.setAttribute("type", "text");
 	    goto_text.setAttribute("style", "position: relative; top: 4px; height: 16px;");
 	    goto_text.onkeypress = function (e) {
 		e = e || window.event;
 		if (e.keyCode == 13) {
 		    if (typeof renderer.settings.navigation_callback == "function") {
-			renderer.settings.navigation_callback({'goto': parseInt(this.value) - 1 });
+			renderer.settings.navigation_callback({'goto': parseInt(this.value) - 1 }, index);
 		    } else {
 			Retina.RendererInstances.table[index].settings.offset = parseInt(this.value) - 1;
 			if (Retina.RendererInstances.table[index].settings.offset < 0) {
@@ -775,11 +781,11 @@
 	    clear_btn.setAttribute("value", "clear all filters");
 	    clear_btn.style.marginLeft = "10px";
 	    clear_btn.onclick = function () {
-		    for (i in Retina.RendererInstances.table[index].settings.filter) {
+		    for (var i in Retina.RendererInstances.table[index].settings.filter) {
 		        Retina.RendererInstances.table[index].settings.filter[i].searchword = "";
 		    }
 		    if (typeof renderer.settings.navigation_callback == "function") {
-		        renderer.settings.navigation_callback({"goto": 0, "query": "default", "sort": "default"});
+		        renderer.settings.navigation_callback({"goto": 0, "query": "default", "sort": "default"}, index);
 	        } else {
 		        Retina.RendererInstances.table[index].settings.sorted = false;
 		        Retina.RendererInstances.table[index].render();
@@ -795,7 +801,7 @@
 		e = e || window.event;
 		if (e.keyCode == 13) {
 		    if (typeof renderer.settings.navigation_callback == "function") {
-			renderer.settings.navigation_callback({'limit': parseInt(this.value) });
+			renderer.settings.navigation_callback({'limit': parseInt(this.value) }, index);
 		    } else {
 			Retina.RendererInstances.table[index].settings.offset = 0;
 			Retina.RendererInstances.table[index].settings.rows_per_page = parseInt(this.value);
@@ -852,7 +858,7 @@
 		}
 	    });
 	    var colsel_html = "<input type='button' class='btn btn-mini' style='float: right;' value='OK' onclick='Retina.RendererInstances.table["+index+"].update_visible_columns("+index+");'><table id='table_colsel_table_"+index+"'>";
-	    for (ii=0;ii<renderer.settings.header.length;ii++) {
+	    for (var ii=0;ii<renderer.settings.header.length;ii++) {
 		var checked = " checked";
 		if (renderer.settings.invisible_columns[ii]) {
 		    checked = "";
@@ -893,6 +899,86 @@
 	    target.appendChild(bottom_table);	  
 	    
 	    return renderer;
+	},
+	update: function (params, index) {
+	    renderer = Retina.RendererInstances.table[index];
+
+	    if (typeof params == 'string') {
+	        if (params == 'first') {
+		        renderer.settings.offset = 0;
+	        }
+	        if (params == 'previous') {
+		        renderer.settings.offset -= renderer.settings.limit;
+		        if (renderer.settings.offset < 0) {
+		            renderer.settings.offset = 0;
+		        }
+	        }
+	        if (params == 'next' || params == 'more') {
+		        renderer.settings.offset += widget.state.limit;
+		        if (params == 'more' && renderer.settings.total_count <= renderer.settings.limit) {
+		            return;
+		        }
+	        }
+	        if (params == 'last') {
+		        renderer.settings.offset = renderer.settings.numrows - renderer.settings.limit;
+		        if (renderer.settings.offset < 0) {
+		            renderer.settings.offset = 0;
+		        }
+	        }
+	    } 
+	    if (typeof params == 'object') {
+	        if (params.sort) {
+	            if (params.sort == 'default') {
+	                renderer.settings.sort = 'name';
+    		        renderer.settings.sortDir = 'asc';
+	            } else {
+		        renderer.settings.sort = params.sort;
+		        renderer.settings.sortDir = params.dir;
+	            }
+	        }
+	        if (params.query) {
+		    if (params.clear) {
+		        renderer.settings.query = {};
+		    }
+	            if (typeof params.query != 'object') {
+	                renderer.settings.query = {};
+	            } else {
+			renderer.settings.query = params.query;
+		    }
+	        }
+	        if (params.goto != null) {
+		    renderer.settings.offset = params.goto;
+	        }
+	        if (params.limit) {
+		    renderer.settings.limit = params.limit;
+	        }
+	    }
+
+	    var query = "";
+	    for (var i in renderer.settings.query) {
+	        if (renderer.settings.query.hasOwnProperty(i) && renderer.settings.query[i].searchword.length) {
+		    query +=  "&" + renderer.settings.query[i].field + '=*' + renderer.settings.query[i].searchword + '*';
+	        }
+	    }
+
+	    var url = renderer.settings.navigation_url + query + "&limit=" + renderer.settings.rows_per_page + "&offset=" + renderer.settings.offset;
+	    if (renderer.settings.sort) {
+		url += "&order=" +renderer.settings.sort;
+	    }
+	    if (renderer.settings.sortDir) {
+		url += "&direction=" + renderer.settings.sortDir;
+	    }
+	    var headers = stm.Authentication ? {'AUTH': stm.Authentication} : {};
+	
+	    jQuery.ajax({ url: url, headers: headers, dataType: "json", success: function(data) {
+		renderer =  Retina.RendererInstances.table[index];
+		renderer.settings.tdata = data.data;
+		renderer.settings.filter_changed = false;
+		renderer.settings.sorted = true;
+		renderer.settings.numrows = renderer.settings.numrows = data.total_count;
+		renderer.settings.offset = renderer.settings.offset;
+		renderer.render();
+	    }});
 	}
     });
 }).call(this);

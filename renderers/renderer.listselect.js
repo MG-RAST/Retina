@@ -84,6 +84,7 @@
 		'extra_wide': false,
 		'synchronous': true,
 		'navigation_callback': null,
+		'navigation_url': null,
 		'asynch_limit': 100,
 		'asynch_filter_min_length': 3,
 		'return_object': false,
@@ -95,6 +96,10 @@
 	render: function () {
 	    renderer = this;
 	    var index = renderer.index;
+
+	    if (renderer.settings.navigation_url) {
+		renderer.settings.navigation_callback = renderer.update_data;
+	    }
 
 	    // get the target div
 	    var target = renderer.settings.target;
@@ -121,7 +126,7 @@
 		    event = event || window.event;
 		    if (event.target.scrollTop == event.target.scrollTopMax) {
 			Retina.RendererInstances.listselect[index].settings.scroll_position = event.target.scrollTop;
-			Retina.RendererInstances.listselect[index].settings.navigation_callback("more");
+			Retina.RendererInstances.listselect[index].settings.navigation_callback("more", index);
 		    }
 		});
 	    }
@@ -414,7 +419,7 @@
 		query.push( { "field": renderer.settings.filter_attribute,
 			      "searchword": renderer.settings.filter_value } );
 	    }
-	    renderer.settings.navigation_callback( { "clear": true, "query": query } );
+	    renderer.settings.navigation_callback( { "clear": true, "query": query }, index );
 	},
 
 	// filter the data according to all breadcrumbs and the current filter
@@ -457,6 +462,66 @@
 	    } else {
 		return 0;
 	    }
+	},
+	update_data: function (params, index) {
+	    renderer = Retina.RendererInstances.listselect[index];
+
+	    if (typeof params == 'string' && params == 'more') {
+		renderer.settings.offset = renderer.settings.data.length;
+		if (renderer.settings.total_count <= renderer.settings.asynch_limit) {
+		    return;
+		}
+	    } 
+	    if (typeof params == 'object') {
+	        if (params.sort) {
+	            if (params.sort == 'default') {
+	                renderer.settings.sort = 'name';
+    		        renderer.settings.sortDir = 'asc';
+	            } else {
+		        renderer.settings.sort = params.sort;
+		        renderer.settings.sortDir = params.dir;
+	            }
+	        }
+	        if (params.query) {
+		    renderer.settings.offset = 0;
+		    if (params.clear) {
+		        renderer.settings.query = {};
+		    }
+	            if (typeof params.query != 'object') {
+	                renderer.settings.query = {};
+	            } else {
+			renderer.settings.query = params.query;
+		    }
+	        }
+	        if (params.goto != null) {
+		    renderer.settings.offset = params.goto;
+	        }
+	        if (params.limit) {
+		    renderer.settings.limit = params.limit;
+	        }
+	    }
+
+	    var query = "";
+	    for (var i in renderer.settings.query) {
+	        if (renderer.settings.query.hasOwnProperty(i) && renderer.settings.query[i].searchword.length) {
+		    query +=  "&" + renderer.settings.query[i].field + '=*' + renderer.settings.query[i].searchword + '*';
+	        }
+	    }
+
+	    var url = renderer.settings.navigation_url + query + "&limit=" + renderer.settings.asynch_limit + "&offset=" + (renderer.settings.offset || 0) + "&order=" +renderer.settings.asynch_filter_attribute;
+
+	    var headers = stm.Authentication ? {'AUTH': stm.Authentication} : {};
+	
+	    jQuery.ajax({ url: url, headers: headers, dataType: "json", success: function(data) {
+		renderer =  Retina.RendererInstances.listselect[index];
+		renderer.settings.total_count = data.total_count;
+		if (typeof params == 'string' && params == "more") {
+		    renderer.settings.data = renderer.settings.data.concat(data.data);
+		} else {
+		    renderer.settings.data = data.data;
+		}
+		renderer.render();
+	    }});
 	}
     });
 }).call(this);
