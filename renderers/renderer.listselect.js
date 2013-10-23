@@ -508,7 +508,7 @@
 	        }
 	    }
 
-	    var url = renderer.settings.navigation_url + query + "&limit=" + renderer.settings.asynch_limit + "&offset=" + renderer.settings.offset + "&order=" +renderer.settings.asynch_filter_attribute;
+	    var url = renderer.settings.navigation_url + query + "&limit=" + renderer.settings.asynch_limit + "&offset=" + (renderer.settings.offset || 0) + "&order=" +renderer.settings.asynch_filter_attribute;
 
 	    var headers = stm.Authentication ? {'AUTH': stm.Authentication} : {};
 	
