@@ -908,19 +908,16 @@
 		        renderer.settings.offset = 0;
 	        }
 	        if (params == 'previous') {
-		        renderer.settings.offset -= renderer.settings.limit;
+		        renderer.settings.offset -= renderer.settings.rows_per_page;
 		        if (renderer.settings.offset < 0) {
 		            renderer.settings.offset = 0;
 		        }
 	        }
-	        if (params == 'next' || params == 'more') {
-		        renderer.settings.offset += widget.state.limit;
-		        if (params == 'more' && renderer.settings.total_count <= renderer.settings.limit) {
-		            return;
-		        }
+	        if (params == 'next') {
+		        renderer.settings.offset += renderer.settings.rows_per_page;
 	        }
 	        if (params == 'last') {
-		        renderer.settings.offset = renderer.settings.numrows - renderer.settings.limit;
+		        renderer.settings.offset = renderer.settings.numrows - renderer.settings.rows_per_page;
 		        if (renderer.settings.offset < 0) {
 		            renderer.settings.offset = 0;
 		        }
@@ -950,7 +947,7 @@
 		    renderer.settings.offset = params.goto;
 	        }
 	        if (params.limit) {
-		    renderer.settings.limit = params.limit;
+		    renderer.settings.rows_per_page = params.limit;
 	        }
 	    }
 
