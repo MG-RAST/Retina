@@ -712,7 +712,7 @@ With the KBase metagenomics wizard, you can design your metagenomic sequencing e
 	    }
 	    
 	    
-	    jQuery.post( "http://api.metagenomics.anl.gov/pcoa/calc", JSON.stringify(data)).then(function(d){
+	    jQuery.post( "http://api.metagenomics.anl.gov/beta/pcoa/calc", JSON.stringify(data)).then(function(d){
 		var retstr = d;
 		var retlist = retstr.result[0].replace(/\"/g, "").split(/\n/);
 		var pcoa_result = { "components": [], "samples": {} };
