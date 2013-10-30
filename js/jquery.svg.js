@@ -1956,7 +1956,6 @@
 			}
 
 			var logtext = this._wrapper.createText().string('10').span(cur, {dy: -10, fontSize: 10});
-			console.log(axis._scale.max + " " + major + " " + minor + " " + axis._ticks.major + " " + axis._ticks.minor);
 			this._wrapper.text(gt, (horiz ? v : x1 - size), (horiz ? y1 + 2 * size : v),
 					   (axis._labels ? axis._labels[count++] : ((axis._scale.type == 'log') ? logtext : pretty_cur)));
 		    }
