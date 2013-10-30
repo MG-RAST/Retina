@@ -1956,11 +1956,18 @@
 			}
 
 			var logtext = this._wrapper.createText().string('10').span(cur, {dy: -10, fontSize: 10});
+			console.log(axis._scale.max + " " + major + " " + minor + " " + axis._ticks.major + " " + axis._ticks.minor);
 			this._wrapper.text(gt, (horiz ? v : x1 - size), (horiz ? y1 + 2 * size : v),
 					   (axis._labels ? axis._labels[count++] : ((axis._scale.type == 'log') ? logtext : pretty_cur)));
 		    }
-		    major += (cur == major ? axis._ticks.major : 0);
-		    minor += (cur == minor ? axis._ticks.minor : 0);
+		    
+		    if (axis._scale.type == 'log') {
+			major += (cur == major ? 1 : 0);
+			minor += (cur == minor ? 1 : 0);
+		    } else {
+			major += (cur == major ? axis._ticks.major : 0);
+			minor += (cur == minor ? axis._ticks.minor : 0);
+		    }
 		}
 	    }
 	},
