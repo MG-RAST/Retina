@@ -94,7 +94,7 @@
 	// we have metagenomes, show the wizard
 	else {
 
-	    widget.stmid = widget.ids.join("_") + "_organism_"+widget.level+"_M5RNA_lca_abundance_"+widget.evalue+"_"+widget.identity+"_"+widget.alignmentLength+"_0";
+	    widget.stmid = widget.ids.sort().join("_") + "_organism_"+widget.level+"_M5RNA_lca_abundance_"+widget.evalue+"_"+widget.identity+"_"+widget.alignmentLength+"_0";
 	    
 	    // check if all data is loaded
 	    if (stm.DataStore.hasOwnProperty('matrix') && stm.DataStore.matrix.hasOwnProperty(widget.stmid)) {
