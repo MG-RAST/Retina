@@ -75,7 +75,7 @@
 	        <span  id="login_name_span">\
 	          <input type="button" class="btn" value="login" style="position:relative; bottom: 2px;" onclick="jQuery(\'#loginModal\').modal(\'show\');">\
 	        </span>\
-	        <span id="login_name"></span>\
+	        <span id="login_name" style="color: white;"></span>\
 </p>';
 	
 	return html;
