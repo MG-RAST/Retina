@@ -87,7 +87,7 @@
 	var auth_url = stm.Config.mgrast_api+'?auth='+stm.Config.globus_key+Retina.Base64.encode(login+":"+pass);
 	jQuery.get(auth_url, function(d) {
 	    if (d && d.token) {
-		var uname = d.token.substr(3, d.token.indexOf('|') - 3);
+		var uname = login;
 		document.getElementById('login_name_span').style.display = "none";
 		document.getElementById('login_name').innerHTML = uname;
 		document.getElementById('failure').innerHTML = "";
