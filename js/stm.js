@@ -11,7 +11,7 @@
     stm.SourceOrigin = "*";
     stm.TargetOrigin = "*";
     stm.Authentication = null;
-    stm.Config = RetinaConfig;
+    stm.Config = typeof RetinaConfig == 'undefined' ? {} : RetinaConfig;
 
     // receive messages sent from other frames
     //window.addEventListener("message", receiveMessage, false);
@@ -284,7 +284,13 @@
 	if (options) {
 	    query_params = "?";
 	    for (var i in options) {
+		if (typeof options[i] == "object") {
+		    for (var h=0;h<options[i].length;h++) {
+			query_params += i + '=' + options[i][h] + '&';
+		    }
+		} else {
 		    query_params += i + '=' + options[i] + '&';
+		}
 	    }
 	    query_params = query_params.slice(0,-1);
 	}

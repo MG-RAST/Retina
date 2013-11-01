@@ -43,7 +43,7 @@
         <div id="failure"></div>\
         <table>\
           <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">login</th><td><input type="text" id="login"></td></tr>\
-          <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">password</th><td><input type="password" id="password"></td></tr>\
+          <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">password</th><td><input type="password" id="password" onkeypress="event = event || window.event;if(event.keyCode == 13) { Retina.WidgetInstances.login['+index+'].perform_login('+index+');}"></td></tr>\
         </table>\
       </div>\
       <div class="modal-footer">\
@@ -75,7 +75,7 @@
 	        <span  id="login_name_span">\
 	          <input type="button" class="btn" value="login" style="position:relative; bottom: 2px;" onclick="jQuery(\'#loginModal\').modal(\'show\');">\
 	        </span>\
-	        <span id="login_name"></span>\
+	        <span id="login_name" style="color: white;"></span>\
 </p>';
 	
 	return html;
@@ -87,7 +87,7 @@
 	var auth_url = stm.Config.mgrast_api+'?auth='+stm.Config.globus_key+Retina.Base64.encode(login+":"+pass);
 	jQuery.get(auth_url, function(d) {
 	    if (d && d.token) {
-		var uname = d.token.substr(3, d.token.indexOf('|') - 3);
+		var uname = login;
 		document.getElementById('login_name_span').style.display = "none";
 		document.getElementById('login_name').innerHTML = uname;
 		document.getElementById('failure').innerHTML = "";
@@ -109,6 +109,14 @@
 									'token': null });
 		}
 	    }
+	}).fail(function() {
+	    document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> Login failed.</div>';
+		if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
+		    Retina.WidgetInstances.login[index].callback.call({ 'action': 'login',
+									'result': 'failed',
+									'uname': null,
+									'token': null });
+		}
 	});
     };
     
