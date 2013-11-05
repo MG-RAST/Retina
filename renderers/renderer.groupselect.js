@@ -415,6 +415,12 @@
 	    for (var i=0;i<renderer.settings.selection_data.length;i++) {
 		renderer.settings.groups[renderer.settings.new_group_name].push(renderer.settings.selection_data[i][renderer.settings.value]);
 	    }
+	    renderer.settings.selection = {};
+	    renderer.settings.selection_data = [];
+	    renderer.groupname_field.value = "";
+	    renderer.settings.current_group = null;
+	    renderer.redrawSelection(index);
+	    renderer.redrawResultlist(index);
 	    renderer.redrawGroups(index);
 	    if (typeof renderer.settings.callback == 'function') {
 		renderer.settings.callback(renderer.settings.groups);
@@ -427,6 +433,9 @@
 		if (confirm('really delete group '+renderer.settings.current_group+'?')) {
 		    renderer.settings.selection = {};
 		    delete renderer.settings.groups[renderer.settings.current_group];
+		    renderer.settings.selection_data = [];
+		    renderer.groupname_field.value = "";
+		    renderer.settings.current_group = null;
 		    renderer.redrawSelection(index);
 		    renderer.redrawResultlist(index);
 		    renderer.redrawGroups(index);
@@ -457,11 +466,8 @@
 	update_group: function (index) {
 	    renderer = Retina.RendererInstances.groupselect[index];
 	    if (renderer.settings.current_group) {
-		if (renderer.settings.current_group == renderer.settings.new_group_name) {
-		    delete renderer.settings.groups[renderer.settings.current_group];
-		} else {
-		    renderer.settings.current_group = renderer.settings.new_group_name;
-		}
+		delete renderer.settings.groups[renderer.settings.current_group];
+		renderer.settings.current_group = renderer.settings.new_group_name;
 		renderer.settings.groups[renderer.settings.new_group_name] = [];
 		for (var i=0;i<renderer.settings.selection_data.length;i++) {
 		    renderer.settings.groups[renderer.settings.new_group_name].push(renderer.settings.selection_data[i][renderer.settings.value]);
@@ -478,6 +484,7 @@
 	    renderer.settings.selection = {};
 	    renderer.settings.selection_data = [];
 	    renderer.groupname_field.value = group;
+	    renderer.settings.current_group = group;
 	    for (var i=0;i<renderer.settings.groups[group].length;i++) {
 		renderer.settings.selection[renderer.settings.groups[group][i]] = 1;
 		for (var h=0;h<renderer.settings.data.length;h++) {
