@@ -19,10 +19,15 @@
 		Retina.Widget.create('login', {"target": document.getElementById("login_space")});
 	    });
 
-	    Retina.add_widget({"name": "rankabundance", "resource": "widgets/",  "filename": "widget.rankabundance.js" });
-	    Retina.load_widget("rankabundance").then( function () {
-		Retina.Widget.create("rankabundance", { target: document.getElementById('content') });
-	    });
+	    if (Retina.WidgetInstances.hasOwnProperty('rankabundance') && Retina.WidgetInstances.rankabundance.length > 1) {
+		Retina.WidgetInstances.rankabundance[1].target = document.getElementById('content');
+		Retina.WidgetInstances.rankabundance[1].display(1);
+	    } else {
+		Retina.add_widget({"name": "rankabundance", "resource": "widgets/",  "filename": "widget.rankabundance.js" });
+		Retina.load_widget("rankabundance").then( function () {
+		    Retina.Widget.create("rankabundance", { target: document.getElementById('content') });
+		});
+	    };
 	});
     });
     </script>
