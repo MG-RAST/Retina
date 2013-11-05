@@ -276,7 +276,7 @@
 	    widget.graph.settings.x_labels = sortedlabels;
 	    widget.graph.settings.data = data;
 	} else {
-	    widget.graph = Retina.Renderer.create("graph", { target: document.getElementById('graph_target'), x_labels: sortedlabels, data: data, x_labels_rotation: -40, y_scale: 'log', chartArea: [ 0.1, 0.05, 0.95, 0.6 ], onclick: Retina.WidgetInstances.rankabundance[index].graph_click, width: 1200 });
+	    widget.graph = Retina.Renderer.create("graph", { target: document.getElementById('graph_target'), x_labels: sortedlabels, data: data, x_labels_rotation: -40, y_scale: 'log', chartArea: [ 250, 0.05, 0.95, 0.6 ], onclick: Retina.WidgetInstances.rankabundance[index].graph_click, width: 1600, show_legend: true });
 	}
 	widget.graph.render();
     };
