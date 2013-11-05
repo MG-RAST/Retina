@@ -210,7 +210,7 @@
 		var button_span = document.createElement('span');
 		var button_left = document.createElement('a');
 		button_left.setAttribute('class', 'btn btn-small');
-		button_left.setAttribute('style', 'position: relative; left: 34px; top: 40px;');
+		button_left.setAttribute('style', 'position: relative; left: 36px; top: 40px;');
 		button_left.innerHTML = '<i class="icon-chevron-left"></i>';
 		button_left.addEventListener('click', function () {
 		    for (x=0; x<result_list.options.length; x++) {
@@ -230,7 +230,7 @@
 		});
 		var button_right = document.createElement('a');
 		button_right.setAttribute('class', 'btn btn-small');
-		button_right.setAttribute('style', 'position: relative; right: 34px; bottom: 40px;');
+		button_right.setAttribute('style', 'position: relative; right: 36px; bottom: 40px;');
 		button_right.innerHTML = '<i class="icon-chevron-right"></i>';
 		button_right.addEventListener('click', function () {
 		    for (x=0; x<selection_list.options.length; x++) {
@@ -264,7 +264,7 @@
 	    // create the submit button
 	    var submit_button = document.createElement('a');
 	    submit_button.setAttribute('class', (renderer.settings.button && renderer.settings.button.class) ? renderer.settings.button.class : 'btn btn-small btn-success');
-	    submit_button.setAttribute('style', (renderer.settings.button && renderer.settings.button.style) ? renderer.settings.button.style : 'margin-left: 15px;');
+	    submit_button.setAttribute('style', (renderer.settings.button && renderer.settings.button.style) ? renderer.settings.button.style : 'margin-left: 8px;');
 	    submit_button.innerHTML = ((renderer.settings.button && renderer.settings.button.text) ? renderer.settings.button.text : '') + ( (renderer.settings.button && renderer.settings.button.icon) ? renderer.settings.button.icon : '<i class="icon-ok icon-white"></i>');
 	    if (typeof(renderer.settings.callback) == 'function') {
 	        var index = renderer.index;
