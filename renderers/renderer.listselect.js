@@ -57,6 +57,9 @@
 
    asynch_filter_min_length (INTEGER)
       The number of characters that need to be entered into the filter before the filter callback is performed. Default is 3.
+
+   asynch_keystroke_threshold (INTEGER)
+      The number of miliseconds in between keystrokes the navigation callback method will wait for new keystrokes before sending the full request. Default is 1000 (one second).
 */
 (function () {
     var renderer = Retina.Renderer.extend({
@@ -86,6 +89,7 @@
 		'navigation_callback': null,
 		'navigation_url': null,
 		'asynch_limit': 100,
+		'asynch_keystroke_threshold': 1000,
 		'asynch_filter_min_length': 3,
 		'return_object': false,
 		'style': "" }
@@ -159,7 +163,8 @@
 		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
 		} else {
 		    if (filter_input.value.length >= Retina.RendererInstances.listselect[index].settings.asynch_filter_min_length) {
-			Retina.RendererInstances.listselect[index].update(index);
+			Retina.RendererInstances.listselect[index].typing = new Date().getTime();
+			window.setTimeout("Retina.RendererInstances.listselect["+index+"].check_threshold("+index+")", Retina.RendererInstances.listselect[index].settings.asynch_keystroke_threshold);
 		    }
 		}
 	    });
@@ -264,6 +269,7 @@
 	    // create the submit button
 	    var submit_button = document.createElement('a');
 	    submit_button.setAttribute('class', (renderer.settings.button && renderer.settings.button.class) ? renderer.settings.button.class : 'btn btn-small btn-success');
+	    submit_button.setAttribute('id', 'listselect_submit_button'+index);
 	    submit_button.setAttribute('style', (renderer.settings.button && renderer.settings.button.style) ? renderer.settings.button.style : 'margin-left: 8px;');
 	    submit_button.innerHTML = ((renderer.settings.button && renderer.settings.button.text) ? renderer.settings.button.text : '') + ( (renderer.settings.button && renderer.settings.button.icon) ? renderer.settings.button.icon : '<i class="icon-ok icon-white"></i>');
 	    if (typeof(renderer.settings.callback) == 'function') {
@@ -406,6 +412,13 @@
 	    selection_list.innerHTML = settings_string;
 
 	    return;
+	},
+
+	check_threshold: function(index) {
+	    var threshold = new Date().getTime();
+	    if (Retina.RendererInstances.listselect[index].typing + Retina.RendererInstances.listselect[index].settings.asynch_keystroke_threshold < threshold) {
+		Retina.RendererInstances.listselect[index].update(index);
+	    }		
 	},
 
 	update: function (index) {
