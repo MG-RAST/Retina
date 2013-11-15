@@ -191,7 +191,6 @@
 	widget.render_graph(index);
     };
 
-
     widget.render_graph = function(index) {
 	widget = Retina.WidgetInstances.rankabundance[index];
 
