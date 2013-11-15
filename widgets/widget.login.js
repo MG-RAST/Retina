@@ -33,7 +33,7 @@
 
     widget.modals = function (index) {
 	var html = '\
-        <div id="loginModal" class="modal show fade" tabindex="-1" style="width: 400px;" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">\
+        <div id="loginModal" class="modal show fade" tabindex="-1" style="width: 400px; display: none;" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">\
       <div class="modal-header">\
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>\
 	<h3 id="loginModalLabel">Authenticate to KBase</h3>\
