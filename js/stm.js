@@ -263,10 +263,10 @@
 	    repo = stm.default_repository();
 	}
 
-    var method = 'GET';
-    if (params.hasOwnProperty('method')) {
-        method = params['method'];
-    }
+	var method = 'GET';
+	if (params.hasOwnProperty('method')) {
+            method = params['method'];
+	}
 
 	var type = params['type'];
 	var id = params['id'];
