@@ -58,7 +58,7 @@
 	    title: "Heatmap",
             author: "Tobias Paczian",
             version: "1.0",
-            requires: [ "jquery.svg.js" ],
+            requires: [ "jquery.svg.js", "jquery.svganim.js" ],
             defaults: {
 		'width': 700,
 		'height': 600,
@@ -70,10 +70,12 @@
 		'col_text_size': 15,
 		'min_cell_height': 19,
 		'selectedRows': [],
+		'selectedColumns': [],
+		'cells': [],
 		'data': {} }
 	},
 	exampleData: function () {
-	    return { columns: ["4441619.3", "4441656.4", "4441620.3"], rows: ["Eukaryota", "unassigned", "Bacteria","Archaea"], data: [[0.238159580408187, 0.317179237742824, 0.114052821211353],[0.553202346761363, 0.614080873307415, 0.555096325148052],[0.996159994861707, 0.940468112695288, 1],[0.0842063017142708, 0, 0.202579077386122]], colindex: [ 3, 2, 1 ], rowindex: [ 2, 3, 1, 4 ], coldend: [ [ -1, -3, 0.0663059720008296 ], [ -2, 1, 0.121084448286984 ] ], rowdend: [ [ -2, -3, 0.26 ], [ -1, -4, 0.58 ], [ 1, 2, 0.87 ] ] };
+	    return { columns: ["4441619.3", "4441656.4", "4441620.3"], rows: ["Eukaryota", "unassigned", "Bacteria","Archaea"], data: [[0.338159580408187, 0.717179237742824, 0.514052821211353],[0.238159580408187, 0.317179237742824, 0.114052821211353],[0.553202346761363, 0.614080873307415, 0.555096325148052],[0.996159994861707, 0.940468112695288, 1]] };
         },
 
 	render: function () {
@@ -107,9 +109,8 @@
 	    renderer = Retina.RendererInstances.heatmap[index];
 
 	    // initialize shortcut variables
-	    var data = renderer.settings.data;
-	    var numrows = data.rows.length;
-	    var numcols = data.columns.length;
+	    var numrows = renderer.settings.data.rows.length;
+	    var numcols = renderer.settings.data.columns.length;
 	    var boxwidth = parseInt((renderer.settings.width - renderer.settings.legend_width - renderer.settings.tree_width) / numcols);
 	    renderer.settings.boxwidth = boxwidth;
 	    var boxheight = parseInt((renderer.settings.height - renderer.settings.legend_height - renderer.settings.tree_height) / numrows);
@@ -125,24 +126,46 @@
 	    var height = 0;
 	    var settings = {fill: 'red', strokeWidth: 1, stroke: 'black'};
 
+	    // draw the dendogram
+	    if (renderer.settings.data.coldend) {
+		Retina.RendererInstances.heatmap[index].drawDendogram(svg, index, 0);
+		Retina.RendererInstances.heatmap[index].drawDendogram(svg, index, 1);
+	    } else {
+		var col_result = renderer.cluster(renderer.transpose(renderer.settings.data.data));
+		renderer.settings.data.colcluster = col_result[0];
+		renderer.settings.data.colindex = col_result[1];
+		var row_result = renderer.cluster(renderer.settings.data.data);
+		renderer.settings.data.rowcluster = row_result[0];
+		renderer.settings.data.rowindex = row_result[1];
+		renderer.drawDendogramNew(svg, index, 0);
+		renderer.drawDendogramNew(svg, index, 1);
+	    }
+
 	    // draw the heatmap
-	    for (i=0;i<data.data.length;i++) {
+	    for (var i=0;i<renderer.settings.data.data.length;i++) {
 		// draw row text
 		var textx = renderer.settings.tree_width + displaywidth + 5;
-		var texty = renderer.settings.tree_height + renderer.settings.legend_height + (boxheight * (i+1) - parseInt((boxheight - renderer.settings.row_text_size) / 2));
+		var texty = renderer.settings.tree_height + renderer.settings.legend_height + (boxheight * (i+1) - parseInt((boxheight - renderer.settings.row_text_size) / 2)) - 2;
 		var fontColor = "black";
 		if (renderer.settings.selectedRows[i]) {
 		    fontColor = "blue";
 		}
-		svg.text(null, textx, texty, ''+data.rows[renderer.settings.data.rowindex[i]-1], { fill: fontColor, fontSize: renderer.settings.row_text_size+"px", onclick: "Retina.RendererInstances.heatmap["+index+"].toggleSelected("+i+", "+index+");" });
+
+		svg.text(null, textx, texty, ''+renderer.settings.data.rows[renderer.settings.data.rowindex[i]-1], { fill: fontColor, fontSize: renderer.settings.row_text_size+"px", onclick: "Retina.RendererInstances.heatmap["+index+"].toggleSelected("+i+", "+index+", 0);", cursor: "pointer" });
+
+		renderer.settings.cells.push([]);
 
 		// draw cells
-		for (h=0;h<data.data[i].length;h++) {
+		for (var h=0;h<renderer.settings.data.data[i].length;h++) {
 		    // draw column text
 		    if (i==0) {
-			var ctextx = renderer.settings.tree_width + (boxwidth * h) + (parseInt((boxwidth - renderer.settings.col_text_size) / 2));
+			var ctextx = renderer.settings.tree_width + (boxwidth * h) + (parseInt((boxwidth - renderer.settings.col_text_size) / 2)) + 12;
 			var ctexty = renderer.settings.legend_height - 5;
-			svg.text(null, ctextx, ctexty, data.columns[renderer.settings.data.colindex[h]-1], { fontSize: renderer.settings.col_text_size+"px", transform: "rotate(-90, "+ctextx+", "+ctexty+")" });
+			fontColor = "black";
+			if (renderer.settings.selectedColumns[h]) {
+			    fontColor = "blue";
+			}
+			svg.text(null, ctextx, ctexty, renderer.settings.data.columns[renderer.settings.data.colindex[h]-1], { fill: fontColor, fontSize: renderer.settings.col_text_size+"px", transform: "rotate(-90, "+ctextx+", "+ctexty+")", onclick: "Retina.RendererInstances.heatmap["+index+"].toggleSelected("+h+", "+index+", 1);", cursor: "pointer" });
 			
 		    }
 
@@ -154,7 +177,7 @@
 
 		    // calculate box color
 		    var color = "black";
-		    var adjusted_value = (data.data[renderer.settings.data.rowindex[i]-1][renderer.settings.data.colindex[h]-1] * 2) - 1;
+		    var adjusted_value = (renderer.settings.data.data[renderer.settings.data.rowindex[i]-1][renderer.settings.data.colindex[h]-1] * 2) - 1;
 		    var cval = parseInt(255 * Math.abs(adjusted_value));
 		    if (adjusted_value < 0) {
 			color = "rgb("+cval+",0,0)";
@@ -162,15 +185,18 @@
 			color = "rgb(0,"+cval+",0)";
 		    }
 		    settings.fill = color;
-		    settings.onclick = "Retina.RendererInstances.heatmap["+index+"].toggleSelected("+i+", "+index+");";
+		    if (typeof renderer.settings.cellClicked == "function") {
+			settings.onclick = "Retina.RendererInstances.heatmap["+index+"].cellClick("+i+", "+h+", "+adjusted_value+", this, "+index+");";
+		    }
+		    if (typeof renderer.settings.cellHovered == "function") {
+			settings.onmouseover = "Retina.RendererInstances.heatmap["+index+"].cellHover(1, "+i+", "+h+", "+adjusted_value+", this, "+index+");";
+			settings.onmouseout = "Retina.RendererInstances.heatmap["+index+"].cellHover(0, "+i+", "+h+", "+adjusted_value+", this, "+index+");";
+		    }
 
 		    // draw the box
-		    svg.rect(null, x, y, width, height, rx, ry, settings);		    
+		    renderer.settings.cells[i][h] = svg.rect(null, x, y, width, height, rx, ry, settings);		    
 		}
 	    }
-	    
-	    Retina.RendererInstances.heatmap[index].drawDendogram(svg, index, 0);
-	    Retina.RendererInstances.heatmap[index].drawDendogram(svg, index, 1);
 	},
 	
 	drawDendogram: function (svg, index, rotation) {
@@ -185,7 +211,7 @@
 	    var interval = parseInt(height / data.length);
 	    var pairs = new Array;
 	    var path = "";
-	    for (i=0;i<data.length;i++) {
+	    for (var i=0;i<data.length;i++) {
 		var r = { x: 0, y: 0, value: d_array.indexOf(Math.abs(data[i][0])) };
 		var l = { x: 0, y: 0, value: d_array.indexOf(Math.abs(data[i][1])) };
 		
@@ -222,17 +248,319 @@
 		svg.path(null, path, {fill:"none", stroke: "black" });
 	    }
 	},
-	
-	toggleSelected: function (row, index) {
+
+	drawDendogramNew: function (svg, index, rotation) {
 	    renderer = Retina.RendererInstances.heatmap[index];
 
-	    if (renderer.settings.selectedRows[row]) {
-		renderer.settings.selectedRows[row] = 0;
+	    return;
+	    
+	    var height = rotation ? renderer.settings.tree_width : renderer.settings.tree_height;
+	    var data = rotation ? renderer.settings.data.rowcluster : renderer.settings.data.colcluster;
+	    var cell_w = rotation ? renderer.settings.boxheight : renderer.settings.boxwidth;
+	    var xshift = rotation ? renderer.settings.tree_height : renderer.settings.tree_width;
+	    var yshift = renderer.settings.legend_height + renderer.settings.tree_height;
+	    var interval = parseInt(height / data.depth);
+	    var path = "";
+	    if (rotation) { 
+		xshift++;
+		for (var i=0;i<data.depth;i++) {
+		    var curr_shift = 0 + yshift;
+		    for (var h=0;h<data[i].length;h++) {
+			var cluster = data[i][h];
+			path += "M"+xshift+","+parseInt(curr_shift + ((cell_w * cluster.a) / 2))+"l-"+parseInt(interval)+",0";
+			if (cluster.hasOwnProperty('b')) {
+			    path += "l0,"+parseInt((cell_w * (cluster.a / 2)) + (cell_w * (cluster.b / 2)))+"l"+parseInt(interval)+",0";
+			}
+			curr_shift += cluster.b ? (cluster.a + cluster.b) * cell_w : cluster.a * cell_w;
+		    }
+		    xshift -= interval;
+		}
 	    } else {
-		renderer.settings.selectedRows[row] = 1;
+		for (var i=0;i<data.depth;i++) {
+		    var curr_shift = 0 + xshift;
+		    for (var h=0;h<data[i].length;h++) {
+			var cluster = data[i][h];
+			path += "M"+parseInt(curr_shift + ((cell_w * cluster.a) / 2))+","+yshift+"l0,-"+parseInt(interval);
+			if (cluster.hasOwnProperty('b')) {
+			    path += "l"+parseInt((cell_w * (cluster.a / 2)) + (cell_w * (cluster.b / 2)))+",0l0,"+parseInt(interval);
+			}
+			curr_shift += cluster.b ? (cluster.a + cluster.b) * cell_w : cluster.a * cell_w;
+		    }
+		    yshift -= interval;
+		}
+	    }
+	    svg.path(null, path, {fill:"none", stroke: "black" });
+	},
+	
+	toggleSelected: function (row, index, dir) {
+	    renderer = Retina.RendererInstances.heatmap[index];
+
+	    if (dir) {
+		if (typeof renderer.settings.colClicked == "function") {
+		    renderer.settings.colClicked(row);
+		} else {
+		    if (renderer.settings.selectedColumns[row]) {
+			renderer.settings.selectedColumns[row] = 0;
+		    } else {
+			renderer.settings.selectedColumns[row] = 1;
+		    }
+		}
+	    } else {
+		if (typeof renderer.settings.rowClicked == "function") {
+		    renderer.settings.rowClicked(row);
+		} else {
+		    if (renderer.settings.selectedRows[row]) {
+			renderer.settings.selectedRows[row] = 0;
+		    } else {
+			renderer.settings.selectedRows[row] = 1;
+		    }
+		}
 	    }
 
 	    renderer.render();
+	},
+
+	cellClick: function (row, col, value, cell, index) {
+	    renderer = Retina.RendererInstances.heatmap[index];
+	    if (typeof renderer.settings.cellClicked == "function") {
+		renderer.settings.cellClicked({row: row, col: col, value: value, cell: cell});
+	    }
+	},
+
+	cellHover: function (over, row, col, value, cell, index) {
+	    renderer = Retina.RendererInstances.heatmap[index];
+	    if (typeof renderer.settings.cellHovered == "function") {
+		renderer.settings.cellHovered({over: over, row: row, col: col, value: value, cell: cell});
+	    }
+	},
+
+	normalize: function (data, min, max) {
+	    var normdata = [];
+	    min = min ? min : 0;
+	    max = max ? max : 1;
+	    for (var i=0;i<data.length;i++) {
+		var dmin = data[i][0];
+		var dmax = data[i][0];
+		for (var h=0; h<data[i].length; h++) {
+		    if (data[i][h] < dmin) {
+			dmin = data[i][h];
+		    }
+		    if (data[i][h] > dmax) {
+			dmax = data[i][h];
+		    }
+		}
+		normdata[i] = [];
+		for (var h=0;h<data[i][h].length;h++) {
+		    normdata[i][h] = min + (x - dmin) * (dmax - min) / (dmax - dmin);
+		}
+	    }
+
+	    return normdata;
+	},
+
+	distance: function (data) {
+	    var distances = {};
+	    for (var i=0;i<data.length;i++) {
+		distances[i] = {};
+	    }
+	    for (var i=0;i<data.length;i++) {
+	    	for (var h=0;h<data.length;h++) {
+	    	    if (i>=h) {
+	    		continue;
+	    	    }
+	    	    var dist = 0;
+	    	    for (var j=0;j<data[i].data[0].length;j++) {
+	    		dist += Math.pow(data[i].data[0][j] - data[h].data[0][j], 2);
+	    	    }
+	    	    distances[i][h] = dist / 2;
+	    	}
+	    }	    
+	    return distances;
+	},
+
+	transpose: function (data) {
+	    var result = [];
+	    for (i=0;i<data.length;i++) {
+		for (h=0;h<data[i].length;h++) {
+		    if (i==0) {
+			result.push( [] );
+		    }
+		    result[h][i] = data[i][h];
+		}
+	    }
+	    return result;
+	},
+
+	cluster: function (data) {
+	    var num_avail = data.length;
+	    var avail = {};
+	    var clusters = [];
+	    for (i=0;i<data.length;i++) {
+		clusters.push( { points: [ i ], data: [ data[i] ], level: [ 0 ] } );
+		avail[i] = true;
+	    }
+
+	    // get the initial distances between all nodes
+	    var distances = renderer.distance(clusters);
+
+	    // calculate clusters
+	    var min;
+	    var coords;
+	    while (num_avail > 1) {
+		var found = false;
+	    	for (var i in distances) {
+	    	    if (distances.hasOwnProperty(i)) {
+	    		for (var h in distances[i]) {
+	    		    if (distances[i].hasOwnProperty(h) && avail[i] && avail[h]) {
+	    			min = distances[i][h];
+	    			coords = [ i, h ];
+				found = true;
+	    			break;
+	    		    }
+	    		}
+			if (found) {
+	    		    break;
+			}
+	    	    }
+	    	}
+	    	for (var i in distances) {
+	    	    if (distances.hasOwnProperty(i)) {
+	    		for (var h in distances[i]) {
+	    		    if (distances[i].hasOwnProperty(h)) {
+	    			if (avail[i] && avail[h] && distances[i][h]<min) {
+	    			    coords = [ i, h ];
+				    min  = distances[i][h];
+	    			}
+	    		    }
+	    		}
+	    	    }
+	    	}
+	    	avail[coords[0]] = false;
+	    	avail[coords[1]] = false;
+	    	num_avail--;
+	    	avail[clusters.length] = true;
+		var pdata = [];
+	    	for (var h=0;h<2;h++) {
+		    for (var i=0;i<clusters[coords[h]].data.length;i++) {
+	    		pdata.push(clusters[coords[h]].data[i]);
+	    	    }
+	    	}
+		var coord_a = coords[0];
+		var coord_b = coords[1];
+		if (coords[0] < coords[1]) {
+		    var triangle = coord_a;
+		    coord_a = coord_b;
+		    coord_b = triangle;
+		}
+	    	clusters.push({ points: [ coord_a, coord_b ], data: pdata, level: [ clusters[coord_a].level[0] + 1, clusters[coord_b].level[0] + 1 ] });
+
+	    	var row_a = [];
+	    	for (var h=0;h<2;h++) {
+	    	    for (var i=0;i<clusters[coords[h]].data.length;i++) {
+	    		for (var j=0; j<clusters[coords[h]].data[i].length; j++) {
+	    		    if (h==0 && i==0) {
+	    			row_a[j] = 0;
+	    		    }
+	    		    row_a[j] += clusters[coords[h]].data[i][j];
+	    		}
+	    	    }
+	    	}
+	    	for (var i=0; i<row_a.length; i++) {
+	    	    row_a[i] = row_a[i] / (clusters[coord_a].data.length + clusters[coord_b].data.length);
+	    	}
+	    	var index = clusters.length - 1;
+		distances[index] = {};
+	    	for (var h=0; h<index; h++) {
+	    	    var row_b = [];
+	    	    for (var i=0;i<clusters[h].data.length;i++) {
+	    		for (var j=0; j<clusters[h].data[i].length; j++) {
+	    		    if (i==0) {
+	    			row_b[j] = 0;
+	    		    }
+	    		    row_b[j] += clusters[h].data[i][j];
+	    		}
+	    	    }
+	    	    for (var i=0; i<row_b.length; i++) {
+	    		row_b[i] = row_b[i] / clusters[h].data.length;
+	    	    }
+	    	    var dist = 0;
+	    	    for (var i=0;i<row_a.length;i++) {
+	    		dist += Math.pow(row_a[i] - row_b[i], 2);
+	    	    }
+	    	    distances[h][index] = dist / 2;
+	    	}
+	    }
+
+	    // record the row order after clustering
+	    var rowindex = [];
+	    for (var i=data.length;i<clusters.length;i++) {
+		if (clusters[i].points[0] < data.length) {
+		    rowindex.push(parseInt(clusters[i].points[0]) + 1);
+		}
+		if (clusters[i].points[1] < data.length) {
+		    rowindex.push(parseInt(clusters[i].points[1]) + 1);
+		}
+	    }
+
+	    // record the reverse row order for lookup
+	    var roworder = {};
+	    for (var i=0;i<rowindex.length;i++) {
+		roworder[rowindex[i]] = i;
+	    }
+
+	    // get the depth
+	    var depth = 0;
+	    for (var i=0; i<clusters.length; i++) {
+		if (clusters[i].level[0] && clusters[i].level[0] > depth) {
+		    depth = clusters[i].level[0];
+		}
+		if (clusters[i].level[1] && clusters[i].level[1] > depth) {
+		    depth = clusters[i].level[1];
+		}
+	    }
+
+	    // format the cluster data for visualization
+	    var clusterdata = { "depth": depth };
+	    for (var i=0;i<clusterdata.depth;i++) {
+		clusterdata[i] = [];
+	    }
+	    for (var i=data.length; i<clusters.length; i++) {
+
+		// get the level this cluster is at
+		var level = Math.max(clusters[i].level[0], clusters[i].level[1]) - 1;
+		
+		// determine which part of the node is left and which is right
+		var order_left = clusters[i].points[0];
+		var order_right = clusters[i].points[1];
+		while (roworder[order_left + 1] == null) {
+		    order_left = clusters[order_left].points[0];
+		}
+		order_left = roworder[order_left + 1];
+		while (roworder[order_right + 1] == null) {
+		    order_right = clusters[order_right].points[0];
+		}
+		order_right = roworder[order_right + 1];
+		
+		// push the cluster node
+		if (order_right > order_left) {
+		    clusterdata[level].push({a:clusters[clusters[i].points[0]].data.length, b:clusters[clusters[i].points[1]].data.length});
+		} else {
+		    clusterdata[level].push({b:clusters[clusters[i].points[0]].data.length, a:clusters[clusters[i].points[1]].data.length});
+		}
+		
+		// draw single lines until we reach the next root
+		if (clusters[i].level[0] != clusters[i].level[1]) {
+		    var n = 0;
+		    if (clusters[i].level[1] < clusters[i].level[0]) {
+			n = 1;
+		    }
+		    for (var h=0;h<Math.abs(clusters[i].level[0] - clusters[i].level[1]);h++) {
+			clusterdata[level - (h+1)].push({ a: clusters[clusters[i].points[n]].data.length });
+		    }
+		}
+	    }
+
+	    return [clusterdata, rowindex];
 	}
     });
 }).call(this);

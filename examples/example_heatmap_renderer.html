@@ -9,14 +9,14 @@
 	<script src="../js/bootstrap.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
 	<script>
-	Retina.init( { library_resource: "../js/" } ).then( function () {
-	    Retina.add_renderer({"name": "heatmap", "resource": "../renderers/",  "filename": "renderer.heatmap.js" });
-	    Retina.load_renderer("heatmap").then( function () {
-		Retina.Renderer.create("heatmap", {
-		    target: document.getElementById('target'),
-		    data: Retina.RendererInstances.heatmap[0].exampleData() }).render();
-	    });
+    Retina.init( { library_resource: "../js/" } ).then( function () {
+	Retina.add_renderer({"name": "heatmap", "resource": "../renderers/",  "filename": "renderer.heatmap.js" });
+	Retina.load_renderer("heatmap").then( function () {
+	    Retina.Renderer.create("heatmap", {
+		target: document.getElementById('target'),
+		data: Retina.RendererInstances.heatmap[0].exampleData() }).render();
 	});
+    });
 	</script>
   </head>
 
