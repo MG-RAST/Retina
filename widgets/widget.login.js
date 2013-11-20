@@ -13,16 +13,19 @@
     };
 
     widget.callback = null;
+    widget.authResources = { "default": "KBase",
+			     "KBase": { "icon": "KBase_favicon.ico",
+					"prefix": "kbgo4711" },
+			     "MG-RAST": { "icon": "MGRAST_favicon.ico",
+					  "prefix": "mggo4711" } };
     
     widget.display = function (wparams) {
 	widget = this;
 	var index = widget.index;
 	
-	widget.authResources = wparams.authResources || { "default": "KBase",
-							  "KBase": { "icon": "KBase_favicon.ico",
-								     "prefix": "kbgo4711" },
-							  "MG-RAST": { "icon": "MGRAST_favicon.ico",
-								       "prefix": "mggo4711" } };
+	if (wparams && wparams.hasOwnProperty('authResources')) {
+	    widget.authResources = wparams.authResources;
+	}
 
 	// append the modals to the body
 	var space = document.createElement('div');
@@ -125,6 +128,7 @@
     }
     
     widget.perform_login = function (index) {
+	widget = Retina.WidgetInstances.login[index];
 	var login = document.getElementById('login').value;
 	var pass = document.getElementById('password').value;
 	var auth_url = stm.Config.mgrast_api+'?auth='+widget.authResources[widget.authResources.default].prefix+Retina.Base64.encode(login+":"+pass);
