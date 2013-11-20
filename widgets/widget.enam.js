@@ -10,9 +10,8 @@
     });
 
     widget.setup = function () {
-	stm.add_repository({url: "http://api.metagenomics.anl.gov/beta"}, null, true, 'beta');
-	if (! stm.DataStore.hasOwnProperty('abundanceprofile')) {
-	    stm.DataStore.abundanceprofile = {};
+	if (! stm.DataStore.hasOwnProperty('profile')) {
+	    stm.DataStore.profile = {};
 	    stm.DataStore.metagenome = {};
 	}
 
@@ -105,8 +104,8 @@
 							      }
 							      var promises = [];
 							      for (var i=0;i<data.length;i++) {
-								  if (! stm.DataStore.abundanceprofile.hasOwnProperty(data[i]+"_"+widget.type+"_"+widget.source)) {
-								      promises.push(stm.get_objects({"repository": "beta", "type": "abundanceprofile", "id": data[i], "options": {"type": widget.type, "source": widget.source }}));
+								  if (! stm.DataStore.profile.hasOwnProperty(data[i]+"_"+widget.type+"_"+widget.source)) {
+								      promises.push(stm.get_objects({"type": "profile", "id": data[i], "options": {"type": widget.type, "source": widget.source }}));
 								  }
 								  if (! stm.DataStore.metagenome.hasOwnProperty(data[i])) {
 								       promises.push(stm.get_objects({"type": "metagenome", "id": data[i], "options": {"verbosity": "metadata" }}));
@@ -269,7 +268,7 @@
 	    } else {
 		columns.push(stm.DataStore.metagenome[widget.ids[i]].id);
 	    }
-	    var d = stm.DataStore.abundanceprofile[widget.ids[i]+"_"+widget.type+"_"+widget.source];
+	    var d = stm.DataStore.profile[widget.ids[i]+"_"+widget.type+"_"+widget.source];
 	    for (var h=0;h<d.data.length;h++) {
 		// apply level filter
 		var t = widget.type == "function" ? "ontology" : "taxonomy";
