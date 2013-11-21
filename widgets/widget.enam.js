@@ -215,6 +215,10 @@
 	for (var i=0;i<widget.ids.length;i++) {
 	    var mg = stm.DataStore.metagenome[widget.ids[i]].metadata;
 
+	    if (! mg) {
+		continue;
+	    }
+
 	    // iterate over the whitelist groups in the metagenomes metadata
 	    for (var h=0;h<whitelist.length;h++) {
 		if (mg.hasOwnProperty(whitelist[h])) {
@@ -384,6 +388,8 @@
     };
 
     widget.heatmapCellHovered = function (params) {
+	var index = 1;
+	widget = Retina.WidgetInstances.enam[index];
 	if (params.over) {
 	    jQuery(params.cell).attr('title', widget.heatmap.settings.data.columns[widget.heatmap.settings.data.colindex[params.col]-1]+" - "+widget.heatmap.settings.data.rows[widget.heatmap.settings.data.rowindex[params.row]-1]+": "+widget.heatmap.settings.data.data[widget.heatmap.settings.data.rowindex[params.row]-1][widget.heatmap.settings.data.colindex[params.col]-1]);
 	    var id = widget.ids[widget.heatmap.settings.data.colindex[params.col]-1];
