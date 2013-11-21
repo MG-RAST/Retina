@@ -93,6 +93,7 @@
 							  navigation_url: stm.Config.mgrast_api+'/metagenome?match=all&verbosity=mixs',
 							  value: "id",
 							  callback: function (data) {
+							      widget = Retina.WidgetInstances.enam[1];
 							      document.getElementById('loading_status').innerHTML = '<div class="alert alert-block alert-info">\
 <button type="button" class="close" data-dismiss="alert">×</button>\
 <h4><img src="images/loading.gif"> Please wait...</h4>\
