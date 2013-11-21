@@ -17,6 +17,11 @@
 	    Retina.load_widget("login").then( function() {
 		Retina.Widget.create('login', {"target": document.getElementById("login_space")});
 	    });
+
+	    Retina.add_widget({"name": "session", "resource": "widgets/",  "filename": "widget.session.js"});
+	    Retina.load_widget("session").then( function() {
+		Retina.Widget.create('session', {"target": document.getElementById("session_space")});
+	    });
 	    
 	    Retina.add_widget({"name": "enam", "resource": "widgets/",  "filename": "widget.enam.js"});
 	    Retina.load_widget("enam").then( function() {
@@ -33,6 +38,7 @@
 	<div class="container" style="width: 100%; padding-left: 10px;">
           <img src="images/MGRAST_logo.png" style="float: left; background: black; margin-left: -10px; height: 55px;">
     	  <a class="brand" href="#" style="color: white; cursor: default; margin-top: 8px; margin-left: 30px;">Ecological Network Association Map</a>
+          <span id="session_space" style="float: right; margin-right: 20px;"></span>
 	  <span id="login_space"></span>
 	</div>
       </div>
