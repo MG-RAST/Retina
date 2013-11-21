@@ -482,18 +482,21 @@
 
     // session dumping
     stm.dump = function () {
-	var dstring = "";
-	dstring += "{";
+	var dstring = "{";
 	for (var i in stm.DataStore) {
 	    if (stm.DataStore.hasOwnProperty(i)) {
 		dstring += '"'+i+'":[';
+		var hasOne = false;
 		for (var h in stm.DataStore[i]) {
 		    if (stm.DataStore[i].hasOwnProperty(h)) {
+			hasOne = true;
 			dstring += JSON.stringify(stm.DataStore[i][h]);
 			dstring += ",";
 		    }
 		}
-		dstring = dstring.slice(0,-1);
+		if (hasOne) {
+		    dstring = dstring.slice(0,-1);
+		}
 		dstring += "],";
 	    }
 	}
@@ -509,7 +512,26 @@
 
     // save as dialog
     stm.saveAs = function (data, filename) {
-	data = 'data:application/octet-stream;base64,' + window.btoa(data);
+	try {
+	    data = window.btoa(data);
+	} catch (err) {
+	    var utftext = "";
+	    for(var n=0; n<data.length; n++) {
+		var c=data.charCodeAt(n);
+		if (c<128)
+		    utftext += String.fromCharCode(c);
+                else if((c>127) && (c<2048)) {
+                    utftext += String.fromCharCode((c>>6)|192);
+                    utftext += String.fromCharCode((c&63)|128);}
+		else {
+		    utftext += String.fromCharCode((c>>12)|224);
+                    utftext += String.fromCharCode(((c>>6)&63)|128);
+                    utftext += String.fromCharCode((c&63)|128);}
+            }
+	    data = window.btoa(utftext);
+	}
+	data = 'data:application/octet-stream;base64,'+data;
+	
 	var anchor = document.createElement('a');
 	anchor.setAttribute('download', filename || "download.txt");
 	anchor.setAttribute('href', data);
