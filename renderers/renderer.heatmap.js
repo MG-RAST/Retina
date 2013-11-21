@@ -372,7 +372,7 @@
 	    	    for (var j=0;j<data[i].data[0].length;j++) {
 	    		dist += Math.pow(data[i].data[0][j] - data[h].data[0][j], 2);
 	    	    }
-	    	    distances[i][h] = dist / 2;
+	    	    distances[i][h] = Math.pow(dist, 0.5);
 	    	}
 	    }	    
 	    return distances;
@@ -396,12 +396,14 @@
 	    var avail = {};
 	    var clusters = [];
 	    for (i=0;i<data.length;i++) {
-		clusters.push( { points: [ i ], data: [ data[i] ], level: [ 0 ] } );
+		clusters.push( { points: [ i ], data: [ data[i] ], basepoints: [ i ], level: [ 0 ] } );
 		avail[i] = true;
 	    }
 
 	    // get the initial distances between all nodes
 	    var distances = renderer.distance(clusters);
+
+	    window.dist = distances;
 
 	    // calculate clusters
 	    var min;
@@ -440,10 +442,14 @@
 	    	num_avail--;
 	    	avail[clusters.length] = true;
 		var pdata = [];
+		var bpoints = [];
 	    	for (var h=0;h<2;h++) {
 		    for (var i=0;i<clusters[coords[h]].data.length;i++) {
 	    		pdata.push(clusters[coords[h]].data[i]);
 	    	    }
+		    for (var i=0;i<clusters[coords[h]].basepoints.length;i++) {
+			bpoints.push(clusters[coords[h]].basepoints[i]);
+		    }
 	    	}
 		var coord_a = coords[0];
 		var coord_b = coords[1];
@@ -452,7 +458,7 @@
 		    coord_a = coord_b;
 		    coord_b = triangle;
 		}
-	    	clusters.push({ points: [ coord_a, coord_b ], data: pdata, level: [ clusters[coord_a].level[0] + 1, clusters[coord_b].level[0] + 1 ] });
+	    	clusters.push({ points: [ coord_a, coord_b ], data: pdata, basepoints: bpoints, level: [ clusters[coord_a].level[0] + 1, clusters[coord_b].level[0] + 1 ] });
 
 	    	var row_a = [];
 	    	for (var h=0;h<2;h++) {
@@ -487,19 +493,15 @@
 	    	    for (var i=0;i<row_a.length;i++) {
 	    		dist += Math.pow(row_a[i] - row_b[i], 2);
 	    	    }
-	    	    distances[h][index] = dist / 2;
+	    	    distances[h][index] = Math.pow(dist, 0.5);
 	    	}
 	    }
 
 	    // record the row order after clustering
 	    var rowindex = [];
-	    for (var i=data.length;i<clusters.length;i++) {
-		if (clusters[i].points[0] < data.length) {
-		    rowindex.push(parseInt(clusters[i].points[0]) + 1);
-		}
-		if (clusters[i].points[1] < data.length) {
-		    rowindex.push(parseInt(clusters[i].points[1]) + 1);
-		}
+	    var cind = clusters.length - 1;
+	    for (var i=0;i<clusters[cind].basepoints.length; i++) {
+		rowindex.push(clusters[cind].basepoints[i] + 1);
 	    }
 
 	    // record the reverse row order for lookup
