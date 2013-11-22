@@ -63,6 +63,8 @@
 
     widget.mgrast2data = function (id) {
 	return jQuery.getJSON('http://api.metagenomics.anl.gov/metadata/export/'+id, function (data) {
+	    widget = Retina.WidgetInstances.metadataExport[1];
+
 	    widget.data = { "project": { "name"    : data.name,
 					 "id"      : data.id,
 				         "samples" : [] } };
@@ -103,9 +105,12 @@
 			    new_env[h] = data.samples[i].envPackage.data[h].value;
 			}
 		    }
+
+		    var nested_new_env = {};
+		    nested_new_env[new_env.type] = new_env;
 		    
 		    // add env package to new sample
-		    new_sample.envPackage = new_env;
+		    new_sample.envPackage = nested_new_env;
 		}
 
 		// check if we have libraries
@@ -125,9 +130,12 @@
 				new_lib[j] = data.samples[i].libraries[h].data[j].value;
 			    }
 			}
+
+			var nested_new_lib = {};
+			nested_new_lib[new_lib.type] = new_lib;
 			
 			// add library to sample
-			new_sample.libraries.push(new_lib);
+			new_sample.libraries.push(nested_new_lib);
 		    }
 		}
 
@@ -158,7 +166,13 @@
 								   "mandatory": true,
 								   "label": "samples" },
 						     },
-					"fields": {}
+					"fields": { "name": { "description": "project name",
+							      "type": "string",
+							      "mandatory": 1 },
+						    "id": { "description": "project id",
+							    "type": "string",
+							    "mandatory": 1 }
+						  }
 				    },
 				    "sample": {
 					"name": "sample",
@@ -171,8 +185,13 @@
 								       "mandatory": true,
 								       "label": "envPackage" }
 						     },
-					"fields": {
-					}
+					"fields": { "name": { "description": "sample name",
+							      "type": "string",
+							      "mandatory": 1 },
+						    "id": { "description": "sample id",
+							    "type": "string",
+							    "mandatory": 1 }
+						  }
 				    },
 				    "libraries": {
 					"name": "libraries",
@@ -229,7 +248,13 @@
 			"name": i,
 			"label": i,
 			"description": i,
-			"fields": {}
+			"fields": { "name": { "description": "library name",
+					      "type": "string",
+					      "mandatory": 1 },
+				    "id": { "description": "library id",
+					    "type": "string",
+					    "mandatory": 1 }
+				  }
 		    };
 		    for (h in data.library[i]) {
 			if (data.library[i].hasOwnProperty(h)) {
@@ -254,7 +279,13 @@
 			"name": i,
 			"label": i,
 			"description": i,
-			"fields": {}
+			"fields": { "name": { "description": "package name",
+					      "type": "string",
+					      "mandatory": 1 },
+				    "id": { "description": "package id",
+					    "type": "string",
+					    "mandatory": 1 }
+				  }
 		    };
 		    for (h in data.ep[i]) {
 			if (data.ep[i].hasOwnProperty(h)) {
