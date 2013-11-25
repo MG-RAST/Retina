@@ -267,6 +267,7 @@
 	var matrix = [];
 	var columns = [];
 	var rid = {};
+	var col_sum = [];
 	for (var i=0;i<widget.ids.length;i++) {
 	    if (widget.md_attribute) {
 		columns.push(common[widget.md_attribute].data[widget.ids[i]]);
@@ -275,6 +276,14 @@
 	    }
 	    var d = stm.DataStore.profile[widget.ids[i]+"_"+widget.type+"_"+widget.source];
 	    for (var h=0;h<d.data.length;h++) {
+
+		// record total hits per sample for normalization
+		if (h==0) {
+		    col_sum[i] = d.data[h][0];
+		} else {
+		    col_sum[i] += d.data[h][0];
+		}
+		
 		// apply level filter
 		var t = widget.type == "function" ? "ontology" : "taxonomy";
 		if (widget.filter) {
@@ -308,32 +317,24 @@
 	    }
 	}
 
-	// calculate the sum for each column
-	var sums = [];
+	// calculate column normalization factors
 	var max_sum = 0;
-	for (var i=0;i<matrix.length;i++) {
-	    for (var h=0;h<matrix[i].length;h++) {
-		if (i==0) {
-		    sums[h] = 0;
-		}
-		sums[h] += matrix[i][h];
+	for (var i=0;i<col_sum.length;i++) {
+	    if (col_sum[i] > max_sum) {
+		max_sum = col_sum[i];
 	    }
 	}
-	for (var i=0;i<sums.length;i++) {
-	    if (sums[i] > max_sum) {
-		max_sum = sums[i];
-	    }
+	var colfactor = [];
+	for (var i=0;i<col_sum.length;i++) {
+	    colfactor[i] = max_sum / col_sum[i];
 	}
-
-	console.log(max_sum);
-	console.log(sums);
 
 	// normalize, then calculate the min and max for each row
 	var mins = [];
 	var maxs = [];
 	for (var i=0;i<matrix.length;i++) {
 	    for (var h=0;h<matrix[i].length;h++) {
-		matrix[i][h] = (max_sum / sums[h]) * matrix[i][h];
+		matrix[i][h] = colfactor[h] * matrix[i][h];
 		if (mins[i] == null || mins[i] > matrix[i][h]) {
 		    mins[i] = matrix[i][h];
 		}
