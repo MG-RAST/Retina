@@ -969,7 +969,11 @@
 	
 	    jQuery.ajax({ url: url, headers: headers, dataType: "json", success: function(data) {
 		renderer =  Retina.RendererInstances.table[index];
-		renderer.settings.tdata = data.data;
+		if (typeof renderer.settings.data_manipulation == "function") {
+		    renderer.settings.tdata = renderer.settings.data_manipulation(data.data);
+		} else {
+		    renderer.settings.tdata = data.data;
+		}
 		renderer.settings.filter_changed = false;
 		renderer.settings.sorted = true;
 		renderer.settings.numrows = renderer.settings.numrows = data.total_count;

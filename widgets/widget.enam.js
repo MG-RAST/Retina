@@ -81,7 +81,7 @@
 </div>\
 ';
 	
-	widget.target.innerHTML = "<div id='info_space' style='position: absolute; right: 10px; top: 105px; width: 330px; bottom: 10px;border-radius: 6px 6px 6px 6px;box-shadow: 4px 4px 4px #666666;border:1px solid #aaaaaa;padding: 10px;overflow-y: scroll;'><h4>current metagenomes</h4><div id='currmgs'>-</div><hr><h4>filter</h4><div id='currfilter'>-</div><hr><h4>cell information</h4><div id='currcell'></div><hr><h4>metadata</h4><div id='metadata'></div></div><div id='loading_status' style='position: absolute; top: 40%; left: 30%;'></div><div id='group_container' style='margin-top: 5px; width: 620px; float: left; margin-bottom: 10px;'><div id='group'></div><button id='listselect_collapse' class='btn btn-small' style='width: 612px; height: 29px;' onclick='if(document.getElementById(\"group\").style.display==\"none\"){this.firstChild.className=\"icon-chevron-up\";document.getElementById(\"group\").style.display=\"\";}else{this.firstChild.className=\"icon-chevron-down\";document.getElementById(\"group\").style.display=\"none\";}'><i class='icon-chevron-up'></i></button></div><div id='param_container'>"+query_params+"</div><div id='heatmap_target'></div>";
+	widget.target.innerHTML = "<div id='info_space' style='position: absolute; right: 10px; top: 105px; width: 330px; bottom: 10px;border-radius: 6px 6px 6px 6px;box-shadow: 4px 4px 4px #666666;border:1px solid #aaaaaa;padding: 10px;overflow-y: scroll;'><h4>current metagenomes</h4><div id='currmgs' style='max-height: 295px;overflow-y:scroll;overflow-x:hidden;'>-</div><hr><h4>cell information</h4><div id='currcell' style='min-height: 100px;'></div><hr><h4>metadata</h4><div id='metadata'></div><hr><h4>filter</h4><div id='currfilter'>-</div></div><div id='loading_status' style='position: absolute; top: 40%; left: 30%;'></div><div id='group_container' style='margin-top: 5px; width: 620px; float: left; margin-bottom: 10px;'><div id='group'></div><button id='listselect_collapse' class='btn btn-small' style='width: 612px; height: 29px;' onclick='if(document.getElementById(\"group\").style.display==\"none\"){this.firstChild.className=\"icon-chevron-up\";document.getElementById(\"group\").style.display=\"\";}else{this.firstChild.className=\"icon-chevron-down\";document.getElementById(\"group\").style.display=\"none\";}'><i class='icon-chevron-up'></i></button></div><div id='param_container'>"+query_params+"</div><div id='heatmap_target'></div>";
 	
 	var rend = Retina.Renderer.create("listselect", { target: document.getElementById('group'),
 							  multiple: true,
@@ -267,6 +267,7 @@
 	var matrix = [];
 	var columns = [];
 	var rid = {};
+	var col_sum = [];
 	for (var i=0;i<widget.ids.length;i++) {
 	    if (widget.md_attribute) {
 		columns.push(common[widget.md_attribute].data[widget.ids[i]]);
@@ -275,6 +276,14 @@
 	    }
 	    var d = stm.DataStore.profile[widget.ids[i]+"_"+widget.type+"_"+widget.source];
 	    for (var h=0;h<d.data.length;h++) {
+
+		// record total hits per sample for normalization
+		if (h==0) {
+		    col_sum[i] = d.data[h][0];
+		} else {
+		    col_sum[i] += d.data[h][0];
+		}
+		
 		// apply level filter
 		var t = widget.type == "function" ? "ontology" : "taxonomy";
 		if (widget.filter) {
@@ -308,22 +317,30 @@
 	    }
 	}
 
-	// calculate the sum, min and max for each column
+	// calculate column normalization factors
+	var max_sum = 0;
+	for (var i=0;i<col_sum.length;i++) {
+	    if (col_sum[i] > max_sum) {
+		max_sum = col_sum[i];
+	    }
+	}
+	var colfactor = [];
+	for (var i=0;i<col_sum.length;i++) {
+	    colfactor[i] = max_sum / col_sum[i];
+	}
+
+	// normalize, then calculate the min and max for each row
 	var mins = [];
 	var maxs = [];
-	var sums = [];
 	for (var i=0;i<matrix.length;i++) {
 	    for (var h=0;h<matrix[i].length;h++) {
-		if (mins[h] == null || mins[h] > matrix[i][h]) {
-		    mins[h] = matrix[i][h];
+		matrix[i][h] = colfactor[h] * matrix[i][h];
+		if (mins[i] == null || mins[i] > matrix[i][h]) {
+		    mins[i] = matrix[i][h];
 		}
-		if (maxs[h] == null || maxs[h] < matrix[i][h]) {
-		    maxs[h] = matrix[i][h];
+		if (maxs[i] == null || maxs[i] < matrix[i][h]) {
+		    maxs[i] = matrix[i][h];
 		}
-		if (i==0) {
-		    sums[h] = 0;
-		}
-		sums[h] += matrix[i][h];
 	    }
 	}
 
@@ -336,7 +353,7 @@
 	for (var i=0;i<matrix.length;i++) {
 	    for (var h=0;h<matrix[i].length;h++) {
 		if (matrix[i][h] > 0) {
-		    matrix[i][h] = 1 / Math.log(maxs[h]) * Math.log(matrix[i][h]);
+		    matrix[i][h] = 1 / maxs[i] * matrix[i][h];
 		}
 	    }
 	}

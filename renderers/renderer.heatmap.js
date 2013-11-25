@@ -252,7 +252,7 @@
 	drawDendogramNew: function (svg, index, rotation) {
 	    renderer = Retina.RendererInstances.heatmap[index];
 
-	    return;
+	    //return;
 	    
 	    var height = rotation ? renderer.settings.tree_width : renderer.settings.tree_height;
 	    var data = rotation ? renderer.settings.data.rowcluster : renderer.settings.data.colcluster;
@@ -358,6 +358,10 @@
 	    return normdata;
 	},
 
+	clustsort: function (a, b) {
+	    return a.amin - b.amin;
+	},
+
 	distance: function (data) {
 	    var distances = {};
 	    for (var i=0;i<data.length;i++) {
@@ -403,8 +407,6 @@
 	    // get the initial distances between all nodes
 	    var distances = renderer.distance(clusters);
 
-	    window.dist = distances;
-
 	    // calculate clusters
 	    var min;
 	    var coords;
@@ -441,24 +443,43 @@
 	    	avail[coords[1]] = false;
 	    	num_avail--;
 	    	avail[clusters.length] = true;
+		
+		var sumpa = 0;
+		var sumpb = 0
+		for (var h=0;h<2;h++) {
+		    for (var i=0;i<clusters[coords[h]].data.length;i++) {
+			if (h==0) {
+			    sumpa += clusters[coords[h]].data[i];
+			} else {
+			    sumpb += clusters[coords[h]].data[i];
+			}
+	    	    }
+		}
 		var pdata = [];
 		var bpoints = [];
 	    	for (var h=0;h<2;h++) {
-		    for (var i=0;i<clusters[coords[h]].data.length;i++) {
-	    		pdata.push(clusters[coords[h]].data[i]);
+		    var j = h;
+		    if (sumpa > sumpb) {
+			if (h==0) { j = 1; } else { j = 0; }
+		    }
+		    for (var i=0;i<clusters[coords[j]].data.length;i++) {
+	    		pdata.push(clusters[coords[j]].data[i]);
 	    	    }
-		    for (var i=0;i<clusters[coords[h]].basepoints.length;i++) {
-			bpoints.push(clusters[coords[h]].basepoints[i]);
+		    for (var i=0;i<clusters[coords[j]].basepoints.length;i++) {
+			bpoints.push(clusters[coords[j]].basepoints[i]);
 		    }
 	    	}
 		var coord_a = coords[0];
 		var coord_b = coords[1];
-		if (coords[0] < coords[1]) {
+		if (sumpa > sumpb) {
 		    var triangle = coord_a;
 		    coord_a = coord_b;
 		    coord_b = triangle;
 		}
-	    	clusters.push({ points: [ coord_a, coord_b ], data: pdata, basepoints: bpoints, level: [ clusters[coord_a].level[0] + 1, clusters[coord_b].level[0] + 1 ] });
+		coord_a = parseInt(coord_a);
+		coord_b = parseInt(coord_b);
+
+	    	clusters.push({ points: [ coord_a, coord_b ], data: pdata, basepoints: bpoints, level: [ clusters[coord_a].level.max() + 1, clusters[coord_b].level.max() + 1 ] });
 
 	    	var row_a = [];
 	    	for (var h=0;h<2;h++) {
@@ -529,26 +550,9 @@
 	    for (var i=data.length; i<clusters.length; i++) {
 
 		// get the level this cluster is at
-		var level = Math.max(clusters[i].level[0], clusters[i].level[1]) - 1;
+		var level = clusters[i].level.max() - 1;
 		
-		// determine which part of the node is left and which is right
-		var order_left = clusters[i].points[0];
-		var order_right = clusters[i].points[1];
-		while (roworder[order_left + 1] == null) {
-		    order_left = clusters[order_left].points[0];
-		}
-		order_left = roworder[order_left + 1];
-		while (roworder[order_right + 1] == null) {
-		    order_right = clusters[order_right].points[0];
-		}
-		order_right = roworder[order_right + 1];
-		
-		// push the cluster node
-		if (order_right > order_left) {
-		    clusterdata[level].push({a:clusters[clusters[i].points[0]].data.length, b:clusters[clusters[i].points[1]].data.length});
-		} else {
-		    clusterdata[level].push({b:clusters[clusters[i].points[0]].data.length, a:clusters[clusters[i].points[1]].data.length});
-		}
+		clusterdata[level].push({a: clusters[clusters[i].points[0]].data.length, b:clusters[clusters[i].points[1]].data.length, amin: roworder[clusters[clusters[i].points[0]].basepoints.min() + 1] });
 		
 		// draw single lines until we reach the next root
 		if (clusters[i].level[0] != clusters[i].level[1]) {
@@ -557,9 +561,21 @@
 			n = 1;
 		    }
 		    for (var h=0;h<Math.abs(clusters[i].level[0] - clusters[i].level[1]);h++) {
-			clusterdata[level - (h+1)].push({ a: clusters[clusters[i].points[n]].data.length });
+			clusterdata[level - (h+1)].push({ a: clusters[clusters[i].points[n]].data.length, amin: roworder[clusters[clusters[i].points[n]].basepoints.min() + 1] });
 		    }
 		}
+	    }
+
+	    // sort the clusterdata
+	    for (var i in clusterdata) {
+	    	if (clusterdata.hasOwnProperty(i) && ! isNaN(i)) {
+	    	    clusterdata[i].sort(renderer.clustsort);
+	    	}
+	    }
+	    
+	    if (data.length < 20) {
+		window.clustersx = clusters;
+		window.clusterdatax = clusterdata;
 	    }
 
 	    return [clusterdata, rowindex];
