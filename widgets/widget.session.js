@@ -46,7 +46,7 @@
 	document.body.appendChild(modal);
 	
 	widget.uploadButton = document.getElementById('sessionUploadButton');
-	widget.uploadButton.addEventListener('change', function(e){stm.file_upload(e,widget.sessionInfo);});
+	widget.uploadButton.addEventListener('change', function(e){stm.file_upload(e,widget.sessionUpdatedInfo);});
     };
     
     widget.download = function (index) {
@@ -61,11 +61,28 @@
     widget.sessionInfo = function (index) {
 	var html = "<p>Your current session contains the following objects:</p>";
 	var k = Retina.keys(stm.DataStore).sort();
+	var has_objects = false;
 	for (var i=0;i<k.length;i++) {
-	    html += k[i] + " ("+Retina.keys(stm.DataStore[k[i]]).length+")<br>";
+	    var l = Retina.keys(stm.DataStore[k[i]]).length;
+	    if (l > 0) {
+		html += "[" + l + "] " + k[i] + "<br>";
+		has_objects = true;
+	    }
+	}
+	if (! has_objects) {
+	    html = "<p>your session is empty</p>";
 	}
 	document.getElementById('sessionModalBody').innerHTML = html;
 	jQuery('#sessionModal').modal('show');
+    };
+
+    widget.sessionUpdatedInfo = function () {
+	var elem = document.createElement('div');
+	elem.setAttribute('class', "alert alert-info");
+	elem.setAttribute('style', "position: absolute; top: -50px; right: 8px; width: 150px; height: 22px; z-index: 10000;");
+	elem.innerHTML = '<b>session updated</b><br>';
+	document.body.appendChild(elem);
+	jQuery(elem).animate({top: "8px"},{duration: 800}).delay(3000).animate({top: "-50px"},{duration: 800});
     };
 
 })();
