@@ -18,10 +18,15 @@
 	var index = widget.index;
 
 	params.target.innerHTML = "\
-<div class='btn-group' style='position:relative;top:8px;'>\
-  <button type='button' class='btn' onclick='Retina.WidgetInstances.session["+index+"].download();' title='download current session'><i class='icon-download'></i></button>\
-  <button type='button' class='btn' onclick='Retina.WidgetInstances.session["+index+"].sessionInfo();' title='display session information'><i class='icon-info-sign'></i></button>\
-  <button type='button' class='btn' onclick='Retina.WidgetInstances.session["+index+"].upload("+index+");' title='load session from disk'><i class='icon-upload'></i></button>\
+<div style='position:relative;top:8px;'>\
+  <button type='button' class='btn' data-toggle='dropdown' title='display session information'><i class='icon-folder-open'></i></button>\
+  <ul class='dropdown-menu pull-right' role='menu' aria-labelledby='dropdownMenu'>\
+    <li class='disabled'><a tabindex='-1' href='#' style='color: black; font-weight: bold;'>Session Management</a></li>\
+    <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].download();' title='download session to disk'><i class='icon-download' style='margin-right: 5px; position: relative; top: 1px;'></i>download</a></li>\
+    <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].upload("+index+");' title='upload session from file'><i class='icon-upload' style='margin-right: 5px; position: relative; top: 1px;'></i>upload</a></li>\
+    <li class='divider'></li>\
+    <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].sessionInfo();'><i class='icon-question-sign' style='margin-right: 5px; position: relative; top: 1px;'></i>info</a></li>\
+  </ul>\
 </div>\
 <input type='file' id='sessionUploadButton' style='display: none;'>\
 ";
@@ -41,7 +46,7 @@
 	document.body.appendChild(modal);
 	
 	widget.uploadButton = document.getElementById('sessionUploadButton');
-	widget.uploadButton.addEventListener('change', function(e){stm.file_upload(e,widget.sessionInfo);});
+	widget.uploadButton.addEventListener('change', function(e){stm.file_upload(e,widget.sessionUpdatedInfo);});
     };
     
     widget.download = function (index) {
@@ -56,11 +61,28 @@
     widget.sessionInfo = function (index) {
 	var html = "<p>Your current session contains the following objects:</p>";
 	var k = Retina.keys(stm.DataStore).sort();
+	var has_objects = false;
 	for (var i=0;i<k.length;i++) {
-	    html += k[i] + " ("+Retina.keys(stm.DataStore[k[i]]).length+")<br>";
+	    var l = Retina.keys(stm.DataStore[k[i]]).length;
+	    if (l > 0) {
+		html += "[" + l + "] " + k[i] + "<br>";
+		has_objects = true;
+	    }
+	}
+	if (! has_objects) {
+	    html = "<p>your session is empty</p>";
 	}
 	document.getElementById('sessionModalBody').innerHTML = html;
 	jQuery('#sessionModal').modal('show');
+    };
+
+    widget.sessionUpdatedInfo = function () {
+	var elem = document.createElement('div');
+	elem.setAttribute('class', "alert alert-info");
+	elem.setAttribute('style', "position: absolute; top: -50px; right: 8px; width: 150px; height: 22px; z-index: 10000;");
+	elem.innerHTML = '<b>session updated</b><br>';
+	document.body.appendChild(elem);
+	jQuery(elem).animate({top: "8px"},{duration: 800}).delay(3000).animate({top: "-50px"},{duration: 800, complete: function(){document.body.removeChild(elem);}});
     };
 
 })();
