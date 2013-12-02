@@ -18,10 +18,15 @@
 	var index = widget.index;
 
 	params.target.innerHTML = "\
-<div class='btn-group' style='position:relative;top:8px;'>\
-  <button type='button' class='btn' onclick='Retina.WidgetInstances.session["+index+"].download();' title='download current session'><i class='icon-download'></i></button>\
-  <button type='button' class='btn' onclick='Retina.WidgetInstances.session["+index+"].sessionInfo();' title='display session information'><i class='icon-info-sign'></i></button>\
-  <button type='button' class='btn' onclick='Retina.WidgetInstances.session["+index+"].upload("+index+");' title='load session from disk'><i class='icon-upload'></i></button>\
+<div style='position:relative;top:8px;'>\
+  <button type='button' class='btn' data-toggle='dropdown' title='display session information'><i class='icon-folder-open'></i></button>\
+  <ul class='dropdown-menu pull-right' role='menu' aria-labelledby='dropdownMenu'>\
+    <li class='disabled'><a tabindex='-1' href='#' style='color: black; font-weight: bold;'>Session Management</a></li>\
+    <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].download();' title='download session to disk'><i class='icon-download' style='margin-right: 5px; position: relative; top: 1px;'></i>download</a></li>\
+    <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].upload("+index+");' title='upload session from file'><i class='icon-upload' style='margin-right: 5px; position: relative; top: 1px;'></i>upload</a></li>\
+    <li class='divider'></li>\
+    <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].sessionInfo();'><i class='icon-question-sign' style='margin-right: 5px; position: relative; top: 1px;'></i>info</a></li>\
+  </ul>\
 </div>\
 <input type='file' id='sessionUploadButton' style='display: none;'>\
 ";
