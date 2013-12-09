@@ -111,6 +111,7 @@
 		'target': 'table_space',
 		'data': 'exampleData()',
 		'synchronous': true,
+		'query_type': 'infix'
 	    }
       },
 	exampleData: function () {
@@ -954,7 +955,11 @@
 	    var query = "";
 	    for (var i in renderer.settings.query) {
 	        if (renderer.settings.query.hasOwnProperty(i) && renderer.settings.query[i].searchword.length) {
-		    query +=  "&" + renderer.settings.query[i].field + '=*' + renderer.settings.query[i].searchword + '*';
+		    if (renderer.settings.query_type == "infix") {
+			query +=  "&" + renderer.settings.query[i].field + '=*' + renderer.settings.query[i].searchword + '*';
+		    } else {
+			query +=  "&" + renderer.settings.query[i].field + '=' + renderer.settings.query[i].searchword;
+		    }
 	        }
 	    }
 
