@@ -21,6 +21,8 @@
   		 Retina.load_renderer("listselect") ];
     };
 
+    widget.offlineMode = true;
+    widget.mgData = [];
     widget.ids = [];
     widget.level = 0;
     widget.filter = [];
@@ -41,7 +43,60 @@
     widget.display = function (params) {
         widget = this;
 	var index = widget.index;
-	var target = params.target;
+	var target;
+	if (params) {
+	    target = widget.target = params.target;
+	} else {
+	    target = widget.target;
+	}
+
+	if (widget.offlineMode) {
+	    if (Retina.keys(stm.DataStore.metagenome).length == 0) {
+		jQuery.get('data/enam.dump', function(data) {
+		    var new_data = JSON.parse(data.replace(/\n/g, ""));
+		    for (var h in new_data) {
+			if (new_data.hasOwnProperty(h)) {
+			    stm.load_data({ data: new_data[h], type: h});
+			}
+		    }
+		}, 'text').fail(function(){
+		    if (confirm("The data for the offline mode could not be found.\nWould you like to switch to online mode?")) {
+			Retina.WidgetInstances.enam[1].offlineMode = false;
+			Retina.WidgetInstances.enam[1].display();
+		    } else {
+			alert('data download cancelled');
+		    }
+		}).then(function(){
+		    Retina.WidgetInstances.enam[1].display();
+		});
+		return;
+	    } else {
+		var d = [];
+		for (var i in stm.DataStore.metagenome) {
+		    if (stm.DataStore.metagenome.hasOwnProperty(i)) {
+			d.push( { "id": i,
+				  "name": stm.DataStore.metagenome[i].name || "" ,
+				  "project_id": stm.DataStore.metagenome[i].metadata.project.id || "",
+				  "project_name": stm.DataStore.metagenome[i].metadata.project.name || "",
+				  "PI_lastname": stm.DataStore.metagenome[i].metadata.project.data.PI_lastname || "",
+				  "biome": stm.DataStore.metagenome[i].metadata.sample.data.biome || "",
+				  "feature": stm.DataStore.metagenome[i].metadata.sample.data.feature || "",
+				  "material": stm.DataStore.metagenome[i].metadata.sample.data.material || "",
+				  "env_package_type": stm.DataStore.metagenome[i].metadata.env_package.type || "",
+				  "location": stm.DataStore.metagenome[i].metadata.sample.data.location || "",
+				  "country": stm.DataStore.metagenome[i].metadata.sample.data.country || "",
+				  "longitude": stm.DataStore.metagenome[i].metadata.sample.data.logitude || "",
+				  "latitude": stm.DataStore.metagenome[i].metadata.sample.data.latitude || "",
+				  "collection_date": stm.DataStore.metagenome[i].metadata.sample.data.collection_date || "",
+				  "sequence_type": stm.DataStore.metagenome[i].sequence_type || "",
+				  "seq_method": stm.DataStore.metagenome[i].metadata.library.data.seq_meth || "",
+				  "status": stm.DataStore.metagenome[i].status || "",
+				  "created": stm.DataStore.metagenome[i].created || "" } );
+		    }
+		}
+		widget.mgData = d;
+	    }
+	}
 
 	var query_params = '\
 <span>type</span> <select id="type_select" style="margin-left: 5px; margin-right: 5px; position: relative; top: 5px; width: 100px;" onchange="Retina.WidgetInstances.enam['+index+'].typeSelect('+index+');">\
@@ -81,28 +136,76 @@
 </div>\
 ';
 	
-	widget.target.innerHTML = "<div id='info_space' style='position: absolute; right: 10px; top: 105px; width: 330px; bottom: 10px;border-radius: 6px 6px 6px 6px;box-shadow: 4px 4px 4px #666666;border:1px solid #aaaaaa;padding: 10px;overflow-y: scroll;'><h4>current metagenomes</h4><div id='currmgs' style='max-height: 295px;overflow-y:scroll;overflow-x:hidden;'>-</div><hr><h4>cell information</h4><div id='currcell' style='min-height: 100px;'></div><hr><h4>metadata</h4><div id='metadata'></div><hr><h4>filter</h4><div id='currfilter'>-</div></div><div id='loading_status' style='position: absolute; top: 40%; left: 30%;'></div><div id='group_container' style='margin-top: 5px; width: 620px; float: left; margin-bottom: 10px;'><div id='group'></div><button id='listselect_collapse' class='btn btn-small' style='width: 612px; height: 29px;' onclick='if(document.getElementById(\"group\").style.display==\"none\"){this.firstChild.className=\"icon-chevron-up\";document.getElementById(\"group\").style.display=\"\";}else{this.firstChild.className=\"icon-chevron-down\";document.getElementById(\"group\").style.display=\"none\";}'><i class='icon-chevron-up'></i></button></div><div id='param_container'>"+query_params+"</div><div id='heatmap_target'></div>";
+	widget.target.innerHTML = widget.offlineModeButton() + "<div id='info_space' style='position: absolute; right: 10px; top: 105px; width: 330px; bottom: 10px;border-radius: 6px 6px 6px 6px;box-shadow: 4px 4px 4px #666666;border:1px solid #aaaaaa;padding: 10px;overflow-y: scroll;'><h4>current metagenomes</h4><div id='currmgs' style='max-height: 295px;overflow-y:scroll;overflow-x:hidden;'>-</div><hr><h4>cell information</h4><div id='currcell' style='min-height: 100px;'></div><hr><h4>metadata</h4><div id='metadata'></div><hr><h4>filter</h4><div id='currfilter'>-</div></div><div id='loading_status' style='position: absolute; top: 40%; left: 30%;'></div><div id='group_container' style='margin-top: 5px; width: 620px; float: left; margin-bottom: 10px;'><div id='group'></div><button id='listselect_collapse' class='btn btn-small' style='width: 612px; height: 29px;' onclick='if(document.getElementById(\"group\").style.display==\"none\"){this.firstChild.className=\"icon-chevron-up\";document.getElementById(\"group\").style.display=\"\";}else{this.firstChild.className=\"icon-chevron-down\";document.getElementById(\"group\").style.display=\"none\";}'><i class='icon-chevron-up'></i></button></div><div id='param_container'>"+query_params+"</div><div id='heatmap_target'></div>";
 	
-	var rend = Retina.Renderer.create("listselect", { target: document.getElementById('group'),
+	var rend;
+	if (widget.listselect) {
+	    rend = Retina.RendererInstances.listselect[widget.listselect];
+	    rend.settings.target = document.getElementById('group');
+	    rend.settings.synchronous = widget.offlineMode;
+	    rend.settings.navigation_url = widget.offlineMode ? null : stm.Config.mgrast_api+'/metagenome?match=all&verbosity=mixs';
+	    if (widget.offlineMode) {
+		rend.settings.data = widget.mgData;
+	    } else {
+		rend.settings.data = [];
+	    }
+	} else {
+	    rend = Retina.Renderer.create("listselect", { target: document.getElementById('group'),
 							  multiple: true,
 							  data: [],
 							  filter_attribute: 'name',
 							  asynch_filter_attribute: 'name',
 							  asynch_limit: 100,
-							  synchronous: false,
-							  navigation_url: stm.Config.mgrast_api+'/metagenome?match=all&verbosity=mixs',
+							  synchronous: widget.offlineMode,
+							  navigation_url: widget.offlineMode ? null : stm.Config.mgrast_api+'/metagenome?match=all&verbosity=mixs',
 							  value: "id",
 							  callback: function (data) {
 							      widget = Retina.WidgetInstances.enam[1];
+							      
+							      if (document.getElementById("group").style.display != 'none') {
+								  document.getElementById('listselect_collapse').click();
+							      }
+
+							      var avail = true;
+							      for (var i=0;i<data.length;i++) {
+								  if (! stm.DataStore.profile.hasOwnProperty(data[i]+"_"+widget.type+"_"+widget.source)) {
+								      avail = false;
+								      break;
+								  }
+								  if (! stm.DataStore.metagenome.hasOwnProperty(data[i])) {
+								      avail = false;
+								      break;
+								  }
+							      }
+							      if (! avail && widget.offlineMode) {
+								  if (confirm("The data you are requesting is not available offline.\nWould you like to switch to online mode?")) {
+								      Retina.WidgetInstances.enam[1].offlineMode = false;
+								      document.getElementById('olbutton').setAttribute('class', 'btn btn-success');
+								      document.getElementById('olbutton').innerHTML = "online";
+								      var rend = Retina.RendererInstances.listselect[widget.listselect];
+								      rend.settings.synchronous = false;
+								      rend.settings.navigation_url = stm.Config.mgrast_api+'/metagenome?match=all&verbosity=mixs';
+								      rend.settings.data = [];
+								      var sel = {};
+								      for (var i=0;i<data.length;i++) {
+									  sel[data[i]] = true;
+								      }
+								      rend.settings.selection = sel;
+								      rend.render();
+								      rend.update_data({},1);
+								  } else {
+								      alert('data download cancelled');
+								      return;
+								  }
+							      }
+
 							      document.getElementById('loading_status').innerHTML = '<div class="alert alert-block alert-info">\
 <button type="button" class="close" data-dismiss="alert">×</button>\
 <h4><img src="images/loading.gif"> Please wait...</h4>\
 <p>The data to be displayed is currently loading.</p>\
 <div class="progress" style="margin-top: 10px;margin-bottom:0px;"><div class="bar" id="pbar" style="width: 0%;"></div></div>\
 </div>';
-							      if (document.getElementById("group").style.display != 'none') {
-								  document.getElementById('listselect_collapse').click();
-							      }
+
 							      var promises = [];
 							      for (var i=0;i<data.length;i++) {
 								  if (! stm.DataStore.profile.hasOwnProperty(data[i]+"_"+widget.type+"_"+widget.source)) {
@@ -122,6 +225,9 @@
 							      }
 							      jQuery.when.apply(this, promises).then(function() {
 								  document.getElementById('loading_status').innerHTML = "";
+								  if (document.getElementById("group").style.display != 'none') {
+								      document.getElementById('listselect_collapse').click();
+								  }
 								  widget.ids = data;
 								  mgs = [];
 								  for (var i=0;i<widget.ids.length;i++) {
@@ -133,12 +239,19 @@
 							      });
 							  },
 							  filter: ["id", "name", "project_id", "project_name", "PI_lastname", "biome", "feature", "material", "env_package_type", "location", "country", "longitude", "latitude", "collection_date", "sequence_type", "seq_method", "status", "created"] });
+	}
+
+	if (widget.offlineMode) {
+	    rend.settings.data = widget.mgData;
+	}
 	rend.render();
-	rend.update_data({},1);
+	if (! widget.offlineMode) {
+	    rend.update_data({},1);
+	}
 	widget.listselect = rend.index;
 	if (Retina.WidgetInstances.hasOwnProperty('login')) {
 	    Retina.WidgetInstances.login[1].callback = function() {
-		    rend.update_data({},1);
+		rend.update_data({},1);
 	    };
 	}
     };
@@ -369,7 +482,9 @@
 	    return;
 	}
 
-	if (! widget.heatmap) {
+	if (widget.heatmap) {
+	    widget.heatmap.settings.target = document.getElementById('heatmap_target');
+	} else {
 	    widget.heatmap = Retina.Renderer.create("heatmap", {
 		target: document.getElementById('heatmap_target'),
 		rowClicked: widget.heatmapRowClicked,
@@ -466,6 +581,22 @@
 	}
 
 	document.getElementById('currfilter').innerHTML = ftext;
+    };
+
+    widget.offlineModeButton = function () {
+	var widget = Retina.WidgetInstances.enam[1];
+	var html = "<button id='olbutton' style='position: absolute; top: 13px; right: 200px; z-index: 10000;' class='btn " + (widget.offlineMode ? "btn-danger" : "btn-success") + "' onclick='Retina.WidgetInstances.enam[1].switchOfflineMode();'>"+(widget.offlineMode ? "offline" : "online")+"</button>";
+	return html;
+    };
+
+    widget.switchOfflineMode = function () {
+	var widget = Retina.WidgetInstances.enam[1];
+	if (widget.offlineMode) {
+	    widget.offlineMode = false;
+	} else {
+	    widget.offlineMode = true;
+	}
+	widget.display();
     };
 
 })();

@@ -23,31 +23,34 @@
 	
 	widget.target = wparams.target || null;
 
-	var html = '\
+	if (widget.target) {
+	    
+	    var html = '\
 <h3>export project</h3>\
 <div id="selector"></div>\
 <button class="btn" onclick="Retina.WidgetInstances.metadataExport[1].mgrast2template();">export template</button>';
-	widget.target.innerHTML = html;
-
-	var rend = Retina.Renderer.create("listselect", { target: document.getElementById('selector'),
-							  multiple: false,
-							  data: [],
-							  filter_attribute: 'name',
-							  asynch_filter_attribute: 'name',
-							  asynch_limit: 100,
-							  synchronous: false,
-							  navigation_url: stm.Config.mgrast_api+'/project?match=all&verbosity=minimal',
-							  value: "id",
-							  callback: function (data) {
-							      Retina.WidgetInstances.metadataExport[1].mgrast2data(data);
-							  },
-							  filter: ["id", "name", "pi"] });
-	rend.render();
-	rend.update_data({},1);
-	if (Retina.WidgetInstances.hasOwnProperty('login')) {
-	    Retina.WidgetInstances.login[1].callback = function() {
-		rend.update_data({},1);
-	    };
+	    widget.target.innerHTML = html;
+	    
+	    var rend = Retina.Renderer.create("listselect", { target: document.getElementById('selector'),
+							      multiple: false,
+							      data: [],
+							      filter_attribute: 'name',
+							      asynch_filter_attribute: 'name',
+							      asynch_limit: 100,
+							      synchronous: false,
+							      navigation_url: stm.Config.mgrast_api+'/project?match=all&verbosity=minimal',
+							      value: "id",
+							      callback: function (data) {
+								  Retina.WidgetInstances.metadataExport[1].mgrast2data(data);
+							      },
+							      filter: ["id", "name", "pi"] });
+	    rend.render();
+	    rend.update_data({},1);
+	    if (Retina.WidgetInstances.hasOwnProperty('login')) {
+		Retina.WidgetInstances.login[1].callback = function() {
+		    rend.update_data({},1);
+		};
+	    }
 	}
 
 	return widget;
