@@ -32,6 +32,15 @@
    filter_attribute (STRING)
       Initial attribute to be displayed and filtered by. Default is the first element in the filter list.
 
+   no_filter (BOOLEAN)
+      If set to true, hides the filter. Default is false.
+
+   select_name (STRING)
+      Name attribute of the result listselect. Default is "selection".
+
+   select_id (STRING)
+      ID attribute of the result listselect. Default is "selection".
+
    value (STRING)
       The attribute of the data objects to be used as the value of the select options.
 
@@ -77,6 +86,8 @@
 		'filter_attribute': null,
 		'filtered_data': [],
 		'selection_data': [],
+		'select_name': "selection",
+		'select_id': "selection",
 		'filter_breadcrumbs': [],
 		'selection': {},
 		'data': [],
@@ -84,6 +95,7 @@
 		'sort': false,
 		'multiple': false, 
 		'no_button': false,
+		'no_filter': false,
 		'extra_wide': false,
 		'synchronous': true,
 		'navigation_callback': null,
@@ -209,6 +221,8 @@
 		var result_list = document.createElement('select');
 		result_list.setAttribute('multiple', '');
 		result_list.setAttribute('size', renderer.settings.rows);
+		result_list.setAttribute('name', renderer.settings.select_name);
+		result_list.setAttribute('id', renderer.settings.select_id);
 		renderer.redrawResultlist(result_list, index);
 		
 		// create the action buttons
@@ -327,14 +341,18 @@
         }
 	    
 	    // build the output
-	    target.appendChild(filter);
+	    if (! renderer.settings.no_filter) {
+		target.appendChild(filter);
+	    }
 	    target.appendChild(filter_breadcrumbs);
 	    target.appendChild(selection_list);
 	    selection_list.scrollTop = Retina.RendererInstances.listselect[index].settings.scroll_position || 0;
 	    if (renderer.settings.multiple) {
-		    target.appendChild(button_span);
-		    target.appendChild(result_list);
+		target.appendChild(button_span);
+		target.appendChild(result_list);
+		if (! renderer.settings.no_button) {
 		    target.appendChild(submit_button);
+		}
 	    } else if (! renderer.settings.no_button) {
 	        target.appendChild(submit_button);
 	    }
