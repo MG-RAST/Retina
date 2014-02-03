@@ -76,8 +76,8 @@
 	    var svg = jQuery('#map_div'+renderer.index).svg('get');
 	},
 	drawImage: function (svg, mg_data) {
-	    console.log(mg_data);
-	    console.log(svg);
+	    // console.log(mg_data);
+	    // console.log(svg);
 	    for (k=0; k<2; k++) {
 		for (i in mg_data[k]) {
 		    if (mg_data[k].hasOwnProperty(i)) {
