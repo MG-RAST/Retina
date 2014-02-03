@@ -191,12 +191,12 @@
 	// make sure we have all data we need for the current selection
 	var load_required = [];
 	
-	if (! stm.DataStore.hasOwnProperty('abundanceprofile') ) {
-	    stm.DataStore.abundanceprofile = [];
+	if (! stm.DataStore.hasOwnProperty('profile') ) {
+	    stm.DataStore.profile = [];
 	}
 	for (i=0;i<ids.length;i++) {
-	    if (! stm.DataStore.abundanceprofile.hasOwnProperty(ids[i]+"_function_KO") ) {
-		load_required.push(stm.get_objects( { type: 'abundanceprofile', "id": ids[i], "options": { "source": "KO", "type": "function" } } ) );
+	    if (! stm.DataStore.profile.hasOwnProperty(ids[i]+"_function_KO") ) {
+		load_required.push(stm.get_objects( { type: 'profile', "id": ids[i], "options": { "source": "KO", "type": "function" } } ) );
 	    }
 	}	
 	if (load_required.length > 0) {
@@ -212,7 +212,7 @@
 
 	var ids_with_data = [];
 	for (i=0;i<ids.length;i++) {
-	    if (stm.DataStore.abundanceprofile[ids[i]+"_function_KO"].data.length > 0) {
+	    if (stm.DataStore.profile[ids[i]+"_function_KO"].data.length > 0) {
 		ids_with_data.push(ids[i]);
 	    }
 	}
@@ -233,7 +233,7 @@
 	    }
 	    theader.push(stm.DataStore.metagenome[ids[h]].name+" ("+grp+")");
 	    
-	    var data = stm.DataStore.abundanceprofile[ids[h]+"_function_KO"];
+	    var data = stm.DataStore.profile[ids[h]+"_function_KO"];
 	    for (i=0;i<data.data.length;i++) {
 		if (! draw_data[idgroup[ids[h]]].hasOwnProperty(data.rows[i].id)) {
 		    draw_data[idgroup[ids[h]]][data.rows[i].id] = 0;
