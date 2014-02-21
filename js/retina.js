@@ -103,7 +103,7 @@
     // Retrieve the values of an object's properties.
     Retina.values = function (object) {
 	var values = [];
-	for (var key in this) {
+	for (var key in object) {
 	    if (object.hasOwnProperty(key)) {
 		values[values.length] = object[key];
 	    }
@@ -111,6 +111,12 @@
 	return values;
     };
     
+    Retina.propSort = function(prop) {
+	return function(a, b) {
+            return a[prop] - b[prop];
+	}
+    };
+
     Retina.require = function (resource, successCb, errorCb) {
 	var promise = Retina.load_library(resource);
 	promise.then(successCb, errorCb);
