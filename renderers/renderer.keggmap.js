@@ -16,6 +16,7 @@
             requires: [ "jquery.svg.js" ],
             defaults: {
 		'width': 1200,
+		'threshold': 1,
 		'data': [ ],
 		'image': null,
 		'div': null }
@@ -68,20 +69,25 @@
 	    renderer.settings.div.setAttribute('class', "");
 	    renderer.settings.div.innerHTML = "";
 	    jQuery('#map_div'+index).svg();
-	    Retina.RendererInstances.keggmap[index].drawImage(jQuery('#map_div'+index).svg('get'), renderer.settings.data);
+	    Retina.RendererInstances.keggmap[index].drawImage(jQuery('#map_div'+index).svg('get'), renderer.settings.data, renderer.settings.threshold);
 	    
 	    return renderer;
 	},
 	hover: function (id, event) {
 	    var svg = jQuery('#map_div'+renderer.index).svg('get');
 	},
-	drawImage: function (svg, mg_data) {
+	drawImage: function (svg, mg_data, threshold) {
 	    // console.log(mg_data);
 	    // console.log(svg);
 	    for (k=0; k<2; k++) {
 		for (i in mg_data[k]) {
 		    if (mg_data[k].hasOwnProperty(i)) {
 			if (stm.DataStore.keggpolydata.hasOwnProperty(i)) {
+
+			    if (mg_data[k][i] < threshold) {
+				continue;
+			    }
+
 			    var alist = stm.DataStore.keggpolydata[i];
 			    var color = "#00D900";
 			    var abu = "abundance: "+ mg_data[k][i];

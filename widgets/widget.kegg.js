@@ -163,6 +163,39 @@
 	    widget.map.render();
 	});
 	menu_space.appendChild(btn1);
+
+	var threshold_title = document.createElement('span');
+	threshold_title.innerHTML = "threshold";
+	threshold_title.setAttribute('style', "margin-left: 5px; margin-right: 5px; font-weight: bold; font-size: 12px;");
+	menu_space.appendChild(threshold_title);
+
+	var threshold = document.createElement('input');
+	threshold.setAttribute('style', 'width: 30px; position: relative; top: 5px;');
+	threshold.setAttribute('type', 'text');
+	threshold.setAttribute('value', '1');
+	threshold.addEventListener('keypress', function(event) {
+	    event = event || window.event;
+	    if (event.keyCode == 38) {
+		this.value = parseInt(this.value) + 1;
+		if (this.value.match(/^\d+$/)) {
+		    Retina.WidgetInstances.kegg[1].map.settings.threshold = parseInt(this.value);
+		    Retina.WidgetInstances.kegg[1].map.render();
+		}
+	    } else if (event.keyCode == 40) {
+		this.value = parseInt(this.value) > 0 ? parseInt(this.value) - 1 : this.value;
+		if (this.value.match(/^\d+$/)) {
+		    Retina.WidgetInstances.kegg[1].map.settings.threshold = parseInt(this.value);
+		    Retina.WidgetInstances.kegg[1].map.render();
+		}
+	    } else if (event.keyCode == 0) {
+		if (this.value.match(/^\d+$/)) {
+		    Retina.WidgetInstances.kegg[1].map.settings.threshold = parseInt(this.value);
+		    Retina.WidgetInstances.kegg[1].map.render();
+		}
+	    }
+	});
+	menu_space.appendChild(threshold);
+
 	menu_space.setAttribute('style', 'margin-bottom: 10px; margin-top: 90px;');
 
     };
