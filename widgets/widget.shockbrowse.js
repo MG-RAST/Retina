@@ -4,7 +4,7 @@
                 title: "SHOCK Browser Widget",
                 name: "shockbrowse",
                 author: "Tobias Paczian",
-                requires: [ ]
+                requires: [ "AuxStore.js" ]
         }
     });
     

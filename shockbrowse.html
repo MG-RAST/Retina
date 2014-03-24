@@ -11,18 +11,17 @@
 	<script src="js/bootstrap.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 	<script>
-    stm.init(stm.Config.mgrast_api).then( function() {
-	    Retina.init( { library_resource: "js/" } ).then( function() {
-		    Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
-	        Retina.load_widget("login").then( function() {
-		        Retina.Widget.create('login', {"target": document.getElementById("login_space")});
-		    });
-	        Retina.add_widget({"name": "shockbrowse", "resource": "widgets/",  "filename": "widget.shockbrowse.js"});
-	        Retina.load_widget("shockbrowse").then( function() {
-		        Retina.Widget.create('shockbrowse', {"target": document.getElementById("content"), "type":"table", "wide": true});
-	        });
-	    });
+    stm.init({ url: stm.Config.mgrast_api }, 1, "MG-RAST");
+Retina.init( { library_resource: "js/" } ).then( function() {
+    Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
+    Retina.load_widget("login").then( function() {
+	Retina.Widget.create('login', {"target": document.getElementById("login_space")});
     });
+    Retina.add_widget({"name": "shockbrowse", "resource": "widgets/",  "filename": "widget.shockbrowse.js"});
+    Retina.load_widget("shockbrowse").then( function() {
+	Retina.Widget.create('shockbrowse', {"target": document.getElementById("content"), "fileUpload": document.getElementById('fu'), "type":"table", "wide": true});
+    });
+});
 	</script>
   </head>
   
@@ -36,6 +35,7 @@
   	    </div>
       </div>
     </div>
+    <div id='fu' style='margin-left: 20px; margin-right: 20px; margin-top: 80px;'></div>
     <div id='content' style='margin-left: 20px; margin-right: 20px; margin-top: 80px;'></div>
     
   </body>
