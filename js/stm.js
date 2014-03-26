@@ -388,7 +388,7 @@
 	    progressIndicator.style.display = "";
 	    document.getElementById('progressBar').innerHTML = "requesting data...";
 	}
-	
+
 	xhr.send();
 
 	return promise;

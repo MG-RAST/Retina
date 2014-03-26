@@ -22,16 +22,13 @@
     jQuery( document ).ready(function(){
 	window.stm = window.opener.stm;
 	Retina.init( { library_resource: "js/" } ).then( function() {
-	    var val = document.URL;
-	    var param = "mgpage";
-	    var page  = "";
-	    if (val.indexOf(param) > -1) {
-		var url = val.substr(val.indexOf(param));
-		page = url.replace(param+"=","");
-		page = page.replace(/\#$/, "");
-	    }
+	    
+	    var page  = Retina.cgiParam("mgpage");
 
-	    var ico = document.getElementById('icon_'+page);
+	    var icons = { "overview": "publications" };
+	    var iconame = icons[page] ? icons[page] : page;
+
+	    var ico = document.getElementById('icon_'+iconame);
 	    ico.className = "icospan icoactivespan";
 	    ico.firstChild.className = "ico icoactive";
 
@@ -132,6 +129,7 @@
 	position: absolute;
 	right: 460px;
 	top: 80px;
+        overflow-x: hidden;
 	}
     </style>
   </head>
@@ -150,7 +148,7 @@
 	  <div class="icorow">
 	    <div class="icospan" id="icon_search"><img src="images/search.png" class="ico" title="Search" onclick="window.location='mgmain.html?mgpage=search';"><span>Search</span></div>
 	    <div class="icospan" id="icon_pipeline"><img src="images/settings3.png" class="ico" title="Jobs" onclick="window.location='mgmain.html?mgpage=pipeline';"><span>Job Status Monitor</span></div>
-	    <div class="icospan" id="icon_publications" onclick="window.location='mgmain.html?mgpage=publication';"><img src="images/dna.png" class="ico" title="Publications"><span>Publications</span></div>
+	    <div class="icospan" id="icon_publications" onclick="window.location='mgmain.html?mgpage=overview';"><img src="images/dna.png" class="ico" title="Publications"><span>Publications</span></div>
 	    <div class="icospan" id="icon_analysis"><img src="images/notebook.png" class="ico" title="Analysis" onclick="window.location='mgmain.html?mgpage=analysis';"><span>Analysis</span></div>
 	  </div>
 	  
@@ -170,9 +168,9 @@
       <div id="content"></div>
       
     </div>
-
+    
       <!-- sidebar content -->
       <div id="sidebar" class="sidebar span5"></div>
-
+      
   </body>
 </html>

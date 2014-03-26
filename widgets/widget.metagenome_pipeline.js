@@ -29,8 +29,8 @@
 	if (widget.user) {
 	    content.innerHTML = '<div style="margin-left: auto; margin-right: auto; margin-top: 300px; width: 50px;"><img style="" src="./images/waiting.gif"></div>';
 	    
-	    jQuery.get('http://api.metagenomics.anl.gov/1/pipeline?verbosity=full&user=travis&auth=JusBm9T9FQPePNzdaZVgrVRpz', function(data) {
-		//	jQuery.get('http://140.221.84.145:8000/job?query&info.user=mgrastprod&recent=200', function(data) {
+	    //jQuery.get('http://api.metagenomics.anl.gov/1/pipeline?verbosity=full&user=travis&auth=JusBm9T9FQPePNzdaZVgrVRpz', function(data) {
+	    jQuery.get('http://140.221.84.145:8000/job?query&info.user=mgrastprod&recent=200', function(data) {
 		Retina.WidgetInstances.metagenome_pipeline[1].showJobs(data);
 	    });
 	}

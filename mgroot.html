@@ -20,6 +20,14 @@
     <!-- webapp initialization -->
     <script>
     jQuery( document ).ready(function(){
+
+	document.getElementById('searchtext').addEventListener("keypress", function(event){
+	    event=event || window.event;
+	    if(event.keyCode=='13') {
+		document.getElementById('searchbutton').click();
+	    }
+	});
+
 	stm.init(stm.Config.mgrast_api, true, "MG-RAST");
 	Retina.init( { library_resource: "js/" } ).then( function() {
 	    Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
@@ -219,8 +227,8 @@
 
 	  <!-- search -->
 	  <div class="input-append" style="margin-top: 10px; width: 400px; margin-left: auto; margin-right: auto; display: block;">
-	    <input class="search span4" type="text" style="padding-left: 10px;border-radius: 14px 0 0 14px;" placeholder="search MG-RAST">
-	    <button class="btn search-button" style="border-radius: 0 14px 14px 0;">search</button>
+	    <input class="search span4" type="text" style="padding-left: 10px;border-radius: 14px 0 0 14px;" placeholder="search MG-RAST" id="searchtext">
+	    <button class="btn search-button" style="border-radius: 0 14px 14px 0;" onclick="window.open('mgmain.html?mgpage=search&search='+document.getElementById('searchtext').value);" id="searchbutton">search</button>
 	  </div>
 	  
 	</div>
@@ -229,7 +237,7 @@
 	<div class="icorow">
 	  <div class="icospan" id="icon_search"><img src="images/search.png" class="ico" title="Search" onclick="window.open('mgmain.html?mgpage=search');"><br><span>Search</span></div>
 	  <div class="icospan" id="icon_pipeline"><img src="images/settings3.png" class="ico" title="Jobs" onclick="window.open('mgmain.html?mgpage=pipeline');"><br><span>Submission</span></div>
-	  <div class="icospan" id="icon_publications"><img src="images/dna.png" class="ico" title="Publications" onclick="window.open('mgmain.html?mgpage=publication');"><br><span>Publications</span></div>
+	  <div class="icospan" id="icon_publications"><img src="images/dna.png" class="ico" title="Publications" onclick="window.open('mgmain.html?mgpage=overview');"><br><span>Publications</span></div>
 	  <div class="icospan" id="icon_analysis"><img src="images/notebook.png" class="ico" title="Analysis" onclick="window.open('mgmain.html?mgpage=analysis');"><br><span>Analysis</span></div>
 
 	  <div class="icospan" id="icon_search"><img src="images/file-pdf.png" class="ico" title="Handbook"><br><span>Handbook</span></div>
