@@ -18,10 +18,41 @@
     widget.sortDir = "asc";
     widget.offset = 0;
     widget.limit = 20;
-
+    widget.match = "all";
+    widget.advancedOptions = {};
+    widget.keylist = [ { "name": "Project",
+			 "items": [ { "name": "PI_firstname", "value": "PI firstname" },
+				    { "name": "PI_lastname", "value": "PI lastname" },
+				    { "name": "project_name", "value": "project name" },
+				    { "name": "library_name", "value": "library name" },
+				    { "name": "sample_name", "value": "sample name" },
+				    { "name": "created", "value": "creation date" },
+				    { "name": "name", "value": "metagenome name" },
+				    { "name": "sequence_type", "value": "sequence type" },
+				    { "name": "seq_method", "value": "sequencing method" } ] },
+		       { "name": "Environment",
+			 "items": [ { "name": "feature", "value": "feature" },
+				    { "name": "material", "value": "material" },
+				    { "name": "biome", "value": "biome" },
+				    { "name": "env_package_name", "value": "env package name" },
+				    { "name": "env_package_type", "value": "env package type" },
+				    { "name": "latitude", "value": "latitude" },
+				    { "name": "longitude", "value": "longitude" },
+				    { "name": "location", "value": "location" },
+				    { "name": "country", "value": "country" },
+				    { "name": "collection_date", "value": "collection date" } ] },
+		       { "name": "IDs",
+			 "items": [ { "name": "job", "value": "job id" },
+				    { "name": "project_id", "value": "project id" },
+				    { "name": "sample_id", "value": "sample id" },
+				    { "name": "library_id", "value": "library id" },
+				    { "name": "id", "value": "metagenome id" },
+				    { "name": "version", "value": "version" } ] },
+		     ];
+    
     widget.display = function (params) {
         widget = Retina.WidgetInstances.metagenome_search[1];
-
+	
 	if (params && params.main) {
 	    widget.main = params.main;
 	    widget.sidebar = params.sidebar;
@@ -36,7 +67,7 @@
 	var html = "<div class='input-append' style='float: left;'><input type='text' id='searchtext' style='border-radius: 15px 0 0 15px; margin-left: 10px;' placeholder='enter search term' class='span5'><button class='btn' onclick='Retina.WidgetInstances.metagenome_search[1].queryAPI();' style='border-radius: 0 15px 15px 0;'>search</button></div>";
 
 	// option buttons
-	html += "<div style='float: left; position: relative; top: 4px;'><p style='float: left; font-size: 11px; margin-left: 25px; margin-right: 5px; position: relative; top: 1px;'>search in</p><div class='btn-group'><button class='btn btn-mini span1 active' data-toggle='button' id='metadata_button'>metadata</button><button class='btn btn-mini span1' data-toggle='button' id='function_button'>function</button><button class='btn btn-mini span1' data-toggle='button' id='organism_button'>organism</button></div></div>";
+	html += "<div style='float: left; position: relative; top: 4px;'><p style='float: left; font-size: 11px; margin-left: 25px; margin-right: 5px; position: relative; top: 1px;'>search in</p><div class='btn-group' data-toggle='buttons-radio'><button class='btn btn-mini span1 active' data-toggle='button' id='metadata_button'>metadata</button><button class='btn btn-mini span1' data-toggle='button' id='function_button'>function</button><button class='btn btn-mini span1' data-toggle='button' id='organism_button'>organism</button></div></div>";
 
 	// result text
 	html += "<div style='float: left; font-size: 12px; left: 20px; position: relative; top: 5px;' id='result_text'></div>";
@@ -53,6 +84,62 @@
 		Retina.WidgetInstances.metagenome_search[1].queryAPI();
 	    }
 	});
+
+	// create the sidebar
+	var html_sidebar = '\
+<style>\
+  .control-label {\
+  float: left;\
+  position: relative;\
+  top: 4px;\
+  width: 50px;\
+  font-weight: bold;\
+  }\
+</style>\
+<h3 style="margin-left: 10px;">\
+  <img style="height: 20px; position: relative; bottom: 2px; margin-right: 10px;" src="images/search.png">\
+  Advanced Search\
+</h3>\
+<div id="advanced_div" style="margin-left: 10px; margin-right: 10px;">\
+  <p>Add a search term for a specific metadata field to refine your search. You can use the asterisk (*) symbol as a wildcard.</p>\
+  <div class="control-group">\
+    <label class="control-label" for="advanced_search_key">field</label>\
+    <div class="controls">\
+      <select id="advanced_search_key" style="width: 270px;"></select>\
+    </div>\
+  </div>\
+  <div class="control-group">\
+    <label class="control-label" for="advanced_search_value">term</label>\
+    <div class="controls input-append">\
+      <input type="text" id="advanced_search_value" placeholder="enter searchterm">\
+      <button class="btn" onclick="Retina.WidgetInstances.metagenome_search[1].refineSearch(\'add\');">add</button>\
+    </div>\
+  </div>\
+  <hr>\
+  <div id="refine_search_terms"></div>\
+</div>\
+';
+	
+	sidebar.innerHTML = html_sidebar;
+
+	var keyselect = document.getElementById('advanced_search_key');
+	var keylist = widget.keylist;
+	document.getElementById('advanced_search_value').addEventListener('keypress', function (e) {
+	    e = e || window.event;
+	    if (e.keyCode == 13) {
+		Retina.WidgetInstances.metagenome_search[1].refineSearch('add');
+	    }
+	});
+	
+	var keyselect_html = "";
+	for (var i=0; i<keylist.length; i++) {
+	    keyselect_html += "<optgroup label='"+keylist[i].name+"'>"
+	    for (var h=0; h<keylist[i].items.length; h++) {
+		keyselect_html += "<option value='"+keylist[i].items[h].name+"'>"+keylist[i].items[h].value+"</option>";
+	    }
+	    keyselect_html += "</optgroup>";
+	}
+	keyselect.innerHTML = keyselect_html;
 
 	// check if a search got passed
 	if (Retina.cgiParam("search")) {
@@ -79,9 +166,65 @@
 		    document.getElementById('organism_button').className = "btn btn-mini span1";
 		}
 	    }
-
-	    Retina.WidgetInstances.metagenome_search[1].queryAPI();
 	}
+
+	Retina.WidgetInstances.metagenome_search[1].queryAPI();
+    };
+
+    widget.refineSearch = function (action, item) {
+	widget = Retina.WidgetInstances.metagenome_search[1];
+
+	// get the DOM space for the buttons
+	var target = document.getElementById('refine_search_terms');
+
+	if (action == "add") {
+
+	    // add key and value to the advance options
+	    var skeyList = document.getElementById('advanced_search_key');
+	    var skey = skeyList.options[skeyList.selectedIndex].value;
+	    var sname = skeyList.options[skeyList.selectedIndex].text;
+	    var sval = document.getElementById('advanced_search_value').value;
+	    widget.advancedOptions[skey] = sval;
+
+	    // check if this is the first button
+	    if (target.innerHTML == "") {
+		// create a 'clear' button
+
+		var clear = document.createElement('button');
+		clear.className = "btn btn-small btn-danger";
+		clear.innerHTML = "clear advanced options";
+		clear.addEventListener('click', function () {
+		    Retina.WidgetInstances.metagenome_search[1].refineSearch("clear");
+		});
+		clear.setAttribute('style', "width: 100%; clear: both; margin-bottom: 20px; margin-top: -15px;");
+		target.appendChild(clear);
+	    }
+	    
+	    var button = document.createElement('button');
+	    button.className = "btn btn-small";
+	    button.setAttribute('style', "float: left; margin-right: 10px;");
+	    button.innerHTML = sname+" - "+sval+" <i class='icon icon-remove'></i>";
+	    button.title = "click to remove";
+	    button.setAttribute('id', 'advSearch_'+skey);
+	    button.skey = skey;
+	    button.addEventListener('click', function() {
+		Retina.WidgetInstances.metagenome_search[1].refineSearch("remove", this.skey);
+	    });
+	    target.appendChild(button);
+	} else if (action == "remove") {
+	    delete widget.advancedOptions[item];
+	    target.removeChild(document.getElementById('advSearch_'+item));
+	    if (target.childNodes.length == 1) {
+		target.innerHTML = "";
+	    }
+	} else if (action == "clear") {
+	    widget.advancedOptions = {};
+	    target.innerHTML = "";
+	} else {
+	    console.log("undefined action for refineSearch");
+	    return;
+	}
+	widget.queryAPI();
     };
     
     widget.resultTable = function (data, total_count) {
@@ -116,7 +259,7 @@
 		if (widget.sortDir == 'asc') {
                     style_a = "border: 1px solid #0088CC; border-radius: 7px; padding: 1px 1px 2px;";
 		} else {
-                    style_b = "border: 1px solid #0088CC; border-radius: 7px; padding: 1px 1px 2px;";
+                    style_d = "border: 1px solid #0088CC; border-radius: 7px; padding: 2px 1px 1px;";
 		}
             }
             html += "<th style='min-width: "+widths[i]+"px;'>"+fnames[i]+"&nbsp;<img onclick=\"Retina.WidgetInstances.metagenome_search[1].sortQuery(\'"+fields[i]+"\', \'asc\');\" src=\"images/up-arrow.gif\" style=\"cursor: pointer;"+style_a+"\" />"+
@@ -190,22 +333,26 @@
 		}
 	    }
 	}
-	
-	if (widget.query === null) {
-	    console.log('invalid request, missing query parameter');
-	    return;
-	}
+
+	widget.match = "all";
 	
 	var query_str = "";
-	for (h=0;h<type.length; h++) {
+	for (var h=0;h<type.length; h++) {
 	    if(query_str == "") {
 		query_str = type[h] + "=" + widget.query;
 	    } else {
 		query_str += "&" + type[h] + "=" + widget.query;
 	    }
 	}
-	
-	var url = api_url + query_str + "&order=" + widget.sort + "&direction=" + widget.sortDir + "&match=any" + "&limit=" + widget.limit + "&offset=" + widget.offset;
+
+	for (var h in widget.advancedOptions) {
+	    if (widget.advancedOptions.hasOwnProperty(h)) {
+		query_str += "&"+h;
+		query_str += "="+widget.advancedOptions[h];
+	    }
+	}
+
+	var url = api_url + query_str + "&order=" + widget.sort + "&direction=" + widget.sortDir + "&match=" + widget.match + "&limit=" + widget.limit + "&offset=" + widget.offset;
 	
 	if (stm.Authorization) {
 	    url += "&auth=" + stm.Authorization;
@@ -220,6 +367,15 @@
 	});
 	
 	return;
-    }
+    };
+
+    widget.sortQuery = function (field, direction) {
+	widget = Retina.WidgetInstances.metagenome_search[1];
+
+	widget.sort = field;
+	widget.sortDir = direction;
+
+	widget.queryAPI();
+    };
     
 })();
