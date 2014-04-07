@@ -22,7 +22,7 @@
 
 	params.target.innerHTML = "\
 <div style='position:relative;top:8px;'>\
-  <button type='button' class='btn' data-toggle='dropdown' title='display session information'><i class='icon-folder-open'></i></button>\
+  <button type='button' class='btn btn-inverse' data-toggle='dropdown' title='display session information'><i class='icon-folder-open icon-white'></i></button>\
   <ul class='dropdown-menu pull-right' role='menu' aria-labelledby='dropdownMenu'>\
     <li class='disabled'><a tabindex='-1' href='#' style='color: black; font-weight: bold;'>Session Management</a></li>\
     <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].download();' title='download session to disk'><i class='icon-download' style='margin-right: 5px; position: relative; top: 1px;'></i>download</a></li>\

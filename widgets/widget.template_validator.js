@@ -9,135 +9,80 @@
     });
     
     widget.setup = function () {
-	return [ Retina.add_renderer({"name": "metadataConverter", "resource": "renderers/",  "filename": "renderer.metadataConverter.js" }),
-		 Retina.load_renderer("metadataConverter") ];
+	return [];
     };
     
     widget.template = {};
     widget.template_status = [];
+    widget.template_warnings = [];
     widget.data = {};
     widget.data_status = [];
-
-    widget.setTemplate = function (template) {
-	widget = Retina.WidgetInstances.template_validator[1];
-
-	widget.template = template;
-	widget.display_template_entry_mask();
-    };
+    widget.data_warnings = [];
+    widget.tod = 'template';
     
     widget.display = function (wparams) {
         widget = this;
 	
-	widget.target = wparams.target || null;
+	var target = widget.target = wparams.target || null;
 
-	widget.converter = Retina.Renderer.create("metadataConverter", {});
-
-	widget.converter.mgrast2template(widget.setTemplate);
+	if (! target) {
+	    return widget;
+	}
 	
-	return widget;
-    };
+	var help = document.createElement('div');
+	help.innerHTML = "<h3>Select a template or data file to validate</h3><select onchange='Retina.WidgetInstances.template_validator[1].tod=this.options[this.selectedIndex].value;'><option>template</option><option>data</option></select>";
+	target.appendChild(help);
 
-    widget.activate_subgroup = function (group, subgroup) {
-	widget = Retina.WidgetInstances.template_validator[1];
+	var fu = document.createElement('div');
+	target.appendChild(fu);
 
-	var nav = document.getElementById(subgroup+'_nav');
-	if (! nav) {
-	    nav = document.createElement('div');
-	    nav.setAttribute('id', subgroup+'_nav');
-	    nav.setAttribute('class', "tabbable tabs-right");
-	    nav.setAttribute('style', "float: right");
-	    nav.innerHTML = '<ul class="nav nav-tabs" style="margin-top: -21px;"><li class="active">'+subgroup+' 1</li><li onclick="alert(\'hello world\');">+</li></ul>';
-	    document.getElementById('entry_navs').appendChild(nav);
-	}
-
-	var pane = document.getElementById(subgroup);
-	if (! pane) {
-	    pane = document.createElement('div');
-	    pane.setAttribute('id', subgroup);
-	}
-    };
-
-    widget.display_template_entry_mask = function () {
-	widget = Retina.WidgetInstances.template_validator[1];
-
-	widget.target.innerHTML = '<div id="entry_navs"><ul class="nav nav-tabs" id="entry_mask_tabs"></ul></div><div id="entry_masks"><div class="tab-content" id="entry_mask"></div></div>';
-
-	var first = true;
-	for (i in widget.template.groups) {
-	    if (widget.template.groups.hasOwnProperty(i)) {
-		if (widget.template.groups[i].toplevel) {
-		    var tab = document.createElement('li');
-		    tab.innerHTML = '<a>'+widget.template.groups[i].label+'</a>';
-		    document.getElementById('entry_mask_tabs').appendChild(tab);
-		    var content = document.createElement('div');
-		    content.setAttribute('id', widget.template.groups[i].name);
-		    content.setAttribute('class', 'tab-pane');
-		    document.getElementById('entry_mask').appendChild(content);
-		    if (first) {
-			first = false;
-			tab.setAttribute('class', 'active');
-			content.setAttribute('class', 'tab-pane active');
-		    }
-
-		    // subgroups
-		    if (widget.template.groups[i].hasOwnProperty('subgroups')) {
-			var groups = widget.template.groups[i].subgroups;
-			var groups_html = '';
-			for (h in groups) {
-			    groups_html += '<button class="btn btn-large btn-block" type="button" onclick="Retina.WidgetInstances.template_validator[1].activate_subgroup(\''+widget.template.groups[i].name+'\', \''+widget.template.groups[h].name+'\');">'+groups[h].label+'</button>';
-			}
-			groups_html += '<div style="height: 15px;"></div>';
-			content.innerHTML += groups_html;
-		    }
-
-		    // fields
-		    if (widget.template.groups[i].hasOwnProperty('fields')) {
-			var fields = widget.template.groups[i].fields;
-			var fields_html = '<form class="form-horizontal" action="#">';
-			var ordered = [];
-			var unordered = [];
-			for (h in fields) {
-			    if (fields.hasOwnProperty(h)) {
-				if (fields[h].hasOwnProperty('order')) {
-				    ordered[fields[h].order] = h;
-				} else {
-				    unordered.push(h);
-				}
+	var fuDialog = document.createElement('input');
+	fuDialog.setAttribute('type', 'file');
+	fuDialog.setAttribute('style', 'display:none;');
+	fuDialog.addEventListener('change', function(evt){
+	    var files = evt.target.files;
+	
+	    if (files.length) {
+		for (var i = 0; i < files.length; i++) {
+		    var f = files[i];
+		    var reader = new FileReader();
+		    reader.onload = (function(theFile) {
+			return function(e) {
+			    var data = JSON.parse(e.target.result.toString().replace(/\n/g, ""));
+			    if (Retina.WidgetInstances.template_validator[1].tod == 'template') {
+				Retina.WidgetInstances.template_validator[1].check_template(data);
+			    } else {
+				Retina.WidgetInstances.template_validator[1].validate_data(data);
 			    }
-			}
-			unordered = unordered.sort();
-			ordered = ordered.concat(unordered);
-			for (h=0;h<ordered.length;h++) {
-			    var field = fields[ordered[h]];
-			    fields_html += '<div class="control-group">';
-			    fields_html += '<label class="control-label" for="'+widget.template.groups[i].name+'_'+ordered[h]+'">'+(field.label || ordered[h])+'</label>';
-			    fields_html += '<div class="controls">';
-			    fields_html += '<input type="text" id="'+h+'_'+ordered[h]+'" value="'+(field.default || "")+'">';
-			    fields_html += '<span class="help-block">'+field.description+'</span>';
-			    fields_html += '</div>';
-			    fields_html += '</div>';
-			}
-			fields_html += '</form>';
-			content.innerHTML += fields_html;
-		    }
+			};
+		    })(f);
+		    reader.readAsText(f);
 		}
 	    }
-	}
-    };
-    
-    widget.load_template = function (url) {
-	widget = Retina.WidgetInstances.template_validator[1];
-
-	return jQuery.getJSON(url, function(data) {
-	    widget = Retina.WidgetInstances.template_validator[1];
-	    widget.template = data;
 	});
+	fu.appendChild(fuDialog);
+
+	var fakeButton = document.createElement('button');
+	fakeButton.setAttribute('class', 'btn');
+	fakeButton.innerHTML = "select file";
+	fakeButton.addEventListener('click', function() {
+	    fuDialog.click();
+	});
+	fu.appendChild(fakeButton);
+	fu.setAttribute('style', "margin-bottom: 25px;");
+
+	var result = document.createElement('div');
+	result.setAttribute('id', 'resultDiv');
+	target.appendChild(result);
+
+	return widget;
     };
     
-    widget.check_template = function (template) {
+    widget.check_template = function (template, nodisplay) {
 	widget = Retina.WidgetInstances.template_validator[1];
 
 	widget.template_status = [];
+	widget.template_warnings = [];
 	
 	if (template) {
 	    widget.template = template;
@@ -152,22 +97,27 @@
 		widget.template_status.push('template name is not a string');
 	    } else {
 		if (! template.hasOwnProperty('label')) {
+		    widget.template_warnings.push('template has no label, assuming '+template.name);
 		    template.label = template.name;
 		}
 	    }
 	}
 
 	if (! template.hasOwnProperty('description')) {
+	    widget.template_warnings.push('template has no description');
 	    template.description = "";
 	} else if (typeof template.description != 'string') {
 	    widget.template_status.push('template description is not a string');
 	}
 	
 	if (! template.hasOwnProperty('cvs') ) {
+	    widget.template_warnings.push('template has no cvs');
 	    template.cvs = {};
 	} else {
 	    if (typeof template.cvs != 'object') {
 		widget.template_status.push('template cvs is not an object');
+	    } else if (typeof template.cvs.length == 'function') {
+		widget.template_status.push('template is an array, must be object');
 	    } else {
 		for (i in template.cvs) {
 		    if (template.cvs.hasOwnProperty(i)) {
@@ -180,32 +130,44 @@
 	}
 	
 	if (! template.hasOwnProperty('groups')) {
-	    template.groups = { "default": { "name": "default",
-					     "label": "default",
-					     "description": "",
-					     "fields": [] } };
+	    if (template.hasOwnProperty('fields')) {
+		widget.template_warnings.push('template has no groups, assuming default group');
+		template.groups = { "default": { "name": "default",
+						 "label": "default",
+						 "description": "",
+						 "fields": [] } };
+	    } else {
+		widget.template_status.push('template has neither groups nor fields');
+	    }
 	} else if (typeof template.groups != 'object') {
 	    widget.template_status.push('template groups is not an object');
+	} else if (typeof template.groups.length == 'function') {
+	    widget.template_status.push('template groups is an array, must be object');
 	} else {
 	    var subgroups = {};
 	    for (i in template.groups) {
 		if (template.groups.hasOwnProperty(i)) {
 		    var group = template.groups[i];
 		    if (! group.hasOwnProperty('name')) {
+			widget.template_warnings.push('template group '+i+' has no name property, assuming '+i);
 			group.name = i;
 		    } else if (typeof group.name != 'string') {
 			widget.template_status.push('name of group '+i+' is not a string');
 		    }
 		    if (! group.hasOwnProperty('label')) {
+			widget.template_warnings.push('template group '+i+' has no label property, assuming '+group.name);
 			group.label = group.name;
 		    }
 		    if (! group.hasOwnProperty('mandatory')) {
+			widget.template_warnings.push('template group '+i+' has no mandatory property, assuming false');
 			group.mandatory = false;
 		    }
 		    if (! group.hasOwnProperty('toplevel')) {
+			widget.template_warnings.push('template group '+i+' has no toplevel property, assuming false');
 			group.toplevel = false;
 		    }
 		    if (! group.hasOwnProperty('description')) {
+			widget.template_warnings.push('template group '+i+' has no description property');
 			group.description = "";
 		    } else if (typeof group.description != 'string') {
 			widget.template_status.push('description of group '+i+' is not a string');
@@ -216,31 +178,37 @@
 			}
 		    } else if (typeof group.fields != 'object') {
 			widget.template_status.push('group '+i+' fields attribute is not an object');
+		    } else if (typeof group.fields.length == 'function') {
+			widget.template_status.push('group '+i+' fields attribute is an array, must be object');
 		    } else {
 			for (h in group.fields) {
 			    if (group.fields.hasOwnProperty(h)) {
 				var field = group.fields[h];
 				if (typeof field == 'object') {
 				    if (! field.hasOwnProperty('name')) {
+					widget.template_warnings.push('field '+h+' in group '+i+' has no name property, assuming '+h);
 					field.name = h;
 				    } else if (typeof field.name != 'string') {
-					widget.template_status.push('the name of field '+h+' is not a string');
+					widget.template_status.push('the name of field '+h+' in group '+i+' is not a string');
 				    }
 				    if (! field.hasOwnProperty('label') ) {
+					widget.template_warnings.push('field '+h+' in group '+i+' has no label property, assuming '+field.name);
 					field.label = field.name;
 				    } else if (typeof field.label != 'string') {
-					widget.template_status.push('the label of field '+h+' is not a string');
+					widget.template_status.push('the label of field '+h+' in group '+i+' is not a string');
 				    }
 				    if (! field.hasOwnProperty('description')) {
+					widget.template_warnings.push('field '+h+' in group '+i+' has no name description property');
 					field.description = "";
 				    } else if (typeof field.description != 'string') {
-					widget.template_status.push('the description of field '+h+' is not a string');
+					widget.template_status.push('the description of field '+h+' in group '+i+' is not a string');
 				    }
 				    if (field.hasOwnProperty('type')) {
 					if (typeof field.type != 'string') {
-					    widget.template_status.push('the type of field '+h+' is not a string');
+					    widget.template_status.push('the type of field '+h+' in group '+i+' is not a string');
 					}
 				    } else {
+					widget.template_warnings.push('field '+h+' in group '+i+' has no type property, assuming text');
 					field.type = 'text';
 				    }
 				    if (field.hasOwnProperty('mandatory')) {
@@ -250,9 +218,11 @@
 					    field.mandatory = false;
 					}
 				    } else {
+					widget.template_warnings.push('field '+h+' in group '+i+' has no mandatory property, assuming false');
 					field.mandatory = false;
 				    }
 				    if (! field.hasOwnProperty('default')) {
+					widget.template_warnings.push('field '+h+' in group '+i+' has no default property, assuming null');
 					field.default = null;
 				    }
 				    if (field.hasOwnProperty('validation')) {
@@ -263,10 +233,10 @@
 							if (field.validation.hasOwnProperty('value')) {
 							    if (field.validation.type == 'cv') {
 								if (typeof field.validation.value != 'string') {
-								    widget.template_status.push('the validation type of the field '+h+' is cv, but the validation value of the field is not a string');
+								    widget.template_status.push('the validation type of the field '+h+' in group '+i+' is cv, but the validation value of the field is not a string');
 								} else {
 								    if (! template.cvs.hasOwnProperty(field.validation.value)) {
-									widget.template_status.push('the referenced cv of the validation of field '+h+' does not exist');
+									widget.template_status.push('the referenced cv of the validation of field '+h+' in group '+i+' does not exist');
 								    }
 								}
 							    } else if (field.validation.type == 'expression') {
@@ -274,30 +244,31 @@
 								    if (typeof field.validation.value == 'string') {
 									field.validation.value = new RegExp(field.validation.value);
 								    } else {
-									widget.template_status.push('the value of the expression validation of field '+h+' is neither a RegExp or a string');
+									widget.template_status.push('the value of the expression validation of field '+h+' in group '+i+' is neither a RegExp or a string');
 								    }
 								}
 							    } else if (field.validation.type == 'function') {
 								if (typeof field.validation.value != 'function') {
-								    widget.template_status.push('field '+h+' has the validation type function, but the value attribute of the validation is not a function');
+								    widget.template_status.push('field '+h+' in group '+i+' has the validation type function, but the value attribute of the validation is not a function');
 								}
 							    } else {
-								widget.template_status.push('the validation of field '+h+' has an invalid type');
+								widget.template_status.push('the validation of field '+h+' in group '+i+' has an invalid type');
 							    }
 							} else {
-							    widget.template_status.push('validation of field '+h+' has no value');
+							    widget.template_status.push('validation of field '+h+' in group '+i+' has no value');
 							}
 						    }
 						} else {
-						    widget.template_status.push('validation type of field '+h+' is not a string');
+						    widget.template_status.push('validation type of field '+h+' in group '+i+' is not a string');
 						}
 					    } else {
-						widget.template_status.push('the validation of field '+h+' has no type');
+						widget.template_status.push('the validation of field '+h+' in group '+i+' has no type');
 					    }
 					} else {
-					    widget.template_status.push('the validation of field '+h+' is not an object');
+					    widget.template_status.push('the validation of field '+h+' in group '+i+' is not an object');
 					}
 				    } else {
+					widget.template_warnings.push('field '+h+' in group '+i+' has no validation property, assuming none');
 					field.validation = { "type": "none" };
 				    }
 				}
@@ -321,6 +292,7 @@
 					    widget.template_status.push('the type attribute of subgroup '+h+' of group '+i+' is not a string');
 					}
 				    } else {
+					widget.template_warnings.push('subgroup '+h+' in group '+i+' has no type property, assuming list');
 					subgroup.type = "list";
 				    }
 				    
@@ -329,10 +301,12 @@
 					    widget.template_status.push('the label attribute of subgroup '+h+' of group '+i+' is not a string');
 					}
 				    } else {
+					widget.template_warnings.push('subgroup '+h+' in group '+i+' has no label property, assuming '+h);
 					subgroup.label = h;
 				    }
 
 				    if (subgroup.hasOwnProperty('mandatory')) {
+					widget.template_warnings.push('subgroup '+h+' in group '+i+' has no mandatory property, assuming false');
 					subgroup.mandatory = false;
 				    } else {
 					if (typeof subgroup.mandatory != "boolean") {
@@ -359,14 +333,23 @@
 	}
 	
 	if (widget.template_status.length) {
-	    alert(widget.template_status.join("\n"));
-	    return true;
+	    if (nodisplay) {
+		return { template: template, errors: widget.template_status, warnings: widget.template_warnings };
+	    } else {
+		document.getElementById('resultDiv').innerHTML = '<h4>Errors</h4><pre>'+widget.template_status.join("\n")+'</pre><h4>Warnings</h4><pre>'+widget.template_warnings.join("\n")+'</pre>';
+		return false;
+	    }
 	} else {
-	    return false;
+	    if (nodisplay) {
+		return { template: template, warnings: widget.template_warnings };
+	    } else {
+		document.getElementById('resultDiv').innerHTML = '<h4>the template is valid</h4>'+(widget.template_warnings.length ? '<h4>Warnings</h4><pre>'+widget.template_warnings.join("\n")+'</pre>' : '')+'<pre>'+JSON.stringify(widget.template,null,2)+'</pre>';
+		return true;
+	    }
 	}
     };
     
-    widget.validate_data = function (data) {
+    widget.validate_data = function (data, nodisplay) {
 	widget = Retina.WidgetInstances.template_validator[1];
 
 	if (data) {
@@ -375,13 +358,16 @@
 	
 	data = widget.data;
 	
-	if (widget.check_template()) {
+	if (widget.check_template(null, nodisplay)) {
 	    
 	    widget.data_status = [];
+	    widget.data_warnings = [];
 	    
 	    if (typeof data == 'object') {
+		var num = 0;
 		for (var i in data) {
 		    if (data.hasOwnProperty(i)) {
+			num++;
 			if (widget.template.groups.hasOwnProperty(i)) {
 			    var item = data[i];
 			    var group = widget.template.groups[i];
@@ -395,15 +381,31 @@
 			}
 		    }
 		}
+		
+		if (num == 0) {
+		    widget.data_status.push('no data to validate');
+		}
 	    } else {
 		widget.data_status.push('the data is not an object');
 	    }
 	    
 	    if (widget.data_status.length) {
-		return true;
+		if (nodisplay) {
+		    return { data: data, errors: widget.data_status, warnings: widget.data_warnings };
+		} else {
+		    document.getElementById('resultDiv').innerHTML = '<h4>Errors</h4><pre>'+widget.data_status.join("\n")+'</pre><h4>Warnings</h4><pre>'+widget.data_warnings.join("\n")+'</pre>';
+		    return false;
+		}
 	    } else {
-		alert(widget.data_status.join("\n"));
-		return false;
+		if (nodisplay) {
+		    return { data: data, warnings: widget.data_warnings };
+		} else {
+		    document.getElementById('resultDiv').innerHTML = '<h4>the template is valid</h4>'+(widget.data_warnings.length ? '<h4>Warnings</h4><pre>'+widget.data_warnings.join("\n")+'</pre>' : '')+'<pre>'+JSON.stringify(widget.data,null,2)+'</pre>';
+		}
+	    }
+	} else {
+	    if (nodisplay) {
+		return { template: template, errors: widget.template_status, warnings: widget.template_warnings };
 	    }
 	}
     };
@@ -419,7 +421,7 @@
 		    } else if (group.subgroups.hasOwnProperty(h)) {
 			widget.check_group(item[h], widget.template.groups[h]);
 		    } else {
-			widget.data_status.push('field '+h+' in does not exist in template');
+			widget.data_warnings.push('field '+h+' in does not exist in template');
 		    }
 		}
 	    }
@@ -433,12 +435,12 @@
 		if (typeof item[h] == 'object') {
 		    for (var j in item[h]) {
 			if (item[h].hasOwnProperty(j)) {
-			    if (widget.template.fields.hasOwnProperty(j)) {
+			    if (group.fields.hasOwnProperty(j)) {
 				widget.check_field(item[h][j], j, group, h);
 			    } else if (group.subgroups.hasOwnProperty(j)) {
 				widget.check_group(item[h][j], widget.template.groups[j]);
 			    } else {
-				widget.data_status.push('field '+h+' in does not exist in template');
+				widget.data_status.push('field '+j+' in does not exist in template');
 			    }
 			}
 		    }
@@ -467,17 +469,19 @@
 	    error += " instance "+location;
 	}
 	
-	if (group.hasOwnProperty(fieldname)) {
+	if (group.fields.hasOwnProperty(fieldname)) {
 	    var field = group.fields[fieldname];
 	    if (field.validation.type == 'none') {
-		if (field.mandatory && ! field.length) {
-		    widget.data_status.push('mandatory field '+fieldname+' missing');
+		if (field.mandatory) {
+		    if (value == null) {
+			widget.data_status.push('mandatory field '+fieldname+' missing');
+		    }
 		}
 		return;
 	    } else {
 		if (field.validation.type == 'cv') {
 		    if (! widget.template.cvs[field.validation.value][value]) {
-			widget.data_status.push('field '+fieldname+' was not found in the controlled vocabulary '+field.validation.value);
+			widget.data_status.push('value "'+value+'" of field '+fieldname+' was not found in the controlled vocabulary.');
 		    }
 		    return;
 		} else if (field.validation.type == 'expression') {

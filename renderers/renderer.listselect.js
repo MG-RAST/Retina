@@ -119,13 +119,13 @@
 
 	    // get the target div
 	    var target = renderer.settings.target;
-	    var tstyle = 'background-image: linear-gradient(to bottom, #FAFAFA, #F2F2F2); background-repeat: repeat-x; border: 1px solid #D4D4D4; border-radius: 4px 4px 4px 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067); padding-left: 10px; padding-top: 10px; width: ';
+	    var tstyle = 'background-image: linear-gradient(to bottom, #FAFAFA, #F2F2F2); background-repeat: repeat-x; border: 1px solid #D4D4D4; border-radius: 4px 4px 4px 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067); padding-left: 10px; padding-top: 10px; height: 300px; width: ';
 	    if (renderer.settings.multiple) {
 		tstyle += renderer.settings.extra_wide ? '800px;' : '600px;';
 	    } else if (renderer.settings.no_button) {
 		tstyle += '256px;';
 	    } else {
-	        tstyle += '286px;';
+	        tstyle += '426px;';
 	    }
 	    target.setAttribute('style', tstyle+renderer.settings.style);
 	    target.innerHTML = "";
