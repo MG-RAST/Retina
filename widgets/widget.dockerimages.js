@@ -87,18 +87,38 @@
     widget.dataManipulation = function (data) {
 	var new_data = [];
 	for (var i=0;i<data.length;i++) {
+
+	    var idfield = "<a href='"+Retina.WidgetInstances.dockerimages[1].shock_base+"/"+data[i].id+"' target=_blank title='no docker file available'>"+data[i].id+"</a>";
+	    if (data[i].attributes.dockerfile) {
+		idfield = "<a style='cursor: pointer;' onclick='Retina.WidgetInstances.dockerimages[1].tooltip(jQuery(this), \""+data[i].id+"\")'>"+data[i].id+"</a>";
+		if (! stm.DataStore.hasOwnProperty('dockerfile')) {
+		    stm.DataStore.dockerfile = {};
+		}
+		stm.DataStore.dockerfile[data[i].id] = data[i].attributes.dockerfile;
+	    }
+	    
 	    new_data.push({ "name": data[i].attributes.name, 
 			    "base_image_tag": data[i].attributes.base_image_tag,
 			    "docker version": data[i].attributes.docker_version.Version,
-			    "id": "<a href='"+Retina.WidgetInstances.dockerimages[1].shock_base+"/"+data[i].id+"' target=_blank>"+data[i].id+"</a>",
+			    "id": idfield,
 			    "temporary": data[i].attributes.temporary, 
 			    "Arch": data[i].attributes.docker_version.Arch, 
 			    "GitCommit": data[i].attributes.docker_version.GitCommit, 
 			    "GoVersion": data[i].attributes.docker_version.GoVersion,
-			    "KernelVersion": data[i].attributes.docker_version.KernelVersion, 
+			    "KernelVersion": data[i].attributes.docker_version.KernelVersion,
 			    "Os": data[i].attributes.docker_version.Os });
 	}
 	return new_data;
     };
+
+    widget.dockerfile = function (id) {
+	stm.saveAs(Retina.Base64.decode(stm.DataStore.dockerfile[id]), "dockerfile");
+    };
+
+    widget.tooltip = function (obj, id) {
+	obj.popover('destroy');
+	obj.popover({content: "<button class='close' style='position: relative; bottom: 8px; left: 8px;' type='button' onclick='this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode);'>×</button><a href='"+Retina.WidgetInstances.dockerimages[1].shock_base+"/"+id+"' target=_blank onclick=this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode)>view node</a><br><a style='cursor: pointer;' onclick='Retina.WidgetInstances.dockerimages[1].dockerfile(&#39;"+id+"&#39;);this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode);'>view dockerfile</a>",html:true,placement:"top"});
+	obj.popover('show');
+    }
     
 })();
