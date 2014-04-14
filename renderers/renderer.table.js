@@ -319,6 +319,7 @@
 	    table_element.setAttribute("style", "margin-bottom: 2px;");
 	    var thead = document.createElement("thead");
 	    var tr = document.createElement("tr");
+	    tr.setAttribute('style', 'height: 30px;');
 	    for (var i=0;i<header.length;i++) {
 		
 		// check if this column is visible
