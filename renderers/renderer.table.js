@@ -956,14 +956,15 @@
 	    for (var i in renderer.settings.query) {
 	        if (renderer.settings.query.hasOwnProperty(i) && renderer.settings.query[i].searchword.length) {
 		    if (renderer.settings.query_type == "infix") {
-			query +=  "&" + renderer.settings.query[i].field + '=*' + renderer.settings.query[i].searchword + '*';
+			query += (query.match(/\?/) ? "&" : "?") + renderer.settings.query[i].field + '=*' + renderer.settings.query[i].searchword + '*';
 		    } else {
-			query +=  "&" + renderer.settings.query[i].field + '=' + renderer.settings.query[i].searchword;
+			query += (query.match(/\?/) ? "&" : "?") + renderer.settings.query[i].field + '=' + renderer.settings.query[i].searchword;
 		    }
 	        }
 	    }
 
-	    var url = renderer.settings.navigation_url + query + "&limit=" + renderer.settings.rows_per_page + "&offset=" + renderer.settings.offset;
+	    var url = renderer.settings.navigation_url + query;
+	    url += (url.match(/\?/) ? "&" : "?") + "limit=" + renderer.settings.rows_per_page + "&offset=" + renderer.settings.offset;
 	    if (renderer.settings.sort) {
 		url += "&order=" +renderer.settings.sort;
 	    }
