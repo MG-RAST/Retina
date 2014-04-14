@@ -252,7 +252,7 @@
 	var fields = ["sequence_type", "name", "id", "project_name", "biome", "feature", "material", "country", "location"];
 	var fnames = ["Seq&nbsp;Type", "Metagenome", "MG-RAST&nbsp;ID", "Project", "Biome", "Feature", "Material", "Country", "Location"];
 	var widths = [ 85, 105, 105, 85, 85, 85, 85, 85, 85 ];
-	for (i=0;i<fields.length;i++) {
+	for (var i=0;i<fields.length;i++) {
 	    var style_a = "";
 	    var style_d = "";
 	    if (widget.sort == fields[i]) {
@@ -276,7 +276,7 @@
             }
 	}
 
-	for (i=0;i<rows.length;i++) {
+	for (var i=0;i<rows.length;i++) {
 	    
             data[rows[i][0]]["project_id"] = data[rows[i][0]]["project_id"].substr(3);
             data[rows[i][0]]["id"] = data[rows[i][0]]["id"].substr(3);
@@ -359,7 +359,7 @@
 	}
 
 	jQuery.getJSON(url, function(data) {
-	    for (i=0;i<data.data.length;i++) {
+	    for (var i=0;i<data.data.length;i++) {
 		stm.DataStore.search[data.data[i]["id"]] = data.data[i];
 	    }
 
