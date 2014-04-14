@@ -1,3 +1,58 @@
+/*
+  Tree Renderer
+
+  Displays a searchable, collapsible tree view.
+
+  The selected node id is available through:
+
+  renderer.settings.selectedNode
+
+  The actual node can be retrieved via:
+
+  renderer.settings.data.nodes[renderer.settings.selectedNode]
+
+  Options
+
+  target (HTML Container Element)
+      Element to render the table in.
+
+  width (INT)
+      Width of the tree container in pixels. Default is 200.
+
+  height (INT)
+      Height of the tree containerin pixels. Default is 400.
+
+  indent (INT)
+      Number of pixels to indent per level. Default is 10.
+
+  showCollapseAllButton (BOOLEAN)
+      Turn the collapse all button on / off. Default is true.
+
+  showExpandAllButton (BOOLEAN)
+      Turn the expand all button on / off. Default is true.
+
+  showSearchBar (BOOLEAN)
+      Turn the search bar on / off. Default is true.
+
+  data (OBJECT)
+      Content data structure. The top level must have the following attributes:
+    - showRoot (BOOLEAN)
+      Display the root node?
+    - rootNode (STRING)
+      The hash key of the root node in the node structure
+    - nodes (HASH)
+      Hash of content nodes. Each node must have the following attributes:
+      - id (STRING)
+      This must be the same as the hashkey of this node
+      - label (STRING)
+      The string to be displayed at this node
+      - description (STRING)
+      The text displayed in the hover over of the node
+      -childNodes (ARRAY)
+      Array of node ids of child nodes of this node
+      -expanded (BOOLEAN - optional)
+      Sets the initial expansion of the node. Default is false. The root node cannot be collapsed.
+*/
 (function () {
     var renderer = Retina.Renderer.extend({
 	about: {
