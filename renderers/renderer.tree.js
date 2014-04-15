@@ -252,7 +252,11 @@
 
 	    // create a space for the actual nodes
 	    renderer.settings.nodeSpace = document.createElement('div');
-	    renderer.settings.nodeSpace.setAttribute('style', "clear: both;");
+	    var nodeSpaceHeight = "";
+	    if (renderer.settings.showSearchBar || renderer.settings.showCollapseAll || renderer.settings.showExpandAll) {
+		nodeSpaceHeight = " overflow: auto; height: "+(renderer.settings.height - 36) + "px;";
+	    }
+	    renderer.settings.nodeSpace.setAttribute('style', "clear: both;"+nodeSpaceHeight);
 	    renderer.settings.target.appendChild(renderer.settings.nodeSpace);
 	    
 	    // call the node rendering function
