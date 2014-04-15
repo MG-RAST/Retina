@@ -231,15 +231,24 @@
 		var sB = document.createElement('div');
 		sB.setAttribute('style', "float: left; margin-right: 5px;");
 		sB.className = "input-append";
-		sB.innerHTML = "<input type='text' style='width: 144px; height: 16px; font-size: 11.9px;' id='tree_search_input_"+index+"' autocomplete='off'><button class='btn btn-small' onclick='Retina.RendererInstances.tree["+index+"].goTo("+index+");'>go</button>";
+		sB.innerHTML = "<input type='text' index='"+index+"' style='width: 144px; height: 16px; font-size: 11.9px;' id='tree_search_input_"+index+"' autocomplete='off'><button class='btn btn-small' onclick='Retina.RendererInstances.tree["+index+"].goTo("+index+");'>go</button>";
 		renderer.settings.target.appendChild(sB);
+
+		// add a keypress listener
+		document.getElementById('tree_search_input_'+index).addEventListener('keypress', function (event) {
+		    var index = this.getAttribute('index');
+		    event = event || window.event;
+		    if (event.keyCode == '13') {
+			Retina.RendererInstances.tree[index].goTo(index);
+		    }
+		});
 
 		// add the typeahead to the input box
 		jQuery('#tree_search_input_'+index).typeahead({ source: typeAheadData });
 	    }
 
 	    // set the border style of the outer div
-	    renderer.settings.target.setAttribute('style', "border: 1px solid black; width: "+renderer.settings.width+"px; overflow: auto; height: "+renderer.settings.height+"px; padding: 5px; border-radius: 3px;");
+	    renderer.settings.target.setAttribute('style', renderer.settings.target.getAttribute('style')+"border: 1px solid black; width: "+renderer.settings.width+"px; overflow: auto; height: "+renderer.settings.height+"px; padding: 5px; border-radius: 3px;");
 
 	    // create a space for the actual nodes
 	    renderer.settings.nodeSpace = document.createElement('div');
