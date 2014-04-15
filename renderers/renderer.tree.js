@@ -400,7 +400,7 @@
 		}
 	    }
 
-	    renderer.renderer.redraw(index);
+	    renderer.redraw(index);
 	},
 
 	// go to a specific node, select it, collapse all nodes and expand the selected nodes parent nodes
