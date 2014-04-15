@@ -10,10 +10,10 @@
       Element to render the table in.
 
   width (INT)
-      Width of the tree container in pixels. Default is 200.
+      Width of the tree container in pixels. Default is 366.
 
   height (INT)
-      Height of the tree containerin pixels. Default is 400.
+      Height of the tree containerin pixels. Default is 366.
 
   indent (INT)
       Number of pixels to indent per level. Default is 10.
@@ -80,8 +80,8 @@
             version: "1.0",
 	    requires: [],
 	    defaults: {
-		'width' : 200,
-		'height': 400,
+		'width' : 366,
+		'height': 366,
 		'indent': 10,
 		'showCollapseAllButton': true,
 		'showExpandAllButton': true,
@@ -229,7 +229,7 @@
 
 		// create the searchbar div (input and button)
 		var sB = document.createElement('div');
-		sB.setAttribute('style', "float: left;");
+		sB.setAttribute('style', "float: left; margin-right: 5px;");
 		sB.className = "input-append";
 		sB.innerHTML = "<input type='text' style='width: 144px; height: 16px; font-size: 11.9px;' id='tree_search_input_"+index+"' autocomplete='off'><button class='btn btn-small' onclick='Retina.RendererInstances.tree["+index+"].goTo("+index+");'>go</button>";
 		renderer.settings.target.appendChild(sB);
@@ -331,7 +331,11 @@
 		    // check if we want the synonyms to be part of the tooltip
 		    if (renderer.settings.showSynonymsInDescription && params.node.hasOwnProperty('synonyms') && params.node.synonyms.length) {
 			description += "\n\nSynonyms:\n" + params.node.synonyms.join("\n");
-		    }	
+		    }
+
+		    // remove nasty quotes from the description
+		    description = description.replace(/'/g, "&apos;");
+		    description = description.replace(/"/g, "&quot;");
 		    
 		    // check for tooltip style, either popover or plain
 		    if (renderer.settings.tooltipStyle == 'popover') {

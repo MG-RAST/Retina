@@ -25,11 +25,13 @@
 
 	container.innerHTML = html;
 
-	widget.test = Retina.Renderer.create("tree", {
-	    target: document.getElementById('test'),
-	    data: Retina.RendererInstances.tree[0].exampleData()
+	jQuery.get("http://api.metagenomics.anl.gov/1/metadata/ontology?name=biome&version=2013-04-27", function (data) {
+	    widget.test = Retina.Renderer.create("tree", {
+		target: document.getElementById('test'),
+		data: data
+	    });
+	    widget.test.render();
 	});
-	widget.test.render();
     };
     
 })();
