@@ -421,6 +421,11 @@
 	    // find the goto node
 	    var id = nodeId || renderer.settings.data.label2id[document.getElementById('tree_search_input_'+index).value];
 	    var node = renderer.settings.data.nodes[id];
+
+	    if (! node) {
+		return;
+	    }
+
 	    node.expanded = false;
 	    renderer.settings.selectedNode = id;
 
