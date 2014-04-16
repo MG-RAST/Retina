@@ -248,7 +248,7 @@
 	    }
 
 	    // set the border style of the outer div
-	    renderer.settings.target.setAttribute('style', renderer.settings.target.getAttribute('style')+"border: 1px solid black; width: "+renderer.settings.width+"px; overflow: auto; height: "+renderer.settings.height+"px; padding: 5px; border-radius: 3px;");
+	    renderer.settings.target.setAttribute('style', renderer.settings.target.getAttribute('style')+"border: 1px solid #333333; width: "+renderer.settings.width+"px; overflow: auto; height: "+renderer.settings.height+"px; padding: 5px; border-radius: 3px;");
 
 	    // create a space for the actual nodes
 	    renderer.settings.nodeSpace = document.createElement('div');
@@ -335,6 +335,11 @@
 		// check for tooltip
 		var tooltip = "";
 
+		// remove nasty quotes from the label
+		var label = params.node.label;
+		label = label.replace(/'/g, "&apos;");
+		label = label.replace(/"/g, "&quot;");
+
 		// if we want a tooltip, add it
 		if (renderer.settings.showTooltip) {
 
@@ -353,14 +358,14 @@
 		    // check for tooltip style, either popover or plain
 		    if (renderer.settings.tooltipStyle == 'popover') {
 			description = description.replace(/\n/g, "<br>");
-			tooltip = "data-title='<span style=\"color: #333333;\">"+params.node.label+"</span>' data-html='true' data-content='<span style=\"color: #333333;\">"+description+"</span>' onmouseover='jQuery(this).popover(\"show\");' onmouseout='jQuery(this).popover(\"destroy\");' ";
+			tooltip = "data-title='<span style=\"color: #333333;\">"+label+"</span>' data-html='true' data-content='<span style=\"color: #333333;\">"+description+"</span>' onmouseover='jQuery(this).popover(\"show\");' onmouseout='jQuery(this).popover(\"destroy\");' ";
 		    } else {
 			tooltip = "title='"+description+"' ";
 		    }
 		}
 
 		// create the node label
-		html += "<span "+tooltip+"onclick='Retina.RendererInstances.tree["+index+"].selectNode("+index+", \""+params.node.id+"\");'>"+params.node.label+"</span>";
+		html += "<span "+tooltip+"onclick='Retina.RendererInstances.tree["+index+"].selectNode("+index+", \""+params.node.id+"\");'>"+label+"</span>";
 		
 		// add the node html to the node
 		nodeDiv.innerHTML = html;
@@ -463,6 +468,12 @@
 
 	    // set the selected node to the passed nodeId
 	    renderer.settings.selectedNode = nodeId;
+
+	    // check if we have a searchbar and if so, put the selected term into it
+	    var input = document.getElementById("tree_search_input_"+index);
+	    if (input) {
+		input.value = renderer.settings.data.nodes[nodeId].label;
+	    }
 
 	    // check if someone wants to know about the selection
 	    if (typeof renderer.settings.callback == 'function') {
