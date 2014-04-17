@@ -87,7 +87,7 @@
     widget.dataManipulation = function (data) {
 	var new_data = [];
 	for (var i=0;i<data.length;i++) {
-		var namearray = data[i].attributes.base_image_tag.split(":");
+		var namearray = data[i].attributes.name.split(":");
  
 	    var idfield = "<a href='"+Retina.WidgetInstances.dockerimages[1].shock_base+"/"+data[i].id+"' target=_blank title='no docker file available'>"+data[i].id+"</a>";
 	    if (data[i].attributes.dockerfile) {
