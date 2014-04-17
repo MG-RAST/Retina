@@ -67,7 +67,7 @@
 		query_type: 'prefix',
 		data_manipulation: widget.dataManipulation,
 		navigation_url: widget.shock_url,
-				invisible_columns: { 1:1
+				invisible_columns: { 1:1,
 					7: 1,
 				     8: 1,
 				     9: 1,
