@@ -68,6 +68,7 @@
 		data_manipulation: widget.dataManipulation,
 		navigation_url: widget.shock_url,
 				invisible_columns: { 0:1,
+					5:1, //docker version
 					 7:1,
 					 8: 1,
 				     9: 1,
