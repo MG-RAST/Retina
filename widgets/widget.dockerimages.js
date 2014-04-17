@@ -101,7 +101,7 @@
 	    
 	    new_data.push({ "name": data[i].attributes.name,
 				"namespace" : namespace[0],
-				"repository" : namespace[1],
+				"repository" : namespace[1] || "",
 				"tag" : namearray[1],
 			    "base_image_tag": data[i].attributes.base_image_tag,
 			    "docker version": data[i].attributes.docker_version.Version,
