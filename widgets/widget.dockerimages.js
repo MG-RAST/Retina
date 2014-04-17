@@ -29,7 +29,7 @@
 
 	wparams.type || "table";
 
-	var result_columns = wparams.header || [ "name", "namespace", "repository", "tag", "base_image_tag", "docker version", "id", "temporary", "Arch", "GitCommit", "GoVersion", "KernelVersion", "Os" ];
+	var result_columns = wparams.header || [ "name", "namespace", "repository", "tag", "base_image_tag", "docker version", "shock node id", "docker image id", "temporary", "Arch", "GitCommit", "GoVersion", "KernelVersion", "Os" ];
 
 	var result_table_filter = wparams.filter;
 	if (result_table_filter == null) {
@@ -68,12 +68,12 @@
 		data_manipulation: widget.dataManipulation,
 		navigation_url: widget.shock_url,
 				invisible_columns: { 0:1,
-					7: 1,
-				     8: 1,
+					 8: 1,
 				     9: 1,
 				     10: 1,
 				     11: 1,
-				     12: 1 },
+					12:1,
+				     13: 1 },
 		data: { data: [], header: result_columns }
 	    });
 	    widget.result_table.render();
@@ -105,7 +105,8 @@
 				"tag" : namearray[1],
 			    "base_image_tag": data[i].attributes.base_image_tag,
 			    "docker version": data[i].attributes.docker_version.Version,
-			    "id": idfield,
+			    "shock node id": idfield,
+				"docker image id" : data[i].attributes.id,
 			    "temporary": data[i].attributes.temporary, 
 			    "Arch": data[i].attributes.docker_version.Arch, 
 			    "GitCommit": data[i].attributes.docker_version.GitCommit, 
