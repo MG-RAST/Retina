@@ -29,7 +29,7 @@
 
 	wparams.type || "table";
 
-	var result_columns = wparams.header || [ "name", "base_image_tag", "docker version", "id", "temporary", "Arch", "GitCommit", "GoVersion", "KernelVersion", "Os" ];
+	var result_columns = wparams.header || [ "name", "repository", "tag", "base_image_tag", "docker version", "id", "temporary", "Arch", "GitCommit", "GoVersion", "KernelVersion", "Os" ];
 
 	var result_table_filter = wparams.filter;
 	if (result_table_filter == null) {
@@ -87,7 +87,8 @@
     widget.dataManipulation = function (data) {
 	var new_data = [];
 	for (var i=0;i<data.length;i++) {
-
+		var namearray = data[i].attributes.base_image_tag.split(":");
+ 
 	    var idfield = "<a href='"+Retina.WidgetInstances.dockerimages[1].shock_base+"/"+data[i].id+"' target=_blank title='no docker file available'>"+data[i].id+"</a>";
 	    if (data[i].attributes.dockerfile) {
 		idfield = "<a style='cursor: pointer;' onclick='Retina.WidgetInstances.dockerimages[1].tooltip(jQuery(this), \""+data[i].id+"\")'>"+data[i].id+"</a>";
@@ -97,7 +98,9 @@
 		stm.DataStore.dockerfile[data[i].id] = data[i].attributes.dockerfile;
 	    }
 	    
-	    new_data.push({ "name": data[i].attributes.name, 
+	    new_data.push({ "name": data[i].attributes.name,
+				"repository" : namearray[0],
+				"tag" : namearray[1],
 			    "base_image_tag": data[i].attributes.base_image_tag,
 			    "docker version": data[i].attributes.docker_version.Version,
 			    "id": idfield,
