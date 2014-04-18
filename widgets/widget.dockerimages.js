@@ -29,7 +29,7 @@
 
 	wparams.type || "table";
 
-	var result_columns = wparams.header || [ "name", "namespace", "repository", "tag", "base_image_tag", "docker version", "shock node id", "docker image id", "temporary", "Arch", "GitCommit", "GoVersion", "KernelVersion", "Os" ];
+	var result_columns = wparams.header || [ "name", "namespace", "repository", "tag", "base_image_tag", "docker version", "shock node id", "docker image id", "temporary", "Arch", "GitCommit", "GoVersion", "KernelVersion", "Os" , "Size"];
 
 	var result_table_filter = wparams.filter;
 	if (result_table_filter == null) {
