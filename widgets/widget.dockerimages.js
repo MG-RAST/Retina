@@ -124,7 +124,8 @@
 			    "GitCommit": data[i].attributes.docker_version.GitCommit, 
 			    "GoVersion": data[i].attributes.docker_version.GoVersion,
 			    "KernelVersion": data[i].attributes.docker_version.KernelVersion,
-			    "Os": data[i].attributes.docker_version.Os });
+			    "Os": data[i].attributes.docker_version.Os ,
+				"Size": data[i].file.size });
 	}
 	return new_data;
     };
