@@ -91,7 +91,17 @@
 	var new_data = [];
 	for (var i=0;i<data.length;i++) {
 		var namearray = data[i].attributes.name.split(":");
-		var namespace = namearray[0].split("/");
+		//var repository_name = namearray[0];
+		var repository_tag = namearray[1] || "";
+ 
+		var namespacearray = namearray[0].split("/");
+		var namespace="";
+		var repository_name=namespacearray[0];
+		if (namespacearray.length == 2) {
+			namespace=namespacearray[0];
+			repository_name=namespacearray[1];
+		}
+ 
 	    var idfield = "<a href='"+Retina.WidgetInstances.dockerimages[1].shock_base+"/"+data[i].id+"' target=_blank title='no docker file available'>"+data[i].id+"</a>";
 	    if (data[i].attributes.dockerfile) {
 		idfield = "<a style='cursor: pointer;' onclick='Retina.WidgetInstances.dockerimages[1].tooltip(jQuery(this), \""+data[i].id+"\")'>"+data[i].id+"</a>";
@@ -102,9 +112,9 @@
 	    }
 	    
 	    new_data.push({ "name": data[i].attributes.name,
-				"namespace" : namespace[0],
-				"repository" : namespace[1] || "",
-				"tag" : namearray[1],
+				"namespace" : namespace,
+				"repository" : repository_name,
+				"tag" : repository_tag,
 			    "base_image_tag": data[i].attributes.base_image_tag,
 			    "docker version": data[i].attributes.docker_version.Version,
 			    "shock node id": idfield,
