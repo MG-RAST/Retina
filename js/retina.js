@@ -90,9 +90,6 @@
     };
     
     Retina.keys = function (object) {
-	if (! object) {
-	    return false;
-	}
 	if (object !== Object(object)) throw new TypeError('Invalid object');
 	var keys = [];
 	for (var key in object) {
