@@ -17,67 +17,60 @@
 	];
     };
 
+    widget.headers = {};
+
     widget.shock_base = "http://shock.metagenomics.anl.gov/node";
     widget.shock_url = widget.shock_base + "?query&type=dockerimage";
     
     widget.display = function (wparams) {
         widget = this;
-	
+
+	if (wparams) {
+	    widget.target = wparams.target;
+	}
+
 	if (Retina.WidgetInstances.hasOwnProperty('login') && Retina.WidgetInstances.login.length > 1) {
 	    Retina.WidgetInstances.login[1].callback = Retina.WidgetInstances.dockerimages[1].update;
 	}
 
-	wparams.type || "table";
+	var result_columns = [ "name", "base_image_tag", "docker version", "id", "temporary", "Arch", "GitCommit", "GoVersion", "KernelVersion", "Os" ];
 
-	var result_columns = wparams.header || [ "name", "base_image_tag", "docker version", "id", "temporary", "Arch", "GitCommit", "GoVersion", "KernelVersion", "Os" ];
-
-	var result_table_filter = wparams.filter;
-	if (result_table_filter == null) {
-	    result_table_filter = {};
-	    for (var i=0;i<result_columns.length;i++) {
-		result_table_filter[i] = { "type": "text" };
-	    }
+	result_table_filter = {};
+	for (var i=0;i<result_columns.length;i++) {
+	    result_table_filter[i] = { "type": "text" };
 	}
-
-	if (wparams.type == "listselect") {
-	    widget.result_list = Retina.Renderer.create("listselect", {
-		target: wparams.target,
-		callback: wparams.callback || null,
-		asynch_limit: 100,
-		synchronous: false,
-		navigation_url: widget.shock_url,
-		data: [],
-		filter: result_columns,
-		multiple: (wparams.multiple === false) ? false : true,
-		extra_wide: wparams.wide || false,
-		return_object: true,
-		filter_attribute: 'name',
-		asynch_filter_attribute: 'name',
-		value: "id"
-	    });
-	    widget.result_list.update_data({},1);
-	} else {	
-	    widget.result_table = Retina.Renderer.create("table", {
-		target: wparams.target,
-		rows_per_page: 14,
-		filter_autodetect: false,
-		filter: result_table_filter,
-		sort_autodetect: false,
-		synchronous: false,
-		query_type: 'prefix',
-		data_manipulation: widget.dataManipulation,
-		navigation_url: widget.shock_url,
-		invisible_columns: { 4: 1,
-				     5: 1,
-				     6: 1,
-				     7: 1,
-				     8: 1,
-				     9: 1 },
-		data: { data: [], header: result_columns }
-	    });
-	    widget.result_table.render();
-	    widget.result_table.update({},1);
-	}
+	
+	widget.result_table = Retina.Renderer.create("table", {
+	    target: widget.target,
+	    rows_per_page: 14,
+	    filter_autodetect: false,
+	    filter: result_table_filter,
+	    sort_autodetect: false,
+	    synchronous: false,
+	    query_type: 'prefix',
+	    headers: widget.headers,
+	    data_manipulation: widget.dataManipulation,
+	    asynch_column_mapping: { "name": "name",
+				     "base_image_tag": "base_image_tag",
+				     "docker version": "docker_version.Version",
+				     "id": "id",
+				     "temporary": "temporary",
+				     "Arch": "docker_version.Arch",
+				     "GitCommit": "docker_version.GitCommit",
+				     "GoVersion": "docker_version.GoVersion",
+				     "KernelVersion": "docker_version.KernelVersion",
+				     "Os": "docker_version.Os" },
+	    navigation_url: widget.shock_url,
+	    invisible_columns: { 4: 1,
+				 5: 1,
+				 6: 1,
+				 7: 1,
+				 8: 1,
+				 9: 1 },
+	    data: { data: [], header: result_columns }
+	});
+	widget.result_table.render();
+	widget.result_table.update({},1);
     };
 
     widget.update = function () {
@@ -119,6 +112,16 @@
 	obj.popover('destroy');
 	obj.popover({content: "<button class='close' style='position: relative; bottom: 8px; left: 8px;' type='button' onclick='this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode);'>×</button><a href='"+Retina.WidgetInstances.dockerimages[1].shock_base+"/"+id+"' target=_blank onclick=this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode)>view node</a><br><a style='cursor: pointer;' onclick='Retina.WidgetInstances.dockerimages[1].dockerfile(&#39;"+id+"&#39;);this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode);'>view dockerfile</a>",html:true,placement:"top"});
 	obj.popover('show');
-    }
+    };
+
+    widget.loginAction = function (action) {
+	var widget = Retina.WidgetInstances.dockerimages[1];
+	if (action.action == "login" && action.result == "success") {
+	    widget.authHeader = { "Authorization": "OAuth "+action.token };
+	} else {
+	    widget.authHeader = {};
+	}
+	widget.display();
+    };
     
 })();

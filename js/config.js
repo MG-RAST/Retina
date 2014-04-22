@@ -4,5 +4,10 @@ var RetinaConfig = {
     "ipynbo_api": "http://140.221.85.69:8080",
     "mgrast_api": "http://api.metagenomics.anl.gov/1",
     "kbase_api": "https://kbase.us/services/search-api/search",
-    "globus_key": "kbgo4711"
+    "globus_key": "kbgo4711",
+    "authResources": { "default": "KBase",
+		       "KBase": { "icon": "KBase_favicon.ico",
+				  "prefix": "kbgo4711" } },
+    "mgrast_api": "http://api.metagenomics.anl.gov",
+    "authentication": true
 };
