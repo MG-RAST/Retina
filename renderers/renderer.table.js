@@ -432,7 +432,11 @@
 			    
 			    var filter_text  = document.createElement("input");
 			    filter_text.value = filter[i].searchword;
-			    filter_text.setAttribute("style", "float: left; width: 100px; display: none;");
+			    var pos = "bottom: 2px;";
+			    if (! renderer.settings.disable_sort[i]) {
+				pos = "top: 2px;";
+			    }
+			    filter_text.setAttribute("style", "float: left; width: 100px; display: none; position: relative; "+pos);
 			    filter_text.i = i;
 			    filter_text.index = index;
 			    filter_text.onkeypress = function (e) {
@@ -550,13 +554,12 @@
 		    }
 		    th.setAttribute("style", "padding: 0px; padding-left: 4px; min-width: "+mw+"px;");
 		    var th_div = document.createElement("div");
-		    th_div.setAttribute("style", "float: left; position: relative; top: 4px;");
+		    th_div.setAttribute("style", "float: left; position: relative; height: 25px;");
 		    th_div.innerHTML = header[i];
 		    th.appendChild(th_div);
-		    if (renderer.settings.disable_sort[i]) {
-			th_div.style.top = "-6px";
-		    } else {
+		    if (! renderer.settings.disable_sort[i]) {
 			th.appendChild(caret);
+			th_div.style.top = "4px";
 		    }
 		    if (filter[i]) {
 			var filter_icon = document.createElement("i");
@@ -566,14 +569,18 @@
 			    is_active = " border: 1px solid blue;";
 			    filter_icon.setAttribute("title", "filtered for: '"+filter[i].searchword+"'");
 			}
-			filter_icon.setAttribute("style", "float: right; margin-top: 6px; cursor: pointer; margin-right: 2px;"+is_active);
+			var pos = "3";
+			if (! renderer.settings.disable_sort[i]) {
+			    pos = "7";
+			}
+			filter_icon.setAttribute("style", "float: right; position: relative; top: "+pos+"px; cursor: pointer; right: 2px;"+is_active);
 			filter_icon.onclick = function () {
 			    if (this.nextSibling.style.display == "") {
 				this.nextSibling.style.display = "none";
-				this.previousSibling.previousSibling.style.display = "";
+				this.parentNode.firstChild.style.display = "";
 			    } else {
 				this.nextSibling.style.display = "";
-				this.previousSibling.previousSibling.style.display = "none";
+				this.parentNode.firstChild.style.display = "none";
 			    }
 			}			  
 			th.appendChild(filter_icon);
