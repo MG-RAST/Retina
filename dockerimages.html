@@ -13,13 +13,13 @@
 	<script>
     stm.init({ url: stm.Config.mgrast_api }, 1, "MG-RAST");
 Retina.init( { library_resource: "js/" } ).then( function() {
-    Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
-    Retina.load_widget("login").then( function() {
-	Retina.Widget.create('login', {"target": document.getElementById("login_space")});
-    });
     Retina.add_widget({"name": "dockerimages", "resource": "widgets/",  "filename": "widget.dockerimages.js"});
     Retina.load_widget("dockerimages").then( function() {
 	Retina.Widget.create('dockerimages', {"target": document.getElementById("content"), "fileUpload": document.getElementById('fu'), "type":"table", "wide": true});
+	Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
+	Retina.load_widget("login").then( function() {
+	    Retina.Widget.create('login', {"target": document.getElementById("login_space"), "callback": Retina.WidgetInstances.dockerimages[1].loginAction });
+	});
     });
 });
 	</script>
