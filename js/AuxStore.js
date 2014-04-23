@@ -72,44 +72,45 @@
 	if (token != null) {
 	    SHOCK.auth_header = {'Authorization': 'OAuth '+token};
 	} else {
-	    console.log("error: no token passed to set_auth method");
+	    SHOCK.auth_header = {};
 	}
     };
 
     SHOCK.get_node = function (node, ret) {
 	var url = SHOCK.url+'/node/'+node
 	var promise = jQuery.Deferred();
-        jQuery.getJSON(url, { 
-	    success: function(data) {
-		var retval = null;
-		if (data != null && data.hasOwnProperty('data')) {
-		    if (data.error != null) {
-			retval = null;
-			console.log("error: "+data.error);
-		    } else {
-			retval = data.data;
-		    }
-		} else {
-		    retval = null;
-		    console.log("error: invalid return structure from SHOCK server");
-		    console.log(data);
-		}
-		
-		if (typeof ret == "function") {
-		    ret(retval);
-		} else {
-		    ret = retval;
-		}
-		
-		promise.resolve();
-	    },
-	    error: function(jqXHR, error) {
-		console.log( "error: unable to connect to SHOCK server" );
-		console.log(error);
-		promise.resolve();
-	    },
-	    headers: SHOCK.auth_header
-	});
+        jQuery.ajax({ url: url,
+		      dataType: "json",
+		      success: function(data) {
+			  var retval = null;
+			  if (data != null && data.hasOwnProperty('data')) {
+			      if (data.error != null) {
+				  retval = null;
+				  console.log("error: "+data.error);
+			      } else {
+				  retval = data.data;
+			      }
+			  } else {
+			      retval = null;
+			      console.log("error: invalid return structure from SHOCK server");
+			      console.log(data);
+			  }
+			  
+			  if (typeof ret == "function") {
+			      ret(retval);
+			  } else {
+			      ret = retval;
+			  }
+			  
+			  promise.resolve();
+		      },
+		      error: function(jqXHR, error) {
+			  console.log( "error: unable to connect to SHOCK server" );
+			  console.log(error);
+			  promise.resolve();
+		      },
+		      headers: SHOCK.auth_header
+		    });
 
 	return promise;
     };
@@ -117,36 +118,37 @@
     SHOCK.get_all_nodes = function (ret) {
 	var url = SHOCK.url+'/node';
 	var promise = jQuery.Deferred();
-        jQuery.getJSON(url, { 
-	    success: function(data) {
-		var retval = null;
-		if (data != null && data.hasOwnProperty('data')) {
-		    if (data.error != null) {
-			retval = null;
-			console.log("error: "+data.error);
-		    } else {
-			retval = data.data;
-		    }
-		} else {
-		    retval = null;
-		    console.log("error: invalid return structure from SHOCK server");
-		    console.log(data);
-		}
-		
-		if (typeof ret == "function") {
-		    ret(retval);
-		} else {
-		    ret = retval;
-		}
-		
-		promise.resolve();
-	    },
-	    error: function(jqXHR, error) {
-		console.log( "error: unable to connect to SHOCK server" );
-		console.log(error);
-		promise.resolve();
-	    },
-	    headers: SHOCK.auth_header
+        jQuery.ajax({ url: url, 
+		      success: function(data) {
+			  var retval = null;
+			  if (data != null && data.hasOwnProperty('data')) {
+			      if (data.error != null) {
+				  retval = null;
+				  console.log("error: "+data.error);
+			      } else {
+				  retval = data.data;
+			      }
+			  } else {
+			      retval = null;
+			      console.log("error: invalid return structure from SHOCK server");
+			      console.log(data);
+			  }
+			  
+			  if (typeof ret == "function") {
+			      ret(retval);
+			  } else {
+			      ret = retval;
+			  }
+			  
+			  promise.resolve();
+		      },
+		      error: function(jqXHR, error) {
+			  console.log( "error: unable to connect to SHOCK server" );
+			  console.log(error);
+			  promise.resolve();
+		      },
+		      headers: SHOCK.auth_header,
+		      dataType: "json"
 	});
 
 	return promise;

@@ -4,7 +4,7 @@
                 title: "SHOCK Browser Widget",
                 name: "shockbrowse",
                 author: "Tobias Paczian",
-                requires: [ "AuxStore.js" ]
+                requires: []
         }
     });
     
@@ -13,92 +13,223 @@
  	    Retina.add_renderer({"name": "table", "resource": "./renderers/",  "filename": "renderer.table.js" }),
   	    Retina.load_renderer("table"),
  	    Retina.add_renderer({"name": "listselect", "resource": "./renderers/",  "filename": "renderer.listselect.js" }),
-  	    Retina.load_renderer("listselect")
+  	    Retina.load_renderer("listselect"),
+ 	    Retina.add_renderer({"name": "tree", "resource": "./renderers/",  "filename": "renderer.tree.js" }),
+  	    Retina.load_renderer("tree")
 	];
     };
 
-    widget.shock_base = "http://shock.metagenomics.anl.gov/node";
-    widget.shock_url = widget.shock_base + "?query&type=dockerimage";
+    widget.shock_base = RetinaConfig.shock_url;
+    widget.authHeader = {};
+    widget.width = 1000;
+    widget.height = 400;
+    widget.borderRadius = 4;
+
+    widget.title = "SHOCK Browser";
+    widget.status = "<img src='images/loading.gif' style='height: 15px;'> connecting to SHOCK server...";
+    widget.nodeData = {};
+
+    widget.style = function () {
+	return '\
+<style>\
+.btn-moremini {\
+  padding-left: 5px;padding-right:5px\
+}\
+</style>\
+';
+    };
     
     widget.display = function (wparams) {
         widget = this;
 	
-	if (Retina.WidgetInstances.hasOwnProperty('login') && Retina.WidgetInstances.login.length > 1) {
-	    Retina.WidgetInstances.login[1].callback = Retina.WidgetInstances.shockbrowse[1].update;
+	if (wparams) {
+	    jQuery.extend(true, widget, wparams);
 	}
 
-	wparams.type || "table";
+	var browser = document.createElement('div');
+	widget.browser = browser;
 
-	var result_columns = wparams.header || [ "name", "base_image_tag", "docker version", "id", "temporary", "Arch", "GitCommit", "GoVersion", "KernelVersion", "Os" ];
+	browser.setAttribute('style', "width: "+widget.width+"px; height: "+widget.height+"px; border: 1px solid #C7C7C7; border-radius: "+widget.borderRadius+"px; box-shadow: 6px 6px 6px #BBBBBB;");
 
-	var result_table_filter = wparams.filter;
-	if (result_table_filter == null) {
-	    result_table_filter = {};
-	    for (var i=0;i<result_columns.length;i++) {
-		result_table_filter[i] = { "type": "text" };
-	    }
-	}
+	widget.target.innerHTML = widget.style();
+	widget.target.appendChild(browser);
 
-	if (wparams.type == "listselect") {
-	    widget.result_list = Retina.Renderer.create("listselect", {
-		target: wparams.target,
-		callback: wparams.callback || null,
-		asynch_limit: 100,
-		synchronous: false,
-		navigation_url: widget.shock_url,
-		data: [],
-		filter: result_columns,
-		multiple: (wparams.multiple === false) ? false : true,
-		extra_wide: wparams.wide || false,
-		return_object: true,
-		filter_attribute: 'name',
-		asynch_filter_attribute: 'name',
-		value: "id"
-	    });
-	    widget.result_list.update_data({},1);
-	} else {	
-	    widget.result_table = Retina.Renderer.create("table", {
-		target: wparams.target,
-		rows_per_page: 14,
-		filter_autodetect: false,
-		filter: result_table_filter,
-		sort_autodetect: false,
-		synchronous: false,
-		query_type: 'prefix',
-		data_manipulation: widget.dataManipulation,
-		navigation_url: widget.shock_url,
-		invisible_columns: { 4: 1,
-				     5: 1,
-				     6: 1,
-				     7: 1,
-				     8: 1,
-				     9: 1 },
-		data: { data: [], header: result_columns }
-	    });
-	    widget.result_table.render();
-	    widget.result_table.update({},1);
+	widget.top_section();
+	widget.middle_section();
+	widget.bottom_section();
+
+	if (! widget.data) {
+	    widget.updateData();
 	}
     };
 
-    widget.update = function () {
-	Retina.WidgetInstances.shockbrowse[1].result_table.update({}, 1);
+    /*
+     * GENERAL SECTIONS 
+     */
+    widget.top_section = function () {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	if (widget.topSection) {
+	    widget.browser.removeChild(widget.topSection);
+	}
+
+	var section = document.createElement('div');
+	section.setAttribute('style', "height: 50px; border-bottom: 1px solid #838383; background-color: #F5F5F5; background-image: linear-gradient(to bottom, #FDFDFD, #C3C3C3); background-repeat: repeat-x; position: relative; border-radius: "+widget.borderRadius+"px "+widget.borderRadius+"px 0 0;");
+
+	if (widget.middleSection) {
+	    widget.browser.insertBefore(widget.middleSection, section);
+	} else {
+	    widget.browser.appendChild(section);
+	}
+
+	widget.topSection = section;
+
+	widget.title_bar();
     };
 
-    widget.dataManipulation = function (data) {
-	var new_data = [];
-	for (var i=0;i<data.length;i++) {
-	    new_data.push({ "name": data[i].attributes.name, 
-			    "base_image_tag": data[i].attributes.base_image_tag,
-			    "docker version": data[i].attributes.docker_version.Version,
-			    "id": "<a href='"+Retina.WidgetInstances.shockbrowse[1].shock_base+"/"+data[i].id+"' target=_blank>"+data[i].id+"</a>",
-			    "temporary": data[i].attributes.temporary, 
-			    "Arch": data[i].attributes.docker_version.Arch, 
-			    "GitCommit": data[i].attributes.docker_version.GitCommit, 
-			    "GoVersion": data[i].attributes.docker_version.GoVersion,
-			    "KernelVersion": data[i].attributes.docker_version.KernelVersion, 
-			    "Os": data[i].attributes.docker_version.Os });
+    widget.middle_section = function () {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	if (widget.middleSection) {
+	    widget.browser.removeChild(widget.middleSection);
 	}
-	return new_data;
+
+	var height = widget.height - 72;
+
+	var section = document.createElement('div');
+	section.setAttribute('style', "height: "+height+"px;");
+
+	if (widget.bottomSection) {
+	    widget.browser.insertBefore(widget.bottomSection, section);
+	} else {
+	    widget.browser.appendChild(section);
+	}
+	widget.middleSection = section;
+    };
+
+    widget.bottom_section = function () {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	if (widget.bottomSection) {
+	    widget.browser.removeChild(widget.bottomSection);
+	}
+
+	var section = document.createElement('div');
+	section.setAttribute('style', "height: 20px; border-top: 1px solid #838383; background-color: #F5F5F5; background-image: linear-gradient(to bottom, #FDFDFD, #C3C3C3); background-repeat: repeat-x; position: relative;");
+
+	widget.browser.appendChild(section);
+	widget.bottomSection = section;
+
+	widget.status_bar();
+    };
+
+    /*
+     * TOP SECTION INTERNALS
+     */
+    widget.title_bar = function () {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	if (widget.titleBar) {
+	    widget.topSection.removeChild(widget.titleBar);
+	}
+
+	var section = document.createElement('div');
+	section.setAttribute('style', "width: 100%; text-align: center; text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);");
+	section.innerHTML = widget.title;
+
+	if (widget.toolSection) {
+	    widget.topSection.insertBefore(widget.toolSection, section);
+	} else {
+	    widget.topSection.appendChild(section);
+	}
+	widget.titleBar = section;
+    };
+
+    /*
+     * MIDDLE SECTION INTERNALS
+     */
+
+
+    /*
+     * BOTTOM SECTION INTERNALS
+     */
+    widget.status_bar = function () {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	if (widget.statusBar) {
+	    widget.bottomSection.removeChild(widget.statusBar);
+	}
+
+	var section = document.createElement('div');
+	section.setAttribute('style', "width: 100%; text-align: center; text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);");
+	section.innerHTML = widget.status;
+
+	widget.bottomSection.appendChild(section);
+	
+	widget.statusBar = section;
+    };
+
+    /*
+     * ACTION FUNCTIONS
+     */
+    widget.setShockBase = function (url) {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	widget.shock_base = url;
+
+	widget.display();
+    };
+
+    widget.loginAction = function (action) {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+	if (action.action == "login" && action.result == "success") {
+	    widget.authHeader = { "Authorization": "OAuth "+action.token };
+	} else {
+	    widget.authHeader = {};
+	}
+	widget.display();
+    };
+    
+    widget.updateData = function () {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	jQuery.ajax({ url: widget.shock_base + "/node",
+		      dataType: "json",
+		      success: function(data) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  var retval = null;
+			  if (data != null) {
+			      if (data.error != null) {
+				  retval = null;
+				  console.log("error: "+data.error);
+			      } else {
+				  retval = data.data;
+			      }
+			  } else {
+			      retval = null;
+			      console.log("error: invalid return structure from SHOCK server");
+			      console.log(data);
+			  }
+			  widget.data = data;
+			  widget.updateDisplay();
+		      },
+		      error: function(jqXHR, error) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  console.log( "error: unable to connect to SHOCK server" );
+			  console.log(error);
+			  widget.updateDisplay();
+		      },
+		      headers: widget.authHeader
+		    });
+    };
+
+    widget.updateDisplay = function () {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	if (widget.data && widget.data.hasOwnProperty('total_count')) {
+	    widget.status = "Connected to SHOCK - "+widget.data.total_count+" nodes available";
+	    widget.status_bar();
+	}
     };
     
 })();

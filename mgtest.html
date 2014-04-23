@@ -8,18 +8,18 @@
 	<script src="js/config.js"></script>
 	<script src="js/stm.js"></script>
 	<script src="js/retina.js"></script>
+	<script src="js/standalone.tree.js"></script>
 	<script src="js/bootstrap.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 	<script>
-    //stm.init(stm.Config.mgrast_api, true, "MG-RAST");
 	    Retina.init( { library_resource: "js/" } ).then( function() {
-		    Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
+	    	    Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
 	        Retina.load_widget("login").then( function() {
-		        Retina.Widget.create('login', {"target": document.getElementById("login_space")});
-		    });
+	    	        Retina.Widget.create('login', {"target": document.getElementById("login_space")});
+	    	    });
 	        Retina.add_widget({"name": "mgtest", "resource": "widgets/",  "filename": "widget.mgtest.js"});
 	        Retina.load_widget("mgtest").then( function() {
-		        Retina.Widget.create('mgtest', {"target": document.getElementById("content")});
+	    	        Retina.Widget.create('mgtest', {"target": document.getElementById("content")});
 	        });
 	    });
 	</script>
