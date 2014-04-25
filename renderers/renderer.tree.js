@@ -176,6 +176,7 @@
 	    // check if a collapse all button should be displayed
 	    if (renderer.settings.showCollapseAllButton) {
 		var cB = document.createElement('button');
+		cB.setAttribute("type", "button");
 		cB.className = "btn btn-small";
 		cB.innerHTML = "collapse all";
 		cB.setAttribute('style', "margin-bottom: 5px; margin-right: 5px;");
@@ -190,6 +191,7 @@
 	    // check if an expand all button should be displayed
 	    if (renderer.settings.showExpandAllButton) {
 		var cB = document.createElement('button');
+		cB.setAttribute("type", "button");
 		cB.className = "btn btn-small";
 		cB.innerHTML = "expand all";
 		cB.setAttribute('style', "margin-bottom: 5px; margin-right: 5px;");
@@ -231,7 +233,7 @@
 		var sB = document.createElement('div');
 		sB.setAttribute('style', "float: left; margin-right: 5px;");
 		sB.className = "input-append";
-		sB.innerHTML = "<input type='text' index='"+index+"' style='width: 144px; height: 16px; font-size: 11.9px;' id='tree_search_input_"+index+"' autocomplete='off'><button class='btn btn-small' onclick='Retina.RendererInstances.tree["+index+"].goTo("+index+");'>go</button>";
+		sB.innerHTML = "<input type='text' index='"+index+"' style='width: 144px; height: 16px; font-size: 11.9px;' id='tree_search_input_"+index+"' autocomplete='off'><button type='button' class='btn btn-small' onclick='Retina.RendererInstances.tree["+index+"].goTo("+index+");'>go</button>";
 		renderer.settings.target.appendChild(sB);
 
 		// add a keypress listener

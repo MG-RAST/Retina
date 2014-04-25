@@ -4,15 +4,12 @@
                 title: "MG-RAST v4 Test Widget",
                 name: "mgtest",
                 author: "Tobias Paczian",
-                requires: [ ]
+                requires: []
         }
     });
     
     widget.setup = function () {
-	return [ 
- 	    Retina.add_renderer({"name": "tree", "resource": "./renderers/",  "filename": "renderer.tree.js" }),
-  	    Retina.load_renderer("tree"),
-	];
+	return [];
     };
     
     widget.display = function (wparams) {
@@ -31,24 +28,27 @@
 	container.innerHTML = html;
 
 	jQuery.get("http://api.metagenomics.anl.gov/1/metadata/ontology?name=biome&version=2013-04-27", function (data) {
-	    Retina.Renderer.create("tree", {
+	    standaloneTree.create({
 		target: document.getElementById('biome'),
-		data: data
-	    }).render();
+		data: data,
+		index: 0
+	    }).render(0);
 	});
 
 	jQuery.get("http://api.metagenomics.anl.gov/1/metadata/ontology?name=feature&version=2013-04-27", function (data) {
-	    Retina.Renderer.create("tree", {
+	    standaloneTree.create({
 		target: document.getElementById('feature'),
-		data: data
-	    }).render();
+		data: data,
+		index: 1
+	    }).render(1);
 	});
 
 	jQuery.get("http://api.metagenomics.anl.gov/1/metadata/ontology?name=material&version=2013-04-27", function (data) {
-	    Retina.Renderer.create("tree", {
+	    standaloneTree.create({
 		target: document.getElementById('material'),
-		data: data
-	    }).render();
+		data: data,
+		index: 2
+	    }).render(2);
 	});
     };
     
