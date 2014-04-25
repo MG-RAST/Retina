@@ -587,10 +587,10 @@
 	
 	var url = widget.shock_base + "/node/?limit="+widget.currentLimit+"&offset="+widget.currentOffset;
 	if (Retina.keys(widget.filters).length) {
-	    url += "&query&";
+	    url += "&query";
 	    for (var i in widget.filters) {
 		if (widget.filters.hasOwnProperty(i)) {
-		    url += i+"="+widget.filters[i];
+		    url += "&"+i+"="+widget.filters[i];
 		}
 	    }
 	}
