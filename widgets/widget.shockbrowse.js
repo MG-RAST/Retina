@@ -74,7 +74,7 @@
   cursor: pointer;\
 }\
 .fileItem:hover {\
-  background-color: lightblue;\
+  background-color: #e6eaef;\
 }\
 </style>\
 ';
@@ -331,7 +331,7 @@
 	} else {
 	    var height = widget.height - 72;
 	    var section = document.createElement('div');
-	    section.setAttribute('style', "height: "+height+"px; width: "+widget.filterWidth+"px; float: left; background-color: #ADD8E6;");
+	    section.setAttribute('style', "height: "+height+"px; width: "+widget.filterWidth+"px; float: left; background-color: #e6eaef; color: #6e7886;");
 	    widget.sections.middleSection.appendChild(section);
 	    widget.sections.filterSection = section;
 	}
@@ -651,7 +651,7 @@
 	    }
 	    
 	    widget.selectedFile = e.currentTarget;
-	    widget.selectedFile.style.backgroundColor = "lightblue";
+	    widget.selectedFile.style.backgroundColor = "#e6eaef";
 
 	    widget.currentFileId = e.currentTarget.getAttribute('fi');
 	}
