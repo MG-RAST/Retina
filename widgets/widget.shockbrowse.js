@@ -90,15 +90,9 @@
 	    jQuery.extend(true, widget, wparams);
 	}
 
-	if (widget.width < 1200) {
-	    widget.filterWidth = Math.floor(widget.width / 3) - 5;
-	    widget.fileWidth = Math.floor(widget.width / 3) - 5;
-	    widget.detailWidth = Math.floor(widget.width / 3) - 5;
-	} else {
-	    widget.filterWidth = Math.floor(widget.width / 5) - 5;
-	    widget.fileWidth = Math.floor(widget.width / 5 * 2) - 5;
-	    widget.detailWidth = Math.floor(widget.width / 5 * 2) - 5;
-	}
+	widget.filterWidth = 232;
+	widget.fileWidth = Math.floor((widget.width - 229) / 2) - 5;
+	widget.detailWidth = Math.floor((widget.width - 229) / 2) - 5;
 
 	widget.sections = {};
 
@@ -162,7 +156,6 @@
 	}
 
 	widget.filter_section();
-	widget.middle_border();
 	widget.file_section();
 	widget.middle_border();
 	widget.detail_section();
@@ -331,7 +324,7 @@
 	} else {
 	    var height = widget.height - 72;
 	    var section = document.createElement('div');
-	    section.setAttribute('style', "height: "+height+"px; width: "+widget.filterWidth+"px; float: left; background-color: #e6eaef; color: #6e7886;");
+	    section.setAttribute('style', "height: "+height+"px; width: "+widget.filterWidth+"px; float: left; background-color: #e6eaef; color: #6e7886; border-right: 1px solid #808080;");
 	    widget.sections.middleSection.appendChild(section);
 	    widget.sections.filterSection = section;
 	}
