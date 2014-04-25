@@ -24,25 +24,37 @@
      */
     widget.shock_base = RetinaConfig.shock_url;
     widget.authHeader = {};
-    widget.width = 1400;
+    widget.width = 1200;
     widget.height = 600;
     widget.borderRadius = 4;
     widget.fontSize = 13;
+    widget.chunkSize = 2048;
 
-    widget.filterWidth = Math.floor(widget.width / 5) - 5;
-    widget.fileWidth = Math.floor(widget.width / 5 * 2) - 5;
-    widget.detailWidth = Math.floor(widget.width / 5 * 2) - 5;
+    widget.sizes = { "small": [ 800, 400 ],
+		     "medium": [ 1200, 600 ],
+		     "large": [ 1550, 800 ] };
 
     widget.sections = {};
 
     widget.title = "SHOCK Browser";
     widget.status = "<img src='images/waiting.gif' style='height: 15px;'> connecting to SHOCK server...";
-    widget.nodeData = {};
     widget.progress = null;
     widget.detailType = "info";
     widget.selectedFile = null;
     widget.detailInfo = null;
     widget.infoRequest = null;
+    widget.append = false;
+    widget.currentOffset = 0;
+    widget.currentLimit = 100;
+    widget.scrollPosition = 0;
+    widget.filters = {};
+    widget.keylist = [
+	{ "name": "type", "value": "type" },
+	{ "name": "data_type", "value": "data type" },
+	{ "name": "status", "value": "status" },
+	{ "name": "file_format", "value": "file format" },
+	{ "name": "_custom_", "value": "custom - 'field=value'" }
+    ];
 
     /*
      * STYLESHEET
@@ -76,6 +88,16 @@
 
 	if (wparams) {
 	    jQuery.extend(true, widget, wparams);
+	}
+
+	if (widget.width < 1200) {
+	    widget.filterWidth = Math.floor(widget.width / 3) - 5;
+	    widget.fileWidth = Math.floor(widget.width / 3) - 5;
+	    widget.detailWidth = Math.floor(widget.width / 3) - 5;
+	} else {
+	    widget.filterWidth = Math.floor(widget.width / 5) - 5;
+	    widget.fileWidth = Math.floor(widget.width / 5 * 2) - 5;
+	    widget.detailWidth = Math.floor(widget.width / 5 * 2) - 5;
 	}
 
 	widget.sections = {};
@@ -176,12 +198,22 @@
 	    section.innerHTML = "";
 	} else {
 	    section = document.createElement('div');
-	    section.setAttribute('style', "width: 100%; text-align: center; text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);");
+	    section.setAttribute('style', "text-align: center; text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);");
 	    widget.sections.topSection.appendChild(section);
 	    widget.sections.titleBar = section;
 	}
 
 	section.innerHTML = widget.title;
+	var resizer = document.createElement('div');
+	resizer.setAttribute('style', "float: left;");
+	resizer.innerHTML = '\
+<img src="images/box.png" style="margin-left: 10px; margin-right: 5px; width: 16px; cursor: pointer;" onclick="Retina.WidgetInstances.shockbrowse[1].width=Retina.WidgetInstances.shockbrowse[1].sizes[\'large\'][0];Retina.WidgetInstances.shockbrowse[1].height=Retina.WidgetInstances.shockbrowse[1].sizes[\'large\'][1];Retina.WidgetInstances.shockbrowse[1].display();">\
+\
+<img src="images/box.png" style="margin-right: 5px; width: 12px; cursor: pointer;" onclick="Retina.WidgetInstances.shockbrowse[1].width=Retina.WidgetInstances.shockbrowse[1].sizes[\'medium\'][0];Retina.WidgetInstances.shockbrowse[1].height=Retina.WidgetInstances.shockbrowse[1].sizes[\'medium\'][1];Retina.WidgetInstances.shockbrowse[1].display();">\
+\
+<img src="images/box.png" style="width: 8px; cursor: pointer;" onclick="Retina.WidgetInstances.shockbrowse[1].width=Retina.WidgetInstances.shockbrowse[1].sizes[\'small\'][0];Retina.WidgetInstances.shockbrowse[1].height=Retina.WidgetInstances.shockbrowse[1].sizes[\'small\'][1];Retina.WidgetInstances.shockbrowse[1].display();">\
+';
+	section.appendChild(resizer);
     };
 
     widget.tool_bar = function () {
@@ -199,7 +231,7 @@
 	}
 
 	var toolBar = document.createElement('div');
-	toolBar.setAttribute("style", "position: relative; bottom: 4px;");
+	toolBar.setAttribute("style", "position: relative; bottom: 4px; margin-left: "+widget.filterWidth+"px;");
 
 	// upload bar
 	var uploadBar = document.createElement('div');
@@ -209,9 +241,43 @@
 	uploadButton.className = "btn btn-menu btn-small";
 	uploadButton.title = "upload file";
 	uploadButton.innerHTML = "<img src='images/upload.png' style='height: 16px;'>";
-	uploadBar.appendChild(uploadButton);
+	uploadButton.addEventListener('click', function(){
+	    var widget = Retina.WidgetInstances.shockbrowse[1];
+	    alert('not implemented');
+	});
+	//uploadBar.appendChild(uploadButton);
 
 	toolBar.appendChild(uploadBar);
+
+	// modify bar
+	var modifyBar = document.createElement('div');
+	modifyBar.className = "btn-group";
+	
+	var downloadButton = document.createElement('button');
+	downloadButton.className = "btn btn-menu btn-small";
+	downloadButton.title = "download selected file";
+	downloadButton.innerHTML = "<img src='images/download.png' style='height: 16px;'>";
+	downloadButton.addEventListener('click', function(){
+	    var widget = Retina.WidgetInstances.shockbrowse[1];
+	    if (widget.selectedFile) {
+		window.location = widget.shock_base + "/node/" + widget.selectedFile.getAttribute('fi') + "?download";
+	    } else {
+		alert('no file selected for download');
+	    }
+	});
+	modifyBar.appendChild(downloadButton);
+
+	var deleteButton = document.createElement('button');
+	deleteButton.className = "btn btn-menu btn-small";
+	deleteButton.title = "delete selected file";
+	deleteButton.innerHTML = "<img src='images/remove.png' style='height: 16px;'>";
+	deleteButton.addEventListener('click', function(){
+	    var widget = Retina.WidgetInstances.shockbrowse[1];
+	    alert('not implemented');
+	});
+	//modifyBar.appendChild(deleteButton);
+
+	toolBar.appendChild(modifyBar);
 
 	// detail type
 	var detailBar = document.createElement('div');
@@ -274,12 +340,39 @@
 	sectionContent.setAttribute("style", "padding-left: 5px; padding-top: 1px; padding-right: 5px; height: inherit; overflow-y: scroll;");
 	section.appendChild(sectionContent);
 
-	sectionContent.innerHTML = "\
-<p style='font-weight: bold;'>Filter</p>\
-<select><option>data type</option></select>\
-<input type='text' placeholder='enter filter text' id='filterText'>\
-<button class='btn' onclick='Retina.WidgetInstances.shockbrowse[1].updateData();'>set</button>\
-";
+	sectionContent.innerHTML = '\
+<p style="font-weight: bold;">Filter</p>\
+<div class="control-group">\
+    <label class="control-label" for="filter_key">field</label>\
+    <div class="controls">\
+      <select id="filter_key" style="width: 220px; font-size: '+widget.fontSize+'px;"></select>\
+    </div>\
+  </div>\
+  <div class="control-group">\
+    <label class="control-label" for="filter_value">term</label>\
+    <div class="controls input-append">\
+      <input type="text" id="filter_value" placeholder="enter filter term" style="width: 157px; font-size: '+widget.fontSize+'px;">\
+      <button class="btn" onclick="Retina.WidgetInstances.shockbrowse[1].refineFilter(\'add\');">add</button>\
+    </div>\
+  </div>\
+  <hr>\
+  <div id="refine_filter_terms"></div>\
+';
+	
+	var keyselect = document.getElementById('filter_key');
+	var keylist = widget.keylist;
+	document.getElementById('filter_value').addEventListener('keypress', function (e) {
+	    e = e || window.event;
+	    if (e.keyCode == 13) {
+		Retina.WidgetInstances.shockbrowse[1].refineFilter('add');
+	    }
+	});
+	
+	var keyselect_html = "";
+	for (var i=0; i<keylist.length; i++) {
+	    keyselect_html += "<option value='"+keylist[i].name+"'>"+keylist[i].value+"</option>";
+	}
+	keyselect.innerHTML = keyselect_html;
 
 	widget.sections.filterSectionContent = sectionContent;
     };
@@ -288,37 +381,64 @@
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
 	var section;
-	if (widget.sections.fileSection) {
-	    section = widget.sections.fileSection;
-	    section.innerHTML = "";
-	    widget.sections.fileSectionContent = null;
+	var sectionContent;
+	if (widget.append) {
+	    sectionContent = widget.sections.fileSectionContent;
 	} else {
-	    var height = widget.height - 72;
-	    section = document.createElement('div');
-	    section.setAttribute('style', "height: "+height+"px; width: "+widget.fileWidth+"px; float: left;");
-	    widget.sections.middleSection.appendChild(section);
-	    widget.sections.fileSection = section;
-	}
+	    if (widget.sections.fileSection) {
+		section = widget.sections.fileSection;
+		section.innerHTML = "";
+		widget.sections.fileSectionContent = null;
+	    } else {
+		var height = widget.height - 72;
+		section = document.createElement('div');
+		section.setAttribute('style', "height: "+height+"px; width: "+widget.fileWidth+"px; float: left;");
+		widget.sections.middleSection.appendChild(section);
+		widget.sections.fileSection = section;
+	    }
 
-	var sectionContent = document.createElement('div');
-	sectionContent.setAttribute("style", "padding-left: 5px; padding-top: 1px; padding-right: 5px; height: inherit; overflow-y: scroll; font-size: "+widget.fontSize+"px;");
-	section.appendChild(sectionContent);
+	    sectionContent = document.createElement('div');
+	    sectionContent.setAttribute("style", "padding-left: 5px; padding-top: 1px; padding-right: 5px; height: inherit; overflow-y: scroll; font-size: "+widget.fontSize+"px;");
+	    section.appendChild(sectionContent);
+	    widget.sections.fileSectionContent = sectionContent
+
+	    sectionContent.addEventListener('scroll', function(event) {
+		event = event || window.event;
+		var widget = Retina.WidgetInstances.shockbrowse[1];
+		if (widget.currentOffset + widget.currentLimit < widget.data.total_count) {
+		    if (event.target.scrollTop == event.target.scrollTopMax) {
+			widget.scrollPosition = event.target.scrollTop;
+			widget.currentOffset += Retina.WidgetInstances.shockbrowse[1].currentLimit;
+			widget.append = true;
+			widget.updateData();
+		    }
+		}
+	    });
+	}
 
 	if (widget.data) {
 	    var html = "";
-	    for (var i=0; i<widget.data.data.length; i++) {
+	    for (var i=widget.currentOffset; i<widget.data.data.length; i++) {
 		var ds = widget.data.data[i];
 		html += "<div id='file"+ds.id+"' class='fileItem' fi='"+ds.id+"' onclick='Retina.WidgetInstances.shockbrowse[1].showDetails(event);' draggable='true' data-downloadurl='application/octet-stream:"+ds.file.name+":"+widget.shock_base + "/node/" + ds.id + "?download'>" + ds.file.name + "</div>";
 	    }
-	    sectionContent.innerHTML = html;
-	    for (var i=0; i<widget.data.data.length; i++) {
+	    if (widget.append) {
+		sectionContent.innerHTML += html;
+	    } else {
+		sectionContent.innerHTML = html;
+	    }
+
+	    for (var i=widget.currentOffset; i<widget.data.data.length; i++) {
 		var div = document.getElementById("file"+widget.data.data[i].id);
 		div.addEventListener("dragstart", function(evt){
 		    evt.dataTransfer.setData("DownloadURL", typeof this.dataset === "undefined" ? this.getAttribute("data-downloadurl") : this.dataset.downloadurl);
 		},false);
 	    }
+	    widget.append = false;
 	}
 
+	sectionContent.scrollTop = widget.scrollPosition;
+	
 	widget.sections.fileSectionContent = sectionContent;
     };
 
@@ -401,7 +521,7 @@
 	    widget.sections.authContainer = null;
 	} else {
 	    section = document.createElement('div');
-	    section.setAttribute('style', "width: 100%; text-align: center; text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);");
+	    section.setAttribute('style', "width: 100%; text-align: center; text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75); z-index: 1;");
 	    widget.sections.bottomSection.appendChild(section);
 	    widget.sections.statusBar = section;
 	}
@@ -456,15 +576,23 @@
 	}
 	widget.data = null;
 	widget.status = "<img src='images/waiting.gif' style='height: 15px;'> connecting to SHOCK server...";
-	widget.display();
+	widget.updateData();
     };
     
     widget.updateData = function () {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
-	var url = widget.shock_base + "/node";
-	if (document.getElementById('filterText').value) {
-	    url += "/?query&data_type="+document.getElementById('filterText').value;
+	widget.status = "<img src='images/waiting.gif' style='height: 15px;'> fetching data...";
+	widget.status_bar();
+	
+	var url = widget.shock_base + "/node/?limit="+widget.currentLimit+"&offset="+widget.currentOffset;
+	if (Retina.keys(widget.filters).length) {
+	    url += "&query&";
+	    for (var i in widget.filters) {
+		if (widget.filters.hasOwnProperty(i)) {
+		    url += i+"="+widget.filters[i];
+		}
+	    }
 	}
 	jQuery.ajax({ url: url,
 		      dataType: "json",
@@ -478,7 +606,13 @@
 			      console.log("error: invalid return structure from SHOCK server");
 			      console.log(data);
 			  }
-			  widget.data = data;
+			  if (widget.currentOffset == 0) {
+			      widget.data = data;
+			  } else {
+			      for (var i=0; i<data.data.length; i++) {
+				  widget.data.data.push(data.data[i]);
+			      }
+			  }
 			  widget.updateDisplay();
 		      },
 		      error: function(jqXHR, error) {
@@ -496,16 +630,20 @@
 
 	if (widget.data && widget.data.hasOwnProperty('total_count')) {
 	    var numNodes = widget.data.total_count.formatString(0);
-	    widget.status = "connected to SHOCK - "+numNodes+" nodes available";
+	    var maxNodes = widget.currentOffset+widget.currentLimit;
+	    widget.status = "loaded "+(maxNodes > numNodes ? numNodes : maxNodes)+" of "+numNodes+" nodes for current filter";
 	    widget.status_bar();
-	    widget.middle_section();
+	    widget.file_section();
+	    widget.detail_section();
 	}
     };
 
     widget.showDetails = function (e, update) {
-	e = e || window.event;
-
 	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	if (! widget.selectedFile && ! e) {
+	    return;
+	}
 
 	if (! update) {
 	    if (widget.selectedFile != null) {
@@ -532,7 +670,7 @@
 	var detailInfo = widget.detailInfo || "<div style='padding-top: "+height+"px; text-align: center;'><img src='images/waiting.gif' style='width: 25px;'></div>";
 
 	if (widget.detailType == "info") {
-	    html = "<h4>file information</h4><table style='text-align: left; font-size: "+widget.fontSize+"px;'>\
+	    html = "<h4>file information - "+node.file.name+"</h4><table style='text-align: left; font-size: "+widget.fontSize+"px;'>\
 <tr><th style='width: 75px;'>name</th><td>"+node.file.name+"</td></tr>\
 <tr><th>created</th><td>"+node.created_on+"</td></tr>\
 <tr><th>modified</th><td>"+node.last_modified+"</td></tr>\
@@ -543,20 +681,20 @@
 <tr><th>virtual</th><td>"+(node.file.virtual ? "yes" : "no")+"</td></tr>\
 </table>";
 	} else if (widget.detailType == "acl") {
-	    html = "<h4>acl</h4>"+detailInfo;
+	    html = "<h4>acl - "+node.file.name+"</h4>"+detailInfo;
 	} else if (widget.detailType == "attributes") {
-	    html = "<h4>attributes</h4><pre style='font-family: arial; font-size: "+widget.fontSize+"px;'>"+JSON.stringify(node.attributes, null, 2)+"</pre>";
+	    html = "<h4>attributes - "+node.file.name+"</h4><pre style='font-size: "+(widget.fontSize - 1) +"px;'>"+JSON.stringify(node.attributes, null, 2)+"</pre>";
 	} else if (widget.detailType == "preview") {
-	    html = "<h4>preview</h4>"+detailInfo;
+	    html = "<h4>preview - "+node.file.name+"</h4>"+detailInfo;
 	    if (widget.detailInfo) {
 		widget.detailInfo = null;
 	    } else {
-		var url = widget.shock_base + "/node/" + node.id + "?download&index=size&part=1&chunksize=1024";
+		var url = widget.shock_base + "/node/" + node.id + "?download&index=size&part=1&chunksize="+widget.chunkSize;
 		jQuery.ajax({ url: url,
 			      success: function(data) {
 				  var widget = Retina.WidgetInstances.shockbrowse[1];
-				  data = data.slice(0, 1024);
-				  widget.detailInfo = "<pre>"+data+"</pre>";
+				  data = data.slice(0, widget.chunkSize);
+				  widget.detailInfo = "<pre style='font-size: "+(widget.fontSize - 1)+"px;'>"+data+"</pre>";
 				  widget.showDetails(null, true);
 			      },
 			      error: function(jqXHR, error) {
@@ -571,4 +709,78 @@
 
 	widget.sections.detailSectionContent.innerHTML = html;
     };
+
+    widget.refineFilter = function (action, item) {
+	widget = Retina.WidgetInstances.shockbrowse[1];
+
+	// get the DOM space for the buttons
+	var target = document.getElementById('refine_filter_terms');
+
+	if (action == "add") {
+
+	    // add key and value to the filters
+	    var skeyList = document.getElementById('filter_key');
+	    var skey = skeyList.options[skeyList.selectedIndex].value;
+	    var sname = skeyList.options[skeyList.selectedIndex].text;
+	    var sval = document.getElementById('filter_value').value;
+
+	    // check for custom filter
+	    if (skey == "_custom_") {
+		var f = sval.split(/=/);
+		if (f.length == 2) {
+		    skey = f[0];
+		    sname = f[0];
+		    sval = f[1];
+		} else {
+		    alert("invalid format for custom filter\nPlease use 'field=value'");
+		    return;
+		}
+	    }
+	    widget.filters[skey] = sval;
+
+	    // check if this is the first button
+	    if (target.innerHTML == "") {
+		// create a 'clear' button
+
+		var clear = document.createElement('button');
+		clear.className = "btn btn-small btn-danger";
+		clear.innerHTML = "clear filters";
+		clear.addEventListener('click', function () {
+		    Retina.WidgetInstances.shockbrowse[1].refineFilter("clear");
+		});
+		clear.setAttribute('style', "width: 100%; clear: both; margin-bottom: 20px; margin-top: -15px;");
+		target.appendChild(clear);
+	    }
+	    
+	    var button = document.createElement('button');
+	    button.className = "btn btn-small";
+	    button.setAttribute('style', "float: left; margin-right: 10px;");
+	    button.innerHTML = sname+" - "+sval+" <i class='icon icon-remove'></i>";
+	    button.title = "click to remove";
+	    button.setAttribute('id', 'advFilter_'+skey);
+	    button.skey = skey;
+	    button.addEventListener('click', function() {
+		Retina.WidgetInstances.shockbrowse[1].refineFilter("remove", this.skey);
+	    });
+	    target.appendChild(button);
+	} else if (action == "remove") {
+	    delete widget.filters[item];
+	    target.removeChild(document.getElementById('advFilter_'+item));
+	    if (target.childNodes.length == 1) {
+		target.innerHTML = "";
+	    }
+	} else if (action == "clear") {
+	    widget.filters = {};
+	    target.innerHTML = "";
+	} else {
+	    console.log("undefined action for refineFilter");
+	    return;
+	}
+	widget.currentOffset = 0;
+	widget.scrollPosition = 0;
+	widget.data = null;
+	widget.append = false;
+	widget.updateData();
+    };
+
 })();
