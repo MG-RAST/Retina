@@ -169,6 +169,8 @@
   color: #0088CC;\
   background-color: #FFFFFF;\
   border-radius: 3px;\
+  font-size: 14px;\
+  font-family: Helvetica Neue,Helvetica,Arial,sans-serif;\
 }\
 .tree-node:hover {\
   color: #005580;\
@@ -179,40 +181,14 @@
   background-color: #0088CC;\
   color: #FFFFFF;\
   border-radius: 3px;\
+  font-size: 14px;\
+  font-family: Helvetica Neue,Helvetica,Arial,sans-serif;\
 }\
 </style>";
 
 	    // check if the data structure has parent information in the nodes, otherwise add it
 	    if (! renderer.settings.data.nodes[renderer.settings.data.rootNode].childNodes[0].hasOwnProperty('parentNodes')) {
 		renderer.setParentNode(index, renderer.settings.data.nodes[renderer.settings.data.rootNode], null);
-	    }
-
-	    // check if a collapse all button should be displayed
-	    if (renderer.settings.showCollapseAllButton) {
-		var cB = document.createElement('button');
-		cB.className = "btn btn-small";
-		cB.innerHTML = "collapse all";
-		cB.setAttribute('style', "margin-bottom: 5px; margin-right: 5px;");
-		cB.index = index;
-		cB.addEventListener('click', function () {
-		    var index = this.index;
-		    window.rendererTree[index].collapseAll(index);
-		});
-		renderer.settings.target.appendChild(cB);
-	    }
-
-	    // check if an expand all button should be displayed
-	    if (renderer.settings.showExpandAllButton) {
-		var cB = document.createElement('button');
-		cB.className = "btn btn-small";
-		cB.innerHTML = "expand all";
-		cB.setAttribute('style', "margin-bottom: 5px; margin-right: 5px;");
-		cB.index = index;
-		cB.addEventListener('click', function () {
-		    var index = this.index;
-		    window.rendererTree[index].expandAll(index);
-		});
-		renderer.settings.target.appendChild(cB);
 	    }
 
 	    // check if a search bar should be displayed
@@ -245,7 +221,7 @@
 		var sB = document.createElement('div');
 		sB.setAttribute('style', "float: left; margin-right: 5px;");
 		sB.className = "input-append";
-		sB.innerHTML = "<input type='text' index='"+index+"' style='width: 144px; height: 16px; font-size: 11.9px;' id='tree_search_input_"+index+"' autocomplete='off'><button class='btn btn-small' onclick='window.rendererTree["+index+"].goTo("+index+");'>go</button>";
+		sB.innerHTML = "<input type='text' index='"+index+"' style='width: 144px; height: 16px; font-size: 11.9px;' id='tree_search_input_"+index+"' name='tree_search_input_"+index+"' autocomplete='off'><button class='btn btn-small' onclick='window.rendererTree["+index+"].goTo("+index+");'>go</button>";
 		renderer.settings.target.appendChild(sB);
 
 		// add a keypress listener
@@ -261,6 +237,34 @@
 		jQuery('#tree_search_input_'+index).typeahead({ source: typeAheadData });
 	    }
 
+	    // check if a collapse all button should be displayed
+	    if (renderer.settings.showCollapseAllButton) {
+		var cB = document.createElement('button');
+		cB.className = "btn btn-small";
+		cB.innerHTML = "collapse all";
+		cB.setAttribute('style', "margin-bottom: 5px; margin-right: 5px;");
+		cB.index = index;
+		cB.addEventListener('click', function () {
+		    var index = this.index;
+		    window.rendererTree[index].collapseAll(index);
+		});
+		renderer.settings.target.appendChild(cB);
+	    }
+
+	    // check if an expand all button should be displayed
+	    if (renderer.settings.showExpandAllButton) {
+		var cB = document.createElement('button');
+		cB.className = "btn btn-small";
+		cB.innerHTML = "expand all";
+		cB.setAttribute('style', "margin-bottom: 5px; margin-right: 5px;");
+		cB.index = index;
+		cB.addEventListener('click', function () {
+		    var index = this.index;
+		    window.rendererTree[index].expandAll(index);
+		});
+		renderer.settings.target.appendChild(cB);
+	    }
+
 	    // set the border style of the outer div
 	    renderer.settings.target.setAttribute('style', renderer.settings.target.getAttribute('style')+"border: 1px solid #333333; width: "+renderer.settings.width+"px; overflow: auto; height: "+renderer.settings.height+"px; padding: 5px; border-radius: 3px;");
 
@@ -268,7 +272,11 @@
 	    renderer.settings.nodeSpace = document.createElement('div');
 	    var nodeSpaceHeight = "";
 	    if (renderer.settings.showSearchBar || renderer.settings.showCollapseAll || renderer.settings.showExpandAll) {
-		nodeSpaceHeight = " overflow: auto; height: "+(renderer.settings.height - 36) + "px;";
+		if (renderer.settings.width < 366 ) {
+		    nodeSpaceHeight = " overflow: auto; height: "+(renderer.settings.height - 72) + "px;";
+		} else {
+		    nodeSpaceHeight = " overflow: auto; height: "+(renderer.settings.height - 36) + "px;";
+		}
 	    }
 	    renderer.settings.nodeSpace.setAttribute('style', "clear: both;"+nodeSpaceHeight);
 	    renderer.settings.target.appendChild(renderer.settings.nodeSpace);
