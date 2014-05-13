@@ -15,7 +15,21 @@
 Retina.init( { library_resource: "js/" } ).then( function() {
     Retina.add_widget({"name": "shockbrowse", "resource": "widgets/",  "filename": "widget.shockbrowse.js"});
     Retina.load_widget("shockbrowse").then( function() {
-	Retina.Widget.create('shockbrowse', {"target": document.getElementById("content"), "fileUpload": document.getElementById('fu'), "type":"table", "wide": true});
+	Retina.Widget.create('shockbrowse', { "target": document.getElementById("content")}); /*
+					      "width": 1550,
+					      "height": 800,
+					      "presetFilters": { "type": "metagenome",
+								 "data_type": "sequence",
+								 "file_format": "fna" },
+					      "showFilter": false,
+					      "enableDownload": false,
+					      "enableUpload": false,
+					      "title": "",
+					      "customPreview": function (data) {
+						  console.log(data);
+						  return "hello world";
+					      }
+					    }); */
 	Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
 	Retina.load_widget("login").then( function() {
 	    Retina.Widget.create('login', {"target": document.getElementById("login_space"), "callback": Retina.WidgetInstances.shockbrowse[1].loginAction });
