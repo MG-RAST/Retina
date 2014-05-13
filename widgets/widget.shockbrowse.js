@@ -291,7 +291,27 @@
 	downloadButton.addEventListener('click', function(){
 	    var widget = Retina.WidgetInstances.shockbrowse[1];
 	    if (widget.selectedFile) {
-		window.location = widget.shock_base + "/node/" + widget.selectedFile.getAttribute('fi') + "?download";
+		jQuery.ajax({ url: widget.shock_base + "/node/" + widget.selectedFile.getAttribute('fi') + "?download_url",
+		      dataType: "json",
+		      success: function(data) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  if (data != null) {
+			      if (data.error != null) {
+				  console.log("error: "+data.error);
+			      }
+			      window.location = data.data.url;
+			  } else {
+			      console.log("error: invalid return structure from SHOCK server");
+			      console.log(data);
+			  }
+		      },
+		      error: function(jqXHR, error) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  console.log( "error: unable to connect to SHOCK server" );
+			  console.log(error);
+		      },
+		      headers: widget.authHeader
+		    });
 	    } else {
 		alert('no file selected for download');
 	    }
