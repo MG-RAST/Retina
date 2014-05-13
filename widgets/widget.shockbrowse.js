@@ -783,7 +783,7 @@
 	    if (widget.detailInfo) {
 		widget.detailInfo = null;
 	    } else {
-		var url = widget.shockBase + "/node/" + node.id + "?download&part=1&chunksize="+widget.previewChunkSize;
+		var url = widget.shockBase + "/node/" + node.id + "?download&index=size&part=1&chunksize="+widget.previewChunkSize;
 		jQuery.ajax({ url: url,
 			      success: function(data) {
 				  var widget = Retina.WidgetInstances.shockbrowse[1];
