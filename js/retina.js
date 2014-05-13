@@ -335,6 +335,43 @@
 	var n = this, c = isNaN(c = Math.abs(c)) ? 0 : c, d = d == undefined ? "." : d, t = t == undefined ? "," : t, s = n < 0 ? "-" : "", i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", j = (j = i.length) > 3 ? j % 3 : 0;
 	return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
     };
+    
+    Number.prototype.byteSize = function() {
+	var size = this;
+	var magnitude = "B";
+	if (size > 999) {
+	    size = size / 1024;
+	    magnitude = "KB";
+	}
+	if (size > 999) {
+	    size = size / 1024;
+	    magnitude = "MB";
+	}
+	if (size > 999) {
+	    size = size / 1024;
+	    magnitude = "GB";
+	}
+	if (size > 999) {
+	    size = size / 1024;
+	    magnitude = "TB";
+	}
+	size = size.toFixed(1);
+
+	size += '';
+	var x = size.split('.');
+	var x1 = x[0];
+	var x2 = x.length > 1 ? '.' + x[1] : '';
+	var rgx = /(\d+)(\d{3})/;
+	while (rgx.test(x1)) {
+	    x1 = x1.replace(rgx, '$1' + ',' + '$2');
+	}
+	size =  x1 + x2;
+
+	return size + " " + magnitude;
+    };
+
+    String.prototype.hexDecode = function(){var r='';for(var i=0;i<this.length;i+=2){r+=unescape('%'+this.substr(i,2));}return r;}
+    String.prototype.hexEncode = function(){var r='';var i=0;var h;while(i<this.length){h=this.charCodeAt(i++).toString(16);while(h.length<2){h=h;}r+=h;}return r;}
 
     Array.prototype.max = function() {
 	return Math.max.apply(null, this);
