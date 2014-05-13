@@ -905,7 +905,6 @@
 	widget.initializeFileReader(file);
 	var chunkSize = widget.uploadChunkSize == 0 ? file.size : widget.uploadChunkSize;
 	widget.uploadChunkSize = chunkSize;
-	console.log(widget.uploadChunkSize);
 	var chunks = Math.ceil(file.size / chunkSize);
 
 	// set up the node
@@ -1106,7 +1105,16 @@
 		processData: false,
 		data: fd,
 		success: function(data){
-		    //console.log(data);
+		    // get the section
+		    var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
+		    var done = document.createElement('div');
+		    done.setAttribute('class', 'alert alert-success');
+		    done.innerHTML = "The upload has completed successfully";
+		    section.appendChild(done);
+
+		    var checksum = document.createElement('div');
+		    checksum.innerHTML = "<h4>check md5-sum</h4><p>To check for file corruption paste the md5-sum of your local file into the textbox below and click <b>check</b>.</p><input type='text' disabled value='"+data.data.file.checksum.md5+"' class='span4'><div class='input-append'><input type='text' placeholder='paste md5 here' class='span4'><button class='btn' onclick='if(this.previousSibling.value==\""+data.data.file.checksum.md5+"\"){alert(\"file is OK\");}else{alert(\"file is corrupted!\");}'>check</button></div>";
+		    section.appendChild(checksum);
 		},
 		error: function(jqXHR, error){
 		    console.log(error);
