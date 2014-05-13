@@ -834,7 +834,9 @@
 	widget.currentUploadChunk = 0;
 
 	widget.initializeFileReader(file);
-	var chunkSize = widget.uploadChunkSize;
+	var chunkSize = widget.uploadChunkSize == 0 ? file.size : widget.uploadChunkSize;
+	widget.uploadChunkSize = chunkSize;
+	console.log(widget.uploadChunkSize);
 	var chunks = Math.ceil(file.size / chunkSize);
 
 	// set up the node
@@ -867,7 +869,8 @@
 
 	// get the tools
 	var blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
-	var chunkSize = widget.uploadChunkSize;
+	var chunkSize = widget.uploadChunkSize == 0 ? file.size : widget.uploadChunkSize;
+	widget.uploadChunkSize = chunkSize;
 	var start = 0;
 	var end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
 	var chunks = Math.ceil(file.size / chunkSize);
