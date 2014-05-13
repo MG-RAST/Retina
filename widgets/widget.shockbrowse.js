@@ -956,7 +956,7 @@
 	    var incomplete = new Blob([ JSON.stringify({ "incomplete": "1", "incomplete_size": file.size, "incomplete_name": file.name, "incomplete_user": widget.user.login, "incomplete_chunk": Retina.WidgetInstances.shockbrowse[1].currentUploadChunk, "incomplete_chunksize": Retina.WidgetInstances.shockbrowse[1].uploadChunkSize }) ], { "type" : "text\/json" });
 	    fd.append('attributes', incomplete);
 
-	    fd.append(Retina.WidgetInstances.shockbrowse[1].currentUploadChunk+1, oMyBlob, file.name);
+	    fd.append(Retina.WidgetInstances.shockbrowse[1].currentUploadChunk+1, oMyBlob);
 	    jQuery.ajax(widget.uploadURL, {
 		xhr: function() {
 		    var xhr = new window.XMLHttpRequest();
@@ -1097,9 +1097,10 @@
 	    
 	    // set up the url
 	    var url = widget.shockBase+'/node';
-
+	    var file = widget.uploadDialog.files[0];
 	    var fd = new FormData();
 	    fd.append('attributes', new Blob([ JSON.stringify({}) ], { "type" : "text\/json" }));
+	    fd.append('file_name', file.name);
 	    jQuery.ajax(url +  "/" + data.id, {
 		contentType: false,
 		processData: false,
