@@ -373,7 +373,7 @@
 	detailBar.setAttribute("data-toggle", "buttons-radio");
 	detailBar.setAttribute("style", "float: right;");
 	
-	var types = [ "info", "attributes", "acl", "preview" ];
+	var types = [ "info", "attributes", "preview" ]; // "acl",
 	for (var i=0; i<types.length; i++) {
 	    var button = document.createElement('button');
 	    var active = "";
@@ -775,7 +775,7 @@
 <tr><th>virtual</th><td>"+(node.file.virtual ? "yes" : "no")+"</td></tr>\
 </table>";
 	} else if (widget.detailType == "acl") {
-	    html = "<h4>acl - "+fn+"</h4>"+detailInfo;
+	    html = "<h4>acl - "+fn+"</h4>" + "<div class='alert alert-info'>rights management is not currently implemented</div>";//+detailInfo;
 	} else if (widget.detailType == "attributes") {
 	    html = "<h4>attributes - "+fn+"</h4><pre style='font-size: "+(widget.fontSize - 1) +"px;'>"+JSON.stringify(node.attributes, null, 2)+"</pre>";
 	} else if (widget.detailType == "preview") {
