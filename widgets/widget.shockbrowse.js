@@ -17,6 +17,7 @@
   currentLimit - maximum number of files loaded initially and whenever scrolling to the bottom
   detailType - one of [ info, attributes, acl, preview ] indicating the initial display when selecting a file, default is info
   authHeader - authentication header used when interacting with the server
+  customPreview - optinally provided custom function for node preview, receives an object with the selected node (node), the first previewChunkSize bytes of the file (data) and the error if exists (error), must return the HTML to be displayed in the preview section
 
 */
 (function () {
@@ -782,18 +783,26 @@
 	    if (widget.detailInfo) {
 		widget.detailInfo = null;
 	    } else {
-		var url = widget.shockBase + "/node/" + node.id + "?download&index=size&part=1&chunksize="+widget.previewChunkSize;
+		var url = widget.shockBase + "/node/" + node.id + "?download&part=1&chunksize="+widget.previewChunkSize;
 		jQuery.ajax({ url: url,
 			      success: function(data) {
 				  var widget = Retina.WidgetInstances.shockbrowse[1];
-				  data = data.slice(0, widget.previewChunkSize);
-				  widget.detailInfo = "<pre style='font-size: "+(widget.fontSize - 1)+"px;'>"+data+"</pre>";
+				  if (typeof widget.customPreview == 'function') {
+				      widget.detailInfo = widget.customPreview.call(null, { "node": node, "data": data, "error": null });
+				  } else {
+				      data = data.slice(0, widget.previewChunkSize);
+				      widget.detailInfo = "<pre style='font-size: "+(widget.fontSize - 1)+"px;'>"+data+"</pre>";
+				  }
 				  widget.showDetails(null, true);
 			      },
 			      error: function(jqXHR, error) {
 				  var widget = Retina.WidgetInstances.shockbrowse[1];
-				  console.log( "error: unable to connect to SHOCK server" );
-				  console.log(error);
+				  if (typeof widget.customPreview == 'function') {
+				      widget.detailInfo = widget.customPreview.call(null, { "node": node, "data": null, "error": error });
+				  } else {
+				      widget.detailInfo = "<div class='alert alert-error'>unable to retrieve preview data</div>";
+				  }
+				  widget.showDetails(null, true);
 			      },
 			      headers: widget.authHeader
 			    });
