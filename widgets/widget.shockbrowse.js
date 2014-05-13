@@ -1,3 +1,23 @@
+/*
+
+  Display a browser for a SHOCK server
+
+  Parameters:
+
+  shockBase - URL of the SHOCK server to interact with, default is config.js-shock_url
+  width - width of the browser in pixel, default is 1200
+  height - height of the browser in pixel, default is 600
+  title - text displayed in the title bar, default is "SHOCK browser"
+  showFilter - boolean whether the filter section is visible, default is true
+  enableUpload - boolean whether upload is enabled, default is true
+  enableDownload - boolean whether download is enabled, default is true
+  previewChunkSize - size in bytes that is loaded from the server for the preview of a file, default is 2 KB
+  uploadChunkSize - size in bytes uploaded to the server per chunk, default is 10 MB
+  currentLimit - maximum number of files loaded initially and whenever scrolling to the bottom
+  detailType - one of [ info, attributes, acl, preview ] indicating the initial display when selecting a file, default is info
+  authHeader - authentication header used when interacting with the server
+
+*/
 (function () {
     widget = Retina.Widget.extend({
         about: {
@@ -24,7 +44,7 @@
      */
 
     // shock url for this browser
-    widget.shock_base = RetinaConfig.shock_url;
+    widget.shockBase = RetinaConfig.shock_url;
 
     // user authentication
     widget.authHeader = {};
@@ -34,13 +54,15 @@
     widget.height = 600;
     widget.borderRadius = 4;
     widget.fontSize = 13;
+    widget.showFilter = true;
+    widget.filterWidth = 232;
     widget.sizes = { "small": [ 800, 400 ],
 		     "medium": [ 1200, 600 ],
 		     "large": [ 1550, 800 ] };
 
     // upload status information
     widget.previewChunkSize = 2048; // 2 KB
-    widget.uploadChunkSize = 1024 * 1024 * 1; // 10 MB
+    widget.uploadChunkSize = 1024 * 1024 * 10; // 10 MB
     widget.currentUploadChunk = 0;
     widget.uploadPaused = false;
     widget.chunkComplete = false;
@@ -64,6 +86,8 @@
     widget.currentLimit = 100;
     widget.scrollPosition = 0;
     widget.filters = {};
+    widget.enableDownload = true;
+    widget.enableUpload = true;
 
     // preset filters
     widget.keylist = [
@@ -104,13 +128,17 @@
     widget.display = function (wparams) {
         var widget = Retina.WidgetInstances.shockbrowse[1];
 
+	if (widget.presetFilters && ! Retina.keys(widget.filters).length) {
+	    widget.filters = widget.presetFilters;
+	}
+
 	if (wparams) {
 	    jQuery.extend(true, widget, wparams);
 	}
 
-	widget.filterWidth = 232;
-	widget.fileWidth = Math.floor((widget.width - 229) / 2) - 5;
-	widget.detailWidth = Math.floor((widget.width - 229) / 2) - 5;
+	var filterWidth = widget.showFilter ? widget.filterWidth : 0;
+	widget.fileWidth = Math.floor((widget.width - filterWidth) / 2) - 5;
+	widget.detailWidth = Math.floor((widget.width - filterWidth) / 2) - 5;
 
 	widget.sections = {};
 
@@ -173,7 +201,9 @@
 	    widget.sections.middleSection = section;
 	}
 
-	widget.filter_section();
+	if (widget.showFilter) {
+	    widget.filter_section();
+	}
 	widget.file_section();
 	widget.middle_border();
 	widget.detail_section();
@@ -214,7 +244,7 @@
 	    widget.sections.titleBar = section;
 	}
 
-	section.innerHTML = widget.title;
+	section.innerHTML = widget.title || "&nbsp;";
 	var resizer = document.createElement('div');
 	resizer.setAttribute('style', "float: left;");
 	resizer.innerHTML = '\
@@ -244,79 +274,84 @@
 	var toolBar = document.createElement('div');
 	toolBar.setAttribute("style", "position: relative; bottom: 4px; margin-left: "+widget.filterWidth+"px;");
 
-	// upload bar
-	var uploadBar = document.createElement('div');
-	uploadBar.className = "btn-group";
+	if (widget.enableUpload) {
+	    // upload bar
+	    var uploadBar = document.createElement('div');
+	    uploadBar.className = "btn-group";
 
-	var realUploadButton = document.createElement('input');
-	realUploadButton.setAttribute('type', 'file');
-	realUploadButton.setAttribute('style', 'display: none;');
-	jQuery(realUploadButton).on('change',  function(event){
-	    Retina.WidgetInstances.shockbrowse[1].uploadFileSelected(event);
-	});
-	widget.uploadDialog = realUploadButton;
-	section.appendChild(realUploadButton);
+	    var realUploadButton = document.createElement('input');
+	    realUploadButton.setAttribute('type', 'file');
+	    realUploadButton.setAttribute('style', 'display: none;');
+	    jQuery(realUploadButton).on('change',  function(event){
+		Retina.WidgetInstances.shockbrowse[1].uploadFileSelected(event);
+	    });
+	    widget.uploadDialog = realUploadButton;
+	    section.appendChild(realUploadButton);
 
-	var uploadButton = document.createElement('button');
-	uploadButton.className = "btn btn-menu btn-small";
-	uploadButton.title = "upload file";
-	uploadButton.innerHTML = "<img src='images/upload.png' style='height: 16px;'><div id='progress_button_progress' style='bottom: 20px; position: relative; margin-right: -11px; background-color: green; height: 26px; margin-top: -2px; margin-left: -10px; width: 0px; opacity: 0.4;'></div>";
-	uploadButton.addEventListener('click', function(){ Retina.WidgetInstances.shockbrowse[1].uploadDialog.click(); });
-	uploadBar.appendChild(uploadButton);
-	widget.uploadButton = uploadButton;
+	    var uploadButton = document.createElement('button');
+	    uploadButton.className = "btn btn-menu btn-small";
+	    uploadButton.title = "upload file";
+	    uploadButton.innerHTML = "<img src='images/upload.png' style='height: 16px;'><div id='progress_button_progress' style='bottom: 20px; position: relative; margin-right: -11px; background-color: green; height: 26px; margin-top: -2px; margin-left: -10px; width: 0px; opacity: 0.4;'></div>";
+	    uploadButton.addEventListener('click', function(){ Retina.WidgetInstances.shockbrowse[1].uploadDialog.click(); });
+	    uploadBar.appendChild(uploadButton);
+	    widget.uploadButton = uploadButton;
 
-	var resumeButton = document.createElement('button');
-	resumeButton.className = "btn btn-menu btn-small";
-	resumeButton.title = "resume incomplete uploads";
-	resumeButton.innerHTML = "<i class='icon-play'></i>";
-	resumeButton.addEventListener('click', Retina.WidgetInstances.shockbrowse[1].findResumableUploads);
-	widget.resumeButton = resumeButton;
-	uploadBar.appendChild(resumeButton);
+	    var resumeButton = document.createElement('button');
+	    resumeButton.className = "btn btn-menu btn-small";
+	    resumeButton.title = "resume incomplete uploads";
+	    resumeButton.innerHTML = "<i class='icon-play'></i>";
+	    resumeButton.addEventListener('click', Retina.WidgetInstances.shockbrowse[1].findResumableUploads);
+	    widget.resumeButton = resumeButton;
+	    uploadBar.appendChild(resumeButton);
 
-	if (! widget.user) {
-	    uploadButton.setAttribute('disabled', 'disabled');
-	    resumeButton.setAttribute('disabled', 'disabled');
+	    if (! widget.user) {
+		uploadButton.setAttribute('disabled', 'disabled');
+		resumeButton.setAttribute('disabled', 'disabled');
+	    }
+
+	    toolBar.appendChild(uploadBar);
 	}
-
-	toolBar.appendChild(uploadBar);
 
 	// modify bar
 	var modifyBar = document.createElement('div');
 	modifyBar.className = "btn-group";
 	
-	var downloadButton = document.createElement('button');
-	downloadButton.className = "btn btn-menu btn-small";
-	downloadButton.title = "download selected file";
-	downloadButton.innerHTML = "<img src='images/download.png' style='height: 16px;'>";
-	downloadButton.addEventListener('click', function(){
-	    var widget = Retina.WidgetInstances.shockbrowse[1];
-	    if (widget.selectedFile) {
-		jQuery.ajax({ url: widget.shock_base + "/node/" + widget.selectedFile.getAttribute('fi') + "?download_url",
-		      dataType: "json",
-		      success: function(data) {
-			  var widget = Retina.WidgetInstances.shockbrowse[1];
-			  if (data != null) {
-			      if (data.error != null) {
-				  console.log("error: "+data.error);
-			      }
-			      window.location = data.data.url;
-			  } else {
-			      console.log("error: invalid return structure from SHOCK server");
-			      console.log(data);
-			  }
-		      },
-		      error: function(jqXHR, error) {
-			  var widget = Retina.WidgetInstances.shockbrowse[1];
-			  console.log( "error: unable to connect to SHOCK server" );
-			  console.log(error);
-		      },
-		      headers: widget.authHeader
-		    });
-	    } else {
-		alert('no file selected for download');
-	    }
-	});
-	modifyBar.appendChild(downloadButton);
+	// download button
+	if (widget.enableDownload) {
+	    var downloadButton = document.createElement('button');
+	    downloadButton.className = "btn btn-menu btn-small";
+	    downloadButton.title = "download selected file";
+	    downloadButton.innerHTML = "<img src='images/download.png' style='height: 16px;'>";
+	    downloadButton.addEventListener('click', function(){
+		var widget = Retina.WidgetInstances.shockbrowse[1];
+		if (widget.selectedFile) {
+		    jQuery.ajax({ url: widget.shockBase + "/node/" + widget.selectedFile.getAttribute('fi') + "?download_url",
+				  dataType: "json",
+				  success: function(data) {
+				      var widget = Retina.WidgetInstances.shockbrowse[1];
+				      if (data != null) {
+					  if (data.error != null) {
+					      console.log("error: "+data.error);
+					  }
+					  window.location = data.data.url;
+				      } else {
+					  console.log("error: invalid return structure from SHOCK server");
+					  console.log(data);
+				      }
+				  },
+				  error: function(jqXHR, error) {
+				      var widget = Retina.WidgetInstances.shockbrowse[1];
+				      console.log( "error: unable to connect to SHOCK server" );
+				      console.log(error);
+				  },
+				  headers: widget.authHeader
+				});
+		} else {
+		    alert('no file selected for download');
+		}
+	    });
+	    modifyBar.appendChild(downloadButton);
+	}
 
 	var deleteButton = document.createElement('button');
 	deleteButton.className = "btn btn-menu btn-small";
@@ -472,7 +507,7 @@
 	    for (var i=widget.currentOffset; i<widget.data.data.length; i++) {
 		var ds = widget.data.data[i];
 		var fn = ds.file.name || ds.id;
-		html += "<div id='file"+ds.id+"' class='fileItem' fi='"+ds.id+"' onclick='Retina.WidgetInstances.shockbrowse[1].showDetails(event);' draggable='true' data-downloadurl='application/octet-stream:"+fn+":"+widget.shock_base + "/node/" + ds.id + "?download'>" + fn + "</div>";
+		html += "<div id='file"+ds.id+"' class='fileItem' fi='"+ds.id+"' onclick='Retina.WidgetInstances.shockbrowse[1].showDetails(event);' draggable='true' data-downloadurl='application/octet-stream:"+fn+":"+widget.shockBase + "/node/" + ds.id + "?download'>" + fn + "</div>";
 	    }
 	    if (widget.append) {
 		sectionContent.innerHTML += html;
@@ -596,7 +631,7 @@
     widget.setShockBase = function (url) {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
-	widget.shock_base = url;
+	widget.shockBase = url;
 
 	widget.display();
     };
@@ -610,9 +645,11 @@
 	    // set authentication
 	    widget.authHeader = { "Authorization": "OAuth "+action.token };
 
-	    // enable functions only available when logged in
-	    widget.uploadButton.removeAttribute('disabled');
-	    widget.resumeButton.removeAttribute('disabled');
+	    if (widget.enableUpload) {
+		// enable functions only available when logged in
+		widget.uploadButton.removeAttribute('disabled');
+		widget.resumeButton.removeAttribute('disabled');
+	    }
 
 	} else {
 	    // remove user
@@ -621,9 +658,11 @@
 	    // remove authentication
 	    widget.authHeader = {};
 
-	    // disable functions only available when logged in
-	    widget.uploadButton.setAttribute('disabled', 'disabled');
-	    widget.resumeButton.setAttribute('disabled', 'disabled');
+	    if (widget.enableUpload) {
+		// disable functions only available when logged in
+		widget.uploadButton.setAttribute('disabled', 'disabled');
+		widget.resumeButton.setAttribute('disabled', 'disabled');
+	    }
 	}
 	widget.data = null;
 	widget.status = "<img src='images/waiting.gif' style='height: 15px;'> connecting to SHOCK server...";
@@ -636,7 +675,7 @@
 	widget.status = "<img src='images/waiting.gif' style='height: 15px;'> fetching data...";
 	widget.status_bar();
 	
-	var url = widget.shock_base + "/node/?limit="+widget.currentLimit+"&offset="+widget.currentOffset;
+	var url = widget.shockBase + "/node/?limit="+widget.currentLimit+"&offset="+widget.currentOffset;
 	if (Retina.keys(widget.filters).length) {
 	    url += "&query";
 	    for (var i in widget.filters) {
@@ -742,7 +781,7 @@
 	    if (widget.detailInfo) {
 		widget.detailInfo = null;
 	    } else {
-		var url = widget.shock_base + "/node/" + node.id + "?download&index=size&part=1&chunksize="+widget.previewChunkSize;
+		var url = widget.shockBase + "/node/" + node.id + "?download&index=size&part=1&chunksize="+widget.previewChunkSize;
 		jQuery.ajax({ url: url,
 			      success: function(data) {
 				  var widget = Retina.WidgetInstances.shockbrowse[1];
@@ -823,7 +862,7 @@
 		target.innerHTML = "";
 	    }
 	} else if (action == "clear") {
-	    widget.filters = {};
+	    widget.filters = widget.presetFilters || {};
 	    target.innerHTML = "";
 	} else {
 	    console.log("undefined action for refineFilter");
@@ -846,7 +885,7 @@
 	var file = widget.uploadDialog.files[0];
 
 	// set up the url
-	var url = widget.shock_base+'/node';
+	var url = widget.shockBase+'/node';
 	widget.uploadURL = url;
 	
 	widget.currentUpload();
@@ -1048,7 +1087,7 @@
 	    widget.abortButtons.style.display = "none";
 	    
 	    // set up the url
-	    var url = widget.shock_base+'/node';
+	    var url = widget.shockBase+'/node';
 
 	    var fd = new FormData();
 	    fd.append('attributes', new Blob([ JSON.stringify({}) ], { "type" : "text\/json" }));
@@ -1191,7 +1230,7 @@
 	widget.resumableData = [];
 
 	// construct URL
-	var url = widget.shock_base + "/node?query&incomplete=1&incomplete_user=" + widget.user.login;
+	var url = widget.shockBase + "/node?query&incomplete=1&incomplete_user=" + widget.user.login;
 
 	// get the section
 	var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
@@ -1276,7 +1315,7 @@
 	if (file.name == node.attributes.incomplete_name && file.size == node.attributes.incomplete_size) {
 	    widget.currentUploadChunk = node.attributes.incomplete_chunk + 1;
 	    widget.currentChunksize = node.attributes.incomplete_chunksize;
-	    widget.uploadURL = widget.shock_base + "/node/" + node.id;
+	    widget.uploadURL = widget.shockBase + "/node/" + node.id;
 	    widget.currentUpload();
 	    widget.initializeFileReader(file);
 	    widget.loadNext();
