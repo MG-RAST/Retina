@@ -9,6 +9,7 @@
   height - height of the browser in pixel, default is 600
   title - text displayed in the title bar, default is "SHOCK browser"
   showFilter - boolean whether the filter section is visible, default is true
+  presetFilters - hash of field name -> field value that is always added to the filter
   enableUpload - boolean whether upload is enabled, default is true
   enableDownload - boolean whether download is enabled, default is true
   previewChunkSize - size in bytes that is loaded from the server for the preview of a file, default is 2 KB
