@@ -1151,7 +1151,8 @@
 				  "fna$": "fasta",
 				  "fq$": "fastq",
 				  "fastq$": "fastq",
-				  "faa$": "fasta" };
+				  "faa$": "fasta",
+				  "fa$": "fasta" };
 
 	    for (var i in sequenceFiles) {
 		if (sequenceFiles.hasOwnProperty(i)) {
