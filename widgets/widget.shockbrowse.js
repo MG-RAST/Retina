@@ -18,6 +18,7 @@
   detailType - one of [ info, attributes, acl, preview ] indicating the initial display when selecting a file, default is info
   authHeader - authentication header used when interacting with the server
   customPreview - optinally provided custom function for node preview, receives an object with the selected node (node), the first previewChunkSize bytes of the file (data) and the error if exists (error), must return the HTML to be displayed in the preview section
+  querymode - [ full | attributes ] determines which part of the node to search in, default is attributes
 
 */
 (function () {
@@ -90,15 +91,7 @@
     widget.filters = {};
     widget.enableDownload = true;
     widget.enableUpload = true;
-
-    // preset filters
-    widget.keylist = [
-	{ "name": "type", "value": "type" },
-	{ "name": "data_type", "value": "data type" },
-	{ "name": "status", "value": "status" },
-	{ "name": "file_format", "value": "file format" },
-	{ "name": "_custom_", "value": "custom - 'field=value'" }
-    ];
+    widget.querymode = "attributes";
 
     /*
      * STYLESHEET
@@ -130,12 +123,35 @@
     widget.display = function (wparams) {
         var widget = Retina.WidgetInstances.shockbrowse[1];
 
+	if (wparams) {
+	    jQuery.extend(true, widget, wparams);
+	}
+
 	if (widget.presetFilters && ! Retina.keys(widget.filters).length) {
 	    widget.filters = widget.presetFilters;
 	}
 
-	if (wparams) {
-	    jQuery.extend(true, widget, wparams);
+	if (! widget.hasOwnProperty('keylist')) {
+	    if (widget.querymode == "attributes") {
+		widget.keylist = [
+		    { "name": "type", "value": "type" },
+		    { "name": "data_type", "value": "data type" },
+		    { "name": "status", "value": "status" },
+		    { "name": "file_format", "value": "file format" },
+		    { "name": "_custom_", "value": "custom - 'field=value'" }
+		];
+	    } else {
+		widget.keylist = [
+		    { "name": "file.name", "value": "filename" },
+		    { "name": "file.size", "value": "filesize" },
+		    { "name": "file.checksum.md5", "value": "md5" },
+		    { "name": "attributes.type", "value": "type" },
+		    { "name": "attributes.data_type", "value": "data type" },
+		    { "name": "attributes.status", "value": "status" },
+		    { "name": "attributes.file_format", "value": "file format" },
+		    { "name": "_custom_", "value": "custom - 'field=value'" }
+		];
+	    }
 	}
 
 	var filterWidth = widget.showFilter ? widget.filterWidth : 0;
@@ -430,7 +446,7 @@
 
 	sectionContent.innerHTML = '\
 <p style="font-weight: bold;">Filter</p>\
-<div class="control-group">\
+  <div class="control-group">\
     <label class="control-label" for="filter_key">field</label>\
     <div class="controls">\
       <select id="filter_key" style="width: 220px; font-size: '+widget.fontSize+'px;"></select>\
@@ -679,7 +695,7 @@
 	
 	var url = widget.shockBase + "/node/?limit="+widget.currentLimit+"&offset="+widget.currentOffset;
 	if (Retina.keys(widget.filters).length) {
-	    url += "&query";
+	    url += "&"+(widget.querymode == "attributes" ? "query" : "querynode");
 	    for (var i in widget.filters) {
 		if (widget.filters.hasOwnProperty(i)) {
 		    url += "&"+i+"="+widget.filters[i];

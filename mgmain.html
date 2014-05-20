@@ -20,7 +20,11 @@
     <!-- webapp initialization -->
     <script>
     jQuery( document ).ready(function(){
-	window.stm = window.opener.stm;
+	if (window.opener && window.opener.stm) {
+	    window.stm = window.opener.stm;
+	} else {
+	    stm.init(stm.Config.mgrast_api, true, "MG-RAST");
+	}
 	Retina.init( { library_resource: "js/" } ).then( function() {
 	    
 	    var page  = Retina.cgiParam("mgpage");
