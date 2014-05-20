@@ -55,7 +55,7 @@
 	    }
 
 	    var matrix = Retina.Renderer.create("matrix", { target: document.getElementById('result'),
-							    circleSize: 20,
+							    circleSize: 40,
 							    data: { rows: rows, columns: cols, data: dhash } });
 	    matrix.render();
 	});
