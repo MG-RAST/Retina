@@ -41,6 +41,9 @@
 		    li.setAttribute('class', 'active');
 		}
 		var elemData = renderer.settings.data[elems[i]][Retina.keys(renderer.settings.data[elems[i]])[0]];
+		if (! elemData) {
+		    continue;
+		}
 		if (typeof elemData.length == 'function') {
 		    elemData = "no filters or sorting available";
 		} else {

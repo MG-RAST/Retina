@@ -162,7 +162,7 @@
 	    var filter_input = document.createElement('input');
 	    filter_input.setAttribute('type', 'text');
 	    filter_input.setAttribute('class', renderer.settings.extra_wide ? 'span3' : 'span2');
-	    filter_input.setAttribute('style', 'float: left;');
+	    filter_input.setAttribute('style', 'border-radius: 3px 0 0 3px; float: left;');
 	    filter_input.setAttribute('placeholder', 'Enter filter');
 	    filter_input.setAttribute('value', renderer.settings.filter_value);
 	    filter_input.addEventListener('keyup', function (event) {
