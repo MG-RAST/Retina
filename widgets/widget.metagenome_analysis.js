@@ -53,16 +53,21 @@
 	widget.fillManipulators();
 	widget.fillVisualizations();
 	
-	widget.dataLoader(document.getElementById('main'));
-	
     };
 
-    widget.dataLoader = function (container) {
+    widget.dataLoader = function () {
 	var widget = Retina.WidgetInstances.metagenome_analysis[1];
 
-	container.innerHTML = '<h4>Load Data</h4><div class="form-inline" style="margin-bottom: 10px;"><b>name</b><input type="text" placeholder="pick a name" style="margin-left: 10px; margin-right: 10px; width: 185px;" id="dataContainerName"><b>source</b> <select style="margin-left: 10px; margin-right: 10px;" id="profile_source"><optgroup label="protein databases"><option>M5NR</option><option>RefSeq</option><option>GenBank</option><option>IMG</option><option>SEED</option><option>TrEMBL</option><option>SwissProt</option><option>PATRIC</option><option>KEGG</option></optgroup><optgroup label="RNA databases"><option>M5RNA</option><option>RDP</option><option>Greengenes</option><option>LSU</option><option>SSU</option></optgroup><optgroup label="ontology databases"><option>Subsystems</option><option>NOG</option><option>COG</option><option>KO</option></optgroup></select> <b>type</b> <select id="profile_type" style="margin-left: 10px;"><option>organism</option><option>function</option><option>feature</option></select></div><div style="float: left; margin-right: 10px; margin-bottom: 10px;"><div id="mgbrowse"></div></div><div style="float: left; width: 790px; padding-left: 10px; padding-right: 10px; padding-bottom: 10px; height: 265px; border: 1px solid rgb(212, 212, 212); border-radius: 4px; box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.067); overflow-y: scroll;"><h4>loading state</h4><button class="btn-mini btn" style="float: right; margin-top: -30px;" onclick="this.nextSibling.innerHTML=\'\';" type="button">clear</button><div id="dataprogress"></div></div>';
+	var container = document.getElementById('main');
 
-	widget.browse = Retina.Widget.create('mgbrowse', { "target": document.getElementById("mgbrowse"), "type": "listselect", "multiple": true, "wide": true, callback: Retina.WidgetInstances.metagenome_analysis[1].loadData });
+	container.innerHTML = '<div style="width: 790px; padding-left: 10px; padding-right: 10px; padding-bottom: 10px; height: 200px; border: 1px solid rgb(212, 212, 212); border-radius: 4px; box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.067); overflow-y: scroll;"><h4>available data containers</h4><div id="availableContainers"></div></div><h4>load data</h4></div><div class="form-inline" style="margin-bottom: 10px;"><b>name</b><input type="text" placeholder="pick a name" style="margin-left: 10px; margin-right: 10px; width: 185px;" id="dataContainerName"><b>source</b> <select style="margin-left: 10px; margin-right: 10px;" id="profile_source"><optgroup label="protein databases"><option>M5NR</option><option>RefSeq</option><option>GenBank</option><option>IMG</option><option>SEED</option><option>TrEMBL</option><option>SwissProt</option><option>PATRIC</option><option>KEGG</option></optgroup><optgroup label="RNA databases"><option>M5RNA</option><option>RDP</option><option>Greengenes</option><option>LSU</option><option>SSU</option></optgroup><optgroup label="ontology databases"><option>Subsystems</option><option>NOG</option><option>COG</option><option>KO</option></optgroup></select> <b>type</b> <select id="profile_type" style="margin-left: 10px;"><option>organism</option><option>function</option><option>feature</option></select></div><div style="float: left; margin-right: 10px; margin-bottom: 10px;"><div id="mgbrowse"></div></div><div style="float: left; width: 790px; padding-left: 10px; padding-right: 10px; padding-bottom: 10px; height: 265px; border: 1px solid rgb(212, 212, 212); border-radius: 4px; box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.067); overflow-y: scroll;"><h4>loading state</h4><button class="btn-mini btn" style="float: right; margin-top: -30px;" onclick="this.nextSibling.innerHTML=\'\';" type="button">clear</button><div id="dataprogress"></div></div>';
+
+	if (widget.browse) {
+	    widget.browse.target = document.getElementById("mgbrowse");
+	    widget.browse.display();
+	} else {
+	    widget.browse = Retina.Widget.create('mgbrowse', { "target": document.getElementById("mgbrowse"), "type": "listselect", "multiple": true, "wide": true, callback: Retina.WidgetInstances.metagenome_analysis[1].loadData });
+	}
     };
 
     widget.fillContainers = function () {
@@ -70,7 +75,7 @@
 
 	var container = document.getElementById('data_containers');
 
-	container.innerHTML = "<img src='images/data.png' class='tool'>";
+	container.innerHTML = "<img src='images/data.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].dataLoader();'>";
     };
 
     widget.fillManipulators = function () {
