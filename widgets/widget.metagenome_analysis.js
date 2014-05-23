@@ -8,14 +8,26 @@
         }
     });
     
+    // load all required widgets and renderers
     widget.setup = function () {
-	return [ Retina.add_renderer({"name": "matrix", "resource": "./renderers/",  "filename": "renderer.matrix.js" }),
+	return [ Retina.add_widget({"name": "mgbrowse", "resource": "./widgets/",  "filename": "widget.mgbrowse.js"}),
+		 Retina.load_widget("mgbrowse"),
+		 Retina.add_renderer({"name": "graph", "resource": "./renderers/",  "filename": "renderer.graph.js" }),
+		 Retina.load_renderer("graph"),
+		 Retina.add_renderer({"name": "plot", "resource": "./renderers/",  "filename": "renderer.plot.js" }),
+ 		 Retina.load_renderer("plot"),
+		 Retina.add_renderer({"name": "matrix", "resource": "./renderers/",  "filename": "renderer.matrix.js" }),
                  Retina.load_renderer("matrix"),
-		 Retina.add_widget({"name": "mgbrowse", "resource": "./widgets/",  "filename": "widget.mgbrowse.js"}),
-		 Retina.load_widget("mgbrowse")
+		 Retina.add_renderer({"name": "deviationplot", "resource": "renderers/",  "filename": "renderer.deviationplot.js" }),
+		 Retina.load_renderer("deviationplot"),
+		 Retina.add_renderer({"name": "boxplot", "resource": "renderers/",  "filename": "renderer.boxplot.js" }),
+		 Retina.load_renderer("boxplot"),
+		 Retina.add_renderer({"name": "heatmap", "resource": "renderers/",  "filename": "renderer.heatmap.js" }),
+		 Retina.load_renderer("heatmap")
 	       ];
     };
     
+    // main display function called at startup
     widget.display = function (params) {
 	widget = this;
         var index = widget.index;
@@ -45,22 +57,56 @@
 	var tools = widget.sidebar;
 	tools.setAttribute('style', 'padding: 10px;');
 
-	var html = "<h4>Data Container</h4><div id='data_containers'></div><hr><h4>Manipulate</h4><div id='manipulation'></div><hr><h4>Visualizer</h4><div id='visualize'></div>";
+	var html = "<h4>Data Container</h4><div id='data_containers'></div><hr style='clear: both;'><h4>Manipulate</h4><div id='manipulation'></div><hr><h4>Visualizer</h4><div id='visualize'></div><hr><h4>Results</h4><div id='visResults'><p>no results available</p></div>";
 
 	tools.innerHTML = html;
 
+	// fill the tools area
 	widget.fillContainers();
 	widget.fillManipulators();
 	widget.fillVisualizations();
 	
     };
 
+    /*
+      MAIN AREA INTERFACES
+     */
+
+    /*
+      Data Loader
+    */
+
+    // data loader main function
     widget.dataLoader = function () {
 	var widget = Retina.WidgetInstances.metagenome_analysis[1];
 
 	var container = document.getElementById('main');
 
-	container.innerHTML = '<div style="width: 790px; padding-left: 10px; padding-right: 10px; padding-bottom: 10px; height: 200px; border: 1px solid rgb(212, 212, 212); border-radius: 4px; box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.067); overflow-y: scroll;"><h4>available data containers</h4><div id="availableContainers"></div></div><h4>load data</h4></div><div class="form-inline" style="margin-bottom: 10px;"><b>name</b><input type="text" placeholder="pick a name" style="margin-left: 10px; margin-right: 10px; width: 185px;" id="dataContainerName"><b>source</b> <select style="margin-left: 10px; margin-right: 10px;" id="profile_source"><optgroup label="protein databases"><option>M5NR</option><option>RefSeq</option><option>GenBank</option><option>IMG</option><option>SEED</option><option>TrEMBL</option><option>SwissProt</option><option>PATRIC</option><option>KEGG</option></optgroup><optgroup label="RNA databases"><option>M5RNA</option><option>RDP</option><option>Greengenes</option><option>LSU</option><option>SSU</option></optgroup><optgroup label="ontology databases"><option>Subsystems</option><option>NOG</option><option>COG</option><option>KO</option></optgroup></select> <b>type</b> <select id="profile_type" style="margin-left: 10px;"><option>organism</option><option>function</option><option>feature</option></select></div><div style="float: left; margin-right: 10px; margin-bottom: 10px;"><div id="mgbrowse"></div></div><div style="float: left; width: 790px; padding-left: 10px; padding-right: 10px; padding-bottom: 10px; height: 265px; border: 1px solid rgb(212, 212, 212); border-radius: 4px; box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.067); overflow-y: scroll;"><h4>loading state</h4><button class="btn-mini btn" style="float: right; margin-top: -30px;" onclick="this.nextSibling.innerHTML=\'\';" type="button">clear</button><div id="dataprogress"></div></div>';
+	container.innerHTML = '\
+<div style="height: 160px; overflow-x: scroll;">\
+  <h4>available data containers</h4>\
+  <div id="availableContainers"></div>\
+</div>\
+<hr>\
+<div style="display: none;">\
+  <button class="btn btn-mini pull-right" style="padding: 0 2px;" onclick="this.parentNode.style.display=\'none\';this.parentNode.nextSibling.style.display=\'\';"><img src="images/expand.png" style="width: 16px;"></button><h4>load data</h4>\
+</div>\
+<div>\
+  <button class="btn btn-mini pull-right" style="padding: 0 2px;" onclick="this.parentNode.style.display=\'none\';this.parentNode.previousSibling.style.display=\'\';"><img src="images/contract.png" style="width: 16px;"></button><h4>load data</h4>\
+  <div class="form-inline" style="margin-bottom: 10px;">\
+    <b>name</b><input type="text" placeholder="pick a name" style="margin-left: 10px; margin-right: 10px; width: 185px;" id="dataContainerName"><b>source</b> <select style="margin-left: 10px; margin-right: 10px;" id="profile_source"><optgroup label="protein databases"><option>M5NR</option><option>RefSeq</option><option>GenBank</option><option>IMG</option><option>SEED</option><option>TrEMBL</option><option>SwissProt</option><option>PATRIC</option><option>KEGG</option></optgroup><optgroup label="RNA databases"><option>M5RNA</option><option>RDP</option><option>Greengenes</option><option>LSU</option><option>SSU</option></optgroup><optgroup label="ontology databases"><option>Subsystems</option><option>NOG</option><option>COG</option><option>KO</option></optgroup></select> <b>type</b> <select id="profile_type" style="margin-left: 10px;"><option>organism</option><option>function</option><option>feature</option></select>\
+  </div>\
+  <div>\
+    <div id="mgbrowse"></div>\
+  </div>\
+</div>\
+<hr>\
+<div style="overflow-y: scroll;">\
+  <button class="btn-mini btn" style="float: right; margin-top: 5px; margin-right: 10px;" onclick="document.getElementById(\'dataprogress\').innerHTML=\'\';" type="button">clear</button><h4>loading state</h4>\
+  <div id="dataprogress"></div>\
+</div>';
+
+	widget.showDataContainers();
 
 	if (widget.browse) {
 	    widget.browse.target = document.getElementById("mgbrowse");
@@ -70,30 +116,115 @@
 	}
     };
 
+    // display all current data containers
+    widget.showDataContainers = function () {
+	var widget = Retina.WidgetInstances.metagenome_analysis[1];
+
+	var container = document.getElementById('availableContainers');
+
+	if (container) {
+	    if (stm.DataStore.hasOwnProperty('dataContainer') && Retina.keys(stm.DataStore.dataContainer).length) {
+		var keys = Retina.keys(stm.DataStore.dataContainer).sort();
+		var html = "<table><tr>";
+		for (var i=0; i<keys.length; i++) {
+		    html += "<td style='text-align: center; vertical-align: top;'><div style='width: 75px; word-wrap: break-word;' cname='"+keys[i]+"' onclick='Retina.WidgetInstances.metagenome_analysis[1].selectedContainer=this.getAttribute(\"cname\");Retina.WidgetInstances.metagenome_analysis[1].fillContainers();'><img src='images/data.png' class='tool'><br>"+keys[i]+"</div></td>";
+		}
+		html += "</tr></table>";
+		container.innerHTML = html;
+	    } else {
+		container.innerHTML = '<p style="margin-left: 50px; margin-top: 50px;">no data containers available</p>';
+	    }
+	}
+    };
+
+    /*
+      TOOLBAR AREA INTERFACES
+     */
+
+    // data section
     widget.fillContainers = function () {
 	var widget = Retina.WidgetInstances.metagenome_analysis[1];
 
 	var container = document.getElementById('data_containers');
 
-	container.innerHTML = "<img src='images/data.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].dataLoader();'>";
+	var html = "<img src='images/data.png' class='tool' style='float: left; margin-bottom: 20px;' onclick='Retina.WidgetInstances.metagenome_analysis[1].dataLoader();'>";
+
+	if (widget.selectedContainer) {
+	    var c = stm.DataStore.dataContainer[widget.selectedContainer];
+	    var type = "unspecified items";
+	    if (c.type == 'biom') {
+		if (c.source == "load") {
+		    type = "metagenome profiles";
+		}
+	    }
+	    var plist = Retina.keys(c.parameters).sort();
+	    var params = "";
+	    for (var i=0;i<plist.length;i++) {
+		params += plist[i]+" - "+c.parameters[plist[i]]+"<br>";
+	    }
+	    html += "<table style='text-align: left; float: left; margin-bottom: 20px;'><tr><td style='padding-right: 10px;'><b>name</b></td><td>"+c.name+"</td></tr>";
+	    html += "<tr><td style='padding-right: 10px; vertical-align: top;'><b>created</b></td><td>"+c.created+"</td></tr>";
+	    html += "<tr><td style='padding-right: 10px; vertical-align: top;'><b>user</b></td><td>"+c.user+"</td></tr>";
+	    html += "<tr><td style='padding-right: 10px; vertical-align: top;'><b>status</b></td><td>"+c.status+"</td></tr>";
+	    html += "<tr><td style='padding-right: 10px; vertical-align: top;'><b>contents</b></td><td>"+c.items.length+" "+type+"</td></tr>";
+	    html += "<tr><td style='padding-right: 10px; vertical-align: top;'><b>parameters</b></td><td>"+params+"</td></tr>";
+	    html += "</table>";
+	}
+
+	container.innerHTML = html;
     };
 
+    // manipulator section
     widget.fillManipulators = function () {
 	var widget = Retina.WidgetInstances.metagenome_analysis[1];
 
 	var container = document.getElementById('manipulation');
 
-	container.innerHTML = "<img src='images/filter.png' class='tool'><img src='images/shuffle.png' class='tool'><div class='tool' style='float: left;'><img src='images/tree.png' style='transform: rotate(90deg); width: 32px;'></div><img src='images/cart.png' class='tool'>";
+	container.innerHTML = "<img src='images/filter.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].manipulate(\"filter\");'><img src='images/shuffle.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].manipulate(\"subselect\");'><img src='images/tree_ltr.png' class='tool' style='width: 32px;' onclick='Retina.WidgetInstances.metagenome_analysis[1].manipulate(\"merge\");'>";
     };
 
+    widget.manipulate = function (type) {
+	var widget = Retina.WidgetInstances.metagenome_analysis[1];
+
+	var container = document.getElementById('main');
+
+	var html = "<h4>manipulate data - "+type+"</h4>";
+
+	container.innerHTML = html;
+    };
+
+    // visualization section
     widget.fillVisualizations = function () {
 	var widget = Retina.WidgetInstances.metagenome_analysis[1];
 
 	var container = document.getElementById('visualize');
 
-	container.innerHTML = "<img src='images/pie.png' class='tool'><img src='images/icon_heatmap.png' class='tool'><img src='images/stats.png' class='tool'><img src='images/bars2.png' class='tool'><img src='images/icon_pcoa.png' class='tool'><img src='images/icon_boxplot.png' class='tool'><img src='images/table.png' class='tool'>";
+	container.innerHTML = "<img src='images/table.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"table\");'><img src='images/pie.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"piechart\");'><img src='images/stats.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"linechart\");'><img src='images/bars2.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"barchart\");'><img src='images/areachart.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"areachart\");'><img src='images/icon_pcoa.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"dotplot\");'><img src='images/icon_boxplot.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"boxplot\");'><img src='images/icon_deviationplot.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"deviationplot\");'><img src='images/icon_heatmap.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"heatmap\");'>";
     };
 
+    widget.visualize = function (type) {
+	var widget = Retina.WidgetInstances.metagenome_analysis[1];
+
+	var container = document.getElementById('main');
+
+	var demo_data = widget.demoData();
+
+	var html = "<h4>visualize - "+demo_data[type].title+"</h4><div id='visualizeTarget'></div>";
+
+	container.innerHTML = html;
+
+	demo_data[type].data.target = document.getElementById('visualizeTarget');
+
+	widget.currentVisualizationRenderer = Retina.Renderer.create(demo_data[type].renderer, demo_data[type].data );
+
+	widget.currentVisualizationRenderer.render();
+    };
+
+    /* 
+       ACTION FUNCTIONS
+     */
+
+    // perform a set of API requests and create a data container
     widget.loadData = function (ids) {
 	var widget = Retina.WidgetInstances.metagenome_analysis[1];
 
@@ -118,11 +249,12 @@
 		}
 	    }
 	    stm.DataStore.dataContainer[name] = { name: name,
-						  type: 'load',
+						  source: 'load',
+						  type: 'biom',
 						  items: ids,
 						  status: "loading",
 						  promises: [],
-						  callbacks: [],
+						  callbacks: [ Retina.WidgetInstances.metagenome_analysis[1].showDataContainers ],
 						  parameters: { type: type,
 								source: source },
 						  created: Retina.date_string(new Date().getTime()),
@@ -206,19 +338,11 @@
 	return;
     };
 
-    widget.dataContainerReady = function (name) {
-	var widget = Retina.WidgetInstances.metagenome_analysis[1];
-	
-	var dataContainer = stm.DataStore.dataContainer[name];
-	dataContainer.promises = [];
-	dataContainer.status = "ready";
-	for (var i=0; i<dataContainer.callbacks.length; i++) {
-	    dataContainer.callbacks[i].call(null, dataContainer);
-	}
+    /*
+      HELPER FUNCTIONS
+     */
 
-	alert('Your data container '+name+' is ready!');
-    };
-
+    // create a progress div
     widget.pDiv = function (id, done, name, type, source) {
 	var progressContainer = document.getElementById('dataprogress');
 	if (document.getElementById(id)) {
@@ -228,14 +352,15 @@
 	div.setAttribute('id', id);
 	div.setAttribute('class', 'prog');
 	div.setAttribute('style', 'clear: both;');
-	div.innerHTML = '<div style="float: left; margin-right: 10px;">'+name+' ['+source+' - '+type+']</div><button class="close" onclick="this.parentNode.parentNode.removeChild(this.parentNode);" type="button" style="margin-top: -3px;">×</button><div style="float: right; margin-right: 10px;"><div class="progress'+(done ? '' : ' progress-striped active')+'" style="width: 100px;"><div class="bar'+(done ? ' bar-success' : '')+'" id="progressbar'+id+'" style="width: 100%;"></div></div></div><div style="float: right; margin-right: 10px;" id="progress'+id+'">'+(done ? "complete." : "waiting for server... <img src='images/waiting.gif' style='height: 12px;'>")+'</div>';
+	div.innerHTML = '<div style="float: left; margin-right: 10px;">'+name+' ['+source+' - '+type+']</div><button class="close" onclick="this.parentNode.parentNode.removeChild(this.parentNode);" type="button" style="margin-top: -3px;">×</button><div style="float: right; margin-right: 10px;"><div class="progress'+(done ? '' : ' progress-striped active')+'" style="width: 100px;"><div class="bar'+(done ? ' bar-success' : '')+'" id="progressbar'+id+'" style="width: 100%;"></div></div></div><div style="float: right; margin-right: 10px;" id="progress'+id+'">'+(done ? "complete." : "waiting for server... <img src='images/waiting.gif' style='height: 16px; position: relative; bottom: 2px;'>")+'</div>';
 	progressContainer.appendChild(div);
     };
 
-    widget.dataLoaded = function (id) {
-	console.log(id);
-    };
+    /*
+      CALLBACK FUNCTIONS
+     */
 
+    // login widget sends an action (log-in or log-out)
     widget.loginAction = function (params) {
 	Retina.WidgetInstances.metagenome_analysis[1].browse.result_list.update_data({},1);
 	if (params.token) {
@@ -247,5 +372,163 @@
 	}
     };
 
-    
+    // a dataset has finished loading from the API
+    widget.dataLoaded = function (id) {
+
+    };
+
+    // all promises for a data container have been fulfilled
+    widget.dataContainerReady = function (name) {
+	var widget = Retina.WidgetInstances.metagenome_analysis[1];
+	
+	var dataContainer = stm.DataStore.dataContainer[name];
+	dataContainer.promises = [];
+	dataContainer.status = "ready";
+	for (var i=0; i<dataContainer.callbacks.length; i++) {
+	    dataContainer.callbacks[i].call(null, dataContainer);
+	}
+    };
+
+    /*
+      DATA SECTION
+     */
+
+    widget.demoData = function () {
+	return { 'table': { title: 'abundance table',
+			    renderer: "matrix",
+			    data: { data: { rows: ['metagenome a', 'metagenome b', 'metagenome c'],
+					    columns: ['function 1', 'function 2', 'function 3', 'function 4', 'function 5', 'function 6', 'function 7', 'function 8', 'function 9', 'function 10' ],
+					    data: [ [1,2,3,4,5,4,3,2,1,0],
+						    [5,4,3,2,1,0,1,2,3,4],
+						    [0,1,0,4,0,7,0,3,0,2] ] },
+				    colHeaderHeight: 100 },
+			  },
+		 'heatmap': { title: 'heatmap',
+			      renderer: "heatmap",
+			      data: { data: Retina.RendererInstances.heatmap[0].exampleData(),
+				      width: 200,
+				      height: 200,
+				      legend_height: 80,
+				      legend_width: 90 }
+			    },
+		 'deviationplot': { title: 'deviationplot',
+				    renderer: "deviationplot",
+				    data: { data: Retina.RendererInstances.deviationplot[0].exampleData() }
+				  },
+		 'boxplot': { title: 'boxplot',
+			      renderer: "boxplot",
+			      data: { data: [ [ 5, 7, 3, 5, 1, 9, 20, 13, 7, 9, 15, 4 ],
+					      [ 5, 7, 14, 6, 16, 2, 13, 16, 17, 6, 9, 2 ],
+					      [ 12, 11, 15, 16, 9, 10, 8, 9, 8, 11, 13, 14 ] ] }
+			    },
+		 'piechart': { title: 'piechart',
+			       renderer: "graph",
+			       data: { title: 'my pie',
+    				       type: 'pie',
+    				       title_settings: { 'font-size': '18px', 'font-weight': 'bold', 'x': 0, 'text-anchor': 'start' },
+    				       x_labels: [""],
+    				       show_legend: true,
+    				       legendArea: [290, 20, 9 * 23, 250],
+    				       chartArea: [25, 20, 250, 250],
+    				       width: 250,
+    				       height: 250,
+    				       data: [ { name: "A", data: [ 100 ], fill: GooglePalette(9)[0] },
+					       { name: "B", data: [ 50 ], fill: GooglePalette(9)[1] },
+					       { name: "C", data: [ 25 ], fill: GooglePalette(9)[2] },
+					       { name: "D", data: [ 20 ], fill: GooglePalette(9)[3] },
+					       { name: "E", data: [ 19 ], fill: GooglePalette(9)[4] },
+					       { name: "F", data: [ 18 ], fill: GooglePalette(9)[5] },
+					       { name: "G", data: [ 12 ], fill: GooglePalette(9)[6] },
+					       { name: "H", data: [ 5 ], fill: GooglePalette(9)[7] },
+					       { name: "I", data: [ 1 ], fill: GooglePalette(9)[8] } ] }
+			     },
+		 'areachart': { title: 'areachart',
+				renderer: "graph",
+				data: {'x_title': "x-axis",
+				       'y_title': "y-axis",
+				       'type': 'stackedArea',
+				       'x_tick_interval': 1,
+				       'x_labeled_tick_interval': 5,
+				       'show_legend': true,
+				       'legendArea': [770, 20, 15, 5 * 23],
+     				       'chartArea': [70, 20, 750, 300],
+     				       'width': 805,
+     				       'height': 345,
+				       'data': [ { name: "A", data: [ 50, 55, 54, 45, 41, 52, 41, 52, 51, 42 ], fill: GooglePalette(5)[0] },
+						 { name: "T", data: [ 55, 54, 45, 41, 52, 41, 52, 51, 42, 60 ], fill: GooglePalette(5)[1] },
+						 { name: "C", data: [ 54, 45, 41, 52, 41, 52, 51, 42, 60, 22 ], fill: GooglePalette(5)[2] },
+						 { name: "G", data: [ 45, 41, 52, 41, 52, 51, 42, 60, 12, 5 ], fill: GooglePalette(5)[3] },
+						 { name: "N", data: [ 1, 2, 1, 2, 1, 2, 1, 2, 1, 2 ], fill: GooglePalette(5)[4] } ]
+				      }
+			      },
+		 'linechart': { title: 'linechart',
+				renderer: "plot",
+				data: { 'x_titleOffset': 40,
+					'y_titleOffset': 60,
+					'x_title': 'bp position',
+					'y_title': 'percent error',
+					'x_min': 0,
+					'x_max': 10,
+					'y_min': 0,
+					'y_max': 30,
+					'show_legend': false,
+					'show_dots': false,
+					'connected': true,
+					'chartArea': [70, 20, 750, 300],
+					'width': 790,
+					'height': 345,
+					'data': { 'series': [ {'name': 'Metagenome A', color: GooglePalette(3)[0] },
+							      {'name': 'Metagenome B', color: GooglePalette(3)[1] },
+							      {'name': 'Metagenome C', color: GooglePalette(3)[2] } ],
+						  'points': [ [ { x: 0, y: 1 }, { x: 1, y: 2 }, { x: 2, y: 3 }, { x: 3, y: 2 }, { x: 4, y: 1 }, { x: 5, y: 2 }, { x: 6, y: 3 }, { x: 7, y: 5 }, { x: 8, y: 8 }, { x: 9, y: 10 }, { x: 10, y: 19 } ],
+							      [ { x: 0, y: 3 }, { x: 1, y: 12 }, { x: 2, y: 2 }, { x: 3, y: 4 }, { x: 4, y: 2 }, { x: 5, y: 5 }, { x: 6, y: 1 }, { x: 7, y: 6 }, { x: 8, y: 5 }, { x: 9, y: 8 }, { x: 10, y: 15 } ],
+							      [ { x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 4 }, { x: 3, y: 1 }, { x: 4, y: 3 }, { x: 5, y: 1 }, { x: 6, y: 5 }, { x: 7, y: 9 }, { x: 8, y: 11 }, { x: 9, y: 18 }, { x: 10, y: 29 } ]
+							    ] }
+				      }
+			      },
+		 'dotplot': { title: 'dotplot',
+				renderer: "plot",
+				data: { 'x_titleOffset': 40,
+					'y_titleOffset': 60,
+					'x_title': '',
+					'y_title': '',
+					'x_min': -10,
+					'x_max': 10,
+					'y_min': -10,
+					'y_max': 10,
+					'show_legend': false,
+					'show_dots': true,
+					'connected': false,
+					'chartArea': [70, 20, 450, 400],
+					'width': 500,
+					'height': 450,
+					'data': { 'series': [ {'name': 'Metagenome A', color: GooglePalette(3)[0], shape: 'circle', filled: true },
+							      {'name': 'Metagenome B', color: GooglePalette(3)[1], shape: 'circle', filled: true },
+							      {'name': 'Metagenome C', color: GooglePalette(3)[2], shape: 'circle', filled: true } ],
+						  'points': [ [ { x: -5, y: -1 }, { x: 1, y: 2 }, { x: 2, y: -3 }, { x: -3, y: 2 } ],
+							      [ { x: -8, y: -3 }, { x: 5, y: 9 }, { x: 7, y: 2 }, { x: 3, y: 8 } ],
+							      [ { x: -2, y: 0 }, { x: 2, y: -5 }, { x: 9, y: -4 }, { x: 3, y: 7 } ]
+							    ] }
+				      }
+			      },
+		 'barchart': { title: 'barchart',
+			       renderer: "graph",
+			       data: {'title': '',
+    				      'type': 'column',
+    				      'default_line_width': 10,
+    				      'default_line_color': 'blue',
+				      'x_labels': ['Organism A', 'Organism B', 'Organism C', 'Organism D', 'Organism E'],
+    				      'x_labels_rotation': '310',
+    				      'x_tick_interval': 5,
+    				      'show_legend': true,
+    				      'chartArea': [180, 20, 700, 250],
+    				      'width': 830,
+    				      'height': 340,
+				      'data': [ { name: "Metagenome A", data: [ 50, 55, 54, 45, 41 ], fill: GooglePalette(3)[0] },
+						{ name: "Metagenome B", data: [ 41, 52, 51, 42, 60 ], fill: GooglePalette(3)[1] },
+						{ name: "Metagenome C", data: [ 45, 41, 60, 22, 19 ], fill: GooglePalette(3)[2] } ]
+				     }
+			     }
+	       };
+    };
 })();
