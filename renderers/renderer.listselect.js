@@ -119,7 +119,7 @@
 
 	    // get the target div
 	    var target = renderer.settings.target;
-	    var tstyle = 'background-image: linear-gradient(to bottom, #FAFAFA, #F2F2F2); background-repeat: repeat-x; border: 1px solid #D4D4D4; border-radius: 4px 4px 4px 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067); padding-left: 10px; padding-top: 10px; height: '+(renderer.settings.extra_wide ? "255" : "300")+'px; width: ';
+	    var tstyle = 'background-image: linear-gradient(to bottom, #FAFAFA, #F2F2F2); background-repeat: repeat-x; border: 1px solid #D4D4D4; border-radius: 4px 4px 4px 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067); padding-left: 10px; padding-top: 10px; width: ';
 	    if (renderer.settings.multiple) {
 		tstyle += renderer.settings.extra_wide ? '800px;' : '600px;';
 	    } else if (renderer.settings.no_button) {
@@ -284,7 +284,7 @@
 	    var submit_button = document.createElement('a');
 	    submit_button.setAttribute('class', (renderer.settings.button && renderer.settings.button.class) ? renderer.settings.button.class : 'btn btn-small btn-success');
 	    submit_button.setAttribute('id', 'listselect_submit_button'+index);
-	    submit_button.setAttribute('style', (renderer.settings.button && renderer.settings.button.style) ? renderer.settings.button.style : 'margin-left: 8px;');
+	    submit_button.setAttribute('style', (renderer.settings.button && renderer.settings.button.style) ? renderer.settings.button.style : 'margin-left: 8px; margin-bottom: 8px;');
 	    submit_button.innerHTML = ((renderer.settings.button && renderer.settings.button.text) ? renderer.settings.button.text : '') + ( (renderer.settings.button && renderer.settings.button.icon) ? renderer.settings.button.icon : '<i class="icon-ok icon-white"></i>');
 	    if (typeof(renderer.settings.callback) == 'function') {
 	        var index = renderer.index;
