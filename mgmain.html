@@ -14,6 +14,8 @@
     <script src="js/retina.js"></script>
     <script src="js/bootstrap.min.js"></script>
 
+<script src="widgets/widget.metagenome_analysis.js"></script>
+
     <!-- bootstrap style -->
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 
@@ -52,7 +54,7 @@
 
 		Retina.add_widget({"name": "session", "resource": "widgets/",  "filename": "widget.session.js"});
 		Retina.load_widget("session").then( function() {
-		    Retina.Widget.create('session', {"target": document.getElementById('session_space')});
+		    Retina.Widget.create('session', {"target": document.getElementById('session_space'), "noInfo": true});
 		});
 		
 	    });

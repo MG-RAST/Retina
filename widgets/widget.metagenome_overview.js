@@ -586,9 +586,9 @@
                      'x_labeled_tick_interval': parseInt(bpdata.length/10),
                      'show_legend': true,
                      'legendArea': [pwidth+20, 20, lwidth, lheight],
-     		         'chartArea': [70, 20, pwidth, pheight],
-     		         'width': width+40,
-     		         'height': height+45,
+     		     'chartArea': [70, 20, pwidth, pheight],
+     		     'width': width+40,
+     		     'height': height+45,
                      'data': areaData
                  };
         return data;

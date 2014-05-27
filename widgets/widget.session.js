@@ -27,9 +27,9 @@
     <li class='disabled'><a tabindex='-1' href='#' style='color: black; font-weight: bold;'>Session Management</a></li>\
     <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].download();' title='download session to disk'><i class='icon-download' style='margin-right: 5px; position: relative; top: 1px;'></i>download</a></li>\
     <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].upload("+index+");' title='upload session from file'><i class='icon-upload' style='margin-right: 5px; position: relative; top: 1px;'></i>upload</a></li>\
-    <li class='divider'></li>\
+"+( params.noInfo ? "" : "<li class='divider'></li>\
     <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].sessionInfo("+index+");'><i class='icon-question-sign' style='margin-right: 5px; position: relative; top: 1px;'></i>info</a></li>\
-  </ul>\
+")+"  </ul>\
 </div>\
 <input type='file' id='sessionUploadButton' style='display: none;'>\
 ";

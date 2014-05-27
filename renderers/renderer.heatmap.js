@@ -58,7 +58,7 @@
 	    title: "Heatmap",
             author: "Tobias Paczian",
             version: "1.0",
-            requires: [ "jquery.svg.js", "jquery.svganim.js" ],
+            requires: [ "jquery.svg.js" ],
             defaults: {
 		'width': 700,
 		'height': 600,
