@@ -16,7 +16,7 @@
 	    Retina.Widget.create("pnnl", {"target": document.getElementById("content")});
 	    Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
 	    Retina.load_widget("login").then( function() {
-		Retina.Widget.create("login", { "target": document.getElementById("login"),
+		Retina.Widget.create("login", { "target": document.getElementById("loginContainer"),
 						"callback": Retina.WidgetInstances.shockbrowse[1].loginAction,
 						"helpEnabled": false,
 						"style": "gray" });
@@ -32,7 +32,7 @@
 	<img src="images/pnnl_logo.png" style="float: left;">
 	<img src="images/doe_seal_plus_name.png" style="float: right; margin-top: 15px; margin-right: 6px;">
 	<div style="cursor: default; margin-top: 80px; margin-left: 130px; float: left; font-size: 20px; color: #CF6200;">Metagenomics Pipeline</div>
-	<div id="login" style="left: 180px; position: relative; top: 60px;"></div>
+	<div id="loginContainer" style="left: 180px; position: relative; top: 60px;"></div>
       </div>
       <div id="content" style="clear: both;"></div>
     </div>
