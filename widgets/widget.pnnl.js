@@ -67,7 +67,7 @@
 </div>';
 
 	// pipeline status
-	html += "<div><h4>Pipeline Status</h4></div>";
+	html += "<style>.miniicon { height: 16px; margin-right: 5px;}</style><div><h4>Pipeline Status</h4><div id='pipelineStatus'></div></div>";
 
 	container.innerHTML = html;
 
@@ -87,13 +87,70 @@
 	browser.resumeButton.removeAttribute('disabled');
 
 	jQuery.getJSON("http://140.221.84.145:8000/job?query&info.user=mgrastprod&recent=5&limit=5", function (data) {
-	    console.log(data);
+	    Retina.WidgetInstances.pnnl[1].jobTable(data.data);
 	});
     };
 
     /*
      * HELPER FUNCTIONS
      */
+
+    widget.jobTable = function (data) {
+	var widget = Retina.WidgetInstances.pnnl[1];
+
+	// start table
+	var html = "<table class='table table-hover'>";
+
+	// header row
+	html += "<tr><th>job</th><th>stage</th><th>status</th><th></th><th></th></tr>";
+
+	// iterate over data rows
+	for (var i=0; i<data.length; i++) {
+	    var stage = "complete";
+	    if (data[i].remaintasks > 0) {
+		stage = data[i].tasks[data[i].tasks.length - data[i].remaintasks].cmd.description;
+	    }
+	    html += "<tr><td>"+data[i].info.name+"</td><td>"+stage+"</td><td>"+widget.status(data[i].tasks)+"</td><td>"+widget.dots(data[i].tasks)+"</td><td><button type='button' class='btn btn-mini btn-danger'>delete</button></td></tr>";
+	}
+	html += "</table>";
+
+	document.getElementById('pipelineStatus').innerHTML = html;
+    };
+
+    widget.status = function (stages) {
+	if (stages.length > 0) {
+	    var currentStage = 0;
+	    for (var i=0;i<stages.length;i++) {
+		if (stages[i].state == 'pending') {
+		    currentStage--;
+		    break;
+		}
+		currentStage++;
+	    }
+	    if (currentStage < 0) {
+		currentStage = 0;
+	    }
+	    if (currentStage == stages.length) {
+		currentStage--;
+	    }
+	    if (stages[currentStage].state == "completed") {
+		return '<img class="miniicon" src="images/ok.png"><span class="green">completed</span>';
+	    } else if (stages[currentStage].state == "in-progress") {
+		return '<img class="miniicon" src="images/settings3.png"><span class="blue">running</span>';
+	    } else if (stages[currentStage].state == "queued") {
+		return '<img class="miniicon" src="images/clock.png"><span class="orange">queued</span>';
+	    } else if (stages[currentStage].state == "pending") {
+		return '<img class="miniicon" src="images/clock.png"><span class="gray">pending</span>';
+	    } else if (stages[currentStage].state == "error") {
+		return '<img class="miniicon" src="images/remove.png"><span class="red">error</span>';
+	    } else if (stages[currentStage].state == "suspend") {
+		return '<img class="miniicon" src="images/remove.png"><span class="red">suspended</span>';
+	    } else {
+		console.log("unhandled state: "+stages[currentStage].state);
+		return "";
+	    }
+	}
+    };
 
     // create dots for awe steps
     widget.dots = function (stages) {
