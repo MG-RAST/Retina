@@ -12,8 +12,8 @@
     widget.setup = function () {
 	return [ Retina.add_widget({"name": "mgbrowse", "resource": "./widgets/",  "filename": "widget.mgbrowse.js"}),
 		 Retina.load_widget("mgbrowse"),
-		 Retina.add_widget({"name": "RendererControllerMatrix", "resource": "./widgets/",  "filename": "widget.RendererControllerMatrix.js"}),
-		 Retina.load_widget("RendererControllerMatrix"),
+		 Retina.add_widget({"name": "RendererController", "resource": "./widgets/",  "filename": "widget.RendererController.js"}),
+		 Retina.load_widget("RendererController"),
 		 Retina.add_renderer({"name": "graph", "resource": "./renderers/",  "filename": "renderer.graph.js" }),
 		 Retina.load_renderer("graph"),
 		 Retina.add_renderer({"name": "plot", "resource": "./renderers/",  "filename": "renderer.plot.js" }),
@@ -304,24 +304,21 @@
 
 	demo_data[type].data.target = document.getElementById('visualizeTarget');
 
-	if (type === 'table') {
+	if ((type === 'table') || (type === 'piechart')) {
 	    var w;
-	    if (Retina.WidgetInstances.RendererControllerMatrix.length > 1) {
-		w = Retina.WidgetInstances.RendererControllerMatrix[1];
+	    if (Retina.WidgetInstances.RendererController.length > 1) {
+		w = Retina.WidgetInstances.RendererController[1];
 		w.display({target: document.getElementById("visualizeTarget")});
 	    } else {
-		w = Retina.Widget.create('RendererControllerMatrix', { "target": document.getElementById("visualizeTarget") })
+		w = Retina.Widget.create('RendererController', { "target": document.getElementById("visualizeTarget"), "type": demo_data[type].renderer })
 	    }
 	    widget.currentVisualizationController = w;
 	} else {
 	    var r;
 	    if (Retina.RendererInstances[demo_data[type].renderer].length > 1) {
-		r = Retina.RendererInstances[demo_data[type].renderer][1];
-		r.settings.target = document.getElementById("visualizeTarget");
-	    } else {
-		r = Retina.Renderer.create(demo_data[type].renderer, demo_data[type].data);
+		delete Retina.RendererInstances[demo_data[type].renderer][1];
 	    }
-	    widget.currentVisualizationRenderer = r;
+	    widget.currentVisualizationRenderer = Retina.Renderer.create(demo_data[type].renderer, demo_data[type].data);;
 	    widget.currentVisualizationRenderer.render();
 	}
     };

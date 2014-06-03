@@ -24,7 +24,7 @@
 	// submission form
 	html += '\
 <div>\
-  <h4>Perform Submission</h4>\
+  <h4>Submit Data to Analysis Pipeline</h4>\
   <div class="form-horizontal">\
     <div class="control-group">\
       <span style="float: right; width: 450px; margin-right: 50px;">Select the sequence file you want to perform analysis on.</span>\
@@ -102,7 +102,7 @@
 	var html = "<table class='table table-hover'>";
 
 	// header row
-	html += "<tr><th>job</th><th>stage</th><th>status</th><th></th><th></th></tr>";
+	html += "<tr><th>job</th><th>stage</th><th>status</th><th></th><th></th><th></th></tr>";
 
 	// iterate over data rows
 	for (var i=0; i<data.length; i++) {
@@ -110,7 +110,7 @@
 	    if (data[i].remaintasks > 0) {
 		stage = data[i].tasks[data[i].tasks.length - data[i].remaintasks].cmd.description;
 	    }
-	    html += "<tr><td>"+data[i].info.name+"</td><td>"+stage+"</td><td>"+widget.status(data[i].tasks)+"</td><td>"+widget.dots(data[i].tasks)+"</td><td><button type='button' class='btn btn-mini btn-danger'>delete</button></td></tr>";
+	    html += "<tr><td>"+data[i].info.name+"</td><td>"+stage+"</td><td>"+widget.status(data[i].tasks)+"</td><td>"+widget.dots(data[i].tasks)+"</td><td><button type='button' class='btn btn-mini btn-danger'>delete</button></td><td>"+(data[i].state=='completed' ? "<button type='button' class='btn btn-mini btn-primary'>download</button>" : "")+"</td></tr>";
 	}
 	html += "</table>";
 

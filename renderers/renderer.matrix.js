@@ -40,7 +40,7 @@
     diameter of the data circles in pixel, default is 30
 
   colHeaderHeight (INT)
-    height of the column header row in pixel, default is 200
+    height of the column header row in pixel, default is 100
 
 */
 (function () {
@@ -55,10 +55,22 @@
 			circleColor: 'purple',
 			dataFontSize: '10px',
 			circleSize: 30,
-			colHeaderHeight: 200 }
+			colHeaderHeight: 100 },
+	    options: { minOpacity: { type: 'float', description: "minimum opacity of the data circles", title: "minimum opacity" },
+		       circleColor: { type: 'color', description: "base color of the data circles before opacity applies", title: "circle color" },
+		       dataFontSize: { type: 'fontsize', description: "fontsize of the data circles, must be a valid css font size", title: "data font size" },
+		       rowFontSize: { type: 'fontsize', description: "fontsize of the row titles, must be a valid css font size", title: "row font size" },
+		       colFontSize: { type: 'fontsize', description: "fontsize of the column titles, must be a valid css font size", title: "column font size" },
+		       circleSize: { type: 'int', description: "diameter of the data circles in pixel", title: "circle size" },
+		       colHeaderHeight: { type: 'int', description: "height of the column header row in pixel", title: "column header height" }
+		     }
 	},
 	exampleData: function () {
-	    return [];
+	    return { rows: ['metagenome a', 'metagenome b', 'metagenome c'],
+		     columns: ['function 1', 'function 2', 'function 3', 'function 4', 'function 5', 'function 6', 'function 7', 'function 8', 'function 9', 'function 10' ],
+		     data: [ [1,2,3,4,5,4,3,2,1,0],
+			     [5,4,3,2,1,0,1,2,3,4],
+			     [0,1,0,4,0,7,0,3,0,2] ] };
         },
 	render: function () {
 	    var renderer = this;
