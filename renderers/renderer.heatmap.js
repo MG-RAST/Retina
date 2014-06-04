@@ -60,19 +60,29 @@
             version: "1.0",
             requires: [ "jquery.svg.js" ],
             defaults: {
-		'width': 700,
-		'height': 600,
+		'width': 200,
+		'height': 200,
 		'tree_height': 50,
 		'tree_width': 50,
-		'legend_height': 250,
-		'legend_width': 250,
+		'legend_height': 80,
+		'legend_width': 100,
 		'row_text_size': 15,
 		'col_text_size': 15,
 		'min_cell_height': 19,
 		'selectedRows': [],
 		'selectedColumns': [],
-		'cells': [],
-		'data': {} }
+		'cells': [] },
+	    options: {
+		height: { type: 'int', description: "height of the plot", title: "height" },
+		width: { type: 'int', description: "width of the plot", title: "width" },
+		tree_height: { type: 'int', description: "height of the dendogram", title: "dendogram height" },
+		tree_width: { type: 'int', description: "width of the dendogram", title: "dendogram width" },
+		legend_height: { type: 'int', description: "height of the legend", title: "legend height" },
+		legend_width: { type: 'int', description: "width of the legend", title: "legend width" },
+		row_text_size: { type: 'int', description: "font size of the row text in pixel", title: "row font size" },
+		col_text_size: { type: 'int', description: "font size of the column text in pixel", title: "column font size" },
+		min_cell_height: { type: 'int', description: "minimum height of a cell", title: "minimum cell height" }
+	    }
 	},
 	exampleData: function () {
 	    return { columns: ["4441619.3", "4441656.4", "4441620.3"], rows: ["Eukaryota", "unassigned", "Bacteria","Archaea"], data: [[0.338159580408187, 0.717179237742824, 0.514052821211353],[0.238159580408187, 0.317179237742824, 0.114052821211353],[0.553202346761363, 0.614080873307415, 0.555096325148052],[0.996159994861707, 0.940468112695288, 1]] };

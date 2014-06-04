@@ -134,8 +134,8 @@
 		'short_axis_labels': false,
 		'normalize_stacked_area': true,
 		'width': 800,
-		'height': 400,
-		'data': [ ] },
+		'height': 400
+	    },
 	    options: { type: { type: 'select', description: "type of the graph", title: "type", options: [ { value: "column", selected: true },
 													   { value: "stackedColumn", label: "stacked column" },
 													   { value: "row" },
@@ -252,7 +252,6 @@
 			 ];
 	    
 	    var defs = svg.defs();
-
 	    var max = 0;
 	    for (i=0; i<renderer.settings.data.length; i++) {
 		for (h=0; h<renderer.settings.data[i].data.length; h++) {

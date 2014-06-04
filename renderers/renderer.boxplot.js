@@ -23,16 +23,27 @@
 		'normalized_standardized': false,
 		'titles': [],
 		'title': "",
-		'data': [ ] }
+		'orientation': 'vertical' },
+	    options: {
+		boxwidth: { type: 'int', description: "width of the boxes", title: "box width" },
+		minwidth: { type: 'int', description: "minimum width of a box", title: "minumum width" },
+		height: { type: 'int', description: "height of the plot", title: "height" },
+		width: { type: 'int', description: "width of the plot", title: "width" },
+		title: { type: 'text', description: "title of the plot", title: "title" },
+		orientation: { type: 'select', description: "orientation of the plot", title: "orientation", options: [ { value: 'vertical', selected: true },
+															{ value: 'horizontal' } ] }
+	    }
 	},
 	exampleData: function () {
-	    return [ [ 100, 5, 7, 3, 5, 1, 9, 20, 13, 7, 9, 15, 4 ],
+	    return [ [ 10, 5, 7, 3, 5, 1, 9, 20, 13, 7, 9, 15, 4 ],
 		     [ 23, 5, 7, 14, 6, 16, 2, 13, 16, 17, 6, 9, 2 ],
 		     [ 12, 11, 15, 16, 18, 9, 10, 8, 9, 8, 11, 13, 14 ] ];
         },
 	
 	render: function () {
 	    renderer = this;
+
+	    var orientation = renderer.settings.orientation || "vertical";
 
 	    // do the calculations
 	    var data = renderer.settings.data;
@@ -119,14 +130,14 @@
 	    if (renderer.settings.width < renderer.settings.minwidth) {
 		renderer.settings.width = renderer.settings.minwidth;
 	    }
-	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
+	    target.firstChild.setAttribute('style', "width: " + (orientation == 'vertical' ? renderer.settings.width : renderer.settings.height) + "px; height: "+(orientation == 'vertical' ? renderer.settings.height : renderer.settings.width)+"px;");
 	    jQuery('#boxplot_div'+index).svg();
-	    Retina.RendererInstances.boxplot[renderer.index].drawImage(jQuery('#boxplot_div'+index).svg('get'), renderer.index);
+	    Retina.RendererInstances.boxplot[renderer.index].drawImage(jQuery('#boxplot_div'+index).svg('get'), renderer.index, orientation, renderer.settings.height);
 	    
 	    return renderer;
 	},
 	
-	drawImage: function (svg, index) {
+	drawImage: function (svg, index, orientation, height) {
 	    renderer = Retina.RendererInstances.boxplot[index];
 
 	    var title_height = 0;
@@ -144,27 +155,30 @@
 	    var yfactor = (renderer.settings.height - title_height - label_height) / (renderer.settings.max - renderer.settings.min);
 	    var pad = parseInt(boxwidth / 6);
 
+	    var trans = orientation == 'vertical' ? {} : { transform: "rotate(90,0,0) translate(0,-"+height+")" };
+	    var group = svg.group(trans);
+	    
 	    for (i=0;i<renderer.settings.fivenumbers.length;i++) {
 		var data = renderer.settings.fivenumbers[i];
 		var xoffset = parseInt(i * (boxwidth * 1.5));
 
 		// median - upper
-		svg.rect(xoffset + 1, (renderer.settings.max - data.upper) * yfactor + title_height, boxwidth - 2, (data.upper - data.median) * yfactor, 0, 0, { stroke: 'black', strokeWidth: 1, fill: 'white' });
+		svg.rect(group, xoffset + 1, Math.ceil((renderer.settings.max - data.upper) * yfactor + title_height), parseInt(boxwidth - 2), parseInt((data.upper - data.median) * yfactor), 0, 0, { stroke: 'black', strokeWidth: 1, fill: 'white' });
 
 		// median - lower
-		svg.rect(xoffset + 1, (renderer.settings.max - data.median) * yfactor + title_height, boxwidth - 2, (data.median - data.lower) * yfactor, 0, 0, { stroke: 'black', strokeWidth: 1, fill: 'white' });
+		svg.rect(group, xoffset + 1, parseInt((renderer.settings.max - data.median) * yfactor + title_height), parseInt(boxwidth - 2), parseInt((data.median - data.lower) * yfactor), 0, 0, { stroke: 'black', strokeWidth: 1, fill: 'white' });
 
 		// max - upper
-		svg.line(xoffset + 1 + pad, (renderer.settings.max - data.max) * yfactor + 1 + title_height, xoffset + 1 + boxwidth - 2 - pad, (renderer.settings.max - data.max) * yfactor + 1 + title_height, { stroke: 'black', strokeWidth: 1 });
-		svg.line(xoffset + parseInt(boxwidth / 2), (renderer.settings.max - data.max) * yfactor + 1 + title_height, xoffset + parseInt(boxwidth / 2), (renderer.settings.max - data.upper) * yfactor + 1 + title_height, { stroke: 'black', strokeWidth: 1, strokeDashArray: "2,2" });
+		svg.line(group, xoffset + 1 + pad, parseInt((renderer.settings.max - data.max) * yfactor + 1 + title_height), parseInt(xoffset + 1 + boxwidth - 2 - pad), parseInt((renderer.settings.max - data.max) * yfactor + 1 + title_height), { stroke: 'black', strokeWidth: 1 });
+		svg.line(group, xoffset + parseInt(boxwidth / 2), parseInt((renderer.settings.max - data.max) * yfactor + 1 + title_height), parseInt(xoffset + parseInt(boxwidth / 2)), parseInt((renderer.settings.max - data.upper) * yfactor + 1 + title_height), { stroke: 'black', strokeWidth: 1, strokeDashArray: "2,2" });
 
 		// lower - min
-		svg.line(xoffset + 1 + pad, (renderer.settings.max - data.min) * yfactor - 1 + title_height, xoffset + 1 + boxwidth - 2 - pad, (renderer.settings.max - data.min) * yfactor - 1 + title_height, { stroke: 'black', strokeWidth: 1 });
-		svg.line(xoffset + parseInt(boxwidth / 2), (renderer.settings.max - data.lower) * yfactor - 1 + title_height, xoffset + parseInt(boxwidth / 2), (renderer.settings.max - data.min) * yfactor - 1 + title_height, { stroke: 'black', strokeWidth: 1, strokeDashArray: "2,2" });
+		svg.line(group, xoffset + 1 + pad, parseInt((renderer.settings.max - data.min) * yfactor - 1 + title_height), parseInt(xoffset + 1 + boxwidth - 2 - pad), parseInt((renderer.settings.max - data.min) * yfactor - 1 + title_height), { stroke: 'black', strokeWidth: 1 });
+		svg.line(group, xoffset + parseInt(boxwidth / 2), parseInt((renderer.settings.max - data.lower) * yfactor - 1 + title_height), parseInt(xoffset + parseInt(boxwidth / 2)), parseInt((renderer.settings.max - data.min) * yfactor - 1 + title_height), { stroke: 'black', strokeWidth: 1, strokeDashArray: "2,2" });
 
 		// label
 		if (renderer.settings.titles[i]) {
-		    svg.text(parseInt(xoffset + (boxwidth / 2)),renderer.settings.height - label_height + 5,renderer.settings.titles[i],{"style": "fill: black; font-size: 14px;", "transform":"rotate(-90 "+parseInt(xoffset + (boxwidth / 2))+" "+(renderer.settings.height - label_height + 5)+")", "textAnchor": "end"})
+		    svg.text(group, parseInt(xoffset + (boxwidth / 2)),renderer.settings.height - label_height + 5,renderer.settings.titles[i],{"style": "fill: black; font-size: 14px;", "transform":"rotate(-90 "+parseInt(xoffset + (boxwidth / 2))+" "+(renderer.settings.height - label_height + 5)+")", "textAnchor": "end"})
 		}
 	    }
 	}
