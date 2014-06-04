@@ -17,8 +17,11 @@
             requires: [ "jquery.svg.js" ],
             defaults: {
 		'width': 400,
-		'height': 80,
-		'data': [ ] }
+		'height': 80 },
+	    options: {
+		height: { type: 'int', description: "height of the plot", title: "height" },
+		width: { type: 'int', description: "width of the plot", title: "width" }
+	    }
 	},
 	exampleData: function () {
 	    return [ 358.14, 519.87, 250.20, 432.74, 278.04, 356.20, 1000, 1, 500, 520, 510, 450, 480, 500, 500, 500, 500 ];

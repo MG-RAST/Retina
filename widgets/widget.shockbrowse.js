@@ -8,17 +8,35 @@
   width - width of the browser in pixel, default is 1200
   height - height of the browser in pixel, default is 600
   title - text displayed in the title bar, default is "SHOCK browser"
+
   showFilter - boolean whether the filter section is visible, default is true
-  presetFilters - hash of field name -> field value that is always added to the filter
+  showTitleBar - boolean whether the title bar is visible, default is true
+  showResizer - boolean whether the rezise buttons are visible, default is true
+
   enableUpload - boolean whether upload is enabled, default is true
   enableDownload - boolean whether download is enabled, default is true
+  showUploadPreview - boolean whether a preview is shown for files selected for upload
+
+  showDetailBar - boolean whether the detail bar is visible, default is true
+  showDetailInfo - boolean whether the detail option 'info' is available, default is true
+  showDetailAttributes - boolean whether the detail option 'attributes' is available, default is true
+  showDetailACL - boolean whether the detail option 'acl' is available, default is true
+  showDetailPreview - boolean whether the detail option 'preview' is available, default is true
+
+  showStatusBar - boolean whether the status bar at the bottom is displayed, default is true
+
+  showTopSection - boolean whether the top section is visible, default is true
+
+  detailType - one of [ info, attributes, acl, preview ] indicating the initial display when selecting a file, default is info
+
+  presetFilters - hash of field name -> field value that is always added to the filter
+  querymode - [ full | attributes ] determines which part of the node to search in, default is attributes
+
   previewChunkSize - size in bytes that is loaded from the server for the preview of a file, default is 2 KB
   uploadChunkSize - size in bytes uploaded to the server per chunk, default is 10 MB
   currentLimit - maximum number of files loaded initially and whenever scrolling to the bottom
-  detailType - one of [ info, attributes, acl, preview ] indicating the initial display when selecting a file, default is info
   authHeader - authentication header used when interacting with the server
   customPreview - optinally provided custom function for node preview, receives an object with the selected node (node), the first previewChunkSize bytes of the file (data) and the error if exists (error), must return the HTML to be displayed in the preview section
-  querymode - [ full | attributes ] determines which part of the node to search in, default is attributes
 
 */
 (function () {
@@ -79,8 +97,7 @@
     // status bar text
     widget.status = "<img src='images/waiting.gif' style='height: 15px;'> connecting to SHOCK server...";
 
-    // interface settings
-    widget.detailType = "info";
+    // interface default settings
     widget.detailInfo = null;
     widget.selectedFile = null;
     widget.infoRequest = null;
@@ -88,10 +105,26 @@
     widget.currentOffset = 0;
     widget.currentLimit = 100;
     widget.scrollPosition = 0;
+
     widget.filters = {};
+    widget.querymode = "attributes";
+    widget.detailType = "info";
+
+    widget.showTitleBar = true;
+    widget.showResizer = true;
+    widget.showDetailBar = true;
+    widget.showDetailInfo = true;
+    widget.showDetailACL = true;
+    widget.showDetailPreview = true;
+    widget.showDetailAttributes = true;
+
+    widget.showStatusBar = true;
+
     widget.enableDownload = true;
     widget.enableUpload = true;
-    widget.querymode = "attributes";
+    widget.showUploadPreview = true;
+
+    widget.showTopSection = true;
 
     /*
      * STYLESHEET
@@ -158,6 +191,9 @@
 	widget.fileWidth = Math.floor((widget.width - filterWidth) / 2) - 5;
 	widget.detailWidth = Math.floor((widget.width - filterWidth) / 2) - 5;
 
+	widget.topHeight = widget.showTopSection ? (widget.showTitleBar ? 50 : 40) : 0;
+	widget.middleHeight = widget.height - (widget.showStatusBar ? (22 + widget.topHeight) : (1 + widget.topHeight));
+
 	widget.sections = {};
 
 	var browser = document.createElement('div');
@@ -168,10 +204,12 @@
 	widget.target.innerHTML = widget.style();
 	widget.target.appendChild(browser);
 
-	widget.top_section();
+	if (widget.showTopSection) {
+	    widget.top_section();
+	}
 	widget.middle_section();
 	widget.bottom_section();
-
+	
 	if (! widget.data) {
 	    widget.updateData();
 	}
@@ -191,7 +229,7 @@
 	    widget.sections.toolBar = null;
 	} else {
 	    section = document.createElement('div');
-	    section.setAttribute('style', "height: 50px; border-bottom: 1px solid #838383; background-color: #F5F5F5; background-image: linear-gradient(to bottom, #FDFDFD, #C3C3C3); background-repeat: repeat-x; position: relative; border-radius: "+widget.borderRadius+"px "+widget.borderRadius+"px 0 0;");
+	    section.setAttribute('style', "height: "+widget.topHeight+"px; border-bottom: 1px solid #838383; background-color: #F5F5F5; background-image: linear-gradient(to bottom, #FDFDFD, #C3C3C3); background-repeat: repeat-x; position: relative; border-radius: "+widget.borderRadius+"px "+widget.borderRadius+"px 0 0;");
 	    widget.sections.browser.appendChild(section);
 	    widget.sections.topSection = section;
 	}
@@ -203,7 +241,7 @@
     widget.middle_section = function () {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
-	var height = widget.height - 72;
+	var height = widget.middleHeight;
 
 	var section;
 	if (widget.sections.middleSection) {
@@ -237,8 +275,10 @@
 	    widget.sections.statusBar = null;
 	} else {
 	    section = document.createElement('div');
-	section.setAttribute('style', "height: 20px; border-top: 1px solid #838383; background-color: #F5F5F5; background-image: linear-gradient(to bottom, #FDFDFD, #C3C3C3); background-repeat: repeat-x; position: relative;");
-	    widget.sections.browser.appendChild(section);
+	    section.setAttribute('style', "height: 20px; border-top: 1px solid #838383; background-color: #F5F5F5; background-image: linear-gradient(to bottom, #FDFDFD, #C3C3C3); background-repeat: repeat-x; position: relative;");
+	    if (widget.showStatusBar) {
+		widget.sections.browser.appendChild(section);
+	    }
 	    widget.sections.bottomSection = section;
 	}
 
@@ -257,12 +297,12 @@
 	    section.innerHTML = "";
 	} else {
 	    section = document.createElement('div');
-	    section.setAttribute('style', "text-align: center; text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);");
+	    section.setAttribute('style', "text-align: center; text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);"+(widget.showTitleBar ? "" : " height: 10px;"));
 	    widget.sections.topSection.appendChild(section);
 	    widget.sections.titleBar = section;
 	}
 
-	section.innerHTML = widget.title || "&nbsp;";
+	section.innerHTML = (widget.showTitleBar && widget.title) ? widget.title : "&nbsp;";
 	var resizer = document.createElement('div');
 	resizer.setAttribute('style', "float: left;");
 	resizer.innerHTML = '\
@@ -272,7 +312,9 @@
 \
 <img src="images/box.png" style="width: 8px; cursor: pointer;" onclick="Retina.WidgetInstances.shockbrowse[1].width=Retina.WidgetInstances.shockbrowse[1].sizes[\'small\'][0];Retina.WidgetInstances.shockbrowse[1].height=Retina.WidgetInstances.shockbrowse[1].sizes[\'small\'][1];Retina.WidgetInstances.shockbrowse[1].display();">\
 ';
-	section.appendChild(resizer);
+	if (widget.showResizer) {
+	    section.appendChild(resizer);
+	}
     };
 
     widget.tool_bar = function () {
@@ -290,7 +332,7 @@
 	}
 
 	var toolBar = document.createElement('div');
-	toolBar.setAttribute("style", "position: relative; bottom: 4px; margin-left: "+widget.filterWidth+"px;");
+	toolBar.setAttribute("style", "position: relative; bottom: 4px; margin-left: "+(widget.showFilter ? widget.filterWidth : "0")+"px;");
 
 	if (widget.enableUpload) {
 	    // upload bar
@@ -389,7 +431,19 @@
 	detailBar.setAttribute("data-toggle", "buttons-radio");
 	detailBar.setAttribute("style", "float: right;");
 	
-	var types = [ "info", "attributes", "preview" ]; // "acl",
+	var types = [];
+	if (widget.showDetailInfo) {
+	    types.push("info");
+	}
+	if (widget.showDetailAttributes) {
+	    types.push("attributes");
+	}
+	if (widget.showDetailPreview) {
+	    types.push("preview");
+	}
+	if (widget.showDetailACL) {
+	    types.push("acl");
+	}
 	for (var i=0; i<types.length; i++) {
 	    var button = document.createElement('button');
 	    var active = "";
@@ -403,7 +457,9 @@
 	    detailBar.appendChild(button);
 	}
 
-	toolBar.appendChild(detailBar);
+	if (widget.showDetailBar) {
+	    toolBar.appendChild(detailBar);
+	}
 
 	// search bar
 	var searchBar = document.createElement('div');
@@ -433,7 +489,7 @@
 	    section.innerHTML = "";
 	    widget.sections.filterSectionContent = null;
 	} else {
-	    var height = widget.height - 72;
+	    var height = widget.middleHeight;
 	    var section = document.createElement('div');
 	    section.setAttribute('style', "height: "+height+"px; width: "+widget.filterWidth+"px; float: left; background-color: #e6eaef; color: #6e7886; border-right: 1px solid #808080;");
 	    widget.sections.middleSection.appendChild(section);
@@ -494,7 +550,7 @@
 		section.innerHTML = "";
 		widget.sections.fileSectionContent = null;
 	    } else {
-		var height = widget.height - 72;
+		var height = widget.middleHeight;
 		section = document.createElement('div');
 		section.setAttribute('style', "height: "+height+"px; width: "+widget.fileWidth+"px; float: left;");
 		widget.sections.middleSection.appendChild(section);
@@ -557,7 +613,7 @@
 	    widget.sections.detailSectionContent = null;
 	} else {
 	    section = document.createElement('div');
-	    var height = widget.height - 72;
+	    var height = widget.middleHeight;
 	    section.setAttribute('style', "height: "+height+"px; width: "+widget.detailWidth+"px; float: left;");
 	    widget.sections.middleSection.appendChild(section);
 	    widget.sections.detailSection = section;
@@ -573,7 +629,7 @@
     widget.middle_border = function () {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
-	var height = widget.height - 72;
+	var height = widget.middleHeight;
 
 	var bar = document.createElement('div');
 	bar.setAttribute('style', "background-color: #E9E9E9; width: 4px; border-left: 1px solid #808080; border-right: 1px solid #808080; height: "+height+"px; float: left; cursor: col-resize;");
@@ -1204,55 +1260,57 @@
 
 	var blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
 
-	// check if we can show a preview
-	if (fileType.match(/json$/)) {
-	    fileReader.onload = function(e) {
-		var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
-		section.innerHTML += "<p><b>Preview</b></p><pre>" + e.target.result + "\n"+(file.size > chunkSize ? "..." : "")+"</pre>";
-	    };
-	    fileReader.readAsText(blobSlice.call(file, start, end));	    
-	} else if (fileType.match(/^text/)) {
-	    fileReader.onload = function(e) {
-		var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
-		section.innerHTML += "<p><b>Preview</b></p><pre style='overflow: auto;'><xmp>" + e.target.result + "\n"+(file.size > chunkSize ? "..." : "")+"</xmp></pre>";
-	    };
-	    fileReader.readAsText(blobSlice.call(file, start, end));
-	} else if (fileType.match(/^image/)) {
-	    fileReader.onload = function(e) {
-		var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
-		var img = document.createElement('img');
-		img.setAttribute('src', e.target.result);
-		section.innerHTML += "<p><b>Preview</b></p>";
-		section.appendChild(img);
-		img.addEventListener('load', function () {
-		    if (img.naturalWidth > (Retina.WidgetInstances.shockbrowse[1].detailWidth - 20)) {
-			img.setAttribute('style', 'width: '+(Retina.WidgetInstances.shockbrowse[1].detailWidth - 20)+'px');
-		    }
-		    var sizeNode = document.createElement("p");
-		    sizeNode.innerHTML = " <i style='font-size: 12px;'>original size: "+img.naturalWidth+"px wide - "+img.naturalHeight+"px high</i>";
-		    Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent.insertBefore(sizeNode, img);
-		});
-	    };
-	    fileReader.readAsDataURL(file);	    
-	} else if (fileType.match(/\/zip$/)) {
-	    fileReader.onload = function(e) {
-		var zip = new JSZip(e.target.result);
-		var html = "<p><b>Contents</b></p><table class='table' style='margin-top: 25px; font-size: 12px;'><tr><th>name</th><th>compressed</th><th>uncompressed</th></tr>";
-		var first;
-		for (var i in zip.files) {
-		    if (zip.files.hasOwnProperty(i)) {
-			if (! first) {
-			    first = i;
+	if (widget.showUploadPreview) {
+	    // check if we can show a preview
+	    if (fileType.match(/json$/)) {
+		fileReader.onload = function(e) {
+		    var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
+		    section.innerHTML += "<p><b>Preview</b></p><pre>" + e.target.result + "\n"+(file.size > chunkSize ? "..." : "")+"</pre>";
+		};
+		fileReader.readAsText(blobSlice.call(file, start, end));	    
+	    } else if (fileType.match(/^text/)) {
+		fileReader.onload = function(e) {
+		    var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
+		    section.innerHTML += "<p><b>Preview</b></p><pre style='overflow: auto;'><xmp>" + e.target.result + "\n"+(file.size > chunkSize ? "..." : "")+"</xmp></pre>";
+		};
+		fileReader.readAsText(blobSlice.call(file, start, end));
+	    } else if (fileType.match(/^image/)) {
+		fileReader.onload = function(e) {
+		    var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
+		    var img = document.createElement('img');
+		    img.setAttribute('src', e.target.result);
+		    section.innerHTML += "<p><b>Preview</b></p>";
+		    section.appendChild(img);
+		    img.addEventListener('load', function () {
+			if (img.naturalWidth > (Retina.WidgetInstances.shockbrowse[1].detailWidth - 20)) {
+			    img.setAttribute('style', 'width: '+(Retina.WidgetInstances.shockbrowse[1].detailWidth - 20)+'px');
 			}
-			html += "<tr><td>"+i+"</td><td>"+zip.files[i]._data.compressedSize.byteSize()+"</td><td>"+zip.files[i]._data.uncompressedSize.byteSize()+"</td></tr>";
+			var sizeNode = document.createElement("p");
+			sizeNode.innerHTML = " <i style='font-size: 12px;'>original size: "+img.naturalWidth+"px wide - "+img.naturalHeight+"px high</i>";
+			Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent.insertBefore(sizeNode, img);
+		    });
+		};
+		fileReader.readAsDataURL(file);	    
+	    } else if (fileType.match(/\/zip$/)) {
+		fileReader.onload = function(e) {
+		    var zip = new JSZip(e.target.result);
+		    var html = "<p><b>Contents</b></p><table class='table' style='margin-top: 25px; font-size: 12px;'><tr><th>name</th><th>compressed</th><th>uncompressed</th></tr>";
+		    var first;
+		    for (var i in zip.files) {
+			if (zip.files.hasOwnProperty(i)) {
+			    if (! first) {
+				first = i;
+			    }
+			    html += "<tr><td>"+i+"</td><td>"+zip.files[i]._data.compressedSize.byteSize()+"</td><td>"+zip.files[i]._data.uncompressedSize.byteSize()+"</td></tr>";
+			}
 		    }
+		    html += "</table>";
+		    var buf = zip.file(first).asText(10);
+		    console.log(buf);
+		    Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent.innerHTML += html;
 		}
-		html += "</table>";
-		var buf = zip.file(first).asText(10);
-		console.log(buf);
-		Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent.innerHTML += html;
+		fileReader.readAsArrayBuffer(file);
 	    }
-	    fileReader.readAsArrayBuffer(file);
 	}
     }
 

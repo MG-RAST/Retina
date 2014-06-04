@@ -111,9 +111,15 @@
 	return values;
     };
     
-    Retina.propSort = function(prop) {
-	return function(a, b) {
-            return a[prop] - b[prop];
+    Retina.propSort = function(prop, ltr) {
+	if (ltr) {
+	    return function(a, b) {
+		return b[prop] - a[prop];
+	    }
+	} else {
+	    return function(a, b) {
+		return a[prop] - b[prop];
+	    }
 	}
     };
 

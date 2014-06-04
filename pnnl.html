@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>PNNL: Metagenomics Pipeline</title>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/stm.js"></script>
+    <script src="js/retina.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <script>
+    Retina.init( { library_resource: "js/" } ).then( function() {
+	Retina.add_widget({"name": "pnnl", "resource": "widgets/",  "filename": "widget.pnnl.js"});
+	Retina.load_widget("pnnl").then( function() {
+	    Retina.Widget.create("pnnl", {"target": document.getElementById("content")});
+	    Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
+	    Retina.load_widget("login").then( function() {
+		Retina.Widget.create("login", { "target": document.getElementById("loginContainer"),
+						"callback": Retina.WidgetInstances.shockbrowse[1].loginAction,
+						"helpEnabled": false,
+						"style": "gray" });
+	    });
+	});
+    });
+    </script>
+  </head>
+  
+  <body style="margin-top: 10px; margin-bottom: 100px; font-family: Avenir; color: #707276;">
+    <div class="container" style=" min-height: 750px;">
+      <div style="height: 150px;">
+	<img src="images/pnnl_logo.png" style="float: left;">
+	<div style="float: right;"><p style="font-size: 10px; margin: 0 -3px 0px;">powered by</p><img src="images/labs_icon.png"></div>
+	<div style="cursor: default; margin-top: 60px; margin-left: 60px; float: left; font-size: 20px; color: #CF6200;"><p>Mapping microbial community DNA sequence data to CAZY</p><p style="text-align: center;">a  KBase powered tool</p></div>
+	<div id="loginContainer" style="right: 15px; position: absolute; top: 15px;"></div>
+      </div>
+      <div id="content" style="clear: both;"></div>
+    </div>
+    <div class="container">
+      <img src="images/doe_seal_plus_name.png" style="float: right; margin-top: 15px; margin-right: 6px;">
+    </div>
+  </body>
+</html>

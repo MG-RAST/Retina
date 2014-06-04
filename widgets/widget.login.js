@@ -15,6 +15,11 @@
     widget.callback = null;
     widget.cookiename = "mgauth";
     widget.authResources = RetinaConfig.authResources;
+
+    widget.helpEnabled = true;
+    widget.registerEnabled = false;
+    widget.mydataEnabled = false;
+    widget.style = "black";
     
     widget.display = function (wparams) {
 	widget = this;
@@ -140,8 +145,8 @@
 	<p>Enter your credentials.</p>\
         <div id="failure"></div>\
         <table>\
-          <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">login</th><td><input type="text" '+loginStyle+'id="login">'+authResourceSelect+'</td></tr>\
-          <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">password</th><td><input type="password" id="password" onkeypress="event = event || window.event;if(event.keyCode == 13) { Retina.WidgetInstances.login['+index+'].perform_login('+index+');}"></td></tr>\
+          <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">login</th><td><input type="text" '+loginStyle+'id="loginWidgetLoginField">'+authResourceSelect+'</td></tr>\
+          <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">password</th><td><input type="password" id="loginWidgetPasswordField" onkeypress="event = event || window.event;if(event.keyCode == 13) { Retina.WidgetInstances.login['+index+'].perform_login('+index+');}"></td></tr>\
         </table>\
       </div>\
       <div class="modal-footer">\
@@ -170,38 +175,34 @@
 	widget = Retina.WidgetInstances.login[index];
 
 	var html = "";
-
-	var registerEnabled = false;
-	var mydataEnabled = false;
-
 	if (user) {
 	    html ='\
 <div style="float: right; margin-right: 20px; margin-top: 7px; color: gray;">\
-   <button class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="if(document.getElementById(\'userinfo\').style.display==\'none\'){document.getElementById(\'userinfo\').style.display=\'\';}else{document.getElementById(\'userinfo\').style.display=\'none\';}">\
-      <i class="icon-user icon-white" style="margin-right: 5px;"></i>\
+<button class="btn'+(widget.style=='black' ? " btn-inverse" : "")+'" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="if(document.getElementById(\'userinfo\').style.display==\'none\'){document.getElementById(\'userinfo\').style.display=\'\';}else{document.getElementById(\'userinfo\').style.display=\'none\';}">\
+<i class="icon-user'+(widget.style=='black' ? ' icon-white' : "")+'" style="margin-right: 5px;"></i>\
       '+user.firstname+' '+user.lastname+'\
       <span class="caret" style="margin-left: 5px;"></span>\
    </button>\
-   <button class="btn btn-inverse" style="border-radius: 0px 3px 3px 0px;">?</button>\
+'+(widget.helpEnabled ? ('<button class="btn'+(widget.style=='black' ? " btn-inverse" : "")+'" style="border-radius: 0px 3px 3px 0px;">?</button>') : "")+'\
 </div>\
 <div class="userinfo" id="userinfo" style="display: none;">\
    <img src="images/user.png">\
    <h4 style="margin-top: 5px;">'+user.firstname+' '+user.lastname+'</h4>\
 <p style="margin-top: -10px;">'+(user.email || "<br>") +'</p>\
-   <button class="btn btn-inverse" onclick="document.getElementById(\'userinfo\').style.display=\'none\';Retina.WidgetInstances.login['+index+'].perform_logout('+index+');">logout</button>\
-'+(mydataEnabled ? '<button class="btn" style="float: left;">myData</button>' : '')+'\
+   <button class="btn'+(widget.style=='black' ? " btn-inverse" : "")+'" onclick="document.getElementById(\'userinfo\').style.display=\'none\';Retina.WidgetInstances.login['+index+'].perform_logout('+index+');">logout</button>\
+'+(widget.mydataEnabled ? '<button class="btn" style="float: left;">myData</button>' : '')+'\
 </div>';
 	} else {
 	    html ='\
 <div style="float: right; margin-right: 20px; margin-top: 7px; color: gray;">\
-   <button class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="jQuery(\'#loginModal\').modal(\'show\');document.getElementById(\'login\').focus();">\
+   <button class="btn'+(widget.style=='black' ? " btn-inverse" : "")+'" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="jQuery(\'#loginModal\').modal(\'show\');document.getElementById(\'loginWidgetLoginField\').focus();">\
       Login\
    </button>\
-' + (registerEnabled ? '<button class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="alert(\'register\');">\
+' + (widget.registerEnabled ? '<button class="btn'+(widget.style=='black' ? " btn-inverse" : "")+'" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="alert(\'register\');">\
       Register\
-</button>' : '') +'\
-   <button class="btn btn-inverse" style="border-radius: 0px 3px 3px 0px;">?</button>\
-</div>';
+</button>' : '') +(widget.helpEnabled ? '\
+   <button class="btn'+(widget.style=='black' ? " btn-inverse" : "")+'" style="border-radius: 0px 3px 3px 0px;">?</button>\
+' : "")+'</div>';
 	}
 	
 	return html;
@@ -209,8 +210,8 @@
 
     widget.perform_login = function (index) {
 	widget = Retina.WidgetInstances.login[index];
-	var login = document.getElementById('login').value;
-	var pass = document.getElementById('password').value;
+	var login = document.getElementById('loginWidgetLoginField').value;
+	var pass = document.getElementById('loginWidgetPasswordField').value;
 	var auth_url = stm.Config.mgrast_api+'?auth='+widget.authResources[widget.authResources.default].prefix+Retina.Base64.encode(login+":"+pass);
 	jQuery.get(auth_url, function(d) {
 	    if (d && d.token) {
