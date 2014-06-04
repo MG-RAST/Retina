@@ -298,42 +298,73 @@
 
 	var demo_data = widget.demoData();
 
-	var html = "<h4>visualize - "+demo_data[type].title+"</h4><div class='form-inline'><input type='text' class='span1' id='matrixLevel' value=0><button type='button' class='btn' onclick='Retina.WidgetInstances.metagenome_analysis[1].updateVis();'>draw</button></div><div id='visualizeTarget'></div>";
+	var containerData = "";
+	if (widget.selectedContainer) {
+	    var c = stm.DataStore.dataContainer[widget.selectedContainer];
+	    var p = stm.DataStore.profile[c.items[0].id+"_"+c.parameters.type+"_"+c.parameters.source];
+	    var mdname = Retina.keys(p.rows[0].metadata)[0];
+	    var cols = p.rows[0].metadata[mdname];
+	    var matrixLevels = "";
+	    for (var i=0; i<cols.length; i++) {
+		matrixLevels += "<option value='"+i+"'>"+i+"</option>";
+	    }
+
+	    containerData = "<div class='form-inline' style='margin-bottom: 20px;'>select "+mdname+" level <select class='span1' id='matrixLevel' style='margin-right: 10px;'>"+matrixLevels+"</select><button type='button' class='btn' onclick='Retina.WidgetInstances.metagenome_analysis[1].updateVis();'>draw</button></div>";
+	}
+
+	var html = "<h4>visualize - "+demo_data[type].title+"</h4>"+containerData+"<div id='visualizeTarget'></div>";
 
 	container.innerHTML = html;
 
-	demo_data[type].data.target = document.getElementById('visualizeTarget');
-
-	if ((type === 'table') || (type === 'piechart')) {
-	    var w;
-	    if (Retina.WidgetInstances.RendererController.length > 1) {
-		w = Retina.WidgetInstances.RendererController[1];
-		w.display({target: document.getElementById("visualizeTarget")});
-	    } else {
-		w = Retina.Widget.create('RendererController', { "target": document.getElementById("visualizeTarget"), "type": demo_data[type].renderer })
-	    }
-	    widget.currentVisualizationController = w;
-	} else {
-	    var r;
-	    if (Retina.RendererInstances[demo_data[type].renderer].length > 1) {
-		delete Retina.RendererInstances[demo_data[type].renderer][1];
-	    }
-	    widget.currentVisualizationRenderer = Retina.Renderer.create(demo_data[type].renderer, demo_data[type].data);;
-	    widget.currentVisualizationRenderer.render();
+	demo_data[type].settings.target = document.getElementById('visualizeTarget');
+	if (Retina.RendererInstances[demo_data[type].renderer] && Retina.RendererInstances[demo_data[type].renderer].length > 1) {
+	    Retina.RendererInstances[demo_data[type].renderer] = [ Retina.RendererInstances[demo_data[type].renderer][0] ];
 	}
+	if (Retina.WidgetInstances.RendererController.length > 1) {
+	    Retina.WidgetInstances.RendererController = [ Retina.WidgetInstances.RendererController[0] ];
+	}
+	widget.currentVisualizationController = Retina.Widget.create('RendererController', { "target": document.getElementById("visualizeTarget"), "type": demo_data[type].renderer, "settings": demo_data[type].settings });
     };
 
     // draw the current visualization with updated parameters
     widget.updateVis = function () {
 	var widget = Retina.WidgetInstances.metagenome_analysis[1];
 	
-	var matrixLevel = document.getElementById('matrixLevel').value || 0;
+	var matrixLevel = document.getElementById('matrixLevel').options[document.getElementById('matrixLevel').selectedIndex].value;
 	var r = widget.currentVisualizationController;
-	var matrix = widget.transposeMatrix(widget.container2matrix({ dataColIndex: matrixLevel }));
-	r.data(1, { data: matrix.data,
-		    rows: matrix.rows,
-		    columns: matrix.cols });
-	r.render(1);
+	if (r.params.type == 'matrix') {	
+	    var matrix = widget.container2matrix({ dataColIndex: matrixLevel });
+	    r.data(1, { data: matrix.data,
+			rows: matrix.rows,
+			columns: matrix.cols });
+	} else if (r.params.type == 'graph') {
+	    var data = widget.container2graphseries({ dataColIndex: matrixLevel });
+	    r.data(1, data.data);
+	    r.renderer.settings.x_labels = data.x_labels;
+	} else if (r.params.type == 'plot') {
+	    var data = widget.container2plotseries({ dataColIndex: matrixLevel });
+	    for (var i=0; i<data.data.points.length; i++) {
+		data.data.points[i] = data.data.points[i].sort(Retina.propSort('y', true));
+		for (var h=0;h<data.data.points[i].length; h++) {
+		    data.data.points[i][h].x=h;
+		}
+	    }
+	    r.data(1, data.data);
+	    r.renderer.settings.x_min = data.x_min;
+	    r.renderer.settings.x_max = data.x_max;
+	    r.renderer.settings.y_min = data.y_min;
+	    r.renderer.settings.y_max = data.y_max;
+	    r.renderer.settings.x_title = "";
+	    r.renderer.settings.y_title = "abundance";
+	} else if (r.params.type == 'heatmap') {
+	    var matrix = widget.container2matrix({ dataColIndex: matrixLevel });
+	    var data = widget.normalizeMatrix(matrix.data);
+	    r.data(1, { data: data,
+			rows: matrix.rows,
+			columns: matrix.cols });
+	}
+
+	r.render(1);	   
     };
 
     /* 
@@ -557,6 +588,109 @@
       DATA CONTAINER CONVERSION METHODS
      */
 
+    widget.container2graphseries = function (params) {
+	var widget = Retina.WidgetInstances.metagenome_analysis[1];
+	
+	var cname = params.container || widget.selectedContainer;
+	var c = stm.DataStore.dataContainer[cname];
+
+	var series = { data:[] };
+
+	var id = params.colHeader || 'id';
+
+	var d = {};
+	var dataRow = params.dataRow || 0;
+	var isFiltered = false;
+	if (c.hasOwnProperty('rows')) {
+	    isFiltered = true;
+	}
+	var colItem = params.dataColItem || Retina.keys(stm.DataStore.profile[c.items[0].id+"_"+c.parameters.type+"_"+c.parameters.source].rows[0].metadata)[0];
+	var colIndex = params.dataColIndex;
+	var palette = GooglePalette(c.items.length);
+	for (var i=0; i<c.items.length; i++) {
+	    var p = stm.DataStore.profile[c.items[i].id+"_"+c.parameters.type+"_"+c.parameters.source];
+	    series.data.push( { name: c.items[i][id], data: [], fill: palette[i] } );
+	    for (var h=0; h<(isFiltered ? c.rows[c.items[i].id].length : p.rows.length); h++) {
+		var row = (isFiltered ? c.rows[c.items[i].id][h] : h);
+		var val = p.data[row][dataRow];
+		var key = (colIndex === null ? p.rows[row].metadata[colItem] : p.rows[row].metadata[colItem][colIndex]);
+		if (! d.hasOwnProperty(key)) {
+		    d[key] = [];
+		    for (j=0;j<c.items.length;j++) {
+			d[key][j] = 0;
+		    }
+		}
+		d[key][i] += val;
+	    }
+	}
+
+	var rows = Retina.keys(d).sort();
+	series.x_labels = rows;
+	for (var i=0; i<rows.length; i++) {
+	    for (var h=0; h<c.items.length; h++) {
+		series.data[h].data.push(d[rows[i]][h]);
+	    }
+	}
+	
+	return series;
+    };
+
+    widget.container2plotseries = function (params) {
+	var widget = Retina.WidgetInstances.metagenome_analysis[1];
+	
+	var cname = params.container || widget.selectedContainer;
+	var c = stm.DataStore.dataContainer[cname];
+
+	var series = { data: { series: [ ],
+			       points: [ ] } };
+
+	var id = params.colHeader || 'id';
+
+	var d = {};
+	var dataRow = params.dataRow || 0;
+	var isFiltered = false;
+	if (c.hasOwnProperty('rows')) {
+	    isFiltered = true;
+	}
+	var colItem = params.dataColItem || Retina.keys(stm.DataStore.profile[c.items[0].id+"_"+c.parameters.type+"_"+c.parameters.source].rows[0].metadata)[0];
+	var colIndex = params.dataColIndex;
+	var palette = GooglePalette(c.items.length);
+	for (var i=0; i<c.items.length; i++) {
+	    var p = stm.DataStore.profile[c.items[i].id+"_"+c.parameters.type+"_"+c.parameters.source];
+	    series.data.series.push( { name: c.items[i][id], color: palette[i] } );
+	    series.data.points.push([]);
+	    for (var h=0; h<(isFiltered ? c.rows[c.items[i].id].length : p.rows.length); h++) {
+		var row = (isFiltered ? c.rows[c.items[i].id][h] : h);
+		var val = p.data[row][dataRow];
+		var key = (colIndex === null ? p.rows[row].metadata[colItem] : p.rows[row].metadata[colItem][colIndex]);
+		if (! d.hasOwnProperty(key)) {
+		    d[key] = [];
+		    for (j=0;j<c.items.length;j++) {
+			d[key][j] = 0;
+		    }
+		}
+		d[key][i] += val;
+	    }
+	}
+
+	var rows = Retina.keys(d).sort();
+	var max = 0;
+	for (var i=0; i<rows.length; i++) {
+	    for (var h=0; h<c.items.length; h++) {
+		series.data.points[h].push({ x: i, y: d[rows[i]][h] });
+		if (d[rows[i]][h] > max) {
+		    max = d[rows[i]][h];
+		}
+	    }
+	}
+	series.x_min = 0;
+	series.x_max = rows.length - 1;
+	series.y_max = max;
+	series.y_min = 0;
+
+	return series;
+    };
+
     widget.container2matrix = function (params) {
 	var widget = Retina.WidgetInstances.metagenome_analysis[1];
 	
@@ -619,6 +753,30 @@
 	return mnew;
     };
 
+    widget.normalizeMatrix = function (matrix) {
+	var maxes = [];
+
+	for (var i=0; i<matrix[0].length; i++) {
+	    maxes.push(0);
+	}
+	for (var i=0;i<matrix.length;i++) {
+	    for (var h=0; h<matrix[i].length; h++) {
+		if (maxes[h]<matrix[i][h]) {
+		    maxes[h] = matrix[i][h];
+		}
+	    }
+	}
+	for (var i=0;i<matrix.length;i++) {
+	    for (var h=0; h<matrix[i].length; h++) {
+		matrix[i][h] = matrix[i][h] / maxes[h];
+		}
+	}
+
+	return matrix;
+    };
+
+    
+
     /*
       DATA SECTION
      */
@@ -626,138 +784,135 @@
     widget.demoData = function () {
 	return { 'table': { title: 'abundance table',
 			    renderer: "matrix",
-			    data: { data: { rows: ['metagenome a', 'metagenome b', 'metagenome c'],
-					    columns: ['function 1', 'function 2', 'function 3', 'function 4', 'function 5', 'function 6', 'function 7', 'function 8', 'function 9', 'function 10' ],
-					    data: [ [1,2,3,4,5,4,3,2,1,0],
-						    [5,4,3,2,1,0,1,2,3,4],
-						    [0,1,0,4,0,7,0,3,0,2] ] },
-				    colHeaderHeight: 100 },
+			    settings: { data: { rows: ['metagenome a', 'metagenome b', 'metagenome c'],
+						columns: ['function 1', 'function 2', 'function 3', 'function 4', 'function 5', 'function 6', 'function 7', 'function 8', 'function 9', 'function 10' ],
+						data: [ [1,2,3,4,5,4,3,2,1,0],
+							[5,4,3,2,1,0,1,2,3,4],
+							[0,1,0,4,0,7,0,3,0,2] ] },
+					colHeaderHeight: 100 },
 			  },
 		 'heatmap': { title: 'heatmap',
 			      renderer: "heatmap",
-			      data: { data: Retina.RendererInstances.heatmap[0].exampleData(),
-				      width: 200,
-				      height: 200,
-				      legend_height: 80,
-				      legend_width: 90 }
+			      settings: { width: 200,
+					  height: 200,
+					  legend_height: 80,
+					  legend_width: 90 }
 			    },
 		 'deviationplot': { title: 'deviationplot',
 				    renderer: "deviationplot",
-				    data: { data: Retina.RendererInstances.deviationplot[0].exampleData() }
+				    settings: { }
 				  },
 		 'boxplot': { title: 'boxplot',
 			      renderer: "boxplot",
-			      data: { data: [ [ 5, 7, 3, 5, 1, 9, 20, 13, 7, 9, 15, 4 ],
-					      [ 5, 7, 14, 6, 16, 2, 13, 16, 17, 6, 9, 2 ],
-					      [ 12, 11, 15, 16, 9, 10, 8, 9, 8, 11, 13, 14 ] ] }
+			      settings: { }
 			    },
 		 'piechart': { title: 'piechart',
 			       renderer: "graph",
-			       data: { title: 'my pie',
-    				       type: 'pie',
-    				       title_settings: { 'font-size': '18px', 'font-weight': 'bold', 'x': 0, 'text-anchor': 'start' },
-    				       x_labels: [""],
-    				       show_legend: true,
-    				       legendArea: [290, 20, 9 * 23, 250],
-    				       chartArea: [25, 20, 250, 250],
-    				       width: 250,
-    				       height: 250,
-    				       data: [ { name: "A", data: [ 100 ], fill: GooglePalette(9)[0] },
-					       { name: "B", data: [ 50 ], fill: GooglePalette(9)[1] },
-					       { name: "C", data: [ 25 ], fill: GooglePalette(9)[2] },
-					       { name: "D", data: [ 20 ], fill: GooglePalette(9)[3] },
-					       { name: "E", data: [ 19 ], fill: GooglePalette(9)[4] },
-					       { name: "F", data: [ 18 ], fill: GooglePalette(9)[5] },
-					       { name: "G", data: [ 12 ], fill: GooglePalette(9)[6] },
-					       { name: "H", data: [ 5 ], fill: GooglePalette(9)[7] },
-					       { name: "I", data: [ 1 ], fill: GooglePalette(9)[8] } ] }
+			       settings: { title: 'my pie',
+    					   type: 'pie',
+    					   title_settings: { 'font-size': '18px', 'font-weight': 'bold', 'x': 0, 'text-anchor': 'start' },
+    					   x_labels: [""],
+    					   show_legend: true,
+    					   legendArea: [290, 20, 9 * 23, 250],
+    					   chartArea: [25, 20, 250, 250],
+    					   width: 250,
+    					   height: 250,
+    					   data: [ { name: "A", data: [ 100 ], fill: GooglePalette(9)[0] },
+						   { name: "B", data: [ 50 ], fill: GooglePalette(9)[1] },
+						   { name: "C", data: [ 25 ], fill: GooglePalette(9)[2] },
+						   { name: "D", data: [ 20 ], fill: GooglePalette(9)[3] },
+						   { name: "E", data: [ 19 ], fill: GooglePalette(9)[4] },
+						   { name: "F", data: [ 18 ], fill: GooglePalette(9)[5] },
+						   { name: "G", data: [ 12 ], fill: GooglePalette(9)[6] },
+						   { name: "H", data: [ 5 ], fill: GooglePalette(9)[7] },
+						   { name: "I", data: [ 1 ], fill: GooglePalette(9)[8] } ] }
 			     },
 		 'areachart': { title: 'areachart',
 				renderer: "graph",
-				data: {'x_title': "x-axis",
-				       'y_title': "y-axis",
-				       'type': 'stackedArea',
-				       'x_tick_interval': 1,
-				       'x_labeled_tick_interval': 5,
-				       'show_legend': true,
-				       'legendArea': [770, 20, 15, 5 * 23],
-     				       'chartArea': [70, 20, 750, 300],
-     				       'width': 805,
-     				       'height': 345,
-				       'data': [ { name: "A", data: [ 50, 55, 54, 45, 41, 52, 41, 52, 51, 42 ], fill: GooglePalette(5)[0] },
-						 { name: "T", data: [ 55, 54, 45, 41, 52, 41, 52, 51, 42, 60 ], fill: GooglePalette(5)[1] },
-						 { name: "C", data: [ 54, 45, 41, 52, 41, 52, 51, 42, 60, 22 ], fill: GooglePalette(5)[2] },
-						 { name: "G", data: [ 45, 41, 52, 41, 52, 51, 42, 60, 12, 5 ], fill: GooglePalette(5)[3] },
-						 { name: "N", data: [ 1, 2, 1, 2, 1, 2, 1, 2, 1, 2 ], fill: GooglePalette(5)[4] } ]
-				      }
+				settings: {'x_title': "x-axis",
+					   'y_title': "y-axis",
+					   'type': 'stackedArea',
+					   'x_tick_interval': 1,
+					   'x_labeled_tick_interval': 5,
+					   'show_legend': true,
+					   'legendArea': [770, 20, 15, 5 * 23],
+     					   'chartArea': [70, 20, 750, 300],
+     					   'width': 805,
+     					   'height': 345,
+					   'data': [ { name: "A", data: [ 50, 55, 54, 45, 41, 52, 41, 52, 51, 42 ], fill: GooglePalette(5)[0] },
+						     { name: "T", data: [ 55, 54, 45, 41, 52, 41, 52, 51, 42, 60 ], fill: GooglePalette(5)[1] },
+						     { name: "C", data: [ 54, 45, 41, 52, 41, 52, 51, 42, 60, 22 ], fill: GooglePalette(5)[2] },
+						     { name: "G", data: [ 45, 41, 52, 41, 52, 51, 42, 60, 12, 5 ], fill: GooglePalette(5)[3] },
+						     { name: "N", data: [ 1, 2, 1, 2, 1, 2, 1, 2, 1, 2 ], fill: GooglePalette(5)[4] } ]
+					  }
 			      },
 		 'linechart': { title: 'linechart',
 				renderer: "plot",
-				data: { 'x_titleOffset': 40,
-					'y_titleOffset': 60,
-					'x_title': 'bp position',
-					'y_title': 'percent error',
-					'x_min': 0,
-					'x_max': 10,
-					'y_min': 0,
-					'y_max': 30,
-					'show_legend': false,
-					'show_dots': false,
-					'connected': true,
-					'chartArea': [70, 20, 750, 300],
-					'width': 790,
-					'height': 345,
-					'data': { 'series': [ {'name': 'Metagenome A', color: GooglePalette(3)[0] },
-							      {'name': 'Metagenome B', color: GooglePalette(3)[1] },
-							      {'name': 'Metagenome C', color: GooglePalette(3)[2] } ],
-						  'points': [ [ { x: 0, y: 1 }, { x: 1, y: 2 }, { x: 2, y: 3 }, { x: 3, y: 2 }, { x: 4, y: 1 }, { x: 5, y: 2 }, { x: 6, y: 3 }, { x: 7, y: 5 }, { x: 8, y: 8 }, { x: 9, y: 10 }, { x: 10, y: 19 } ],
-							      [ { x: 0, y: 3 }, { x: 1, y: 12 }, { x: 2, y: 2 }, { x: 3, y: 4 }, { x: 4, y: 2 }, { x: 5, y: 5 }, { x: 6, y: 1 }, { x: 7, y: 6 }, { x: 8, y: 5 }, { x: 9, y: 8 }, { x: 10, y: 15 } ],
-							      [ { x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 4 }, { x: 3, y: 1 }, { x: 4, y: 3 }, { x: 5, y: 1 }, { x: 6, y: 5 }, { x: 7, y: 9 }, { x: 8, y: 11 }, { x: 9, y: 18 }, { x: 10, y: 29 } ]
-							    ] }
+				settings: { 'x_titleOffset': 40,
+					    'y_titleOffset': 60,
+					    'x_title': 'bp position',
+					    'y_title': 'percent error',
+					    'x_min': 0,
+					    'x_max': 10,
+					    'y_min': 0,
+					    'y_max': 30,
+					    'show_legend': false,
+					    'show_dots': false,
+					    'connected': true,
+					    'chartArea': [70, 20, 750, 300],
+					    'width': 790,
+					    'height': 345,
+					    'data': { 'series': [ {'name': 'Metagenome A', color: GooglePalette(3)[0] },
+								  {'name': 'Metagenome B', color: GooglePalette(3)[1] },
+								  {'name': 'Metagenome C', color: GooglePalette(3)[2] } ],
+						      'points': [ [ { x: 0, y: 1 }, { x: 1, y: 2 }, { x: 2, y: 3 }, { x: 3, y: 2 }, { x: 4, y: 1 }, { x: 5, y: 2 }, { x: 6, y: 3 }, { x: 7, y: 5 }, { x: 8, y: 8 }, { x: 9, y: 10 }, { x: 10, y: 19 } ],
+								  [ { x: 0, y: 3 }, { x: 1, y: 12 }, { x: 2, y: 2 }, { x: 3, y: 4 }, { x: 4, y: 2 }, { x: 5, y: 5 }, { x: 6, y: 1 }, { x: 7, y: 6 }, { x: 8, y: 5 }, { x: 9, y: 8 }, { x: 10, y: 15 } ],
+								  [ { x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 4 }, { x: 3, y: 1 }, { x: 4, y: 3 }, { x: 5, y: 1 }, { x: 6, y: 5 }, { x: 7, y: 9 }, { x: 8, y: 11 }, { x: 9, y: 18 }, { x: 10, y: 29 } ]
+								] }
 				      }
 			      },
 		 'dotplot': { title: 'dotplot',
-				renderer: "plot",
-				data: { 'x_titleOffset': 40,
-					'y_titleOffset': 60,
-					'x_title': '',
-					'y_title': '',
-					'x_min': -10,
-					'x_max': 10,
-					'y_min': -10,
-					'y_max': 10,
-					'show_legend': false,
-					'show_dots': true,
-					'connected': false,
-					'chartArea': [70, 20, 450, 400],
-					'width': 500,
-					'height': 450,
-					'data': { 'series': [ {'name': 'Metagenome A', color: GooglePalette(3)[0], shape: 'circle', filled: true },
-							      {'name': 'Metagenome B', color: GooglePalette(3)[1], shape: 'circle', filled: true },
-							      {'name': 'Metagenome C', color: GooglePalette(3)[2], shape: 'circle', filled: true } ],
-						  'points': [ [ { x: -5, y: -1 }, { x: 1, y: 2 }, { x: 2, y: -3 }, { x: -3, y: 2 } ],
-							      [ { x: -8, y: -3 }, { x: 5, y: 9 }, { x: 7, y: 2 }, { x: 3, y: 8 } ],
-							      [ { x: -2, y: 0 }, { x: 2, y: -5 }, { x: 9, y: -4 }, { x: 3, y: 7 } ]
-							    ] }
-				      }
-			      },
+			      renderer: "plot",
+			      settings: { 'x_titleOffset': 40,
+					  'y_titleOffset': 60,
+					  'x_title': '',
+					  'y_title': '',
+					  'x_min': -10,
+					  'x_max': 10,
+					  'y_min': -10,
+					  'y_max': 10,
+					  'show_legend': false,
+					  'show_dots': true,
+					  'connected': false,
+					  'chartArea': [70, 20, 450, 400],
+					  'width': 500,
+					  'height': 450,
+					  'data': { 'series': [ {'name': 'Metagenome A', color: GooglePalette(3)[0], shape: 'circle', filled: true },
+								{'name': 'Metagenome B', color: GooglePalette(3)[1], shape: 'circle', filled: true },
+								{'name': 'Metagenome C', color: GooglePalette(3)[2], shape: 'circle', filled: true } ],
+						    'points': [ [ { x: -5, y: -1 }, { x: 1, y: 2 }, { x: 2, y: -3 }, { x: -3, y: 2 } ],
+								[ { x: -8, y: -3 }, { x: 5, y: 9 }, { x: 7, y: 2 }, { x: 3, y: 8 } ],
+								[ { x: -2, y: 0 }, { x: 2, y: -5 }, { x: 9, y: -4 }, { x: 3, y: 7 } ]
+							      ] }
+					}
+			    },
 		 'barchart': { title: 'barchart',
 			       renderer: "graph",
-			       data: {'title': '',
-    				      'type': 'column',
-    				      'default_line_width': 10,
-    				      'default_line_color': 'blue',
-				      'x_labels': ['Organism A', 'Organism B', 'Organism C', 'Organism D', 'Organism E'],
-    				      'x_labels_rotation': '310',
-    				      'x_tick_interval': 5,
-    				      'show_legend': true,
-    				      'chartArea': [180, 20, 700, 250],
-    				      'width': 830,
-    				      'height': 340,
-				      'data': [ { name: "Metagenome A", data: [ 50, 55, 54, 45, 41 ], fill: GooglePalette(3)[0] },
-						{ name: "Metagenome B", data: [ 41, 52, 51, 42, 60 ], fill: GooglePalette(3)[1] },
-						{ name: "Metagenome C", data: [ 45, 41, 60, 22, 19 ], fill: GooglePalette(3)[2] } ]
-				     }
+			       settings: {'title': '',
+    					  'type': 'column',
+    					  'default_line_width': 10,
+    					  'default_line_color': 'blue',
+					  'x_labels': ['Organism A', 'Organism B', 'Organism C', 'Organism D', 'Organism E'],
+    					  'x_labels_rotation': '310',
+    					  'x_tick_interval': 5,
+    					  'show_legend': true,
+    					  'chartArea': [180, 20, 700, 250],
+    					  'width': 830,
+    					  'height': 340,
+					  'data': [ { name: "Metagenome A", data: [ 50, 55, 54, 45, 41 ], fill: GooglePalette(3)[0] },
+						    { name: "Metagenome B", data: [ 41, 52, 51, 42, 60 ], fill: GooglePalette(3)[1] },
+						    { name: "Metagenome C", data: [ 45, 41, 60, 22, 19 ], fill: GooglePalette(3)[2] } ]
+					 }
 			     }
 	       };
     };
