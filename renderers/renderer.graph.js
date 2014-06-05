@@ -136,44 +136,74 @@
 		'width': 800,
 		'height': 400
 	    },
-	    options: { type: { type: 'select', description: "type of the graph", title: "type", options: [ { value: "column", selected: true },
-													   { value: "stackedColumn", label: "stacked column" },
-													   { value: "row" },
-													   { value: "stackedRow", label: "stacked row" },
-													   { value: "line" },
-													   { value: "pie" },
-													   { value: "stackedArea", label: "stacked area" } ] },
-		       title: { type: 'text', description: "title string of the graph", title: "title" },
-		       title_color: { type: 'color', description: "color of the title string of the graph", title: "title color" },
-		       x_title: { type: 'text', description: "title of the x-axis of the graph", title: "x title" },
-		       y_title: { type: 'text', description: "title of the y-axis of the graph", title: "y title" },
-		       x_title_color: { type: 'color', description: "color of the title of the x-axis of the graph", title: "x title color" },
-		       y_title_color: { type: 'color', description: "color of the title of the y-axis of the graph", title: "y title color" },
-		       x_labels_rotation: { type: 'int', description: "rotation in degrees of the x-axis labels", title: "x label rotation" },
-		       y_scale: { type: 'select', description: "type of the scale of the y-axis", title: "y scale", options: [ { value: "linear", selected: true },
-															       { value: "log" } ] },
-		       x_tick_interval: { type: 'int', description: "pixel distance of the minor tickmarks on the x-axis", title: "minor x ticks" },
-		       y_tick_interval: { type: 'int', description: "pixel distance of the minor tickmarks on the y-axis", title: "minor y ticks" },
-		       x_labeled_tick_interval: { type: 'int', description: "pixel distance of the major tickmarks on the x-axis", title: "major x ticks" },
-		       y_labeled_tick_interval: { type: 'int', description: "pixel distance of the major tickmarks on the y-axis", title: "major y ticks" },
-		       default_line_color: { type: 'color', description: "default color of the data lines of the graph", title: "default line color" },
-		       default_line_width: { type: 'int', description: "default width of the data lines of the graph in pixel", title: "default line width" },
-		       show_legend: { type: 'select', description: "sets whether the legend is displayed or not", title: "show legend", options: [ { value: 0, selected: true, label: "no" },
-																		   { value: 1, label: "yes" } ] },
-		       short_axis_labels: { type: 'select', description: "sets whether the axis labels should be shortened or not", title: "short axis labels", options: [ { value: 0, selected: true, label: "no" },
-																		   { value: 1, label: "yes" } ] },
-		       show_grid: { type: 'select', description: "sets whether grid is displayed or not", title: "show grid", options: [ { value: 0, selected: true, label: "no" },
-																		   { value: 1, label: "yes" } ] },
-		       width: { type: 'int', description: "width of the graph in pixel", title: "width" },
-		       height: { type: 'int', description: "height of the graph in pixel", title: "height" },
-		       legend_position: { type: 'select',
-					  description: "position of the legend",
-					  title: "legend position",
-					  options: [ { value: "left", selected: true },
-						     { value: "right" },
-						     { value: "top" },
-						     { value: "bottom" } ] }
-		     }
+	    options: [
+		{ general:
+		  [
+		      { name: 'type', type: 'select', description: "type of the graph", title: "type", options: [
+			  { value: "column", selected: true },
+			  { value: "stackedColumn", label: "stacked column" },
+			  { value: "row" },
+			  { value: "stackedRow", label: "stacked row" },
+			  { value: "line" },
+			  { value: "pie" },
+			  { value: "stackedArea", label: "stacked area" } ] },
+		      { name: 'default_line_color', type: 'color', description: "default color of the data lines of the graph", title: "default line color" },
+		      { name: 'default_line_width', type: 'int', description: "default width of the data lines of the graph in pixel", title: "default line width" },
+		      { name: 'show_grid', type: 'select', description: "sets whether grid is displayed or not", title: "show grid", options: [
+			  { value: 0, selected: true, label: "no" },
+			  { value: 1, label: "yes" } ] }    
+		  ]
+		},
+		{ text:
+		  [
+		      { name: 'title', type: 'text', description: "title string of the graph", title: "title" },
+		      { name: 'title_color', type: 'color', description: "color of the title string of the graph", title: "title color" },
+		      { name: 'x_title', type: 'text', description: "title of the x-axis of the graph", title: "x title" },
+		      { name: 'y_title', type: 'text', description: "title of the y-axis of the graph", title: "y title" },
+		      { name: 'x_title_color', type: 'color', description: "color of the title of the x-axis of the graph", title: "x title color" },
+		      { name: 'y_title_color', type: 'color', description: "color of the title of the y-axis of the graph", title: "y title color" },
+		      { name: 'x_labels_rotation', type: 'int', description: "rotation in degrees of the x-axis labels", title: "x label rotation" }
+		  ]
+		},
+		{ layout:
+		  [
+		      { name: 'width', type: 'int', description: "width of the graph in pixel", title: "width" },
+		      { name: 'height', type: 'int', description: "height of the graph in pixel", title: "height" },
+		      { name: 'show_legend', type: 'select', description: "sets whether the legend is displayed or not",
+			title: "show legend", options: [
+			    { value: 0, selected: true, label: "no" },
+			    { value: 1, label: "yes" } ] },
+		      { name: 'legend_position', 
+			type: 'select',
+			description: "position of the legend",
+			title: "legend position",
+			options: [ { value: "left", selected: true },
+				   { value: "right" },
+				   { value: "top" },
+				   { value: "bottom" } ] }
+		  ]
+		},
+		{ axes:
+		  [
+		      { name: 'y_scale', type: 'select', description: "type of the scale of the y-axis",
+			title: "y scale", options: [
+			    { value: "linear", selected: true },
+			    { value: "log" } ] },
+		      { name: 'x_tick_interval', type: 'int',
+			description: "pixel distance of the minor tickmarks on the x-axis", title: "minor x ticks" },
+		      { name: 'y_tick_interval', type: 'int',
+			description: "pixel distance of the minor tickmarks on the y-axis", title: "minor y ticks" },
+		      { name: 'x_labeled_tick_interval', type: 'int',
+			description: "pixel distance of the major tickmarks on the x-axis", title: "major x ticks" },
+		      { name: 'y_labeled_tick_interval', type: 'int',
+			description: "pixel distance of the major tickmarks on the y-axis", title: "major y ticks" },
+		      { name: 'short_axis_labels', type: 'select',
+			description: "sets whether the axis labels should be shortened or not", title: "short axis labels", options: [
+			    { value: 0, selected: true, label: "no" },
+			    { value: 1, label: "yes" } ] },
+		  ]
+		}
+	    ]
 	},
 	exampleData: function () {
 	    return [ { "name": 'IE', "data": [95, 91, 78, 66] },

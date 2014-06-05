@@ -49,12 +49,23 @@
 	widget.renderer = Retina.Renderer.create(widget.params.type, widget.d);
 	widget.params.width = widget.params.width || 800;
 
-	var html = "<table style='width: "+widget.params.width+"px; margin-bottom: 50px;'>";
-	
-	for (var i in widget.renderer.about.options) {
-	    if (widget.renderer.about.options.hasOwnProperty(i)) {
-		var opt = widget.renderer.about.options[i];
-		opt.name = i;
+	var html = '<div class="accordion" id="RendererController_accordion'+index+'" style="width: '+widget.params.width+'px; margin-bottom: 50px;">';
+
+	for (var i=0; i<widget.renderer.about.options.length; i++) {
+	    var groupname = Retina.keys(widget.renderer.about.options[i])[0];
+	    var group = widget.renderer.about.options[i][groupname];
+
+	    html += '\
+<div class="accordion-group">\
+  <div class="accordion-heading">\
+    <a class="accordion-toggle" data-toggle="collapse" data-parent="#RendererController_accordion'+index+'" href="#RendererController_collapse_'+index+'_'+i+'">'+groupname+'</a>\
+  </div>\
+  <div id="RendererController_collapse_'+index+'_'+i+'" class="accordion-body collapse">\
+    <div class="accordion-inner">\
+      <table>\
+';
+	    for (var h=0; h<group.length; h++) {
+		var opt = group[h];
 		opt.index = index;
 		html += "<tr><td style='text-align: right; vertical-align: middle;'>"+opt.title+"</td><td style='padding-left: 10px; text-align: left;'>";
 		try {
@@ -64,9 +75,15 @@
 		}
 		html += "</td><td style='padding-left: 10px; text-align: left; vertical-align: middle;'>"+opt.description+"</td></tr>";
 	    }
+	    html += '\
+      </table>\
+    </div>\
+  </div>\
+</div>';
+
 	}
 
-	html += "</table>";
+	html += "</div>";
 	cDiv.innerHTML = html;
 
 	widget.params.target.innerHTML = "";
