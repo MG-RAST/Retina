@@ -124,40 +124,69 @@
 		'titleOffset': 0,
 		'drag_select': null,
 		'data': [ ] },
-	    options: {
-		title: { type: 'text', description: "title string of the plot", title: "title" },
-		title_color: { type: 'color', description: "color of the title string of the plot", title: "title color" },
-		x_title: { type: 'text', description: "title of the x-axis of the plot", title: "x title" },
-		y_title: { type: 'text', description: "title of the y-axis of the plot", title: "y title" },
-		default_line_color: { type: 'color', description: "default color of the data lines of the plot", title: "default line color" },
-		default_line_width: { type: 'int', description: "default width of the data lines of the plot in pixel", title: "default line width" },
-		show_legend: { type: 'select', description: "sets whether the legend is displayed or not", title: "show legend", options: [ { value: 0, label: "no" },
-																	    { value: 1, selected: true, label: "yes" } ] },
-		connected: { type: 'select', description: "sets whether the data points are connected or not", title: "connected", options: [ { value: 0, label: "no" },
-																	{ value: 1, selected: true, label: "yes" } ] },
-		show_dots: { type: 'select', description: "sets whether the data points are displayed or not", title: "show dots", options: [ { value: 0, label: "no" },
-																	    { value: 1, selected: true, label: "yes" } ] },
-		width: { type: 'int', description: "width of the plot in pixel", title: "width" },
-		height: { type: 'int', description: "height of the plot in pixel", title: "height" },
-		legend_position: { type: 'select',
-				   description: "position of the legend",
-				   title: "legend position",
-				   options: [ { value: "left", selected: true },
-					      { value: "right" },
-					      { value: "top" },
-					      { value: "bottom" } ] },
-		x_min: { type: 'int', description: "minimum value of the x-axis", title: "x min" },
-		x_max: { type: 'int', description: "maximum value of the x-axis", title: "x max" },
-		y_min: { type: 'int', description: "minimum value of the y-axis", title: "y min" },
-		y_max: { type: 'int', description: "maximum value of the y-axis", title: "y max" },
-		x_titleOffset: { type: 'int', description: "title offset from the x-axis", title: "x title offset" },
-		y_titleOffset: { type: 'int', description: "title offset from the y-axis", title: "y title offset" },
-		titleOffset: { type: 'int', description: "title offset from the top", title: "title offset" },
-		y_scale: { type: 'select', description: "type of the scale of the y-axis", title: "y scale", options: [ { value: "linear", selected: true },
-															{ value: "log" } ] },
-		x_scale: { type: 'select', description: "type of the scale of the x-axis", title: "x scale", options: [ { value: "linear", selected: true },
-															{ value: "log" } ] }
-	    }
+	    options: [
+		{ general:
+		  [
+		      { name: 'default_line_color', type: 'color', description: "default color of the data lines of the plot",
+			title: "default line color" },
+		      { name: 'default_line_width', type: 'int', description: "default width of the data lines of the plot in pixel",
+			title: "default line width" },
+		      { name: 'connected', type: 'select', description: "sets whether the data points are connected or not",
+			title: "connected", options: [ 
+			    { value: 0, label: "no" },
+			    { value: 1, selected: true, label: "yes" } ] },
+		      { name: 'show_dots', type: 'select', description: "sets whether the data points are displayed or not",
+			title: "show dots", options: [ 
+			    { value: 0, label: "no" },
+			    { value: 1, selected: true, label: "yes" } ] },
+		  ]
+		},
+		{ text:
+		  [
+		      { name: 'title', type: 'text', description: "title string of the plot", title: "title" },
+		      { name: 'title_color', type: 'color', description: "color of the title string of the plot", title: "title color" },
+		      { name: 'x_title', type: 'text', description: "title of the x-axis of the plot", title: "x title" },
+		      { name: 'y_title', type: 'text', description: "title of the y-axis of the plot", title: "y title" },
+		      { name: 'x_titleOffset', type: 'int', description: "title offset from the x-axis", title: "x title offset" },
+		      { name: 'y_titleOffset', type: 'int', description: "title offset from the y-axis", title: "y title offset" },
+		      { name: 'titleOffset', type: 'int', description: "title offset from the top", title: "title offset" },
+		  ]
+		},
+		{ layout:
+		  [
+		      { name: 'show_legend', type: 'select', description: "sets whether the legend is displayed or not",
+			title: "show legend", options: [ 
+			    { value: 0, label: "no" },
+			    { value: 1, selected: true, label: "yes" } ] },
+		      { name: 'width', type: 'int', description: "width of the plot in pixel", title: "width" },
+		      { name: 'height', type: 'int', description: "height of the plot in pixel", title: "height" },
+		      { name: 'legend_position', type: 'select',
+			description: "position of the legend",
+			title: "legend position",
+			options: [ { value: "left", selected: true },
+				   { value: "right" },
+				   { value: "top" },
+				   { value: "bottom" } ] }
+		  ]
+		},
+		{ axes:
+		  [
+		      { name: 'x_min', type: 'int', description: "minimum value of the x-axis", title: "x min" },
+		      { name: 'x_max', type: 'int', description: "maximum value of the x-axis", title: "x max" },
+		      { name: 'y_min', type: 'int', description: "minimum value of the y-axis", title: "y min" },
+		      { name: 'y_max', type: 'int', description: "maximum value of the y-axis", title: "y max" },
+		      
+		      { name: 'y_scale', type: 'select', description: "type of the scale of the y-axis",
+			title: "y scale", options: [
+			    { value: "linear", selected: true },
+			    { value: "log" } ] },
+		      { name: 'x_scale', type: 'select', description: "type of the scale of the x-axis",
+			title: "x scale", options: [
+			    { value: "linear", selected: true },
+			    { value: "log" } ] }
+		  ]
+		}
+	    ]
 	},
 	exampleData: function () {
 	    return { series: [ { name: "cool", color: 'blue', shape: 'circle' },

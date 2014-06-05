@@ -72,17 +72,25 @@
 		'selectedRows': [],
 		'selectedColumns': [],
 		'cells': [] },
-	    options: {
-		height: { type: 'int', description: "height of the plot", title: "height" },
-		width: { type: 'int', description: "width of the plot", title: "width" },
-		tree_height: { type: 'int', description: "height of the dendogram", title: "dendogram height" },
-		tree_width: { type: 'int', description: "width of the dendogram", title: "dendogram width" },
-		legend_height: { type: 'int', description: "height of the legend", title: "legend height" },
-		legend_width: { type: 'int', description: "width of the legend", title: "legend width" },
-		row_text_size: { type: 'int', description: "font size of the row text in pixel", title: "row font size" },
-		col_text_size: { type: 'int', description: "font size of the column text in pixel", title: "column font size" },
-		min_cell_height: { type: 'int', description: "minimum height of a cell", title: "minimum cell height" }
-	    }
+	    options: [
+		{
+		    text: [
+			{ name: 'row_text_size', type: 'int', description: "font size of the row text in pixel", title: "row font size" },
+			{ name: 'col_text_size', type: 'int', description: "font size of the column text in pixel", title: "column font size" },
+			{ name: 'min_cell_height', type: 'int', description: "minimum height of a cell", title: "minimum cell height" }
+		    ]
+		},		
+		{
+		    layout: [ 
+			{ name: 'height', type: 'int', description: "height of the plot", title: "height" },
+			{ name: 'width', type: 'int', description: "width of the plot", title: "width" },
+			{ name: 'tree_height', type: 'int', description: "height of the dendogram", title: "dendogram height" },
+			{ name: 'tree_width', type: 'int', description: "width of the dendogram", title: "dendogram width" },
+			{ name: 'legend_height', type: 'int', description: "height of the legend", title: "legend height" },
+			{ name: 'legend_width', type: 'int', description: "width of the legend", title: "legend width" }
+		    ]
+		}
+	    ]
 	},
 	exampleData: function () {
 	    return { columns: ["4441619.3", "4441656.4", "4441620.3"], rows: ["Eukaryota", "unassigned", "Bacteria","Archaea"], data: [[0.338159580408187, 0.717179237742824, 0.514052821211353],[0.238159580408187, 0.317179237742824, 0.114052821211353],[0.553202346761363, 0.614080873307415, 0.555096325148052],[0.996159994861707, 0.940468112695288, 1]] };

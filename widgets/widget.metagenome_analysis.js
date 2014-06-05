@@ -557,7 +557,9 @@
 
     // login widget sends an action (log-in or log-out)
     widget.loginAction = function (params) {
-	Retina.WidgetInstances.metagenome_analysis[1].browse.result_list.update_data({},1);
+	if (Retina.WidgetInstances.metagenome_analysis[1].browse) {
+	    Retina.WidgetInstances.metagenome_analysis[1].browse.result_list.update_data({},1);
+	}
 	if (params.token) {
 	    Retina.WidgetInstances.metagenome_analysis[1].user = params.user;
 	    Retina.WidgetInstances.metagenome_analysis[1].authHeader = { "Auth": params.token };

@@ -56,14 +56,33 @@
 			dataFontSize: '10px',
 			circleSize: 30,
 			colHeaderHeight: 100 },
-	    options: { minOpacity: { type: 'float', description: "minimum opacity of the data circles", title: "minimum opacity" },
-		       circleColor: { type: 'color', description: "base color of the data circles before opacity applies", title: "circle color" },
-		       dataFontSize: { type: 'fontsize', description: "fontsize of the data circles, must be a valid css font size", title: "data font size" },
-		       rowFontSize: { type: 'fontsize', description: "fontsize of the row titles, must be a valid css font size", title: "row font size" },
-		       colFontSize: { type: 'fontsize', description: "fontsize of the column titles, must be a valid css font size", title: "column font size" },
-		       circleSize: { type: 'int', description: "diameter of the data circles in pixel", title: "circle size" },
-		       colHeaderHeight: { type: 'int', description: "height of the column header row in pixel", title: "column header height" }
-		     }
+	    options: [
+		{ general: 
+		  [
+		      { name: 'minOpacity', type: 'float', description: "minimum opacity of the data circles", 
+			title: "minimum opacity" },
+		      { name: 'circleColor', type: 'color', description: "base color of the data circles before opacity applies", 
+			title: "circle color" }
+		  ]
+		},
+		{ text:
+		  [
+		      { name: 'dataFontSize', type: 'fontsize', 
+			description: "fontsize of the data circles, must be a valid css font size", title: "data font size" },
+		      { name: 'rowFontSize', type: 'fontsize', 
+			description: "fontsize of the row titles, must be a valid css font size", title: "row font size" },
+		      { name: 'colFontSize', type: 'fontsize', 
+			description: "fontsize of the column titles, must be a valid css font size", title: "column font size" }
+		  ]
+		},
+		{ layout: 
+		  [
+		      { name: 'circleSize', type: 'int', description: "diameter of the data circles in pixel", title: "circle size" },
+		      { name: 'colHeaderHeight', type: 'int', description: "height of the column header row in pixel", 
+			title: "column header height" }
+		  ]
+		}
+	    ]
 	},
 	exampleData: function () {
 	    return { rows: ['metagenome a', 'metagenome b', 'metagenome c'],

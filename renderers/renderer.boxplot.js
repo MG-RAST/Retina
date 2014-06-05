@@ -24,15 +24,25 @@
 		'titles': [],
 		'title': "",
 		'orientation': 'vertical' },
-	    options: {
-		boxwidth: { type: 'int', description: "width of the boxes", title: "box width" },
-		minwidth: { type: 'int', description: "minimum width of a box", title: "minumum width" },
-		height: { type: 'int', description: "height of the plot", title: "height" },
-		width: { type: 'int', description: "width of the plot", title: "width" },
-		title: { type: 'text', description: "title of the plot", title: "title" },
-		orientation: { type: 'select', description: "orientation of the plot", title: "orientation", options: [ { value: 'vertical', selected: true },
-															{ value: 'horizontal' } ] }
-	    }
+	    options: [
+		{ text:
+		  [
+		      { name: 'title', type: 'text', description: "title of the plot", title: "title" }
+		  ]
+		},
+		{ layout:
+		  [
+		      { name: 'boxwidth', type: 'int', description: "width of the boxes", title: "box width" },
+		      { name: 'minwidth', type: 'int', description: "minimum width of a box", title: "minumum width" },
+		      { name: 'height', type: 'int', description: "height of the plot", title: "height" },
+		      { name: 'width', type: 'int', description: "width of the plot", title: "width" },
+		      { name: 'orientation', type: 'select', description: "orientation of the plot", title: "orientation", 
+			options: [
+			    { value: 'vertical', selected: true },
+			    { value: 'horizontal' } ] }
+		  ]
+		}
+	    ]
 	},
 	exampleData: function () {
 	    return [ [ 10, 5, 7, 3, 5, 1, 9, 20, 13, 7, 9, 15, 4 ],
