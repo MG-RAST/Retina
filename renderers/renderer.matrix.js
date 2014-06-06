@@ -56,7 +56,7 @@
 			dataFontSize: '10px',
 			circleSize: 30,
 			colHeaderHeight: 100,
-			orientation: 'vertical' },
+			orientation: 'normal' },
 	    options: [
 		{ general: 
 		  [
@@ -183,9 +183,9 @@
 		div.setAttribute('row', row);
 		div.setAttribute('col', col);
 		div.addEventListener('click', function() {
-		    var renderer = Retina.RendererInstances.matrix[this.index];
+		    var renderer = Retina.RendererInstances.matrix[this.getAttribute('index')];
 		    var data = renderer.settings.orientation == 'transposed' ? renderer.settings.transposedData : renderer.settings.data;
-		    renderer.settings.callback.call(null, { rendererIndex: this.index, rowIndex: this.row, colIndex: this.col, cellValue: data.data[this.row][this.col], relativeCellValue: renderer.settings.relativeValues[this.row][this.col], colName: data.columns[this.col], rowName: data.rows[this.row], cell: this.parentNode, circle: this });
+		    renderer.settings.callback.call(null, { rendererIndex: this.getAttribute('index'), rowIndex: this.getAttribute('row'), colIndex: this.getAttribute('col'), cellValue: data.data[this.getAttribute('row')][this.getAttribute('col')], relativeCellValue: renderer.settings.relativeValues[this.getAttribute('row')][this.getAttribute('col')], colName: data.columns[this.getAttribute('col')], rowName: data.rows[this.getAttribute('row')], cell: this.parentNode, circle: this });
 		});
 	    }
 	    cell.appendChild(div);
@@ -198,13 +198,13 @@
 	    var data = renderer.settings.orientation == 'transposed' ? renderer.settings.transposedData : renderer.settings.data;
 	    var cell = document.createElement('th');
 	    cell.innerHTML = data.rows[row];
-	    cell.setAttribute('style', 'text-align: left; padding-right: 5px; font-weight: normal;'+(renderer.settings.rowFontSize ? "font-size: "+renderer.settings.rowFontSize+";" : ""));
+	    cell.setAttribute('style', 'cursor: pointer; text-align: left; padding-right: 5px; font-weight: normal;'+(renderer.settings.rowFontSize ? "font-size: "+renderer.settings.rowFontSize+";" : ""));
 	    if (typeof renderer.settings.callback == 'function') {
 		cell.setAttribute('index', index);
 		cell.setAttribute('row', row);
 		cell.addEventListener('click', function() {
-		    var renderer = Retina.RendererInstances.matrix[this.index];
-		    renderer.settings.callback.call(null, { rendererIndex: this.index, rowIndex: this.row, colIndex: null, cellValue: data.rows[this.row], relativeCellValue: null, colName: null, rowName: data.rows[this.row], cell: this, circle: null });
+		    var renderer = Retina.RendererInstances.matrix[this.getAttribute('index')];
+		    renderer.settings.callback.call(null, { rendererIndex: this.getAttribute('index'), rowIndex: this.getAttribute('row'), colIndex: null, cellValue: data.rows[this.getAttribute('row')], relativeCellValue: null, colName: null, rowName: data.rows[this.getAttribute('row')], cell: this, circle: null });
 		});
 	    }
 	    
@@ -215,7 +215,7 @@
 	    
 	    var data = renderer.settings.orientation == 'transposed' ? renderer.settings.transposedData : renderer.settings.data;
 	    var cell = document.createElement('th');
-	    cell.setAttribute('style', 'text-align: left; font-weight: normal; vertical-align: bottom; height: '+renderer.settings.colHeaderHeight+'px;'+(renderer.settings.colFontSize ? "font-size: "+renderer.settings.colFontSize+";" : ""));
+	    cell.setAttribute('style', 'cursor: pointer; text-align: left; font-weight: normal; vertical-align: bottom; height: '+renderer.settings.colHeaderHeight+'px;'+(renderer.settings.colFontSize ? "font-size: "+renderer.settings.colFontSize+";" : ""));
 	    var div = document.createElement('div');
 	    div.innerHTML = data.columns[col];
 	    div.setAttribute('style', 'width: '+renderer.settings.circleSize+'px; overflow: visible; white-space: nowrap; transform: rotate(-45deg); position: relative; left: '+(parseInt(renderer.settings.circleSize / 2) - 5)+'px; bottom: 10px;');
@@ -223,8 +223,8 @@
 		div.setAttribute('index', index);
 		div.setAttribute('col', col);
 		div.addEventListener('click', function() {
-		    var renderer = Retina.RendererInstances.matrix[this.index];
-		    renderer.settings.callback.call(null, { rendererIndex: this.index, rowIndex: null, colIndex: this.col, cellValue: data.columns[this.col], relativeCellValue: null, colName: data.columns[this.col], rowName: null, cell: this, circle: null });
+		    var renderer = Retina.RendererInstances.matrix[this.getAttribute('index')];
+		    renderer.settings.callback.call(null, { rendererIndex: this.getAttribute('index'), rowIndex: null, colIndex: this.getAttribute('col'), cellValue: data.columns[this.getAttribute('col')], relativeCellValue: null, colName: data.columns[this.getAttribute('col')], rowName: null, cell: this, circle: null });
 		});
 	    }
 	    cell.appendChild(div);
