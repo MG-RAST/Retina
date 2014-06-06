@@ -49,7 +49,7 @@
 	widget.renderer = Retina.Renderer.create(widget.params.type, widget.d);
 	widget.params.width = widget.params.width || 800;
 
-	var html = '<div class="accordion" id="RendererController_accordion'+index+'" style="width: '+widget.params.width+'px; margin-bottom: 50px;">';
+	var html = '<div class="accordion" id="RendererController_accordion'+index+'" style="width: '+widget.params.width+'px; margin-bottom: 20px;">';
 
 	for (var i=0; i<widget.renderer.about.options.length; i++) {
 	    var groupname = Retina.keys(widget.renderer.about.options[i])[0];
@@ -88,6 +88,14 @@
 
 	widget.params.target.innerHTML = "";
 	widget.params.target.appendChild(widget.controlDiv);
+
+	if (widget.params.breadcrumbs) {
+	    var bc = document.createElement('div');
+	    bc.setAttribute('id', widget.params.breadcrumbs);
+	    bc.setAttribute('style', "margin-bottom: 20px;");
+	    widget.params.target.appendChild(bc);
+	}
+
 	widget.params.target.appendChild(widget.displayDiv);
 
 	widget.render(index);
