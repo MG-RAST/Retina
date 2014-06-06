@@ -55,7 +55,8 @@
 			circleColor: 'purple',
 			dataFontSize: '10px',
 			circleSize: 30,
-			colHeaderHeight: 100 },
+			colHeaderHeight: 100,
+			orientation: 'vertical' },
 	    options: [
 		{ general: 
 		  [
@@ -79,7 +80,11 @@
 		  [
 		      { name: 'circleSize', type: 'int', description: "diameter of the data circles in pixel", title: "circle size" },
 		      { name: 'colHeaderHeight', type: 'int', description: "height of the column header row in pixel", 
-			title: "column header height" }
+			title: "column header height" },
+		      { name: 'orientation', type: 'select', description: "orientation of the plot", title: "orientation", 
+			options: [
+			    { value: 'normal', selected: true },
+			    { value: 'transposed' } ] }
 		  ]
 		}
 	    ]
@@ -96,11 +101,16 @@
 	    var index = renderer.index;
 	    
 	    var target = renderer.settings.target;
-	    var data = renderer.settings.data;
 	    var table = document.createElement('table');
 	    
+	    if (! renderer.settings.hasOwnProperty('transposedData')) {
+		renderer.settings.transposedData = renderer.transposeMatrix(renderer.settings.data);
+	    }
+
+	    var data = renderer.settings.orientation == 'transposed' ? renderer.settings.transposedData : renderer.settings.data;
+
 	    // calculate the relative values
-	    var d = renderer.settings.data.data;
+	    var d = data.data;
 	    var maxValues = [];
 	    for (var i=0;i<d.length;i++) {
 		for (var h=0;h<d[i].length;h++) {
@@ -150,7 +160,8 @@
 	    var cell = document.createElement('td');
 	    cell.setAttribute('style', 'cursor: pointer;');
 	    var div = document.createElement('div');
-	    var val = renderer.settings.data.data[row][col];
+	    var data = renderer.settings.orientation == 'transposed' ? renderer.settings.transposedData : renderer.settings.data;
+	    var val = data.data[row][col];
 	    if (val) {
 		var bgcolor = renderer.settings.circleColor;
 		if (renderer.settings.rowColors && renderer.settings.rowColors[row]) {
@@ -175,7 +186,8 @@
 		div.setAttribute('col', col);
 		div.addEventListener('click', function() {
 		    var renderer = Retina.RendererInstances.matrix[this.index];
-		    renderer.settings.callback.call(null, { rendererIndex: this.index, rowIndex: this.row, colIndex: this.col, cellValue: renderer.settings.data.data[this.row][this.col], relativeCellValue: renderer.settings.relativeValues[this.row][this.col], colName: renderer.settings.data.columns[this.col], rowName: renderer.settings.data.rows[this.row], cell: this.parentNode, circle: this });
+		    var data = renderer.settings.orientation == 'transposed' ? renderer.settings.transposedData : renderer.settings.data;
+		    renderer.settings.callback.call(null, { rendererIndex: this.index, rowIndex: this.row, colIndex: this.col, cellValue: data.data[this.row][this.col], relativeCellValue: renderer.settings.relativeValues[this.row][this.col], colName: data.columns[this.col], rowName: data.rows[this.row], cell: this.parentNode, circle: this });
 		});
 	    }
 	    cell.appendChild(div);
@@ -185,15 +197,16 @@
 	rowHeaderCell: function (index, row) {
 	    var renderer = Retina.RendererInstances.matrix[index];
 	    
+	    var data = renderer.settings.orientation == 'transposed' ? renderer.settings.transposedData : renderer.settings.data;
 	    var cell = document.createElement('th');
-	    cell.innerHTML = renderer.settings.data.rows[row];
+	    cell.innerHTML = data.rows[row];
 	    cell.setAttribute('style', 'text-align: left; padding-right: 5px; font-weight: normal;'+(renderer.settings.rowFontSize ? "font-size: "+renderer.settings.rowFontSize+";" : ""));
 	    if (typeof renderer.settings.callback == 'function') {
 		cell.setAttribute('index', index);
 		cell.setAttribute('row', row);
 		cell.addEventListener('click', function() {
 		    var renderer = Retina.RendererInstances.matrix[this.index];
-		    renderer.settings.callback.call(null, { rendererIndex: this.index, rowIndex: this.row, colIndex: null, cellValue: renderer.settings.data.rows[this.row], relativeCellValue: null, colName: null, rowName: renderer.settings.data.rows[this.row], cell: this, circle: null });
+		    renderer.settings.callback.call(null, { rendererIndex: this.index, rowIndex: this.row, colIndex: null, cellValue: data.rows[this.row], relativeCellValue: null, colName: null, rowName: data.rows[this.row], cell: this, circle: null });
 		});
 	    }
 	    
@@ -202,22 +215,39 @@
 	colHeaderCell: function (index, col) {
 	    var renderer = Retina.RendererInstances.matrix[index];
 	    
+	    var data = renderer.settings.orientation == 'transposed' ? renderer.settings.transposedData : renderer.settings.data;
 	    var cell = document.createElement('th');
 	    cell.setAttribute('style', 'text-align: left; font-weight: normal; vertical-align: bottom; height: '+renderer.settings.colHeaderHeight+'px;'+(renderer.settings.colFontSize ? "font-size: "+renderer.settings.colFontSize+";" : ""));
 	    var div = document.createElement('div');
-	    div.innerHTML = renderer.settings.data.columns[col];
+	    div.innerHTML = data.columns[col];
 	    div.setAttribute('style', 'width: '+renderer.settings.circleSize+'px; overflow: visible; white-space: nowrap; transform: rotate(-45deg); position: relative; left: '+(parseInt(renderer.settings.circleSize / 2) - 5)+'px; bottom: 10px;');
 	    if (typeof renderer.settings.callback == 'function') {
 		div.setAttribute('index', index);
 		div.setAttribute('col', col);
 		div.addEventListener('click', function() {
 		    var renderer = Retina.RendererInstances.matrix[this.index];
-		    renderer.settings.callback.call(null, { rendererIndex: this.index, rowIndex: null, colIndex: this.col, cellValue: renderer.settings.data.columns[this.col], relativeCellValue: null, colName: renderer.settings.data.columns[this.col], rowName: null, cell: this, circle: null });
+		    renderer.settings.callback.call(null, { rendererIndex: this.index, rowIndex: null, colIndex: this.col, cellValue: data.columns[this.col], relativeCellValue: null, colName: data.columns[this.col], rowName: null, cell: this, circle: null });
 		});
 	    }
 	    cell.appendChild(div);
 	    
 	    return cell;
+	},
+	
+	transposeMatrix: function (matrix) {
+	    var mnew = { rows: matrix.columns,
+			 columns: matrix.rows,
+			 data: [] };
+	    for (var i=0;i<matrix.data.length; i++) {
+		for (var h=0;h<matrix.data[i].length;h++) {
+		    if (! mnew.data[h]) {
+			mnew.data[h] = [];
+		    }
+		    mnew.data[h][i] = matrix.data[i][h];
+		}
+	    }
+	    
+	    return mnew;
 	}
     });
 }).call(this);
