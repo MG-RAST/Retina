@@ -13,17 +13,7 @@
 	return [ Retina.add_widget({"name": "mgbrowse", "resource": "./widgets/",  "filename": "widget.mgbrowse.js"}),
 		 Retina.load_widget("mgbrowse"),
 		 Retina.add_widget({"name": "RendererController", "resource": "./widgets/",  "filename": "widget.RendererController.js"}),
-		 Retina.load_widget("RendererController"),
-		 Retina.add_renderer({"name": "graph", "resource": "./renderers/",  "filename": "renderer.graph.js" }),
-		 Retina.load_renderer("graph"),
-		 Retina.add_renderer({"name": "plot", "resource": "./renderers/",  "filename": "renderer.plot.js" }),
- 		 Retina.load_renderer("plot"),
-		 Retina.add_renderer({"name": "deviationplot", "resource": "renderers/",  "filename": "renderer.deviationplot.js" }),
-		 Retina.load_renderer("deviationplot"),
-		 Retina.add_renderer({"name": "boxplot", "resource": "renderers/",  "filename": "renderer.boxplot.js" }),
-		 Retina.load_renderer("boxplot"),
-		 Retina.add_renderer({"name": "heatmap", "resource": "renderers/",  "filename": "renderer.heatmap.js" }),
-		 Retina.load_renderer("heatmap")
+		 Retina.load_widget("RendererController")
 	       ];
     };
     
@@ -323,20 +313,51 @@
 	if (Retina.WidgetInstances.RendererController.length > 1) {
 	    Retina.WidgetInstances.RendererController = [ Retina.WidgetInstances.RendererController[0] ];
 	}
-	widget.currentVisualizationController = Retina.Widget.create('RendererController', { "target": document.getElementById("visualizeTarget"), "type": demo_data[type].renderer, "settings": demo_data[type].settings });
+	widget.currentVisualizationController = Retina.Widget.create('RendererController', { "target": document.getElementById("visualizeTarget"), "type": demo_data[type].renderer, "settings": demo_data[type].settings, "breadcrumbs": "visualizeBreadcrumbs" });
     };
 
     // draw the current visualization with updated parameters
-    widget.updateVis = function () {
+    widget.updateVis = function (filter, reset) {
 	var widget = Retina.WidgetInstances.metagenome_analysis[1];
+
+	if (reset) {
+	    document.getElementById('matrixLevel').selectedIndex = 0;
+	    document.getElementById('visualizeBreadcrumbs').innerHTML = "";
+	}
 	
 	var matrixLevel = document.getElementById('matrixLevel').options[document.getElementById('matrixLevel').selectedIndex].value;
 	var r = widget.currentVisualizationController;
+
 	if (r.params.type == 'matrix') {	
-	    var matrix = widget.container2matrix({ dataColIndex: matrixLevel });
+	    if (filter && filter.level !== null) {
+		var sel = document.getElementById('matrixLevel');
+		if (sel.options.length > filter.level + 1) {
+		    matrixLevel = filter.level + 1;
+		    document.getElementById('matrixLevel').selectedIndex = parseInt(matrixLevel);
+		}
+	    }
+	    var matrix = widget.container2matrix({ dataColIndex: matrixLevel, filter: filter });
 	    r.data(1, { data: matrix.data,
 			rows: matrix.rows,
 			columns: matrix.cols });
+	    var b = document.getElementById('visualizeBreadcrumbs');
+	    if (b.innerHTML == "") {
+		b.innerHTML = '<a style="cursor: pointer;" onclick="Retina.WidgetInstances.metagenome_analysis[1].updateVis(null, true);">&raquo; All </a>';
+	    }
+	    r.renderer.settings.callback = function (p) {
+		var rend = Retina.RendererInstances.matrix[p.rendererIndex];
+		if ((rend.settings.orientation=='transposed' && p.rowIndex == null) || (rend.settings.orientation=='normal' && p.colIndex == null)) {
+		    var widget = Retina.WidgetInstances.metagenome_analysis[1];
+		    var html = '<a style="cursor: pointer;" onclick="while(this.nextSibling){this.parentNode.removeChild(this.nextSibling);}Retina.WidgetInstances.metagenome_analysis[1].updateVis({level: '+parseInt(document.getElementById('matrixLevel').options[document.getElementById('matrixLevel').selectedIndex].value)+', value: \''+p.cellValue+'\'});">&raquo; '+p.cellValue+' </a>';
+		    if (document.getElementById('matrixLevel').selectedIndex + 1 == document.getElementById('matrixLevel').options.length) {
+			html = "";
+		    }
+		    document.getElementById('visualizeBreadcrumbs').innerHTML += html;
+		    widget.updateVis( { level: parseInt(document.getElementById('matrixLevel').options[document.getElementById('matrixLevel').selectedIndex].value),
+					value: p.cellValue } );
+		    
+		}
+	    };
 	} else if (r.params.type == 'graph') {
 	    var data = widget.container2graphseries({ dataColIndex: matrixLevel });
 	    r.data(1, data.data);
@@ -713,6 +734,9 @@
 	}
 	var colItem = params.dataColItem || Retina.keys(stm.DataStore.profile[c.items[0].id+"_"+c.parameters.type+"_"+c.parameters.source].rows[0].metadata)[0];
 	var colIndex = params.dataColIndex;
+	if (colIndex >= stm.DataStore.profile[c.items[0].id+"_"+c.parameters.type+"_"+c.parameters.source].rows[0].metadata[colItem].length) {
+	    colIndex--;
+	}
 	for (var i=0; i<c.items.length; i++) {
 	    var p = stm.DataStore.profile[c.items[i].id+"_"+c.parameters.type+"_"+c.parameters.source];
 	    matrix.cols.push(c.items[i][id]);
@@ -720,6 +744,13 @@
 		var row = (isFiltered ? c.rows[c.items[i].id][h] : h);
 		var val = p.data[row][dataRow];
 		var key = (colIndex === null ? p.rows[row].metadata[colItem] : p.rows[row].metadata[colItem][colIndex]);
+
+		if (params.filter && params.filter.level !== null && params.filter.value !== null) {
+		    if (p.rows[row].metadata[colItem][params.filter.level] != params.filter.value) {
+			continue;
+		    }
+		}
+
 		if (! d.hasOwnProperty(key)) {
 		    d[key] = [];
 		    for (j=0;j<c.items.length;j++) {
