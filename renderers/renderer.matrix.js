@@ -103,9 +103,7 @@
 	    var target = renderer.settings.target;
 	    var table = document.createElement('table');
 	    
-	    if (! renderer.settings.hasOwnProperty('transposedData')) {
-		renderer.settings.transposedData = renderer.transposeMatrix(renderer.settings.data);
-	    }
+	    renderer.settings.transposedData = renderer.transposeMatrix(renderer.settings.data);
 
 	    var data = renderer.settings.orientation == 'transposed' ? renderer.settings.transposedData : renderer.settings.data;
 
