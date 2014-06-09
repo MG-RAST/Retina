@@ -328,22 +328,28 @@
 	var matrixLevel = document.getElementById('matrixLevel').options[document.getElementById('matrixLevel').selectedIndex].value;
 	var r = widget.currentVisualizationController;
 
-	if (r.params.type == 'matrix') {	
-	    if (filter && filter.level !== null) {
-		var sel = document.getElementById('matrixLevel');
-		if (sel.options.length > filter.level + 1) {
-		    matrixLevel = filter.level + 1;
-		    document.getElementById('matrixLevel').selectedIndex = parseInt(matrixLevel);
-		}
+	/* drilldown */
+	if (filter && filter.level !== null) {
+	    var sel = document.getElementById('matrixLevel');
+	    if (sel.options.length > filter.level + 1) {
+		matrixLevel = filter.level + 1;
+		document.getElementById('matrixLevel').selectedIndex = parseInt(matrixLevel);
 	    }
+	}
+
+	var b = document.getElementById('visualizeBreadcrumbs');
+	if (b.innerHTML == "") {
+	    b.innerHTML = '<a style="cursor: pointer;" onclick="Retina.WidgetInstances.metagenome_analysis[1].updateVis(null, true);">&raquo; All </a>';
+	}
+
+	/* drilldown */
+
+	if (r.params.type == 'matrix') {	
 	    var matrix = widget.container2matrix({ dataColIndex: matrixLevel, filter: filter });
 	    r.data(1, { data: matrix.data,
 			rows: matrix.rows,
 			columns: matrix.cols });
-	    var b = document.getElementById('visualizeBreadcrumbs');
-	    if (b.innerHTML == "") {
-		b.innerHTML = '<a style="cursor: pointer;" onclick="Retina.WidgetInstances.metagenome_analysis[1].updateVis(null, true);">&raquo; All </a>';
-	    }
+
 	    r.renderer.settings.callback = function (p) {
 		var rend = Retina.RendererInstances.matrix[p.rendererIndex];
 		if ((rend.settings.orientation=='transposed' && p.rowIndex == null) || (rend.settings.orientation=='normal' && p.colIndex == null)) {
@@ -359,11 +365,22 @@
 		}
 	    };
 	} else if (r.params.type == 'graph') {
-	    var data = widget.container2graphseries({ dataColIndex: matrixLevel });
+	    var data = widget.container2graphseries({ dataColIndex: matrixLevel, filter: filter });
 	    r.data(1, data.data);
 	    r.renderer.settings.x_labels = data.x_labels;
+	    r.renderer.settings.onclick = function (p) {
+		var rend = Retina.RendererInstances.graph[p.rendererIndex];
+		var widget = Retina.WidgetInstances.metagenome_analysis[1];
+		var html = '<a style="cursor: pointer;" onclick="while(this.nextSibling){this.parentNode.removeChild(this.nextSibling);}Retina.WidgetInstances.metagenome_analysis[1].updateVis({level: '+parseInt(document.getElementById('matrixLevel').options[document.getElementById('matrixLevel').selectedIndex].value)+', value: \''+p.label+'\'});">&raquo; '+p.label+' </a>';
+		if (document.getElementById('matrixLevel').selectedIndex + 1 == document.getElementById('matrixLevel').options.length) {
+		    html = "";
+		}
+		document.getElementById('visualizeBreadcrumbs').innerHTML += html;
+		widget.updateVis( { level: parseInt(document.getElementById('matrixLevel').options[document.getElementById('matrixLevel').selectedIndex].value),
+				    value: p.label } );
+	    };
 	} else if (r.params.type == 'plot') {
-	    var data = widget.container2plotseries({ dataColIndex: matrixLevel });
+	    var data = widget.container2plotseries({ dataColIndex: matrixLevel, filter: filter });
 	    for (var i=0; i<data.data.points.length; i++) {
 		data.data.points[i] = data.data.points[i].sort(Retina.propSort('y', true));
 		for (var h=0;h<data.data.points[i].length; h++) {
@@ -378,11 +395,24 @@
 	    r.renderer.settings.x_title = "";
 	    r.renderer.settings.y_title = "abundance";
 	} else if (r.params.type == 'heatmap') {
-	    var matrix = widget.container2matrix({ dataColIndex: matrixLevel });
+	    var matrix = widget.container2matrix({ dataColIndex: matrixLevel, filter: filter });
 	    var data = widget.normalizeMatrix(matrix.data);
 	    r.data(1, { data: data,
 			rows: matrix.rows,
 			columns: matrix.cols });
+	    r.renderer.settings.height = document.getElementById('RendererControllerInput_1_height').value;
+	    r.renderer.settings.min_cell_height = document.getElementById('RendererControllerInput_1_min_cell_height').value;
+	    r.renderer.settings.rowClicked = function (p) {
+		var rend = Retina.RendererInstances.heatmap[p.rendererIndex];
+		var widget = Retina.WidgetInstances.metagenome_analysis[1];
+		var html = '<a style="cursor: pointer;" onclick="while(this.nextSibling){this.parentNode.removeChild(this.nextSibling);}Retina.WidgetInstances.metagenome_analysis[1].updateVis({level: '+parseInt(document.getElementById('matrixLevel').options[document.getElementById('matrixLevel').selectedIndex].value)+', value: \''+p.label+'\'});">&raquo; '+p.label+' </a>';
+		if (document.getElementById('matrixLevel').selectedIndex + 1 == document.getElementById('matrixLevel').options.length) {
+		    html = "";
+		}
+		document.getElementById('visualizeBreadcrumbs').innerHTML += html;
+		widget.updateVis( { level: parseInt(document.getElementById('matrixLevel').options[document.getElementById('matrixLevel').selectedIndex].value),
+				    value: p.label } );
+	    };
 	}
 
 	r.render(1);	   
@@ -637,6 +667,13 @@
 		var row = (isFiltered ? c.rows[c.items[i].id][h] : h);
 		var val = p.data[row][dataRow];
 		var key = (colIndex === null ? p.rows[row].metadata[colItem] : p.rows[row].metadata[colItem][colIndex]);
+
+		if (params.filter && params.filter.level !== null && params.filter.value !== null) {
+		    if (p.rows[row].metadata[colItem][params.filter.level] != params.filter.value) {
+			continue;
+		    }
+		}
+
 		if (! d.hasOwnProperty(key)) {
 		    d[key] = [];
 		    for (j=0;j<c.items.length;j++) {
@@ -686,6 +723,13 @@
 		var row = (isFiltered ? c.rows[c.items[i].id][h] : h);
 		var val = p.data[row][dataRow];
 		var key = (colIndex === null ? p.rows[row].metadata[colItem] : p.rows[row].metadata[colItem][colIndex]);
+
+		if (params.filter && params.filter.level !== null && params.filter.value !== null) {
+		    if (p.rows[row].metadata[colItem][params.filter.level] != params.filter.value) {
+			continue;
+		    }
+		}
+
 		if (! d.hasOwnProperty(key)) {
 		    d[key] = [];
 		    for (j=0;j<c.items.length;j++) {
@@ -933,13 +977,13 @@
 			       renderer: "graph",
 			       settings: {'title': '',
     					  'type': 'column',
-    					  'default_line_width': 10,
+    					  'default_line_width': 1,
     					  'default_line_color': 'blue',
 					  'x_labels': ['Organism A', 'Organism B', 'Organism C', 'Organism D', 'Organism E'],
     					  'x_labels_rotation': '310',
     					  'x_tick_interval': 5,
-    					  'show_legend': true,
-    					  'chartArea': [180, 20, 700, 250],
+    					  'show_legend': false,
+    					  //'chartArea': [180, 20, 700, 250],
     					  'width': 830,
     					  'height': 340,
 					  'data': [ { name: "Metagenome A", data: [ 50, 55, 54, 45, 41 ], fill: GooglePalette(3)[0] },

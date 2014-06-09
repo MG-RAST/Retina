@@ -253,7 +253,7 @@
 			    break;
 			}
 		    }
-		    renderer.settings.onclick({series: title, value: value, label: label, item: this, index: i, series_index: num, svg: svg });
+		    renderer.settings.onclick({rendererIndex: index, series: title, value: value, label: label, item: this, index: i, series_index: num, svg: svg });
 		}
 	    }
 	},
