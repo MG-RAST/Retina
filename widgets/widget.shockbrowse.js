@@ -847,7 +847,25 @@
 <tr><th>virtual</th><td>"+(node.file.virtual ? "yes" : "no")+"</td></tr>\
 </table>";
 	} else if (widget.detailType == "acl") {
-	    html = "<h4>acl - "+fn+"</h4>" + "<div class='alert alert-info'>rights management is not currently implemented</div>";//+detailInfo;
+	    html = "<h4>permissions - "+fn+"</h4>" + detailInfo;
+	    if (widget.detailInfo) {
+		widget.detailInfo = null;
+	    } else {
+		var url = widget.shockBase + "/node/" + node.id + "/acl";
+		jQuery.ajax({ url: url,
+			      success: function(data) {
+				  var widget = Retina.WidgetInstances.shockbrowse[1];
+				  widget.detailInfo = widget.aclDetail(data, node.id);
+				  widget.showDetails(null, true);
+			      },
+			      error: function(jqXHR, error) {
+				  var widget = Retina.WidgetInstances.shockbrowse[1];
+				  widget.detailInfo = "<div class='alert alert-error'>unable to retrieve access right information</div>";
+				  widget.showDetails(null, true);
+			      },
+			      headers: widget.authHeader
+			    });
+	    }
 	} else if (widget.detailType == "attributes") {
 	    html = "<h4>attributes - "+fn+"</h4><pre style='font-size: "+(widget.fontSize - 1) +"px;'>"+JSON.stringify(node.attributes, null, 2)+"</pre>";
 	} else if (widget.detailType == "preview") {
@@ -882,6 +900,63 @@
 	}
 
 	widget.sections.detailSectionContent.innerHTML = html;
+    };
+
+    widget.aclDetail = function(data, node) {
+	var html = "<table style='font-size: 13px; width: 100%;'>";
+	html += "<tr><td style='padding-right: 20px;'><b>owner</b></td><td>"+(data.data.owner.match(/\|/) ? data.data.owner.split("|")[0] : data.data.owner)+"</td></tr>";
+	var rights = ["read","write","delete"];
+	for (var i=0; i<rights.length; i++) {
+	    html += "<tr><td style='padding-right: 20px; vertical-align: top;'><b>"+rights[i]+"</b></td><td><table style='width: 100%;'>";
+	    for (var h=0; h<data.data[rights[i]].length; h++) {
+		var u = data.data[rights[i]][h].split("|");
+		var uuid = typeof u == "string" ? u[0] : u[1];
+		var uname = typeof u == "string" ? u[0] : u[0];
+		html +="<tr><td style='text-align: left;'>"+uname+"</td><td style='text-align: right;'><button class='btn btn-mini btn-danger' onclick='Retina.WidgetInstances.shockbrowse[1].removeAcl({node:\""+node+"\",acl:\""+rights[i]+"\",uuid:\""+uuid+"\"});'>delete</button></td></tr>";
+	    }
+	    html += "</table></td><td style='vertical-align: top; text-align: right;'><button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].addAcl({node:\""+node+"\",acl:\""+rights[i]+"\"});'>add</button></td></tr>";
+	}
+	return html;
+    };
+
+    widget.removeAcl = function(params) {
+	widget = Retina.WidgetInstances.shockbrowse[1];
+	
+	var url = widget.shockBase + "/node/" + params.node + "/acl/"+params.acl+"?users="+params.uuid;
+	jQuery.ajax({ url: url,
+		      success: function(data) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  widget.showDetails(null, true);
+		      },
+		      error: function(jqXHR, error) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  widget.showDetails(null, true);
+		      },
+		      headers: widget.authHeader,
+		      type: "DELETE"
+		    });
+	return;
+    };
+
+    widget.addAcl = function(params) {
+	widget = Retina.WidgetInstances.shockbrowse[1];
+
+	var uuid = prompt("Enter user id or uuid", "");
+	if (uuid) {
+	    var url = widget.shockBase + "/node/" + params.node + "/acl/"+params.acl+"?users="+uuid;
+	    jQuery.ajax({ url: url,
+			  success: function(data) {
+			      var widget = Retina.WidgetInstances.shockbrowse[1];
+			      widget.showDetails(null, true);
+			  },
+			  error: function(jqXHR, error) {
+			      var widget = Retina.WidgetInstances.shockbrowse[1];
+			      widget.showDetails(null, true);
+			  },
+			  headers: widget.authHeader,
+			  type: "PUT"
+			});
+	}
     };
 
     widget.refineFilter = function (action, item) {
