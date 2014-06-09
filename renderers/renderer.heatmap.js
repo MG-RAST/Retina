@@ -315,7 +315,7 @@
 
 	    if (dir) {
 		if (typeof renderer.settings.colClicked == "function") {
-		    renderer.settings.colClicked(row);
+		    renderer.settings.colClicked({ col: row, rendererIndex: index, label: renderer.settings.data.cols[renderer.settings.data.colindex[row]-1] });
 		} else {
 		    if (renderer.settings.selectedColumns[row]) {
 			renderer.settings.selectedColumns[row] = 0;
@@ -325,7 +325,7 @@
 		}
 	    } else {
 		if (typeof renderer.settings.rowClicked == "function") {
-		    renderer.settings.rowClicked(row);
+		    renderer.settings.rowClicked({ row: row, rendererIndex: index, label: renderer.settings.data.rows[renderer.settings.data.rowindex[row]-1] });
 		} else {
 		    if (renderer.settings.selectedRows[row]) {
 			renderer.settings.selectedRows[row] = 0;
