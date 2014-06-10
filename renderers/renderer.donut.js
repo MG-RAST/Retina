@@ -102,7 +102,7 @@
 			innerSize: outerRim - renderer.settings.rimWidth,
 			startAngle: s,
 			endAngle: e
-		    }), { fill: colorArr[h], strokeWidth: 1, stroke: "white", class: "donutslice", onclick: typeof renderer.settings.onclick == 'function' ? "Retina.RendererInstances.donut["+index+"].settings.onclick({ rim: "+i+", slice: "+h+", data: "+d[i][h]+"})" : "" });
+		    }), { fill: colorArr[h], strokeWidth: 1, stroke: "white", class: "donutslice", onclick: typeof renderer.settings.onclick == 'function' ? "Retina.RendererInstances.donut["+index+"].settings.onclick({ rendererIndex: "+index+", rim: "+i+", slice: "+h+", data: "+d[i][h]+"})" : "" });
 		}
 		outerRim -= renderer.settings.rimWidth + renderer.settings.rimPadding;
 		if (outerRim - renderer.settings.rimWidth < 0) {
