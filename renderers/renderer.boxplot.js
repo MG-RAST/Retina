@@ -61,30 +61,30 @@
 
 	    if (renderer.settings.normalize_standardize) {
 		var colsums = [];
-		for (i=0;i<data.length;i++) {
+		for (var i=0;i<data.length;i++) {
 		    colsums[i] = 0;
-		    for (j=0;j<data[i].length;j++) {
+		    for (var j=0;j<data[i].length;j++) {
 			data[i][j] = Math.log(data[i][j] + 1) / Math.LN2;
 			colsums[i] += data[i][j];
 		    }
 		}
 		var colaverage = [];
-		for (i=0;i<colsums.length;i++) {
+		for (var i=0;i<colsums.length;i++) {
 		    colaverage[i] = colsums[i] / data[i].length;
 		}
 		var colvariance = [];
-		for (i=0;i<data.length;i++) {
+		for (var i=0;i<data.length;i++) {
 		    colvariance[i] = 0;
-		    for (j=0;j<data[i].length;j++) {
+		    for (var j=0;j<data[i].length;j++) {
 			colvariance[i] += (colaverage[i] - data[i][j]) ^ 2;
 		    }
 		}
 		var colstdv = [];
-		for (i=0;i<colvariance.length;i++) {
+		for (var i=0;i<colvariance.length;i++) {
 		    colstdv[i] = Math.sqrt(Math.abs(colvariance[i] / data[i].length));
 		}
-		for (i=0;i<data.length;i++) {
-		    for (j=0;j<data[i].length;j++) {
+		for (var i=0;i<data.length;i++) {
+		    for (var j=0;j<data[i].length;j++) {
 			data[i][j] = (data[i][j] - colaverage[i]) / colstdv[i];
 		    }
 		}
@@ -93,7 +93,7 @@
 	    renderer.settings.min = data[0][0];
 	    renderer.settings.max = data[0][0];
 	    
-	    for (i=0;i<data.length;i++) {
+	    for (var i=0;i<data.length;i++) {
 		data[i] = data[i].sort(Retina.Numsort);
 		if (data[i][0] < renderer.settings.min) {
 		    renderer.settings.min = data[i][0];
@@ -168,7 +168,7 @@
 	    var trans = orientation == 'vertical' ? {} : { transform: "rotate(90,0,0) translate(0,-"+height+")" };
 	    var group = svg.group(trans);
 	    
-	    for (i=0;i<renderer.settings.fivenumbers.length;i++) {
+	    for (var i=0;i<renderer.settings.fivenumbers.length;i++) {
 		var data = renderer.settings.fivenumbers[i];
 		var xoffset = parseInt(i * (boxwidth * 1.5));
 
