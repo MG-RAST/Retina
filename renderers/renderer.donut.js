@@ -96,13 +96,8 @@
                     var s = startDegree;
 		    var e = 360 * d[i][h]/total + s;
 		    startDegree = e;
-		    svg.path(renderer.arc({ 
-			center: parseInt(renderer.settings.size / 2),
-			size: outerRim,
-			innerSize: outerRim - renderer.settings.rimWidth,
-			startAngle: s,
-			endAngle: e
-		    }), { fill: colorArr[h], strokeWidth: 1, stroke: "white", class: "donutslice", onclick: typeof renderer.settings.onclick == 'function' ? "Retina.RendererInstances.donut["+index+"].settings.onclick({ rendererIndex: "+index+", rim: "+i+", slice: "+h+", data: "+d[i][h]+"})" : "" });
+
+		    svg.donutslice(parseInt(renderer.settings.size / 2), outerRim - renderer.settings.rimWidth, outerRim, s, e, { fill: colorArr[h], strokeWidth: 1, stroke: "white", class: "donutslice", onclick: typeof renderer.settings.onclick == 'function' ? "Retina.RendererInstances.donut["+index+"].settings.onclick({ rendererIndex: "+index+", rim: "+i+", slice: "+h+", data: "+d[i][h]+"})" : "" });
 		}
 		outerRim -= renderer.settings.rimWidth + renderer.settings.rimPadding;
 		if (outerRim - renderer.settings.rimWidth < 0) {
@@ -115,34 +110,6 @@
 		    svg.text(null, parseInt(renderer.settings.size / 2), 5 + parseInt(renderer.settings.size / 2) + parseInt(renderer.settings.titleFontSize / 2), outerTotal.formatString(), { fill: "black", fontSize: renderer.settings.titleFontSize+"px", textAnchor: "middle" });
 		}
 	    }
-	},
-	// get the path string for a donut slice
-	arc: function (params) {
-
-	    var r1 = ((params.size - 1) / 2);
-	    var r2 = ((params.innerSize - 1) / 2);
-
-	    var startAngleRad = Math.PI*params.startAngle/180;
-	    var endAngleRad = Math.PI*params.endAngle/180;
-
-	    var x1inner = parseInt(params.center + r2*Math.cos(startAngleRad));
-	    var y1inner = parseInt(params.center + r2*Math.sin(startAngleRad));
-
-	    var x2inner = parseInt(params.center + r2*Math.cos(endAngleRad));
-	    var y2inner = parseInt(params.center + r2*Math.sin(endAngleRad));
-
-	    var x1outer = parseInt(params.center + r1*Math.cos(startAngleRad));
-	    var y1outer = parseInt(params.center + r1*Math.sin(startAngleRad));
-
-	    var x2outer = parseInt(params.center + r1*Math.cos(endAngleRad));
-	    var y2outer = parseInt(params.center + r1*Math.sin(endAngleRad));
-
-	    r1 = parseInt(r1);
-	    r2 = parseInt(r2);
-
-	    var path = "M"+x1inner+","+y1inner+"  L"+x1outer+","+y1outer+"  A"+r1+","+r1+" 0 0,1 "+x2outer+","+y2outer+" L"+x2inner+","+y2inner+"  A"+r2+","+r2+" 0 0,0 "+x1inner+","+y1inner;
-
-	    return path;
 	}
     });
 }).call(this);

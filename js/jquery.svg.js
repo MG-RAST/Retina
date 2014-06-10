@@ -640,6 +640,33 @@
 	    return this._makeNode(args.parent, 'path', jQuery.extend(
 		{d: (args.path.path ? args.path.path() : args.path)}, args.settings || {}));
 	},
+
+	donutslice: function(center, inner, outer, startAngle, endAngle, settings) {
+	    var r1 = ((outer - 1) / 2);
+	    var r2 = ((inner - 1) / 2);
+
+	    var startAngleRad = Math.PI*startAngle/180;
+	    var endAngleRad = Math.PI*endAngle/180;
+
+	    var x1inner = parseInt(center + r2*Math.cos(startAngleRad));
+	    var y1inner = parseInt(center + r2*Math.sin(startAngleRad));
+
+	    var x2inner = parseInt(center + r2*Math.cos(endAngleRad));
+	    var y2inner = parseInt(center + r2*Math.sin(endAngleRad));
+
+	    var x1outer = parseInt(center + r1*Math.cos(startAngleRad));
+	    var y1outer = parseInt(center + r1*Math.sin(startAngleRad));
+
+	    var x2outer = parseInt(center + r1*Math.cos(endAngleRad));
+	    var y2outer = parseInt(center + r1*Math.sin(endAngleRad));
+
+	    r1 = parseInt(r1);
+	    r2 = parseInt(r2);
+
+	    var path = "M"+x1inner+","+y1inner+"  L"+x1outer+","+y1outer+"  A"+r1+","+r1+" 0 0,1 "+x2outer+","+y2outer+" L"+x2inner+","+y2inner+"  A"+r2+","+r2+" 0 0,0 "+x1inner+","+y1inner;
+
+	    return this.path(path, settings);
+	},
 	
 	/* Draw a rectangle.
 	   Specify both of rx and ry or neither.
