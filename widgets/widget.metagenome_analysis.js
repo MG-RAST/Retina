@@ -277,7 +277,7 @@
 
 	var container = document.getElementById('visualize');
 
-	container.innerHTML = "<img src='images/table.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"table\");'><img src='images/pie.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"piechart\");'><img src='images/stats.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"linechart\");'><img src='images/bars2.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"barchart\");'><img src='images/areachart.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"areachart\");'><img src='images/icon_pcoa.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"dotplot\");'><img src='images/icon_boxplot.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"boxplot\");'><img src='images/icon_deviationplot.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"deviationplot\");'><img src='images/icon_heatmap.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"heatmap\");'>";
+	container.innerHTML = "<img src='images/table.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"table\");'><img src='images/pie.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"piechart\");'><img src='images/stats.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"linechart\");'><img src='images/bars2.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"barchart\");'><img src='images/areachart.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"areachart\");'><img src='images/icon_pcoa.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"dotplot\");'><img src='images/icon_boxplot.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"boxplot\");'><img src='images/icon_deviationplot.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"deviationplot\");'><img src='images/icon_heatmap.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"heatmap\");'><img src='images/spinner.png' class='tool' onclick='Retina.WidgetInstances.metagenome_analysis[1].visualize(\"donut\");'>";
     };
 
     // draw a demo version of the selected visualization
@@ -412,6 +412,22 @@
 		document.getElementById('visualizeBreadcrumbs').innerHTML += html;
 		widget.updateVis( { level: parseInt(document.getElementById('matrixLevel').options[document.getElementById('matrixLevel').selectedIndex].value),
 				    value: p.label } );
+	    };
+	} else if (r.params.type == 'donut') {
+	    var matrix = widget.container2matrix({ dataColIndex: matrixLevel, filter: filter });
+	    r.data(1, matrix.data);
+	    r.renderer.settings.rows = matrix.rows;
+	    r.renderer.settings.onclick = function (p) {
+		var rend = Retina.RendererInstances.donut[p.rendererIndex];
+		var widget = Retina.WidgetInstances.metagenome_analysis[1];
+		var html = '<a style="cursor: pointer;" onclick="while(this.nextSibling){this.parentNode.removeChild(this.nextSibling);}Retina.WidgetInstances.metagenome_analysis[1].updateVis({level: '+parseInt(document.getElementById('matrixLevel').options[document.getElementById('matrixLevel').selectedIndex].value)+', value: \''+rend.settings.rows[p.slice]+'\'});">&raquo; '+rend.settings.rows[p.slice]+' </a>';
+		if (document.getElementById('matrixLevel').selectedIndex + 1 == document.getElementById('matrixLevel').options.length) {
+		    html = "";
+		}
+		document.getElementById('visualizeBreadcrumbs').innerHTML += html;
+		widget.updateVis( { level: parseInt(document.getElementById('matrixLevel').options[document.getElementById('matrixLevel').selectedIndex].value),
+				    value: rend.settings.rows[p.slice] } );
+		
 	    };
 	}
 
@@ -990,7 +1006,11 @@
 						    { name: "Metagenome B", data: [ 41, 52, 51, 42, 60 ], fill: GooglePalette(3)[1] },
 						    { name: "Metagenome C", data: [ 45, 41, 60, 22, 19 ], fill: GooglePalette(3)[2] } ]
 					 }
-			     }
+			     },
+		 'donut': { title: 'donut',
+			    renderer: "donut",
+			    settings: {'title': 'Sample' }
+			  }
 	       };
     };
 })();
