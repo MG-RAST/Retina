@@ -904,7 +904,7 @@
 
     widget.aclDetail = function(data, node) {
 	var html = "<table style='font-size: 13px; width: 100%;'>";
-	html += "<tr><td style='padding-right: 20px;'><b>owner</b></td><td>"+(data.data.owner.match(/\|/) ? data.data.owner.split("|")[0] : data.data.owner)+"</td></tr>";
+	html += "<tr><td style='padding-right: 20px;'><b>owner</b></td><td>"+(data.data.owner.match(/\|/) ? data.data.owner.split("|")[0] : data.data.owner)+"</td><td style='text-align: left;'><button class='btn btn-mini btn-danger' onclick='Retina.WidgetInstances.shockbrowse[1].removeNode({node:\""+node+"\"});'>delete node</button></td></tr>";
 	var rights = ["read","write","delete"];
 	for (var i=0; i<rights.length; i++) {
 	    html += "<tr><td style='padding-right: 20px; vertical-align: top;'><b>"+rights[i]+"</b></td><td><table style='width: 100%;'>";
@@ -927,6 +927,25 @@
 		      success: function(data) {
 			  var widget = Retina.WidgetInstances.shockbrowse[1];
 			  widget.showDetails(null, true);
+		      },
+		      error: function(jqXHR, error) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  widget.showDetails(null, true);
+		      },
+		      headers: widget.authHeader,
+		      type: "DELETE"
+		    });
+	return;
+    };
+
+    widget.removeNode = function(params) {
+	widget = Retina.WidgetInstances.shockbrowse[1];
+	
+	var url = widget.shockBase + "/node/" + params.node;
+	jQuery.ajax({ url: url,
+		      success: function(data) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  widget.updateData();
 		      },
 		      error: function(jqXHR, error) {
 			  var widget = Retina.WidgetInstances.shockbrowse[1];
@@ -1498,6 +1517,7 @@
     widget.previewStub = function (params) {
 	if (params.node.attributes.type == "awe_workflow") {
 	    var html = "";
+	    params.data = params.data.replace(/\#totalwork/g, '"#totalwork"');
 	    var data = JSON.parse(params.data);
 
 
