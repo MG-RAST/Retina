@@ -910,8 +910,8 @@
 	    html += "<tr><td style='padding-right: 20px; vertical-align: top;'><b>"+rights[i]+"</b></td><td><table style='width: 100%;'>";
 	    for (var h=0; h<data.data[rights[i]].length; h++) {
 		var u = data.data[rights[i]][h].split("|");
-		var uuid = typeof u == "string" ? u[0] : u[1];
-		var uname = typeof u == "string" ? u[0] : u[0];
+		var uuid = (u.length == 1 ? u[0] : u[1]);
+		var uname = u[0];
 		html +="<tr><td style='text-align: left;'>"+uname+"</td><td style='text-align: right;'><button class='btn btn-mini btn-danger' onclick='Retina.WidgetInstances.shockbrowse[1].removeAcl({node:\""+node+"\",acl:\""+rights[i]+"\",uuid:\""+uuid+"\"});'>delete</button></td></tr>";
 	    }
 	    html += "</table></td><td style='vertical-align: top; text-align: right;'><button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].addAcl({node:\""+node+"\",acl:\""+rights[i]+"\"});'>add</button></td></tr>";
