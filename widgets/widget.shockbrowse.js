@@ -1494,4 +1494,74 @@
 	}
     };
 
+    /* CUSTOM PREVIEW */
+    widget.previewStub = function (params) {
+	if (params.node.attributes.type == "awe_workflow") {
+	    var html = "";
+	    var data = JSON.parse(params.data);
+
+
+	    var html = '<div class="accordion" id="AWE_workflow_accordion" style="width: 100%; margin-bottom: 20px;">';
+	    var index = 0;
+	    for (var i in data) {
+		if (data.hasOwnProperty(i)) {
+		    index++;
+		    var groupname = i.replace(/_/g, " ");
+		    var group = data[i];
+
+		    html += '\
+<div class="accordion-group">\
+  <div class="accordion-heading">\
+<a class="accordion-toggle" data-toggle="collapse" data-parent="#AWE_workflow_accordion" href="#AWE_workflow_collapse_'+index+'">'+groupname+(((typeof group != "string") && (typeof group.length != 'undefined')) ? " ["+group.length+"]" : "")+'</a>\
+  </div>\
+  <div id="AWE_workflow_collapse_'+index+'" class="accordion-body collapse">\
+    <div class="accordion-inner">\
+';
+		    
+		    if (typeof group == "string") {
+			html += "<table>";
+			html += "<tr><td style='text-align: right; vertical-align: middle; font-weight: bold;'>"+h+"</td><td style='padding-left: 10px; text-align: left;'>" + group + "</td></tr>";
+			html += "</table>";
+		    } else if (typeof group.length != 'undefined') {
+			groupname = groupname.replace(/s$/, "");
+			for (var j=0; j<group.length; j++) {
+			    html += "<table class='table table-bordered table-hover table-condensed' style='margin-bottom: 20px;'>";
+			    html += "<tr><td colspan=2 style='font-weight: bold; text-align: center; background-color: #F9F9F9;'>"+groupname+" "+(j + 1)+"</td></tr>";
+			    for (var h in group[j]) {
+				if (group[j].hasOwnProperty(h)) {
+				    if (typeof group[j][h] == 'object') {
+					group[j][h] = JSON.stringify(group[j][h], null, 2);
+				    }
+				    html += "<tr><td style='text-align: right; vertical-align: middle; font-weight: bold;'>"+h+"</td><td style='padding-left: 10px; text-align: left;'>" + group[j][h] + "</td></tr>";
+				}
+			    }
+			    html += "</table>";
+			}
+		    } else {
+			html += "<table>";
+			for (var h in group) {
+			    if (group.hasOwnProperty(h)) {
+				html += "<tr><td style='text-align: right; vertical-align: middle; font-weight: bold;'>"+h+"</td><td style='padding-left: 10px; text-align: left;'>" + group[h] + "</td></tr>";
+			    }
+			}
+			html += "</table>";
+		    }
+		    
+		    html += '\
+    </div>\
+  </div>\
+</div>';
+		}
+	    }
+
+	    html += "</div>";
+
+	    return html;
+	} else {
+	    return "<pre>"+params.data+"</pre>";
+	}
+
+	
+    };
+
 })();
