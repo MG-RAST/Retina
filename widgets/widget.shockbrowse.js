@@ -869,7 +869,7 @@
 	} else if (widget.detailType == "attributes") {
 	    html = "<h4>attributes - "+fn+"</h4><pre style='font-size: "+(widget.fontSize - 1) +"px;'>"+JSON.stringify(node.attributes, null, 2)+"</pre>";
 	} else if (widget.detailType == "preview") {
-	    html = "<h4>preview - "+fn+"</h4>"+detailInfo;
+	    html = detailInfo;
 	    if (widget.detailInfo) {
 		widget.detailInfo = null;
 	    } else {
@@ -881,7 +881,7 @@
 				      widget.detailInfo = widget.customPreview.call(null, { "node": node, "data": data, "error": null });
 				  } else {
 				      data = data.slice(0, widget.previewChunkSize);
-				      widget.detailInfo = "<pre style='font-size: "+(widget.fontSize - 1)+"px;'>"+data+"</pre>";
+				      widget.detailInfo = "<h4>preview - "+node.file.name+"</h4><pre style='font-size: "+(widget.fontSize - 1)+"px;'>"+data+"</pre>";
 				  }
 				  widget.showDetails(null, true);
 			      },
@@ -1516,66 +1516,161 @@
     /* CUSTOM PREVIEW */
     widget.previewStub = function (params) {
 	if (params.node.attributes.type == "awe_workflow") {
-	    var html = "";
+	    var html = "<style>\
+.awetaskbox {\
+  cursor: pointer;\
+  border-radius: 4px;\
+  box-shadow: 4px 4px 4px #BBBBBB;\
+  border: 1px solid gray;\
+  text-align: center;\
+  vertical-align: middle;\
+  float: left;\
+}\
+.awetaskbox:active {\
+  box-shadow: 0px 0px 4px #BBBBBB;\
+}\
+.awetaskboxSelected {\
+  border: 2px dotted green;\
+}\
+.awetaskboxDependant {\
+  border: 2px dotted blue;\
+}\
+</style>\
+";
 	    params.data = params.data.replace(/\#totalwork/g, '"#totalwork"');
 	    var data = JSON.parse(params.data);
 
-
-	    var html = '<div class="accordion" id="AWE_workflow_accordion" style="width: 100%; margin-bottom: 20px;">';
-	    var index = 0;
-	    for (var i in data) {
-		if (data.hasOwnProperty(i)) {
-		    index++;
-		    var groupname = i.replace(/_/g, " ");
-		    var group = data[i];
-
-		    html += '\
-<div class="accordion-group">\
-  <div class="accordion-heading">\
-<a class="accordion-toggle" data-toggle="collapse" data-parent="#AWE_workflow_accordion" href="#AWE_workflow_collapse_'+index+'">'+groupname+(((typeof group != "string") && (typeof group.length != 'undefined')) ? " ["+group.length+"]" : "")+'</a>\
-  </div>\
-  <div id="AWE_workflow_collapse_'+index+'" class="accordion-body collapse">\
-    <div class="accordion-inner">\
-';
-		    
-		    if (typeof group == "string") {
-			html += "<table>";
-			html += "<tr><td style='text-align: right; vertical-align: middle; font-weight: bold;'>"+h+"</td><td style='padding-left: 10px; text-align: left;'>" + group + "</td></tr>";
-			html += "</table>";
-		    } else if (typeof group.length != 'undefined') {
-			groupname = groupname.replace(/s$/, "");
-			for (var j=0; j<group.length; j++) {
-			    html += "<table class='table table-bordered table-hover table-condensed' style='margin-bottom: 20px;'>";
-			    html += "<tr><td colspan=2 style='font-weight: bold; text-align: center; background-color: #F9F9F9;'>"+groupname+" "+(j + 1)+"</td></tr>";
-			    for (var h in group[j]) {
-				if (group[j].hasOwnProperty(h)) {
-				    if (typeof group[j][h] == 'object') {
-					group[j][h] = JSON.stringify(group[j][h], null, 2);
-				    }
-				    html += "<tr><td style='text-align: right; vertical-align: middle; font-weight: bold;'>"+h+"</td><td style='padding-left: 10px; text-align: left;'>" + group[j][h] + "</td></tr>";
-				}
-			    }
-			    html += "</table>";
-			}
-		    } else {
-			html += "<table>";
-			for (var h in group) {
-			    if (group.hasOwnProperty(h)) {
-				html += "<tr><td style='text-align: right; vertical-align: middle; font-weight: bold;'>"+h+"</td><td style='padding-left: 10px; text-align: left;'>" + group[h] + "</td></tr>";
-			    }
-			}
-			html += "</table>";
-		    }
-		    
-		    html += '\
-    </div>\
-  </div>\
-</div>';
+	    // show the info section
+	    html += "<h4>"+params.node.file.name+"</h4><h5>info</h5>";
+	    html += "<table style='font-size: 13px;'>";
+ 	    for (var h in data.info) {
+		if (data.info.hasOwnProperty(h)) {
+		    html += "<tr><td style='text-align: left; vertical-align: middle; font-weight: bold; padding-left: 50px;'>"+h+"</td><td style='padding-left: 10px; text-align: left;'>" + data.info[h] + "</td></tr>";
 		}
 	    }
+	    html += "</table>";
 
+	    // calculate the task hierarchy
+	    var tasks = data.tasks;
+	    var hierarchy = {};
+	    var remaining = [];
+	    var levelWidth = { 0: 0 };
+	    for (var i=0; i<tasks.length; i++) {
+		if (tasks[i].dependsOn.length == 0) {
+		    hierarchy[tasks[i].taskid] = 0;
+		    levelWidth[0]++;
+		} else {
+		    remaining.push(tasks[i]);
+		}
+	    }
+	    var maxLevel = 0;
+	    var maxLevelWidth = levelWidth[0];
+	    while (remaining.length) {
+		var stillremaining = [];
+		for (var i=0; i<remaining.length; i++) {
+		    var max = 0;
+		    var unknown = false;
+		    for (var h=0; h<remaining[i].dependsOn.length; h++) {
+			if (hierarchy.hasOwnProperty(remaining[i].dependsOn[h])) {
+			    if (max < (hierarchy[remaining[i].dependsOn[h]] + 1)) {
+				max = hierarchy[remaining[i].dependsOn[h]] + 1;
+			    }
+			} else {
+			    unknown = true;
+			    break;
+			}
+		    }
+		    if (unknown) {
+			stillremaining.push(remaining[i]);
+		    } else {
+			if (! levelWidth.hasOwnProperty(max)) {
+			    levelWidth[max] = 0;
+			}
+			hierarchy[remaining[i].taskid] = max;
+			levelWidth[max]++;
+			if (levelWidth[max] > maxLevelWidth) {
+			    maxLevelWidth = levelWidth[max];
+			}
+			if (max > maxLevel) {
+			    maxLevel = max;
+			}
+		    }
+		}
+		remaining = stillremaining;
+	    }
+
+	    // draw the tasks
+	    var taskheight = 50;
+	    var fontsize = 13;
+	    var taskvpadding = 10;
+	    var taskwidth = 50;
+	    var taskhpadding = 10;
+	    var totalHeight = (taskheight * maxLevel) + (taskvpadding * (maxLevel - 1));
+	    var totalWidth = (taskwidth * maxLevelWidth) + (taskhpadding * (maxLevelWidth - 1));
+	    if (totalWidth < 400) {
+		totalWidth = 400;
+	    }
+	    html += "<h5>tasks</h5><div style='width: 280px; float: left; height: 465px; overflow-y: auto; border-radius: 4px; box-shadow: 4px 4px 4px #BBBBBB; border: 1px solid black; margin-left: 20px; padding: 0 10px 10px; font-size: 13px;' id='taskPreviewDetails'><h5>selected task</h5><p style='margin-top: 100px; text-align: center; color: gray;'>none selected</p></div></div><div style='height: "+totalHeight+"; width: "+totalWidth+"; font-size: "+fontsize+"px; float: left;'>";
+	    for (var i=0; i<=maxLevel; i++) {
+		var placed = 0;
+		var spaceNeeded = (levelWidth[i] * taskwidth) + ((levelWidth[i] - 1) * taskhpadding);
+		var left = parseInt((totalWidth - spaceNeeded) / 2);
+		for (var h=0; h<tasks.length; h++) {
+		    if (hierarchy[tasks[h].taskid] == i) {
+			html += "<div class='awetaskbox' name='taskPreviewTask' onclick='AWEtaskClick(\""+tasks[h].taskid+"\");' id='taskPreviewTask"+tasks[h].taskid+"' style='"+(placed == 0 ? "clear: left; margin-left: "+left+"px;" : "margin-left: "+taskhpadding+"px;")+" width: "+taskwidth+"px; height: "+(taskheight / 2 + fontsize)+"px; padding-top: "+(taskheight / 2 - fontsize)+"px;"+(i>0 ? " margin-top: "+taskvpadding+"px;" : "")+"'>"+tasks[h].taskid+"</div>";
+			placed++;
+			if (placed == levelWidth[i]) {
+			    break;
+			}
+		    }
+		}
+	    }
 	    html += "</div>";
 
+	    // create the onclick function
+	    var taskhash = {};
+	    for (var i=0; i<tasks.length; i++) {
+		taskhash[tasks[i].taskid] = tasks[i];
+	    }
+	    window.AWEtasks = taskhash;
+	    window.AWEtaskClick = function(id) {
+		var task = AWEtasks[id];
+		var target = document.getElementById('taskPreviewDetails');
+		var html = '\
+<h5>'+task.cmd.description+'</h5>\
+<table>\
+<tr><td style="vertical-align: top; padding-right: 20px;"><b>ID</b></td><td>'+task.taskid+'</td></tr>\
+'+(task.totalwork ? '<tr><td style="vertical-align: top; padding-right: 20px;"><b>workunits</b></td><td>'+task.totalwork+'</td></tr>' : '')+'\
+<tr><td style="vertical-align: top; padding-right: 20px;"><b>depends on</b></td><td>'+(task.dependsOn.length ? task.dependsOn.join(", ") : "none")+'</td></tr>\
+<tr><td style="vertical-align: top; padding-right: 20px;"><b>command</b></td><td>'+task.cmd.name+'</td></tr>\
+<tr><td style="vertical-align: top;" colspan=2><b>parameters</b></td></tr>\
+<tr><td colspan=2>'+task.cmd.args+'</td></tr>'
+		html += '<tr><td style="vertical-align: top;" colspan=2><b>input files</b></td></tr>';
+		for (var i in task.inputs) {
+		    if (task.inputs.hasOwnProperty(i)) {
+			html += '<tr><td colspan=2>'+i+(task.inputs[i].hasOwnProperty('origin') ? " (from task "+task.inputs[i].origin+")" : "")+'</td></tr>';			
+		    }
+		}
+		html += '<tr><td style="vertical-align: top;" colspan=2><b>output files</b></td></tr>';
+		for (var i in task.outputs) {
+		    if (task.outputs.hasOwnProperty(i)) {
+			html += '<tr><td colspan=2>'+i+'</td></tr>';			
+		    }
+		}
+		html += '</table>';
+		target.innerHTML = html;
+
+		var tasks = document.getElementsByName('taskPreviewTask');
+		for (var i=0; i<tasks.length; i++) {
+		    tasks[i].setAttribute('class', 'awetaskbox');
+		}
+		document.getElementById('taskPreviewTask'+task.taskid).setAttribute('class', 'awetaskbox awetaskboxSelected');
+		for (var i=0; i<task.dependsOn.length; i++) {
+		    document.getElementById('taskPreviewTask'+task.dependsOn[i]).setAttribute('class', 'awetaskbox awetaskboxDependant');
+		}
+	    };
+
+	    // return the html
 	    return html;
 	} else {
 	    return "<pre>"+params.data+"</pre>";
