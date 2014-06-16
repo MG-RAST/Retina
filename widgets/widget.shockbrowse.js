@@ -5,8 +5,8 @@
   Parameters:
 
   shockBase - URL of the SHOCK server to interact with, default is config.js-shock_url
-  width - width of the browser in pixel, default is 1200
-  height - height of the browser in pixel, default is 600
+  width - width of the browser in pixel, default is 1550
+  height - height of the browser in pixel, default is 800
   title - text displayed in the title bar, default is "SHOCK browser"
 
   showFilter - boolean whether the filter section is visible, default is true
@@ -45,7 +45,7 @@
             title: "SHOCK Browser Widget",
             name: "shockbrowse",
             author: "Tobias Paczian",
-            requires: [ 'jszip.min.js' ]
+            requires: [ 'jszip.min.js', 'jsoneditor.min.js' ]
         }
     });
     
@@ -71,8 +71,8 @@
     widget.authHeader = {};
 
     // layout
-    widget.width = 1200;
-    widget.height = 600;
+    widget.width = 1550;
+    widget.height = 800;
     widget.borderRadius = 4;
     widget.fontSize = 13;
     widget.showFilter = true;
@@ -867,7 +867,10 @@
 			    });
 	    }
 	} else if (widget.detailType == "attributes") {
-	    html = "<h4>attributes - "+fn+"</h4><pre style='font-size: "+(widget.fontSize - 1) +"px;'>"+JSON.stringify(node.attributes, null, 2)+"</pre>";
+	    html = "<h4>attributes - "+fn+"<button class='btn btn-mini pull-right' disabled>edit</button></h4><div id='attributesEditor'></div>";
+	    widget.sections.detailSectionContent.innerHTML = html;
+            var editor = new JSONEditor(document.getElementById("attributesEditor"), { mode: 'view'}, node.attributes);
+	    return;
 	} else if (widget.detailType == "preview") {
 	    html = detailInfo;
 	    if (widget.detailInfo) {
