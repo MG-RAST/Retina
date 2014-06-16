@@ -867,9 +867,9 @@
 			    });
 	    }
 	} else if (widget.detailType == "attributes") {
-	    html = "<h4>attributes - "+fn+"<button class='btn btn-mini pull-right' disabled>edit</button></h4><div id='attributesEditor'></div>";
+	    html = "<h4>attributes - "+fn+"<button id='attributesEditorButton' class='btn btn-mini pull-right' onclick='Retina.WidgetInstances.shockbrowse[1].editAttributes();'>edit</button></h4><div id='attributesEditor'></div>";
 	    widget.sections.detailSectionContent.innerHTML = html;
-            var editor = new JSONEditor(document.getElementById("attributesEditor"), { mode: 'view'}, node.attributes);
+            widget.jsonEditor = new JSONEditor(document.getElementById("attributesEditor"), { mode: 'view'}, node.attributes);
 	    return;
 	} else if (widget.detailType == "preview") {
 	    html = detailInfo;
@@ -1052,6 +1052,34 @@
 	widget.data = null;
 	widget.append = false;
 	widget.updateData();
+    };
+
+    // enables the attributes editor
+    widget.editAttributes = function () {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	widget.jsonEditor.setMode('tree');
+
+	var button = document.getElementById('attributesEditorButton');
+	button.innerHTML = "save changes";
+	button.addEventListener('click', function(){
+	    Retina.WidgetInstances.shockbrowse[1].saveEditedAttributes();
+	});
+    };
+
+    widget.saveEditedAttributes = function () {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+	
+	var newNodeAttributes = widget.jsonEditor.get();
+	widget.jsonEditor.setMode('view');
+
+	console.log(newNodeAttributes);
+
+	var button = document.getElementById('attributesEditorButton');
+	button.innerHTML = "edit";
+	button.addEventListener('click', function(){
+	    Retina.WidgetInstances.shockbrowse[1].editAttributes();
+	});
     };
     
     // UPLOAD FUNCTIONS
