@@ -83,32 +83,32 @@
 	    var outerRim = renderer.settings.size;
 	    var outerTotal;
 	    for (var i=0;i<d.length; i++) {
-		var startDegree = -90;
-		var colorArr = GooglePalette(d[i].length);
-		var total = 0;
-		for (var h=0; h<d[i].length; h++) {
-		    total += d[i][h];
-		}
-		if (i==0) {
-		    outerTotal = total;
-		}
-		for (var h=0; h<d[i].length; h++) {
+	    	var startDegree = -90;
+	    	var colorArr = GooglePalette(d[i].length);
+	    	var total = 0;
+	    	for (var h=0; h<d[i].length; h++) {
+	    	    total += d[i][h];
+	    	}
+	    	if (i==0) {
+	    	    outerTotal = total;
+	    	}
+	    	for (var h=0; h<d[i].length; h++) {
                     var s = startDegree;
-		    var e = 360 * d[i][h]/total + s;
-		    startDegree = e;
+	    	    var e = 360 * d[i][h]/total + s;
+	    	    startDegree = e;
 
-		    svg.donutslice(parseInt(renderer.settings.size / 2), outerRim - renderer.settings.rimWidth, outerRim, s, e, { fill: colorArr[h], strokeWidth: 1, stroke: "white", class: "donutslice", onclick: typeof renderer.settings.onclick == 'function' ? "Retina.RendererInstances.donut["+index+"].settings.onclick({ rendererIndex: "+index+", rim: "+i+", slice: "+h+", data: "+d[i][h]+"})" : "" });
-		}
-		outerRim -= renderer.settings.rimWidth + renderer.settings.rimPadding;
-		if (outerRim - renderer.settings.rimWidth < 0) {
-		    break;
-		}
+	    	    svg.donutslice({ center: parseInt(renderer.settings.size / 2), inner: outerRim - renderer.settings.rimWidth, outer: outerRim, startAngle: s, endAngle: e, settings: { fill: colorArr[h], strokeWidth: 1, stroke: "white", class: "donutslice", onclick: typeof renderer.settings.onclick == 'function' ? "Retina.RendererInstances.donut["+index+"].settings.onclick({ rendererIndex: "+index+", rim: "+i+", slice: "+h+", data: "+d[i][h]+"})" : "" }});
+	    	}
+	    	outerRim -= renderer.settings.rimWidth + renderer.settings.rimPadding;
+	    	if (outerRim - renderer.settings.rimWidth < 0) {
+	    	    break;
+	    	}
             }
 	    if (renderer.settings.title) {
-		svg.text(null, parseInt(renderer.settings.size / 2), 5 + parseInt(renderer.settings.size / 2) - (renderer.settings.showTotal ? parseInt(renderer.settings.titleFontSize / 2) : 0), renderer.settings.title, { fill: "black", fontSize: renderer.settings.titleFontSize+"px", textAnchor: "middle" });
-		if (renderer.settings.showTotal) {
-		    svg.text(null, parseInt(renderer.settings.size / 2), 5 + parseInt(renderer.settings.size / 2) + parseInt(renderer.settings.titleFontSize / 2), outerTotal.formatString(), { fill: "black", fontSize: renderer.settings.titleFontSize+"px", textAnchor: "middle" });
-		}
+	    	svg.text(null, parseInt(renderer.settings.size / 2), 5 + parseInt(renderer.settings.size / 2) - (renderer.settings.showTotal ? parseInt(renderer.settings.titleFontSize / 2) : 0), renderer.settings.title, { fill: "black", fontSize: renderer.settings.titleFontSize+"px", textAnchor: "middle" });
+	    	if (renderer.settings.showTotal) {
+	    	    svg.text(null, parseInt(renderer.settings.size / 2), 5 + parseInt(renderer.settings.size / 2) + parseInt(renderer.settings.titleFontSize / 2), outerTotal.formatString(), { fill: "black", fontSize: renderer.settings.titleFontSize+"px", textAnchor: "middle" });
+	    	}
 	    }
 	}
     });
