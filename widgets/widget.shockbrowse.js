@@ -5,8 +5,8 @@
   Parameters:
 
   shockBase - URL of the SHOCK server to interact with, default is config.js-shock_url
-  width - width of the browser in pixel, default is 1200
-  height - height of the browser in pixel, default is 600
+  width - width of the browser in pixel, default is 1550
+  height - height of the browser in pixel, default is 800
   title - text displayed in the title bar, default is "SHOCK browser"
 
   showFilter - boolean whether the filter section is visible, default is true
@@ -45,7 +45,7 @@
             title: "SHOCK Browser Widget",
             name: "shockbrowse",
             author: "Tobias Paczian",
-            requires: [ 'jszip.min.js' ]
+            requires: [ 'jszip.min.js', 'jsoneditor.min.js' ]
         }
     });
     
@@ -71,8 +71,8 @@
     widget.authHeader = {};
 
     // layout
-    widget.width = 1200;
-    widget.height = 600;
+    widget.width = 1550;
+    widget.height = 800;
     widget.borderRadius = 4;
     widget.fontSize = 13;
     widget.showFilter = true;
@@ -860,16 +860,20 @@
 			      },
 			      error: function(jqXHR, error) {
 				  var widget = Retina.WidgetInstances.shockbrowse[1];
-				  widget.detailInfo = "<div class='alert alert-error'>unable to retrieve access right information</div>";
+				  widget.detailInfo = "<div class='alert alert-error'>Unable to retrieve access right information<br>You must be the owner of the node to see this data.</div>";
 				  widget.showDetails(null, true);
 			      },
 			      headers: widget.authHeader
 			    });
 	    }
 	} else if (widget.detailType == "attributes") {
-	    html = "<h4>attributes - "+fn+"</h4><pre style='font-size: "+(widget.fontSize - 1) +"px;'>"+JSON.stringify(node.attributes, null, 2)+"</pre>";
+	    html = "<h4>attributes - "+fn+"<span id='attributesEditButtonSpan'></span></h4><div id='attributesEditor'></div>";
+	    widget.sections.detailSectionContent.innerHTML = html;
+            widget.jsonEditor = new JSONEditor(document.getElementById("attributesEditor"), { mode: 'view'}, node.attributes);
+	    widget.checkForAttributesEditButton(node.id);
+	    return;
 	} else if (widget.detailType == "preview") {
-	    html = "<h4>preview - "+fn+"</h4>"+detailInfo;
+	    html = detailInfo;
 	    if (widget.detailInfo) {
 		widget.detailInfo = null;
 	    } else {
@@ -881,7 +885,7 @@
 				      widget.detailInfo = widget.customPreview.call(null, { "node": node, "data": data, "error": null });
 				  } else {
 				      data = data.slice(0, widget.previewChunkSize);
-				      widget.detailInfo = "<pre style='font-size: "+(widget.fontSize - 1)+"px;'>"+data+"</pre>";
+				      widget.detailInfo = "<h4>preview - "+node.file.name+"</h4><pre style='font-size: "+(widget.fontSize - 1)+"px;'>"+data+"</pre>";
 				  }
 				  widget.showDetails(null, true);
 			      },
@@ -904,14 +908,14 @@
 
     widget.aclDetail = function(data, node) {
 	var html = "<table style='font-size: 13px; width: 100%;'>";
-	html += "<tr><td style='padding-right: 20px;'><b>owner</b></td><td>"+(data.data.owner.match(/\|/) ? data.data.owner.split("|")[0] : data.data.owner)+"</td></tr>";
+	html += "<tr><td style='padding-right: 20px;'><b>owner</b></td><td>"+(data.data.owner.match(/\|/) ? data.data.owner.split("|")[0] : data.data.owner)+"<button class='btn btn-mini btn-danger pull-right' onclick='if(confirm(\"really delete this node?\")){Retina.WidgetInstances.shockbrowse[1].removeNode({node:\""+node+"\"});}'>delete node</button></td><td style='text-align: right;'><button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].addAcl({node:\""+node+"\",acl:\"owner\"});'>change owner</button></td></tr>";
 	var rights = ["read","write","delete"];
 	for (var i=0; i<rights.length; i++) {
 	    html += "<tr><td style='padding-right: 20px; vertical-align: top;'><b>"+rights[i]+"</b></td><td><table style='width: 100%;'>";
 	    for (var h=0; h<data.data[rights[i]].length; h++) {
 		var u = data.data[rights[i]][h].split("|");
-		var uuid = typeof u == "string" ? u[0] : u[1];
-		var uname = typeof u == "string" ? u[0] : u[0];
+		var uuid = (u.length == 1 ? u[0] : u[1]);
+		var uname = u[0];
 		html +="<tr><td style='text-align: left;'>"+uname+"</td><td style='text-align: right;'><button class='btn btn-mini btn-danger' onclick='Retina.WidgetInstances.shockbrowse[1].removeAcl({node:\""+node+"\",acl:\""+rights[i]+"\",uuid:\""+uuid+"\"});'>delete</button></td></tr>";
 	    }
 	    html += "</table></td><td style='vertical-align: top; text-align: right;'><button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].addAcl({node:\""+node+"\",acl:\""+rights[i]+"\"});'>add</button></td></tr>";
@@ -927,6 +931,25 @@
 		      success: function(data) {
 			  var widget = Retina.WidgetInstances.shockbrowse[1];
 			  widget.showDetails(null, true);
+		      },
+		      error: function(jqXHR, error) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  widget.showDetails(null, true);
+		      },
+		      headers: widget.authHeader,
+		      type: "DELETE"
+		    });
+	return;
+    };
+
+    widget.removeNode = function(params) {
+	widget = Retina.WidgetInstances.shockbrowse[1];
+	
+	var url = widget.shockBase + "/node/" + params.node;
+	jQuery.ajax({ url: url,
+		      success: function(data) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  widget.updateData();
 		      },
 		      error: function(jqXHR, error) {
 			  var widget = Retina.WidgetInstances.shockbrowse[1];
@@ -957,6 +980,22 @@
 			  type: "PUT"
 			});
 	}
+    };
+
+    widget.checkForAttributesEditButton = function(node) {
+	widget = Retina.WidgetInstances.shockbrowse[1];
+
+	var url = widget.shockBase + "/node/" + node + "/acl";
+	jQuery.ajax({ url: url,
+		      success: function(data) {
+			  document.getElementById('attributesEditButtonSpan').innerHTML = "<button id='attributesEditorButton' class='btn btn-mini pull-right' onclick='Retina.WidgetInstances.shockbrowse[1].editAttributes();'>edit</button>";
+		      },
+		      error: function(jqXHR, error) {
+			  
+		      },
+		      headers: widget.authHeader,
+		      type: "GET"
+		    });
     };
 
     widget.refineFilter = function (action, item) {
@@ -1030,6 +1069,60 @@
 	widget.data = null;
 	widget.append = false;
 	widget.updateData();
+    };
+
+    // enables the attributes editor
+    widget.editAttributes = function () {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	widget.jsonEditor.setMode('tree');
+
+	var button = document.getElementById('attributesEditorButton');
+	button.innerHTML = "save changes";
+	button.addEventListener('click', function(){
+	    Retina.WidgetInstances.shockbrowse[1].saveEditedAttributes();
+	});
+    };
+
+    // saves the changes attributes to the node
+    widget.saveEditedAttributes = function () {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+	
+	var newNodeAttributes = widget.jsonEditor.get();
+
+	var id = widget.currentFileId;
+	var node;
+	for (var i=0; i<widget.data.data.length; i++) {
+	    if (widget.data.data[i].id == id) {
+		node = widget.data.data[i];
+		break;
+	    }
+	}
+	var url = widget.shockBase+'/node/'+node.id;
+	var fd = new FormData();
+	fd.append('attributes', new Blob([ JSON.stringify(newNodeAttributes) ], { "type" : "text\/json" }));
+	jQuery.ajax(url, {
+	    contentType: false,
+	    processData: false,
+	    data: fd,
+	    success: function(data){
+		alert('attributes updated');
+	    },
+	    error: function(jqXHR, error){
+		console.log(error);
+		console.log(jqXHR);
+	    },
+	    headers: Retina.WidgetInstances.shockbrowse[1].authHeader,
+	    type: "PUT"
+	});
+	
+	widget.jsonEditor.setMode('view');
+
+	var button = document.getElementById('attributesEditorButton');
+	button.innerHTML = "edit";
+	button.addEventListener('click', function(){
+	    Retina.WidgetInstances.shockbrowse[1].editAttributes();
+	});
     };
     
     // UPLOAD FUNCTIONS
@@ -1492,6 +1585,172 @@
 	    alert("The selected file does not match the file to be resumed");
 	    return;
 	}
+    };
+
+    /* CUSTOM PREVIEW */
+    widget.previewStub = function (params) {
+	if (params.node.attributes.type == "awe_workflow") {
+	    var html = "<style>\
+.awetaskbox {\
+  cursor: pointer;\
+  border-radius: 4px;\
+  box-shadow: 4px 4px 4px #BBBBBB;\
+  border: 1px solid gray;\
+  text-align: center;\
+  vertical-align: middle;\
+  float: left;\
+}\
+.awetaskbox:active {\
+  box-shadow: 0px 0px 4px #BBBBBB;\
+}\
+.awetaskboxSelected {\
+  border: 2px dotted green;\
+}\
+.awetaskboxDependant {\
+  border: 2px dotted blue;\
+}\
+</style>\
+";
+	    params.data = params.data.replace(/\#totalwork/g, '"#totalwork"');
+	    var data = JSON.parse(params.data);
+
+	    // show the info section
+	    html += "<h4>"+params.node.file.name+"</h4><h5>info</h5>";
+	    html += "<table style='font-size: 13px;'>";
+ 	    for (var h in data.info) {
+		if (data.info.hasOwnProperty(h)) {
+		    html += "<tr><td style='text-align: left; vertical-align: middle; font-weight: bold; padding-left: 50px;'>"+h+"</td><td style='padding-left: 10px; text-align: left;'>" + data.info[h] + "</td></tr>";
+		}
+	    }
+	    html += "</table>";
+
+	    // calculate the task hierarchy
+	    var tasks = data.tasks;
+	    var hierarchy = {};
+	    var remaining = [];
+	    var levelWidth = { 0: 0 };
+	    for (var i=0; i<tasks.length; i++) {
+		if (tasks[i].dependsOn.length == 0) {
+		    hierarchy[tasks[i].taskid] = 0;
+		    levelWidth[0]++;
+		} else {
+		    remaining.push(tasks[i]);
+		}
+	    }
+	    var maxLevel = 0;
+	    var maxLevelWidth = levelWidth[0];
+	    while (remaining.length) {
+		var stillremaining = [];
+		for (var i=0; i<remaining.length; i++) {
+		    var max = 0;
+		    var unknown = false;
+		    for (var h=0; h<remaining[i].dependsOn.length; h++) {
+			if (hierarchy.hasOwnProperty(remaining[i].dependsOn[h])) {
+			    if (max < (hierarchy[remaining[i].dependsOn[h]] + 1)) {
+				max = hierarchy[remaining[i].dependsOn[h]] + 1;
+			    }
+			} else {
+			    unknown = true;
+			    break;
+			}
+		    }
+		    if (unknown) {
+			stillremaining.push(remaining[i]);
+		    } else {
+			if (! levelWidth.hasOwnProperty(max)) {
+			    levelWidth[max] = 0;
+			}
+			hierarchy[remaining[i].taskid] = max;
+			levelWidth[max]++;
+			if (levelWidth[max] > maxLevelWidth) {
+			    maxLevelWidth = levelWidth[max];
+			}
+			if (max > maxLevel) {
+			    maxLevel = max;
+			}
+		    }
+		}
+		remaining = stillremaining;
+	    }
+
+	    // draw the tasks
+	    var taskheight = 50;
+	    var fontsize = 13;
+	    var taskvpadding = 10;
+	    var taskwidth = 50;
+	    var taskhpadding = 10;
+	    var totalHeight = (taskheight * maxLevel) + (taskvpadding * (maxLevel - 1));
+	    var totalWidth = (taskwidth * maxLevelWidth) + (taskhpadding * (maxLevelWidth - 1));
+	    if (totalWidth < 400) {
+		totalWidth = 400;
+	    }
+	    html += "<h5>tasks</h5><div style='width: 280px; float: left; height: 465px; overflow-y: auto; border-radius: 4px; box-shadow: 4px 4px 4px #BBBBBB; border: 1px solid black; margin-left: 20px; padding: 0 10px 10px; font-size: 13px;' id='taskPreviewDetails'><h5>selected task</h5><p style='margin-top: 100px; text-align: center; color: gray;'>none selected</p></div></div><div style='height: "+totalHeight+"; width: "+totalWidth+"; font-size: "+fontsize+"px; float: left;'>";
+	    for (var i=0; i<=maxLevel; i++) {
+		var placed = 0;
+		var spaceNeeded = (levelWidth[i] * taskwidth) + ((levelWidth[i] - 1) * taskhpadding);
+		var left = parseInt((totalWidth - spaceNeeded) / 2);
+		for (var h=0; h<tasks.length; h++) {
+		    if (hierarchy[tasks[h].taskid] == i) {
+			html += "<div class='awetaskbox' name='taskPreviewTask' onclick='AWEtaskClick(\""+tasks[h].taskid+"\");' id='taskPreviewTask"+tasks[h].taskid+"' style='"+(placed == 0 ? "clear: left; margin-left: "+left+"px;" : "margin-left: "+taskhpadding+"px;")+" width: "+taskwidth+"px; height: "+(taskheight / 2 + fontsize)+"px; padding-top: "+(taskheight / 2 - fontsize)+"px;"+(i>0 ? " margin-top: "+taskvpadding+"px;" : "")+"'>"+tasks[h].taskid+"</div>";
+			placed++;
+			if (placed == levelWidth[i]) {
+			    break;
+			}
+		    }
+		}
+	    }
+	    html += "</div>";
+
+	    // create the onclick function
+	    var taskhash = {};
+	    for (var i=0; i<tasks.length; i++) {
+		taskhash[tasks[i].taskid] = tasks[i];
+	    }
+	    window.AWEtasks = taskhash;
+	    window.AWEtaskClick = function(id) {
+		var task = AWEtasks[id];
+		var target = document.getElementById('taskPreviewDetails');
+		var html = '\
+<h5>'+task.cmd.description+'</h5>\
+<table>\
+<tr><td style="vertical-align: top; padding-right: 20px;"><b>ID</b></td><td>'+task.taskid+'</td></tr>\
+'+(task.totalwork ? '<tr><td style="vertical-align: top; padding-right: 20px;"><b>workunits</b></td><td>'+task.totalwork+'</td></tr>' : '')+'\
+<tr><td style="vertical-align: top; padding-right: 20px;"><b>depends on</b></td><td>'+(task.dependsOn.length ? task.dependsOn.join(", ") : "none")+'</td></tr>\
+<tr><td style="vertical-align: top; padding-right: 20px;"><b>command</b></td><td>'+task.cmd.name+'</td></tr>\
+<tr><td style="vertical-align: top;" colspan=2><b>parameters</b></td></tr>\
+<tr><td colspan=2>'+task.cmd.args+'</td></tr>'
+		html += '<tr><td style="vertical-align: top;" colspan=2><b>input files</b></td></tr>';
+		for (var i in task.inputs) {
+		    if (task.inputs.hasOwnProperty(i)) {
+			html += '<tr><td colspan=2>'+i+(task.inputs[i].hasOwnProperty('origin') ? " (from task "+task.inputs[i].origin+")" : "")+'</td></tr>';			
+		    }
+		}
+		html += '<tr><td style="vertical-align: top;" colspan=2><b>output files</b></td></tr>';
+		for (var i in task.outputs) {
+		    if (task.outputs.hasOwnProperty(i)) {
+			html += '<tr><td colspan=2>'+i+'</td></tr>';			
+		    }
+		}
+		html += '</table>';
+		target.innerHTML = html;
+
+		var tasks = document.getElementsByName('taskPreviewTask');
+		for (var i=0; i<tasks.length; i++) {
+		    tasks[i].setAttribute('class', 'awetaskbox');
+		}
+		document.getElementById('taskPreviewTask'+task.taskid).setAttribute('class', 'awetaskbox awetaskboxSelected');
+		for (var i=0; i<task.dependsOn.length; i++) {
+		    document.getElementById('taskPreviewTask'+task.dependsOn[i]).setAttribute('class', 'awetaskbox awetaskboxDependant');
+		}
+	    };
+
+	    // return the html
+	    return html;
+	} else {
+	    return "<pre>"+params.data+"</pre>";
+	}
+
+	
     };
 
 })();
