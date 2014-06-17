@@ -227,7 +227,168 @@
     }
     
     jQuery.extend(SVGWrapper.prototype, {
-	
+
+	/*
+	  high level graphics
+	*/
+
+	/* Draw a donut slice.
+	   @param center (int) radius of the full circle
+	   @param inner (int) radius of the inner circle of the current slice
+	   @param outer (int) radius of the outer circle of the current slice
+	   @param startAngle (int) angle of the start of the slice (in degrees)
+	   @param endAngle (int) angle of the end of the slice (in degrees)
+	   @param settings (object) any key/value pairs for the SVG element
+	   @return (element) the new shape node */
+	donutslice: function(params) {
+	    var center = params.center;
+	    var inner = params.inner;
+	    var outer = params.outer;
+	    var startAngle = params.startAngle;
+	    var endAngle = params.endAngle;
+	    var settings = params.settings;
+
+	    var r1 = ((outer - 1) / 2);
+	    var r2 = ((inner - 1) / 2);
+
+	    var startAngleRad = Math.PI*startAngle/180;
+	    var endAngleRad = Math.PI*endAngle/180;
+
+	    var x1inner = parseInt(center + r2*Math.cos(startAngleRad));
+	    var y1inner = parseInt(center + r2*Math.sin(startAngleRad));
+
+	    var x2inner = parseInt(center + r2*Math.cos(endAngleRad));
+	    var y2inner = parseInt(center + r2*Math.sin(endAngleRad));
+
+	    var x1outer = parseInt(center + r1*Math.cos(startAngleRad));
+	    var y1outer = parseInt(center + r1*Math.sin(startAngleRad));
+
+	    var x2outer = parseInt(center + r1*Math.cos(endAngleRad));
+	    var y2outer = parseInt(center + r1*Math.sin(endAngleRad));
+
+	    r1 = parseInt(r1);
+	    r2 = parseInt(r2);
+
+	    var path = "M"+x1inner+","+y1inner+"  L"+x1outer+","+y1outer+"  A"+r1+","+r1+" 0 0,1 "+x2outer+","+y2outer+" L"+x2inner+","+y2inner+"  A"+r2+","+r2+" 0 0,0 "+x1inner+","+y1inner;
+
+	    return this.path(path, settings);
+	},
+
+	axis: function(params) {
+	    var start = params.start; // start pixel of the axis in the SVG
+	    var end = params.end; // end pixel of the axis in the SVG
+	    var shift = params.shift; // shift from left (vertical) or top (horizontal) of the axis
+	    var min = params.min == null ? 0 : params.min; // minimum value of the scale
+	    var max = params.max == null ? 100 : params.max; // maximum value of the scale
+
+	    var showLabels = params.showLabels == null ? true : false;
+	    var labels = params.labels; // array of labels if the labels should not be the value
+	    var labelRotation = params.labelRotation == null ? 0 : params.labelRotation; // degrees the labels should be rotated
+	    var labelFontSize = params.labelFontSize == null ? 12 : params.labelFontSize;
+	    var labelFontWeight = params.labelFontWeight == null ? 100 : params.labelFontWeight;
+	    var labelFontFamily = params.labelFontFamily == null ? "Helvetica" : params.labelFontFamily;
+
+	    var minorTicks = params.minorTicks == null ? 4 : params.minorTicks; // number of minor ticks between major ticks
+	    var minorTickLength = params.minorTickLength == null ? 5 : params.minorTickLength;
+	    var majorTickLength = params.majorTickLength == null ? 10 : params.majorTickLenght;
+	    var minorTickShift = params.minorTickShift == null ? 0 : params.minorTickShift;
+	    var majorTickShift = params.majorTickShift == null ? 0 : params.majorTickShift;
+	    var majorTicks = params.majorTicks == null ? 10 : params.majorTicks; // number of major ticks on the axis
+	    var scale = params.scale == null ? "linear" : params.scale;
+	    var direction = params.direction == null ? "horizontal" : params.direction;
+
+	    var length = end - start;
+
+	    // create group
+	    var g = this.group();
+
+	    // create baseline
+	    var x1 = direction == "horizontal" ? start : shift;
+	    var y1 = direction == "horizontal" ? shift : start;
+	    var x2 = direction == "horizontal" ? end : shift;
+	    var y2 = direction == "horizontal" ? shift : end;
+	    this.line(g, x1, y1, x2, y2, { stroke: "black", strokeWidth: 1 });
+
+	    // create ticks
+	    var tickpos = start;
+	    x1 = direction == "horizontal" ? tickpos : shift + majorTickShift;
+	    y1 = direction == "horizontal" ? shift + majorTickShift : tickpos;
+	    x2 = direction == "horizontal" ? tickpos : shift + majorTickShift - majorTickLength;
+	    y2 = direction == "horizontal" ? shift + majorTickShift + majorTickLength : tickpos;
+	    var x1m = direction == "horizontal" ? tickpos : shift + minorTickShift;
+	    var y1m = direction == "horizontal" ? shift + minorTickShift : tickpos;
+	    var x2m = direction == "horizontal" ? tickpos : shift + minorTickShift - minorTickLength;
+	    var y2m = direction == "horizontal" ? shift + minorTickShift + minorTickLength : tickpos;
+
+	    var majorTickSpace = Math.floor(length / majorTicks);
+	    var minorTickSpace = Math.floor(majorTickSpace / (minorTicks + 1));
+	    
+	    for (var i=0; i<=majorTicks; i++) {
+		this.line(g, x1, y1, x2, y2, { stroke: "black", strokeWidth: 1 });
+		if (showLabels) {
+		    var text = (min + ((direction == "horizontal" ? i : majorTicks - i) * ((max - min) / majorTicks))).formatString();
+		    if (labels && labels.length) {
+			text = labels[i];
+		    }
+		    var lx = x1 + (direction == "horizontal" ? 0 : (-1 * (majorTickLength + majorTickShift) - 1));
+		    var ly = y1 + parseInt(labelFontSize / (direction == "horizontal" ? 1 : 3)) + (direction == "horizontal" ?  (majorTickLength + majorTickShift + 1) : 0);
+		    this.text(g, lx, ly, text, { textAnchor: (direction == "horizontal" ? (labelRotation == null ? "middle" : "end") : "end"), fontSize: labelFontSize+'px', stroke: "black", fontWeight: labelFontWeight, fontFamily: labelFontFamily, transform: (labelRotation == null ? "" : "rotate(-"+labelRotation+","+lx+","+ly+")") });
+		}
+		if (majorTicks != i) {
+		    for (var h=0; h<minorTicks; h++) {
+			if (direction == 'horizontal') {
+			    x1m += minorTickSpace;
+			    x2m += minorTickSpace;
+			} else {
+			    y1m += minorTickSpace;
+			    y2m += minorTickSpace;
+			}
+			this.line(g, x1m, y1m, x2m, y2m, { stroke: "black", strokeWidth: 1 });
+		    }
+		}
+		if (direction == 'horizontal') {
+		    x1 += majorTickSpace;
+		    x2 += majorTickSpace;
+		} else {
+		    y1 += majorTickSpace;
+		    y2 += majorTickSpace;
+		}
+		if (direction == 'horizontal') {
+		    x1m = x1;
+		    x2m = x2;
+		} else {
+		    y1m = y1;
+		    y2m = y2;
+		}
+	    }
+	    
+	    return g;
+	},
+
+	legend: function(params) {
+	    var top = params.top == null ? 0 : params.top;
+	    var left = params.left == null ? 0 : params.left;
+	    var labels = params.labels;
+	    var colors = params.colors;
+	    var fontSize = params.fontSize == null ? 12 : params.fontSize;
+	    var fontWeight = params.fontWeight == null ? "normal" : params.fontWeight;
+	    var fontFamily = params.fontFamily == null ? "Helvetica" : params.fontFamily;
+	    var labelSpacing = params.labelSpacing == null ? 10 : params.labelSpacing;
+
+	    var g = this.group();
+	    for (var i=0; i<labels.length; i++) {
+		this.rect(g, left, top, fontSize, fontSize, { stroke: "white", strokeWidth: 0, fill: colors[i] });
+		this.text(g, left + fontSize + fontSize, top + fontSize - 2, labels[i], { stroke: "black", fontSize: fontSize, fontFamily: fontFamily, fontWeight: fontWeight });
+		top += fontSize + labelSpacing;
+	    }
+
+	    return g;
+	},
+
+	/*
+	  end of high level graphics
+	 */
+
 	/* Retrieve the width of the SVG object. */
 	_width: function() {
 	    return (this._container ? this._container.clientWidth : this._svg.width);
@@ -639,33 +800,6 @@
 	    var args = this._args(arguments, ['path']);
 	    return this._makeNode(args.parent, 'path', jQuery.extend(
 		{d: (args.path.path ? args.path.path() : args.path)}, args.settings || {}));
-	},
-
-	donutslice: function(center, inner, outer, startAngle, endAngle, settings) {
-	    var r1 = ((outer - 1) / 2);
-	    var r2 = ((inner - 1) / 2);
-
-	    var startAngleRad = Math.PI*startAngle/180;
-	    var endAngleRad = Math.PI*endAngle/180;
-
-	    var x1inner = parseInt(center + r2*Math.cos(startAngleRad));
-	    var y1inner = parseInt(center + r2*Math.sin(startAngleRad));
-
-	    var x2inner = parseInt(center + r2*Math.cos(endAngleRad));
-	    var y2inner = parseInt(center + r2*Math.sin(endAngleRad));
-
-	    var x1outer = parseInt(center + r1*Math.cos(startAngleRad));
-	    var y1outer = parseInt(center + r1*Math.sin(startAngleRad));
-
-	    var x2outer = parseInt(center + r1*Math.cos(endAngleRad));
-	    var y2outer = parseInt(center + r1*Math.sin(endAngleRad));
-
-	    r1 = parseInt(r1);
-	    r2 = parseInt(r2);
-
-	    var path = "M"+x1inner+","+y1inner+"  L"+x1outer+","+y1outer+"  A"+r1+","+r1+" 0 0,1 "+x2outer+","+y2outer+" L"+x2inner+","+y2inner+"  A"+r2+","+r2+" 0 0,0 "+x1inner+","+y1inner;
-
-	    return this.path(path, settings);
 	},
 	
 	/* Draw a rectangle.
