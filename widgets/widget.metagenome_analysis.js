@@ -299,7 +299,7 @@
 		matrixLevels += "<option value='"+i+"'>"+i+"</option>";
 	    }
 
-	    containerData = "<div class='form-inline' style='margin-bottom: 20px;'>select "+mdname+" level <select class='span1' id='matrixLevel' style='margin-right: 10px;'>"+matrixLevels+"</select><button type='button' class='btn' onclick='Retina.WidgetInstances.metagenome_analysis[1].updateVis();'>draw</button></div>";
+	    containerData = "<div class='form-inline' style='margin-bottom: 20px;'>select "+mdname+" level <select class='span1' id='matrixLevel' style='margin-right: 10px;'>"+matrixLevels+"</select><button type='button' class='btn' onclick='Retina.WidgetInstances.metagenome_analysis[1].updateVis();'>draw</button></div><div id='visualizeBreadcrumbs' style='margin-bottom: 20px;'></div>";
 	}
 
 	var html = "<h4>visualize - "+demo_data[type].title+"</h4>"+containerData+"<div id='visualizeTarget'></div>";
@@ -313,7 +313,12 @@
 	if (Retina.WidgetInstances.RendererController.length > 1) {
 	    Retina.WidgetInstances.RendererController = [ Retina.WidgetInstances.RendererController[0] ];
 	}
-	widget.currentVisualizationController = Retina.Widget.create('RendererController', { "target": document.getElementById("visualizeTarget"), "type": demo_data[type].renderer, "settings": demo_data[type].settings, "breadcrumbs": "visualizeBreadcrumbs" });
+	widget.currentVisualizationController = Retina.Widget.create('RendererController', { "target": document.getElementById("visualizeTarget"), "type": demo_data[type].renderer, "settings": demo_data[type].settings });
+
+	if (widget.selectedContainer) {
+	    console.log('hello world');
+	    widget.updateVis();
+	}
     };
 
     // draw the current visualization with updated parameters
