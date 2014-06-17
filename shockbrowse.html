@@ -17,7 +17,8 @@ Retina.init( { library_resource: "js/" } ).then( function() {
     Retina.add_widget({"name": "shockbrowse", "resource": "widgets/",  "filename": "widget.shockbrowse.js"});
     Retina.load_widget("shockbrowse").then( function() {
 	Retina.Widget.create('shockbrowse', {
-	    "target": document.getElementById("content")
+	    "target": document.getElementById("content"),
+	    "querymode": "full"
 	});
 	Retina.add_widget({"name": "login", "resource": "widgets/",  "filename": "widget.login.js"});
 	Retina.load_widget("login").then( function() {

@@ -860,16 +860,17 @@
 			      },
 			      error: function(jqXHR, error) {
 				  var widget = Retina.WidgetInstances.shockbrowse[1];
-				  widget.detailInfo = "<div class='alert alert-error'>unable to retrieve access right information</div>";
+				  widget.detailInfo = "<div class='alert alert-error'>Unable to retrieve access right information<br>You must be the owner of the node to see this data.</div>";
 				  widget.showDetails(null, true);
 			      },
 			      headers: widget.authHeader
 			    });
 	    }
 	} else if (widget.detailType == "attributes") {
-	    html = "<h4>attributes - "+fn+"<button id='attributesEditorButton' class='btn btn-mini pull-right' onclick='Retina.WidgetInstances.shockbrowse[1].editAttributes();'>edit</button></h4><div id='attributesEditor'></div>";
+	    html = "<h4>attributes - "+fn+"<span id='attributesEditButtonSpan'></span></h4><div id='attributesEditor'></div>";
 	    widget.sections.detailSectionContent.innerHTML = html;
             widget.jsonEditor = new JSONEditor(document.getElementById("attributesEditor"), { mode: 'view'}, node.attributes);
+	    widget.checkForAttributesEditButton(node.id);
 	    return;
 	} else if (widget.detailType == "preview") {
 	    html = detailInfo;
@@ -907,7 +908,7 @@
 
     widget.aclDetail = function(data, node) {
 	var html = "<table style='font-size: 13px; width: 100%;'>";
-	html += "<tr><td style='padding-right: 20px;'><b>owner</b></td><td>"+(data.data.owner.match(/\|/) ? data.data.owner.split("|")[0] : data.data.owner)+"</td><td style='text-align: left;'><button class='btn btn-mini btn-danger' onclick='Retina.WidgetInstances.shockbrowse[1].removeNode({node:\""+node+"\"});'>delete node</button></td></tr>";
+	html += "<tr><td style='padding-right: 20px;'><b>owner</b></td><td>"+(data.data.owner.match(/\|/) ? data.data.owner.split("|")[0] : data.data.owner)+"<button class='btn btn-mini btn-danger pull-right' onclick='if(confirm(\"really delete this node?\")){Retina.WidgetInstances.shockbrowse[1].removeNode({node:\""+node+"\"});}'>delete node</button></td><td style='text-align: right;'><button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].addAcl({node:\""+node+"\",acl:\"owner\"});'>change owner</button></td></tr>";
 	var rights = ["read","write","delete"];
 	for (var i=0; i<rights.length; i++) {
 	    html += "<tr><td style='padding-right: 20px; vertical-align: top;'><b>"+rights[i]+"</b></td><td><table style='width: 100%;'>";
@@ -979,6 +980,22 @@
 			  type: "PUT"
 			});
 	}
+    };
+
+    widget.checkForAttributesEditButton = function(node) {
+	widget = Retina.WidgetInstances.shockbrowse[1];
+
+	var url = widget.shockBase + "/node/" + node + "/acl";
+	jQuery.ajax({ url: url,
+		      success: function(data) {
+			  document.getElementById('attributesEditButtonSpan').innerHTML = "<button id='attributesEditorButton' class='btn btn-mini pull-right' onclick='Retina.WidgetInstances.shockbrowse[1].editAttributes();'>edit</button>";
+		      },
+		      error: function(jqXHR, error) {
+			  
+		      },
+		      headers: widget.authHeader,
+		      type: "GET"
+		    });
     };
 
     widget.refineFilter = function (action, item) {
@@ -1067,13 +1084,39 @@
 	});
     };
 
+    // saves the changes attributes to the node
     widget.saveEditedAttributes = function () {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 	
 	var newNodeAttributes = widget.jsonEditor.get();
-	widget.jsonEditor.setMode('view');
 
-	console.log(newNodeAttributes);
+	var id = widget.currentFileId;
+	var node;
+	for (var i=0; i<widget.data.data.length; i++) {
+	    if (widget.data.data[i].id == id) {
+		node = widget.data.data[i];
+		break;
+	    }
+	}
+	var url = widget.shockBase+'/node/'+node.id;
+	var fd = new FormData();
+	fd.append('attributes', new Blob([ JSON.stringify(newNodeAttributes) ], { "type" : "text\/json" }));
+	jQuery.ajax(url, {
+	    contentType: false,
+	    processData: false,
+	    data: fd,
+	    success: function(data){
+		alert('attributes updated');
+	    },
+	    error: function(jqXHR, error){
+		console.log(error);
+		console.log(jqXHR);
+	    },
+	    headers: Retina.WidgetInstances.shockbrowse[1].authHeader,
+	    type: "PUT"
+	});
+	
+	widget.jsonEditor.setMode('view');
 
 	var button = document.getElementById('attributesEditorButton');
 	button.innerHTML = "edit";
