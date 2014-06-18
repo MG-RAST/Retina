@@ -22,7 +22,7 @@
 	widget.params = widget.params || params;
 
 	if (! Retina.RendererInstances.hasOwnProperty(widget.params.type)) {
-	    Retina.add_renderer({"name": widget.params.type, "resource": "./renderers/",  "filename": "renderer."+widget.params.type+".js" }),
+	    Retina.add_renderer({"name": widget.params.type, "resource": "Retina/renderers/",  "filename": "renderer."+widget.params.type+".js" }),
             Retina.load_renderer(widget.params.type).then(function () { Retina.WidgetInstances.RendererController[index].display() });
 	    return;
 	}
