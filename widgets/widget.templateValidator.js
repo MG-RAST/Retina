@@ -1,8 +1,8 @@
 (function () {
     widget = Retina.Widget.extend({
         about: {
-            title: "template validator",
-            name: "template_validator",
+            title: "Template Validator",
+            name: "templateValidator",
             author: "Tobias Paczian",
             requires: [ ]
         }
@@ -30,7 +30,7 @@
 	}
 	
 	var help = document.createElement('div');
-	help.innerHTML = "<h3>Select a template or data file to validate</h3><select onchange='Retina.WidgetInstances.template_validator[1].tod=this.options[this.selectedIndex].value;'><option>template</option><option>data</option></select>";
+	help.innerHTML = "<h3>Select a template or data file to validate</h3><select onchange='Retina.WidgetInstances.templateValidator[1].tod=this.options[this.selectedIndex].value;'><option>template</option><option>data</option></select>";
 	target.appendChild(help);
 
 	var fu = document.createElement('div');
@@ -49,10 +49,10 @@
 		    reader.onload = (function(theFile) {
 			return function(e) {
 			    var data = JSON.parse(e.target.result.toString().replace(/\n/g, ""));
-			    if (Retina.WidgetInstances.template_validator[1].tod == 'template') {
-				Retina.WidgetInstances.template_validator[1].check_template(data);
+			    if (Retina.WidgetInstances.templateValidator[1].tod == 'template') {
+				Retina.WidgetInstances.templateValidator[1].check_template(data);
 			    } else {
-				Retina.WidgetInstances.template_validator[1].validate_data(data);
+				Retina.WidgetInstances.templateValidator[1].validate_data(data);
 			    }
 			};
 		    })(f);
@@ -79,7 +79,7 @@
     };
     
     widget.check_template = function (template, nodisplay) {
-	widget = Retina.WidgetInstances.template_validator[1];
+	widget = Retina.WidgetInstances.templateValidator[1];
 
 	widget.template_status = [];
 	widget.template_warnings = [];
@@ -350,7 +350,7 @@
     };
     
     widget.validate_data = function (data, nodisplay) {
-	widget = Retina.WidgetInstances.template_validator[1];
+	widget = Retina.WidgetInstances.templateValidator[1];
 
 	if (data) {
 	    widget.data = data;
@@ -411,7 +411,7 @@
     };
 
     widget.check_group = function (item, group) {
-	widget = Retina.WidgetInstances.template_validator[1];
+	widget = Retina.WidgetInstances.templateValidator[1];
 
 	if (typeof item.length == 'undefined') {
 	    for (var h in item) {
@@ -459,7 +459,7 @@
     };
     
     widget.check_field = function (value, fieldname, group, location) {
-	widget = Retina.WidgetInstances.template_validator[1];
+	widget = Retina.WidgetInstances.templateValidator[1];
 
 	var error = "field "+fieldname;
 	if (typeof group == 'string') {
