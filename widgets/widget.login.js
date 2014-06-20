@@ -186,7 +186,7 @@
 '+(widget.helpEnabled ? ('<button class="btn'+(widget.style=='black' ? " btn-inverse" : "")+'" style="border-radius: 0px 3px 3px 0px;">?</button>') : "")+'\
 </div>\
 <div class="userinfo" id="userinfo" style="display: none;">\
-   <img src="images/user.png">\
+   <img src="Retina/images/user.png">\
    <h4 style="margin-top: 5px;">'+user.firstname+' '+user.lastname+'</h4>\
 <p style="margin-top: -10px;">'+(user.email || "<br>") +'</p>\
    <button class="btn'+(widget.style=='black' ? " btn-inverse" : "")+'" onclick="document.getElementById(\'userinfo\').style.display=\'none\';Retina.WidgetInstances.login['+index+'].perform_logout('+index+');">logout</button>\
