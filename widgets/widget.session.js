@@ -10,7 +10,7 @@
     });
 
     widget.setup = function () {
-	return [ Retina.add_renderer({"name": "stmbrowse", "resource": "renderers/",  "filename": "renderer.stmbrowse.js" }),
+	return [ Retina.add_renderer({"name": "stmbrowse", "resource": "Retina/renderers/",  "filename": "renderer.stmbrowse.js" }),
 		 Retina.load_renderer("stmbrowse") ];
     }
     
