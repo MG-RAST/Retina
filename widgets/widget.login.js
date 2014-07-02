@@ -212,7 +212,7 @@
 	widget = Retina.WidgetInstances.login[index];
 	var login = document.getElementById('loginWidgetLoginField').value;
 	var pass = document.getElementById('loginWidgetPasswordField').value;
-	var auth_url = stm.Config.mgrast_api+'?auth='+widget.authResources[widget.authResources.default].prefix+Retina.Base64.encode(login+":"+pass);
+	var auth_url = RetinaConfig.mgrast_api+'?auth='+widget.authResources[widget.authResources.default].prefix+Retina.Base64.encode(login+":"+pass);
 	jQuery.get(auth_url, function(d) {
 	    if (d && d.token) {
 		var user = { login: d.login || login,
