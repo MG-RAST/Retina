@@ -18,6 +18,7 @@
 
     widget.helpEnabled = true;
     widget.registerEnabled = false;
+    widget.registerEnabled = false;
     widget.mydataEnabled = false;
     widget.style = "black";
     
@@ -148,7 +149,10 @@
           <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">login</th><td><input type="text" '+loginStyle+'id="loginWidgetLoginField">'+authResourceSelect+'</td></tr>\
           <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">password</th><td><input type="password" id="loginWidgetPasswordField" onkeypress="event = event || window.event;if(event.keyCode == 13) { Retina.WidgetInstances.login['+index+'].perform_login('+index+');}"></td></tr>\
         </table>\
-      </div>\
+'+(widget.forgotEnabled ? '         <p style="text-align: right;">\
+          <a href="'+widget.forgotLink+'">I forgot my password</a>\
+        </p>\
+' : '')+'      </div>\
       <div class="modal-footer">\
 	<button class="btn btn-danger pull-left" data-dismiss="modal" aria-hidden="true">cancel</button>\
 	<button class="btn btn-success" onclick="Retina.WidgetInstances.login['+index+'].perform_login('+index+');">log in</button>\
