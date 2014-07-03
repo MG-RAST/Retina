@@ -198,7 +198,7 @@
    <button class="btn'+(widget.style=='black' ? " btn-inverse" : "")+'" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="jQuery(\'#loginModal\').modal(\'show\');document.getElementById(\'loginWidgetLoginField\').focus();">\
       Login\
    </button>\
-' + (widget.registerEnabled ? '<button class="btn'+(widget.style=='black' ? " btn-inverse" : "")+'" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="alert(\'register\');">\
+' + (widget.registerEnabled ? '<button class="btn'+(widget.style=='black' ? " btn-inverse" : "")+'" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="window.location=\''+widget.registerLink+'\';">\
       Register\
 </button>' : '') +(widget.helpEnabled ? '\
    <button class="btn'+(widget.style=='black' ? " btn-inverse" : "")+'" style="border-radius: 0px 3px 3px 0px;">?</button>\
