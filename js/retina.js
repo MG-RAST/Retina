@@ -657,6 +657,9 @@
 	    } else {
 
 		var script_url = library_resource + library;
+		if (library.match(/^http/)) {
+		    script_url = library;
+		}
 		jQuery.getScript(script_url).then(function() {
 		    library_queue.shift();
 		    promise.resolve();
