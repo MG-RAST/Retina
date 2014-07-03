@@ -349,7 +349,38 @@
 	var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
         results = regex.exec(location.search);
 	return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-    }
+    };
+
+    Retina.ping = function (url, callback) {
+	if (!this.inUse) {
+            this.status = 'unchecked';
+            this.inUse = true;
+            this.callback = callback;
+            this.url = url;
+            var _that = this;
+            this.img = new Image();
+            this.img.onload = function () {
+		_that.inUse = false;
+		_that.callback('responded');
+		
+            };
+            this.img.onerror = function (e) {
+		if (_that.inUse) {
+                    _that.inUse = false;
+                    _that.callback('responded', e);
+		}
+		
+            };
+            this.start = new Date().getTime();
+            this.img.src = url;
+            this.timer = setTimeout(function () {
+		if (_that.inUse) {
+                    _that.inUse = false;
+                    _that.callback('timeout');
+		}
+            }, 1500);
+	}
+    };
 
     Number.prototype.formatString = function(c, d, t) {
 	var n = this, c = isNaN(c = Math.abs(c)) ? 0 : c, d = d == undefined ? "." : d, t = t == undefined ? "," : t, s = n < 0 ? "-" : "", i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", j = (j = i.length) > 3 ? j % 3 : 0;
