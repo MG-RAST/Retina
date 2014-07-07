@@ -33,6 +33,9 @@
 	    renderer.textbox = textbox;
 	    textbox.setAttribute('type', 'text');
 	    textbox.setAttribute('style', 'width: '+renderer.settings.fieldWidth+'px');
+	    if (renderer.settings.id) {
+		textbox.setAttribute('id', renderer.settings.id);
+	    }
 	    textbox.addEventListener('keyup', function(e) { Retina.RendererInstances.cvfield[index].updateText(e, index); });
 	    textbox.addEventListener('keydown', function(e) {
 		if (e.keyCode==9) { e.preventDefault(); e.stopPropagation(); return false; };
