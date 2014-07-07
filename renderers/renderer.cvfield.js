@@ -6,8 +6,8 @@
             author: "Tobias Paczian",
             version: "1.0",
             requires: [],
-            defaults: { minlength: 3,
-			fieldWidth: 350 },
+            defaults: { minlength: 2,
+			fieldWidth: 286 },
 	},
 	exampleData: function () {
 	    return [];
@@ -16,13 +16,9 @@
 	    renderer = this;
 	    var index = renderer.index;
 
-	    if (! renderer.data.hasOwnProperty('items')) {
-		renderer.loadData(index);
-		return renderer;
-	    }
-
 	    // prepare helper structures
-	    var items = renderer.data.items;
+	    var items = renderer.settings.data.items;
+	    renderer.itemkeys = Retina.keys(items);
 
 	    // render the completion text
 	    var completion = document.createElement('span');
@@ -63,7 +59,7 @@
 
 	    var t = renderer.textbox.value.toLowerCase();
 	    if (t && t.length >= renderer.settings.minlength) {
-		var items = renderer.data.items;
+		var items = renderer.settings.data.items;
 		var newKey = true;
 		var completed = false;
 		if (renderer.results && renderer.results.prefix.length) {
@@ -86,9 +82,12 @@
 		    // tab
 		    if (e.keyCode == 9) {
 			renderer.completion.innerHTML = "";
-			renderer.textbox.value = renderer.data.items[renderer.results.prefix[renderer.current]];
+			renderer.textbox.value = renderer.settings.data.items[renderer.results.prefix[renderer.current]];
 			newKey = false;
 			completed = true;
+			if (typeof renderer.settings.callback == 'function') {
+			    renderer.settings.callback.call(null, renderer.textbox.value);
+			}
 		    }
 		}
 
@@ -96,10 +95,10 @@
 		if (e.keyCode == 13) {
 		    var found = false;
 		    if (renderer.results.prefix.length) {
-			if (renderer.data.items[renderer.results.prefix[0]] == renderer.textbox.value) {
+			if (renderer.settings.data.items[renderer.results.prefix[0]] == renderer.textbox.value) {
 			    found = true;
-			} else if (renderer.data.items[renderer.results.prefix[0]].toLowerCase() == renderer.textbox.value.toLowerCase()) {
-			    renderer.textbox.value = renderer.data.items[renderer.results.prefix[0]];
+			} else if (renderer.settings.data.items[renderer.results.prefix[0]].toLowerCase() == renderer.textbox.value.toLowerCase()) {
+			    renderer.textbox.value = renderer.settings.data.items[renderer.results.prefix[0]];
 			    found = true;
 			}
 		    }
@@ -115,23 +114,23 @@
 			} else {
 			    if (renderer.results.prefix.length) {
 				for (var i=0;i<renderer.results.prefix.length;i++) {
-				    var x = renderer.data.items[renderer.results.prefix[i]];
+				    var x = renderer.settings.data.items[renderer.results.prefix[i]];
 				    html += '    <li><a tabindex="-1" href="#" onclick="Retina.RendererInstances.cvfield['+index+'].setData('+index+',\''+x+'\');"><span style="font-weight: bold">'+x.substr(0,t.length)+'</span>'+x.substr(t.length)+'</a></li>\
 ';
 				}
 			    }
 			    if (renderer.results.wordPrefix.length) {
 				for (var i=0;i<renderer.results.wordPrefix.length;i++) {
-				    var x = renderer.data.items[renderer.results.wordPrefix[i]];
-				    var l = renderer.data.items[renderer.results.wordPrefix[i]].toLowerCase().indexOf(t);
+				    var x = renderer.settings.data.items[renderer.results.wordPrefix[i]];
+				    var l = renderer.settings.data.items[renderer.results.wordPrefix[i]].toLowerCase().indexOf(t);
 				    html += '    <li><a tabindex="-1" href="#" onclick="Retina.RendererInstances.cvfield['+index+'].setData('+index+',\''+x+'\');">'+x.substr(0,l)+'<span style="font-weight: bold">'+x.substr(l,t.length)+'</span>'+x.substr(l + t.length)+'</a></li>\
 ';
 				}
 			    }
 			    if (renderer.results.infix.length) {
 				for (var i=0;i<renderer.results.infix.length;i++) {
-				    var x = renderer.data.items[renderer.results.infix[i]];
-				    var l = renderer.data.items[renderer.results.infix[i]].toLowerCase().indexOf(t);
+				    var x = renderer.settings.data.items[renderer.results.infix[i]];
+				    var l = renderer.settings.data.items[renderer.results.infix[i]].toLowerCase().indexOf(t);
 				    html += '    <li><a tabindex="-1" href="#" onclick="Retina.RendererInstances.cvfield['+index+'].setData('+index+',\''+x+'\');">'+x.substr(0,l)+'<span style="font-weight: bold">'+x.substr(l,t.length)+'</span>'+x.substr(l + t.length)+'</a></li>\
 ';
 				}
@@ -139,10 +138,14 @@
 			}
 
 			html+= '    <li class="divider"></li>\
-    <li><a tabindex="-1" href="#"><i>my item is not in the list</i></a></li>\
+    <li><a tabindex="-1" href="#" onclick="Retina.RendererInstances.cvfield['+index+'].suggestions.setAttribute(\'class\', \'\');"><i>my item is not in the list</i></a></li>\
 </ul>';
 			renderer.suggestions.innerHTML = html;
 			renderer.suggestions.setAttribute('class', 'open');
+		    } else {
+			if (typeof renderer.settings.callback == 'function') {
+			    renderer.settings.callback.call(null, renderer.textbox.value);
+			}
 		    }
 		    newKey = false;
 		}
@@ -151,15 +154,15 @@
 		    var results = { prefix: [],
 				    wordPrefix: [],
 				    infix: [] };
-		    for (var i=0;i<items.length;i++) {
-			var ind = items[i].toLowerCase().indexOf(t);
+		    for (var i=0;i<renderer.itemkeys.length;i++) {
+			var ind = renderer.itemkeys[i].toLowerCase().indexOf(t);
 			if (ind > -1) {
 			    if (ind == 0) {
-				results.prefix.push(i);
-			    } else if (items[i].charAt(ind - 1) == " ") {
-				results.wordPrefix.push(i);
+				results.prefix.push(renderer.itemkeys[i]);
+			    } else if (renderer.itemkeys[i].charAt(ind - 1) == " ") {
+				results.wordPrefix.push(renderer.itemkeys[i]);
 			    } else {
-				results.infix.push(i);
+				results.infix.push(renderer.itemkeys[i]);
 			    }
 			}
 		    }
@@ -168,7 +171,7 @@
 
 		if (renderer.results && renderer.results.prefix.length) {
 		    if  (! completed) {
-			renderer.completion.innerHTML = renderer.data.items[renderer.results.prefix[renderer.current]].substr(t.length).replace(/^\s/, "&nbsp;");
+			renderer.completion.innerHTML = renderer.settings.data.items[renderer.results.prefix[renderer.current]].substr(t.length).replace(/^\s/, "&nbsp;");
 		    }
 		    renderer.textWidth.innerHTML = renderer.textbox.value;
 		    renderer.completion.style.marginLeft = (renderer.textWidth.clientWidth + 9)+"px";		  		    
@@ -180,24 +183,17 @@
 	    }
 	},
 	
-	data: {},
 	textbox: null,
 	current: 0,
 
-	loadData: function (index) {
-
-	    jQuery.get('data/funding_source_list', function(data) {
-		data = data.split(/\n/);
-		data = data.sort(Retina.RendererInstances.cvfield[index].itemsort);
-		Retina.RendererInstances.cvfield[index].data.items = data;
-		Retina.RendererInstances.cvfield[index].render();		
-            }, 'text');
-	},
-
 	setData: function (index, text) {
-	    Retina.RendererInstances.cvfield[index].suggestions.setAttribute('class', '');
-	    Retina.RendererInstances.cvfield[index].textbox.value = text;
-	    Retina.RendererInstances.cvfield[index].completion.innerHTML = "";
+	    var renderer = Retina.RendererInstances.cvfield[index];
+	    renderer.suggestions.setAttribute('class', '');
+	    renderer.textbox.value = text;
+	    renderer.completion.innerHTML = "";
+	    if (typeof renderer.settings.callback == 'function') {
+		renderer.settings.callback.call(null, renderer.textbox.value);
+	    }
 	},
 
 	itemsort: function (a, b) {
