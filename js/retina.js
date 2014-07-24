@@ -351,14 +351,16 @@
 	return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
     };
 
-    Retina.dateString = function () {
-	var d = new Date,
+    Retina.dateString = function (date) {
+	var d = date || new Date,
 	dformat = [(d.getMonth()+1).padLeft(),
 		   d.getDate().padLeft(),
 		   d.getFullYear()].join('-') +' ' +
             [d.getHours().padLeft(),
              d.getMinutes().padLeft(),
              d.getSeconds().padLeft()].join(':');
+
+	return dformat;
     };
 
     Number.prototype.formatString = function(c, d, t) {
