@@ -353,9 +353,9 @@
 
     Retina.dateString = function (date) {
 	var d = date || new Date,
-	dformat = [(d.getMonth()+1).padLeft(),
-		   d.getDate().padLeft(),
-		   d.getFullYear()].join('-') +' ' +
+	dformat = [d.getFullYear(),
+		   (d.getMonth()+1).padLeft(),
+		   d.getDate().padLeft()].join('-') +' ' +
             [d.getHours().padLeft(),
              d.getMinutes().padLeft(),
              d.getSeconds().padLeft()].join(':');
