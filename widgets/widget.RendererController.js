@@ -105,8 +105,15 @@
 
     widget.data = function (index, data) {
 	var widget = Retina.WidgetInstances.RendererController[index];
-	
+
+	if (! Retina.RendererInstances[widget.params.type]) {
+	    return;
+	}
+
 	if (data) {
+	    if (! widget.d) {
+		widget.d = jQuery.extend(true, {}, Retina.RendererInstances[widget.params.type][0].settings, widget.params.settings);
+	    }
 	    widget.d.data = data;
 	    widget.renderer.settings.data = data;
 	}

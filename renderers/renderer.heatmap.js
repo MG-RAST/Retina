@@ -144,20 +144,14 @@
 	    var height = 0;
 	    var settings = {fill: 'red', strokeWidth: 1, stroke: 'black'};
 
-	    // draw the dendogram
-	    if (renderer.settings.data.coldend) {
-		Retina.RendererInstances.heatmap[index].drawDendogram(svg, index, 0);
-		Retina.RendererInstances.heatmap[index].drawDendogram(svg, index, 1);
-	    } else {
-		var col_result = renderer.cluster(renderer.transpose(renderer.settings.data.data));
-		renderer.settings.data.colcluster = col_result[0];
-		renderer.settings.data.colindex = col_result[1];
-		var row_result = renderer.cluster(renderer.settings.data.data);
-		renderer.settings.data.rowcluster = row_result[0];
-		renderer.settings.data.rowindex = row_result[1];
-		renderer.drawDendogramNew(svg, index, 0);
-		renderer.drawDendogramNew(svg, index, 1);
-	    }
+	    var col_result = renderer.cluster(renderer.transpose(renderer.settings.data.data));
+	    renderer.settings.data.colcluster = col_result[0];
+	    renderer.settings.data.colindex = col_result[1];
+	    var row_result = renderer.cluster(renderer.settings.data.data);
+	    renderer.settings.data.rowcluster = row_result[0];
+	    renderer.settings.data.rowindex = row_result[1];
+	    renderer.drawDendogram(svg, index, 0);
+	    renderer.drawDendogram(svg, index, 1);
 
 	    // draw the heatmap
 	    for (var i=0;i<renderer.settings.data.data.length;i++) {
@@ -216,58 +210,8 @@
 		}
 	    }
 	},
-	
+
 	drawDendogram: function (svg, index, rotation) {
-	    renderer = Retina.RendererInstances.heatmap[index];
-
-	    var height = rotation ? renderer.settings.tree_width : renderer.settings.tree_height;
-	    var data = rotation ? renderer.settings.data.rowdend : renderer.settings.data.coldend;
-	    var d_array = rotation ? renderer.settings.data.rowindex : renderer.settings.data.colindex;
-	    var cell_w = rotation ? renderer.settings.boxheight : renderer.settings.boxwidth;
-	    var x = rotation ? 0 : renderer.settings.tree_width;
-	    var y = rotation ? renderer.settings.height : renderer.settings.legend_height + renderer.settings.tree_height;
-	    var interval = parseInt(height / data.length);
-	    var pairs = new Array;
-	    var path = "";
-	    for (var i=0;i<data.length;i++) {
-		var r = { x: 0, y: 0, value: d_array.indexOf(Math.abs(data[i][0])) };
-		var l = { x: 0, y: 0, value: d_array.indexOf(Math.abs(data[i][1])) };
-		
-		if (data[i][0] < 0 && data[i][1] < 0) {
-		    r.x = (r.value * cell_w) + x + (cell_w / 2);
-		    r.y = y;
-		    l.x = (l.value * cell_w) + x + (cell_w / 2);
-		    l.y = y;
-		} 
-		else {
-		    if (data[i][0] < 0) {
-			r.x = (r.value * cell_w) + x + (cell_w / 2);
-			r.y = y;
-		    } else {
-			r.x = pairs[(data[i][0]-1)][0];
-			r.y = pairs[(data[i][0]-1)][1];
-		    }
-		    if (data[i][1] < 0) {
-			l.x = (l.value * cell_w) + x + (cell_w / 2);
-			l.y = y;
-		    } else {
-			l.x = pairs[(data[i][1]-1)][0];
-			l.y = pairs[(data[i][1]-1)][1];
-		    }
-		}
-		
-		var h = ((r.y-interval) < (l.y-interval)) ? (r.y-interval) : (l.y-interval);    
-		path += "M"+parseInt(r.x)+","+parseInt(r.y)+"L"+parseInt(r.x)+","+parseInt(h)+"L"+parseInt(l.x)+","+parseInt(h)+"L"+parseInt(l.x)+","+parseInt(l.y);      
-		pairs.push([((l.x+r.x)/2), h]);
-	    }
-	    if (rotation) {
-		svg.path(null, path, {fill:"none", stroke: "black", transform: "rotate(-90) translate(-"+renderer.settings.height+",-"+(renderer.settings.height - renderer.settings.tree_width)+")" });
-	    } else {
-		svg.path(null, path, {fill:"none", stroke: "black" });
-	    }
-	},
-
-	drawDendogramNew: function (svg, index, rotation) {
 	    renderer = Retina.RendererInstances.heatmap[index];
 
 	    //return;
@@ -279,7 +223,7 @@
 	    var yshift = renderer.settings.legend_height + renderer.settings.tree_height;
 	    var interval = parseInt(height / data.depth);
 	    var path = "";
-	    if (rotation) { 
+	    if (rotation) {
 		xshift++;
 		for (var i=0;i<data.depth;i++) {
 		    var curr_shift = 0 + yshift;
