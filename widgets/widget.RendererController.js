@@ -23,8 +23,7 @@
 
 	if (! Retina.RendererInstances.hasOwnProperty(widget.params.type)) {
 	    Retina.add_renderer({"name": widget.params.type, "resource": "Retina/renderers/",  "filename": "renderer."+widget.params.type+".js" }),
-            Retina.load_renderer(widget.params.type).then(function () { Retina.WidgetInstances.RendererController[index].display() });
-	    return;
+            Retina.load_renderer(widget.params.type, true);
 	}
 
 	if (! widget.d) {
@@ -105,10 +104,6 @@
 
     widget.data = function (index, data) {
 	var widget = Retina.WidgetInstances.RendererController[index];
-
-	if (! Retina.RendererInstances[widget.params.type]) {
-	    return;
-	}
 
 	if (data) {
 	    if (! widget.d) {
