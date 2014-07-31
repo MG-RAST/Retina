@@ -581,7 +581,7 @@
         }
     }
     
-    Retina.load_renderer = function (renderer) {
+    Retina.load_renderer = function (renderer, synch) {
 	var promise;
 	if (loaded_renderers[renderer]) {
 	    promise = loaded_renderers[renderer];
@@ -593,6 +593,9 @@
 	    
 	    var rend_data = available_renderers[renderer];
 	    var script_url = rend_data.resource + rend_data.filename;
+	    if (synch) {
+		jQuery.ajaxSetup({async:false});
+	    }
 	    jQuery.getScript(script_url).then(function() {
 		var requires = Retina.RendererInstances[renderer][0].about.requires;
 		for (var i=0; i<requires.length; i++) {
@@ -608,6 +611,7 @@
 		    parserError(script_url);
 		}
 	    });
+	    jQuery.ajaxSetup({async:true});
 	}
 
 	return promise;
