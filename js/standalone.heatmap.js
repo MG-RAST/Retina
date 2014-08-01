@@ -32,27 +32,25 @@
   min_cell_height (int)
      Minimum number of pixels a row is high. This may cause the defined height of the resulting image to be overwritten. Default is 19.
 
-  selectedRows (array of boolean)
-     Returns an array that has a value of true for all row indices that are currently selected.
-
   data (object)
      columns (array of string)
         names of the columns
-     rows (array of string)
-        names of the rows
-     colindex (array of int)
-        1 based indices of the original column order. This converts the original order (columns) into the one ordered by distance.
-     rowindex (array of int)
-        1 based indices of the original row order. This converts the original order (rows) into the one ordered by distance.
-     coldend (array of array of float)
-        distance matrix for the columns
-     rowdend (array of array of float)
-        distance matrix for the rows
+     rows (array of array of string)
+        hierarchy arrays for each row
      data (array of array of float)
-        normalized value matrix
+        value matrix
 */
 (function () {
-    var renderer = Retina.Renderer.extend({
+    var root = this;
+    Array.prototype.max = function() {
+	return Math.max.apply(null, this);
+    };
+    
+    Array.prototype.min = function() {
+	return Math.min.apply(null, this);
+    };
+
+    var standaloneHeatmap = root.standaloneHeatmap = {
 	about: {
 	    name: "heatmap",
 	    title: "Heatmap",
@@ -69,8 +67,8 @@
 		'row_text_size': 15,
 		'col_text_size': 15,
 		'min_cell_height': 19,
-		'selectedRows': [],
-		'selectedColumns': [],
+		'hierarchyLevel': 0,
+		'filter': null,
 		'cells': [] },
 	    options: [
 		{
@@ -92,15 +90,126 @@
 		}
 	    ]
 	},
+
+	create: function (params) {
+	    var renderer = this;
+	    if (! window.hasOwnProperty('rendererHeatmap')) {
+		window.rendererHeatmap = [];
+	    }
+	    var instance = { settings: {},
+			     index: params.index };
+	    jQuery.extend(true, instance, renderer);
+	    jQuery.extend(true, instance.settings, renderer.about.defaults, params);
+	    window.rendererHeatmap.push(instance);
+
+	    return instance;
+	},
+	
 	exampleData: function () {
-	    return { columns: ["4441619.3", "4441656.4", "4441620.3"], rows: ["Eukaryota", "unassigned", "Bacteria","Archaea"], data: [[0.338159580408187, 0.717179237742824, 0.514052821211353],[0.238159580408187, 0.317179237742824, 0.114052821211353],[0.553202346761363, 0.614080873307415, 0.555096325148052],[0.996159994861707, 0.940468112695288, 1]] };
+	    return { columns: ["4441619.3", "4441656.4", "4441620.3"], 
+		     rows: [ [ "Eukaryota", "Entoprocta" ], 
+			     [ "Eukaryota", "Pryapolida" ],
+			     [ "Bacteria", "Fusiobacteria" ], 
+			     [ "Bacteria", "Chlamydiae" ],
+			     [ "Archaea", "Euryarchaeota", "Methanomicrobia" ], 
+			     [ "Archaea", "Euryarchaeota", "Thermococci" ],
+			     [ "Archaea", "Euryarchaeota", "Halobacteria" ] ], 
+		     data: [ [ 122, 213, 312 ],
+			     [ 222, 231, 114 ],
+			     [ 187, 295, 388 ],
+			     [ 412, 452, 211 ],
+			     [ 32, 64, 55 ],
+			     [ 12, 31, 21 ],
+			     [ 44, 2, 4 ]
+			   ] 
+		   };
         },
 
-	render: function () {
-	    renderer = this;
-	    var index = renderer.index;
+	updateVis: function(index, level, filter) {
+	    var renderer = window.rendererHeatmap[index];
 
-	    var min_height = (renderer.settings.data.rows.length * renderer.settings.min_cell_height) + renderer.settings.tree_height + renderer.settings.legend_height;
+	    renderer.settings.filter = filter;
+	    renderer.settings.hierarchyLevel = level;
+	    renderer.render(index);
+	},
+
+	drilldown: function (index) {
+	    var renderer = window.rendererHeatmap[index];
+	    
+	    // filter and group the data
+	    var data = renderer.settings.data.data;
+	    var rows = renderer.settings.data.rows;
+	    if (typeof rows[0] != 'object') {
+		for (var i=0; i<rows.length; i++) {
+		    rows[i] = [ rows[i] ];
+		}
+	    }
+	    var filter = renderer.settings.filter;
+	    var level = renderer.settings.hierarchyLevel;
+	    var hashdata = {};
+	    var maxdepth = {};
+	    for (var i=0; i<data.length; i++) {
+		if (filter) {
+		    if (rows[i][level - 1] != filter) {
+			continue;
+		    }
+		}
+		if (hashdata.hasOwnProperty(rows[i][level])) {
+		    for (var h=0; h<renderer.settings.data.columns.length; h++) {
+			hashdata[rows[i][level]][h] += data[i][h];
+		    }
+		} else {
+		    if ((level + 1) >= rows[i].length) {
+			maxdepth[rows[i][level]] = true;
+		    } else {
+			maxdepth[rows[i][level]] = false;
+		    }
+		    hashdata[rows[i][level]] = [];
+		    for (var h=0; h<renderer.settings.data.columns.length; h++) {
+			hashdata[rows[i][level]][h] = data[i][h];
+		    }
+		}
+	    }
+	    // create the output data structure
+	    var drillrows = [];
+	    var drilldata = [];
+	    var sortedrows = renderer.hashkeys(hashdata).sort();
+	    for (var i=0; i<sortedrows.length; i++) {
+		drillrows.push(sortedrows[i]);
+		drilldata.push(hashdata[sortedrows[i]]);
+	    }
+
+	    // normalize data matrix
+	    var maxes = [];
+	    for (var i=0; i<drilldata[0].length; i++) {
+		maxes.push(0);
+	    }
+	    for (var i=0;i<drilldata.length;i++) {
+		for (var h=0; h<drilldata[i].length; h++) {
+		    if (maxes[h]<drilldata[i][h]) {
+			maxes[h] = drilldata[i][h];
+		    }
+		}
+	    }
+	    for (var i=0;i<drilldata.length;i++) {
+		for (var h=0; h<drilldata[i].length; h++) {
+		    drilldata[i][h] = drilldata[i][h] / maxes[h];
+		}
+	    }
+
+	    // set the data properties
+	    renderer.settings.drillrows = drillrows;
+	    renderer.settings.drilldata = drilldata;
+	    renderer.settings.maxdepth  = maxdepth;
+	},
+
+	render: function (index) {
+	    var renderer = window.rendererHeatmap[index];
+
+	    // calculate the drilldata
+	    renderer.drilldown(index);
+
+	    var min_height = (renderer.settings.drillrows.length * renderer.settings.min_cell_height) + renderer.settings.tree_height + renderer.settings.legend_height;
 	    if (renderer.settings.height < min_height) {
 		renderer.settings.height = min_height;
 	    }
@@ -111,23 +220,22 @@
 
 	    // get the target div
 	    var target = renderer.settings.target;
-	    var index = 0;
-	    while (document.getElementById('heatmap_div'+index)) {
-		    index++;
+	    var inner = "<a style='cursor: pointer;' onclick='while(this.nextSibling){this.parentNode.removeChild(this.nextSibling);}window.rendererHeatmap["+index+"].updateVis("+index+", 0, null);'>&raquo; All </a>";
+	    if (document.getElementById("heatmap_bread"+index)) {
+		inner = document.getElementById("heatmap_bread"+index).innerHTML;
 	    }
-	    target.innerHTML = "<div id='heatmap_div"+index+"'></div>";
-	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
+	    target.innerHTML = "<div id='heatmap_bread"+index+"'>"+inner+"</div><div id='heatmap_div"+index+"' style='width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;'></div>";
 	    jQuery('#heatmap_div'+index).svg();
-	    Retina.RendererInstances.heatmap[index].drawImage(jQuery('#heatmap_div'+index).svg('get'), renderer.index);
+	    window.rendererHeatmap[index].drawImage(jQuery('#heatmap_div'+index).svg('get'), index);
 	    
 	    return renderer;
 	},
 
 	drawImage: function (svg, index) {
-	    renderer = Retina.RendererInstances.heatmap[index];
+	    var renderer = window.rendererHeatmap[index];
 
 	    // initialize shortcut variables
-	    var numrows = renderer.settings.data.rows.length;
+	    var numrows = renderer.settings.drillrows.length;
 	    var numcols = renderer.settings.data.columns.length;
 	    var boxwidth = parseInt((renderer.settings.width - renderer.settings.legend_width - renderer.settings.tree_width - 5) / numcols);
 	    renderer.settings.boxwidth = boxwidth;
@@ -144,40 +252,31 @@
 	    var height = 0;
 	    var settings = {fill: 'red', strokeWidth: 1, stroke: 'black'};
 
-	    var col_result = renderer.cluster(renderer.transpose(renderer.settings.data.data));
+	    var col_result = renderer.cluster(renderer.transpose(renderer.settings.drilldata));
 	    renderer.settings.data.colcluster = col_result[0];
 	    renderer.settings.data.colindex = col_result[1];
-	    var row_result = renderer.cluster(renderer.settings.data.data);
+	    var row_result = renderer.cluster(renderer.settings.drilldata);
 	    renderer.settings.data.rowcluster = row_result[0];
 	    renderer.settings.data.rowindex = row_result[1];
 	    renderer.drawDendogram(svg, index, 0);
 	    renderer.drawDendogram(svg, index, 1);
 
 	    // draw the heatmap
-	    for (var i=0;i<renderer.settings.data.data.length;i++) {
+	    for (var i=0;i<renderer.settings.drilldata.length;i++) {
 		// draw row text
 		var textx = renderer.settings.tree_width + displaywidth + 5;
 		var texty = renderer.settings.tree_height + renderer.settings.legend_height + (boxheight * (i+1) - parseInt((boxheight - renderer.settings.row_text_size) / 2)) - 2;
-		var fontColor = "black";
-		if (renderer.settings.selectedRows[i]) {
-		    fontColor = "blue";
-		}
-
-		svg.text(null, textx, texty, ''+renderer.settings.data.rows[renderer.settings.data.rowindex[i]-1], { fill: fontColor, fontSize: renderer.settings.row_text_size+"px", onclick: "Retina.RendererInstances.heatmap["+index+"].toggleSelected("+i+", "+index+", 0);", cursor: "pointer" });
+		svg.text(null, textx, texty, ''+renderer.settings.drillrows[renderer.settings.data.rowindex[i]-1], { fill: "black", fontSize: renderer.settings.row_text_size+"px", onclick: "window.rendererHeatmap["+index+"].rowClick("+i+", "+index+");", cursor: "pointer" });
 
 		renderer.settings.cells.push([]);
 
 		// draw cells
-		for (var h=0;h<renderer.settings.data.data[i].length;h++) {
+		for (var h=0;h<renderer.settings.drilldata[i].length;h++) {
 		    // draw column text
 		    if (i==0) {
 			var ctextx = renderer.settings.tree_width + (boxwidth * h) + (parseInt((boxwidth - renderer.settings.col_text_size) / 2)) + 12;
 			var ctexty = renderer.settings.legend_height - 5;
-			fontColor = "black";
-			if (renderer.settings.selectedColumns[h]) {
-			    fontColor = "blue";
-			}
-			svg.text(null, ctextx, ctexty, renderer.settings.data.columns[renderer.settings.data.colindex[h]-1], { fill: fontColor, fontSize: renderer.settings.col_text_size+"px", transform: "rotate(-90, "+ctextx+", "+ctexty+")", onclick: "Retina.RendererInstances.heatmap["+index+"].toggleSelected("+h+", "+index+", 1);", cursor: "pointer" });
+			svg.text(null, ctextx, ctexty, renderer.settings.data.columns[renderer.settings.data.colindex[h]-1], { fill: "black", fontSize: renderer.settings.col_text_size+"px", transform: "rotate(-90, "+ctextx+", "+ctexty+")", cursor: "pointer" });
 			
 		    }
 
@@ -189,7 +288,7 @@
 
 		    // calculate box color
 		    var color = "black";
-		    var adjusted_value = (renderer.settings.data.data[renderer.settings.data.rowindex[i]-1][renderer.settings.data.colindex[h]-1] * 2) - 1;
+		    var adjusted_value = (renderer.settings.drilldata[renderer.settings.data.rowindex[i]-1][renderer.settings.data.colindex[h]-1] * 2) - 1;
 		    var cval = parseInt(255 * Math.abs(adjusted_value));
 		    if (adjusted_value < 0) {
 			color = "rgb("+cval+",0,0)";
@@ -198,11 +297,11 @@
 		    }
 		    settings.fill = color;
 		    if (typeof renderer.settings.cellClicked == "function") {
-			settings.onclick = "Retina.RendererInstances.heatmap["+index+"].cellClick("+i+", "+h+", "+adjusted_value+", this, "+index+");";
+			settings.onclick = "window.rendererHeatmap["+index+"].cellClick("+i+", "+h+", "+adjusted_value+", this, "+index+");";
 		    }
 		    if (typeof renderer.settings.cellHovered == "function") {
-			settings.onmouseover = "Retina.RendererInstances.heatmap["+index+"].cellHover(1, "+i+", "+h+", "+adjusted_value+", this, "+index+");";
-			settings.onmouseout = "Retina.RendererInstances.heatmap["+index+"].cellHover(0, "+i+", "+h+", "+adjusted_value+", this, "+index+");";
+			settings.onmouseover = "window.rendererHeatmap["+index+"].cellHover(1, "+i+", "+h+", "+adjusted_value+", this, "+index+");";
+			settings.onmouseout = "window.rendererHeatmap["+index+"].cellHover(0, "+i+", "+h+", "+adjusted_value+", this, "+index+");";
 		    }
 
 		    // draw the box
@@ -212,9 +311,7 @@
 	},
 
 	drawDendogram: function (svg, index, rotation) {
-	    renderer = Retina.RendererInstances.heatmap[index];
-
-	    //return;
+	    var renderer = window.rendererHeatmap[index];
 	    
 	    var height = rotation ? renderer.settings.tree_width : renderer.settings.tree_height;
 	    var data = rotation ? renderer.settings.data.rowcluster : renderer.settings.data.colcluster;
@@ -254,70 +351,38 @@
 	    svg.path(null, path, {fill:"none", stroke: "black" });
 	},
 	
-	toggleSelected: function (row, index, dir) {
-	    renderer = Retina.RendererInstances.heatmap[index];
+	rowClick: function (row, index) {
+	    var renderer = window.rendererHeatmap[index];
 
-	    if (dir) {
-		if (typeof renderer.settings.colClicked == "function") {
-		    renderer.settings.colClicked({ col: row, rendererIndex: index, label: renderer.settings.data.cols[renderer.settings.data.colindex[row]-1] });
-		} else {
-		    if (renderer.settings.selectedColumns[row]) {
-			renderer.settings.selectedColumns[row] = 0;
-		    } else {
-			renderer.settings.selectedColumns[row] = 1;
-		    }
-		}
-	    } else {
-		if (typeof renderer.settings.rowClicked == "function") {
-		    renderer.settings.rowClicked({ row: row, rendererIndex: index, label: renderer.settings.data.rows[renderer.settings.data.rowindex[row]-1] });
-		} else {
-		    if (renderer.settings.selectedRows[row]) {
-			renderer.settings.selectedRows[row] = 0;
-		    } else {
-			renderer.settings.selectedRows[row] = 1;
-		    }
-		}
+	    if (renderer.settings.maxdepth[renderer.settings.drillrows[row]]) {
+		alert('this is the maximum depth for this row');
+		return;
 	    }
+	    
+	    renderer.settings.hierarchyLevel++;
+	    renderer.settings.filter = renderer.settings.drillrows[renderer.settings.data.rowindex[row] - 1];
 
-	    renderer.render();
+	    var html = '<a style="cursor: pointer;" onclick="while(this.nextSibling){this.parentNode.removeChild(this.nextSibling);}window.rendererHeatmap['+index+'].updateVis('+index+', '+renderer.settings.hierarchyLevel+', \''+renderer.settings.filter+'\');">&raquo; '+renderer.settings.filter+' </a>';
+	    
+	    document.getElementById('heatmap_bread'+index).innerHTML += html;
+
+	    renderer.render(index);
 	},
 
 	cellClick: function (row, col, value, cell, index) {
-	    renderer = Retina.RendererInstances.heatmap[index];
+	    var renderer = window.rendererHeatmap[index];
+
 	    if (typeof renderer.settings.cellClicked == "function") {
 		renderer.settings.cellClicked({row: row, col: col, value: value, cell: cell});
 	    }
 	},
 
 	cellHover: function (over, row, col, value, cell, index) {
-	    renderer = Retina.RendererInstances.heatmap[index];
+	    var renderer = window.rendererHeatmap[index];
+
 	    if (typeof renderer.settings.cellHovered == "function") {
 		renderer.settings.cellHovered({over: over, row: row, col: col, value: value, cell: cell});
 	    }
-	},
-
-	normalize: function (data, min, max) {
-	    var normdata = [];
-	    min = min ? min : 0;
-	    max = max ? max : 1;
-	    for (var i=0;i<data.length;i++) {
-		var dmin = data[i][0];
-		var dmax = data[i][0];
-		for (var h=0; h<data[i].length; h++) {
-		    if (data[i][h] < dmin) {
-			dmin = data[i][h];
-		    }
-		    if (data[i][h] > dmax) {
-			dmax = data[i][h];
-		    }
-		}
-		normdata[i] = [];
-		for (var h=0;h<data[i][h].length;h++) {
-		    normdata[i][h] = min + (x - dmin) * (dmax - min) / (dmax - dmin);
-		}
-	    }
-
-	    return normdata;
 	},
 
 	clustsort: function (a, b) {
@@ -367,7 +432,7 @@
 	    }
 
 	    // get the initial distances between all nodes
-	    var distances = renderer.distance(clusters);
+	    var distances = standaloneHeatmap.distance(clusters);
 
 	    // calculate clusters
 	    var min;
@@ -531,7 +596,7 @@
 	    // sort the clusterdata
 	    for (var i in clusterdata) {
 	    	if (clusterdata.hasOwnProperty(i) && ! isNaN(i)) {
-	    	    clusterdata[i].sort(renderer.clustsort);
+	    	    clusterdata[i].sort(standaloneHeatmap.clustsort);
 	    	}
 	    }
 	    
@@ -541,6 +606,17 @@
 	    }
 
 	    return [clusterdata, rowindex];
-	}
-    });
+	},
+
+	hashkeys: function(object) {
+	    if (object !== Object(object)) throw new TypeError('Invalid object');
+	    var keys = [];
+	    for (var key in object) {
+		if (object.hasOwnProperty(key)) {
+		    keys[keys.length] = key;
+		}
+	    }
+	    return keys;
+	}   
+    };
 }).call(this);
