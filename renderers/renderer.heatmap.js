@@ -129,12 +129,12 @@
 	    // initialize shortcut variables
 	    var numrows = renderer.settings.data.rows.length;
 	    var numcols = renderer.settings.data.columns.length;
-	    var boxwidth = parseInt((renderer.settings.width - renderer.settings.legend_width - renderer.settings.tree_width) / numcols);
+	    var boxwidth = parseInt((renderer.settings.width - renderer.settings.legend_width - renderer.settings.tree_width - 5) / numcols);
 	    renderer.settings.boxwidth = boxwidth;
-	    var boxheight = parseInt((renderer.settings.height - renderer.settings.legend_height - renderer.settings.tree_height) / numrows);
+	    var boxheight = parseInt((renderer.settings.height - renderer.settings.legend_height - renderer.settings.tree_height - 5) / numrows);
 	    renderer.settings.boxheight = boxheight;
-	    var displaywidth = parseInt(renderer.settings.width - renderer.settings.legend_width - renderer.settings.tree_width);
-	    var displayheight = parseInt(renderer.settings.height - renderer.settings.legend_height - renderer.settings.tree_height);
+	    var displaywidth = parseInt(renderer.settings.width - renderer.settings.legend_width - renderer.settings.tree_width - 5);
+	    var displayheight = parseInt(renderer.settings.height - renderer.settings.legend_height - renderer.settings.tree_height - 5);
 
 	    var x = 0;
 	    var y = 0;
