@@ -311,60 +311,67 @@
 	}
 	
 	xhr.onload = function() {
+	    var retval = JSON.parse(xhr.responseText);
+	    if (retval.hasOwnProperty('ERROR')) {
+		console.log('Error in stm.get_obects: '+retval.ERROR);
+		stm.error = retval.ERROR;
+		promise.resolve;
+		return;
+	    }
 	    var progressIndicator = document.getElementById('progressIndicator');
 	    if (progressIndicator) {
-		    document.getElementById('progressBar').innerHTML = "waiting for respose...";
+		document.getElementById('progressBar').innerHTML = "waiting for respose...";
 		//progressIndicator.style.display = "none";
 	    }
 	    if (params.hasOwnProperty('return_type')) {
 	        var d = {};
-		    switch (params.return_type) {
-		        case 'text':
-		        d['id'] = params['id'];
-		        d['data'] = xhr.responseText;
-		        stm.load_data({ "data": d, "type": type });
-		        break;
-		        case 'shock':
+		switch (params.return_type) {
+		case 'text':
+		    d['id'] = params['id'];
+		    d['data'] = xhr.responseText;
+		    stm.load_data({ "data": d, "type": type });
+		    break;
+		case 'shock':
 		        d = JSON.parse(xhr.responseText);
-		        if (d.error == null) {
-			        stm.load_data({ "data": d.data, "type": type });
-		        } else {
-			        alert(d.error+' ('+d.status+')');
-			        console.log(d);
-		        }
-		        break;
-	            case 'search':
-		        d = JSON.parse(xhr.responseText);
-		        if (d.found && d.found > 0 && d.body && d.body.length) {
-			        for (var i=0;i<d.body.length;i++) {
-			            if (d.body[i].hasOwnProperty('gid')) { d.body[i].id = d.body[i].gid; }
-			            if (d.body[i].hasOwnProperty('fid')) { d.body[i].id = d.body[i].fid; }
-			            if (d.body[i].hasOwnProperty('kbfid')) { d.body[i].id = d.body[i].kbfid; }
-			        }
-			        stm.load_data({ "data": d.body, "type": type });
-		        } else {
-			        alert('could not retrieve requested data');
-			        console.log(d);
-		        }
-		        break;
-		        case 'ipynbo':
-		        d = JSON.parse(xhr.responseText);
-		        if (d.error == null) {
-			        stm.load_data({ "data": d.data, "type": type });
-		        } else {
-			        alert(d.error+' ('+d.status+')');
-			        console.log(d);
-		        }
-		        break;
-		        default:
-		        alert("Invalid return_type "+params.return_type);
-		        console.log("Invalid return_type "+params.return_type);
-		        break;
+		    if (d.error == null) {
+			stm.load_data({ "data": d.data, "type": type });
+		    } else {
+			alert(d.error+' ('+d.status+')');
+			console.log(d);
 		    }
+		    break;
+	        case 'search':
+		    d = JSON.parse(xhr.responseText);
+		    if (d.found && d.found > 0 && d.body && d.body.length) {
+			for (var i=0;i<d.body.length;i++) {
+			    if (d.body[i].hasOwnProperty('gid')) { d.body[i].id = d.body[i].gid; }
+			    if (d.body[i].hasOwnProperty('fid')) { d.body[i].id = d.body[i].fid; }
+			    if (d.body[i].hasOwnProperty('kbfid')) { d.body[i].id = d.body[i].kbfid; }
+			}
+			stm.load_data({ "data": d.body, "type": type });
+		    } else {
+			alert('could not retrieve requested data');
+			console.log(d);
+		    }
+		    break;
+		case 'ipynbo':
+		    d = JSON.parse(xhr.responseText);
+		    if (d.error == null) {
+			stm.load_data({ "data": d.data, "type": type });
+		    } else {
+			alert(d.error+' ('+d.status+')');
+			console.log(d);
+		    }
+		    break;
+		default:
+		    alert("Invalid return_type "+params.return_type);
+		    console.log("Invalid return_type "+params.return_type);
+		    break;
+		}
 	    } else {
-		    stm.load_data({ "data": JSON.parse(xhr.responseText), "type": type });
+		stm.load_data({ "data": JSON.parse(xhr.responseText), "type": type });
 	    }
-
+	    
 	    promise.resolve();
 	};
 	
