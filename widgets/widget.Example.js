@@ -1,5 +1,5 @@
 (function () {
-    widget = Retina.Widget.extend({
+    var widget = Retina.Widget.extend({
 	// most information in the about function is intended for conveying information
 	// to the programmer using the widget
 	// the requires array is a comma separated list of required javascript libraries
