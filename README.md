@@ -87,7 +87,7 @@ must be called before any operations with stm can occur. Possible parameters are
 
 <h3>import_data(params)</h3>
 
-<p>Data to be imported has to be passed as a hash of types, containing a hash of ids pointing at the actual objects. The optional parameter 'merge' determines whether a type is replaced if it exists or whether only existing ids will be overwritten.</p>
+<p>The import data function accepts three types of data, a list of objects, a hash of objects or a single object instance. The optional parameter 'merge' determines whether a type is replaced if it exists or whether only existing ids will be overwritten.</p>
 
 <h3>file_upload</h3>
 
