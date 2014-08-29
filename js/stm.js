@@ -6,6 +6,8 @@
       Setup
      */
 
+    stm.Config = typeof RetinaConfig == 'undefined' ? {} : RetinaConfig;
+
     // set up / reset the DataHandler
     stm.init = function (params) {
 
@@ -18,7 +20,6 @@
 	stm.TargetOrigin = params.TargetOrigin || "*";
 	stm.Authentication = params.Authentication || null;
 	stm.AuthHeaderName = params.AuthHeaderName || 'AUTH';
-	stm.Config = typeof RetinaConfig == 'undefined' ? {} : RetinaConfig;
 	if (params.Data) {
 	    stm.import_data({ merge: false, data: params.data });
 	}
