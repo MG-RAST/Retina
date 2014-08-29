@@ -56,15 +56,32 @@
     // import a JSON data structure into the DataStore
     stm.import_data = function (params) {
 	var merge = params.hasOwnProperty('merge') ? params.merge : true;
-	var data = params.data || [];
-	for (var i in data) {
-	    if (data.hasOwnProperty(i)) {
-		if (! stm.DataStore.hasOwnProperty(i) || ! merge) {
-		    stm.DataStore[i] = [];
-		}
-		for (var h in data[i]) {
-		    if (data[i].hasOwnProperty(h)) {
+	var data = params.data;
+	
+	if (params.structure == 'instance') {
+	    var identifier = params.id || data.id;
+	    if (! stm.DataStore.hasOwnProperty(params.type)) {
+		stm.DataStore[params.type] = {};
+	    }
+	    stm.DataStore[params.type][identifier] = data;
+	} else if (params.structure == 'list') {
+	    var identifier = params.id || "id";
+	    if (! stm.DataStore.hasOwnProperty(params.type) || ! merge) {
+		stm.DataStore[params.type] = {};
+	    }
+	    for (var i=0;i<data.length;i++) {
+		stm.DataStore[params.type][data[i][identifier]] = data[i];
+	    }
+	} else {
+	    for (var i in data) {
+		if (data.hasOwnProperty(i)) {
+		    if (! stm.DataStore.hasOwnProperty(i) || ! merge) {
+			stm.DataStore[i] = {};
+		    }
+		    for (var h in data[i]) {
+			if (data[i].hasOwnProperty(h)) {
 			stm.DataStore[i][h] = data[i][h];
+			}
 		    }
 		}
 	    }
@@ -177,7 +194,7 @@
 		if (d.error == null) {
 		    var data = {};
 		    data[type] = d.data;
-		    stm.import_data({ "data": data, "merge": true });
+		    stm.import_data({ "type": type, "data": data, "merge": true, "structure": typeof d.data.length == 'number' ? 'list' : 'instance' });
 		} else {
 		    alert(d.error+' ('+d.status+')');
 		    console.log(d);
