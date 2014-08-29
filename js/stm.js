@@ -20,8 +20,8 @@
 	stm.TargetOrigin = params.TargetOrigin || "*";
 	stm.Authentication = params.Authentication || null;
 	stm.AuthHeaderName = params.AuthHeaderName || 'AUTH';
-	if (params.Data) {
-	    stm.import_data({ merge: false, data: params.data });
+	if (params && params.Data) {
+	    stm.import_data({ merge: false, data: params.Data });
 	}
     };
     
