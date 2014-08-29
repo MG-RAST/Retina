@@ -23,19 +23,6 @@
 	    stm.import_data({ merge: false, data: params.data });
 	}
     };
-
-    // get / set a repository, or get all repos if no argument is passed
-    stm.repository = function (name, value) {
-	if (typeof value !== 'undefined' &&
-	    typeof name  !== 'undefined' ) {
-	    return stm.DataRepositories[name] = value;
-	} else if (typeof name !== 'undefined') {
-	    return stm.DataRepositories[name];
-	} else {
-	    return stm.DataRepositories;
-	}
-    };
-    stm.repositories = function () { return stm.repository(); };
     
     // adds / replaces a repository in the stm.DataRepositories list
     stm.add_repository = function (params) {
@@ -67,7 +54,7 @@
 
     // import a JSON data structure into the DataStore
     stm.import_data = function (params) {
-	var merge = params.merge || false;
+	var merge = params.hasOwnProperty('merge') ? params.merge : true;
 	var data = params.data || [];
 	for (var i in data) {
 	    if (data.hasOwnProperty(i)) {
@@ -256,32 +243,24 @@
     
     // deletes an object from the DataStore
     stm.delete_object = function (type, id) {
-	    type = type.toLowerCase();
-	    if (stm.DataStore[type][id]) {
-	        delete stm.DataStore[type][id];
-	        stm.TypeData['object_count'][type]--;
-	        if (stm.TypeData['object_count'][type] == 0) {
-		        delete_object_type(type);
-	        }
-	    }
+	type = type.toLowerCase();
+	if (stm.DataStore[type][id]) {
+	    delete stm.DataStore[type][id];
+	}
     };
     
     // deletes a set of objects from the DataStore
     stm.delete_objects = function (type, ids) {
-	    type = type.toLowerCase();
-	    for (var i = 0; i < ids.length; i++) {
-	        delete_object(type, ids[i]);
-	    }
+	type = type.toLowerCase();
+	for (var i = 0; i < ids.length; i++) {
+	    delete_object(type, ids[i]);
+	}
     };
     
     // deletes an entire type from the DataStore
     stm.delete_object_type = function (type) {
-	    type = type.toLowerCase();
-	    if (stm.TypeData['object_count'][type]) {
-	        delete stm.DataStore[type];
-	        delete stm.TypeData['object_count'][type];
-	        stm.TypeData['type_count']--;
-	    }
+	type = type.toLowerCase();
+	delete stm.DataStore[type];
     };
 
     // session dumping

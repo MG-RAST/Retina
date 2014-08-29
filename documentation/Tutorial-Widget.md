@@ -17,7 +17,7 @@
 <p>Let us take a look at the different parts of widget.HelloWorld.js. In the beginning it creates a local variable that extends the Retina Widget object.</p>
 
 ```javascript
-   widget = Retina.Widget.extend({
+   var widget = Retina.Widget.extend({
       about: {
          title: "Example Widget",
          name: "Example",
@@ -75,7 +75,7 @@
 ```javascript
    widget.display = function (params) {
       
-      if (! stm.DataStore[metagenome]) {
+      if (! stm.DataStore['metagenome']) {
          stm.get_objects( { type: "metagenome", "options": { "verbosity": "full", "limit": 100 } }).then(function () {
             widget.display();
          });

@@ -34,12 +34,12 @@
 ```html
      <!--initialization-->
      <script type="text/javascript">
-     	     jQuery(function () {
-	          stm.init('URL_TO_API').then(function() {
-		       Retina.init( { renderer_resources: [ LIST_OF_RESOURCE_PROVIDERS ], library_resource: LOCATION_OF_LIBRARY_FILES, widget_resources: [ LIST_OF_WIDGET_RESOURCES ] } ).then( function () {
-		            Retina.load_widget("myWidget").then( function () {
-			         Retina.Widget.myWidget.create(DIV_TO_RENDER_IN);
-			    });
+     	     jQuery( document ).ready(function(){
+	          stm.init();
+		  Retina.init( { library_resource: LOCATION_OF_LIBRARY_FILES } ).then( function () {
+                       Retina.add_widget({"name": "myWidget", "resource": "widgets/",  "filename": "widget.myWidget.js"});
+		       Retina.load_widget("myWidget").then( function () {
+		            Retina.Widget.myWidget.create("myWidget", { WIDGET PARAMETERS });
 		       });
  		  });
 	      });
@@ -48,19 +48,34 @@
 
 <p>Then in the body of the HTML page simply place a div with the id passed to the widget you want to display. Note that you can use an arbitrary amount of widgets on the page. You can also directly use a renderer if you wish.</p>
 
-<h2>STM - FUNCTIONS</h2>
+<h2>STM</h2>
 
-<h3>init(repository, no_self_discovery)</h3>
+<h3>init(params)</h3>
 
-<p>Initializes the stm, optionally setting a default repository. If stm was already set up, this will purge all data in the storage. This function must be called before any operations with stm can occur. If a repository is passed, it requires the same parameters as the add_repostitory function. If the repository does not offer self discovery of resources or you do not wish to use it, pass false as the second parameter.</p>
+<p>Initializes the stm, optionally setting default parameters. If stm was already set up, this will purge all data in the storage. This function 
+must be called before any operations with stm can occur. Possible parameters are:</p>
 
-<h3>repository(name, attribute)</h3>
+<ul>
+  <li><b>DataRepositories</b><br>A list of data repositories that can be accessed by the get_objects function. See 'add_repository' for details.</li>
+  <li><b>DataRepositoryDefault</b><br>Name of the default data repository to use for the get_objects function.</li>
+  <li><b>Authentication</b><br>Authentication string to be used for the get_objects function.</li>
+  <li><b>AuthHeaderName</b><br>Name of the header porperty to hold the authentication string. Default is 'AUTH'.</li>
+  <li><b>Data</b><br>Initial data to be present in the storage. See 'import_data' for details.</li>
+  <li><b>SourceOrigin</b><br>The allowed source origin for trans-frame messaging. Default is '*'.</li>
+  <li><b>TargetOrigin</b><br>The allowed target origin for trans-frame messaging. Default is '*'.</li>
+</ul>
 
-<p>If called without parameters, returns the hash of all repositories in the stm. If called with a repository name, returns a reference to that repository object or null if the repository does not exist. If called with a name and a attribute, will return the value of that attribute of the respository.</p>
+<h3>add_repository(params)</h3>
 
-<h3>add_repository(repository_url, resolve_resources, offline_mode)</h3>
+<p>Adds a repository to the stm. If the repository is the first to be added to the current stm instance, it will be set to be the default repository. The parameters are:</p>
 
-<p>Adds a repository to the stm. If the repository offers self discovery, only a URL needs to be passed. It must then point to a JSON REST API that returns a name in the attribute 'service' and a list of resources in the attribute 'resources'. Each resource must be a tuple of name and url, where the name is the name of the resource and the url points to a description of the resource. If the repository does not support self discovery of resources or you do not wish to use it, pass false as the second parameter. If the repository does not support the service tag, pass true as the third parameter. In this case it will be added with the service name 'default' and not be queried for discovery. If the repository is the first to be added to the current stm instance, it will be set to be the default repository.</p>
+<ul>
+    <li><b>url</b><br>Base URL of the data resource.</li>
+    <li><b>name</b><br>Name of the resource</li>
+    <li><b>description</b><br>(Optional) Description of the resource.</li>
+    <li><b>auth</b><br>Boolean whether this resource requires authentication, default is false.</li>
+    <li><b>isDefault</b><br>Boolean whether this is the default resource. Default is false.</li>
+</ul>
 
 <h3>remove_repository(repo_name)</h3>
 
@@ -70,9 +85,9 @@
 
 <p>If a repository name is passed, it will be set to be the default repository. The function always returns a reference to the current default repository.</p>
 
-<h3>load_data({data, no_clear, type})</h3>
+<h3>import_data(params)</h3>
 
-<p>If data is an array, each element in it will be added as a data instance under the data type passed in the type parameter. If data is a single object, that will be added as a single data instance under the data type passed in the type parameter. If data is a string, it will be interpreted as the id of a DOM element, whose innerHTML property will be JSON.parsed and added as data in the same manner as data passed directly. The innerHTML of the DOM element passed will be emptied, unless the parameter no_clear is set to true.</p>
+<p>Data to be imported has to be passed as a hash of types, containing a hash of ids pointing at the actual objects. The optional parameter 'merge' determines whether a type is replaced if it exists or whether only existing ids will be overwritten.</p>
 
 <h3>file_upload</h3>
 
@@ -84,9 +99,13 @@
 
 <p>Dumps the content of the stm.DataStore to a new window. If the content is saved to a file, it can later be loaded by the file_upload.</p>
 
+<h3>save_as (data, filename)</h3>
+
+<p>Opens a 'save as' file dialog and stores the data passed under the filename passed.</p>
+
 <h3>get_objects({repository, type, id, options})</h3>
 
-<p>This will retrieve one or more objects from the specified repository. The function returns a promise, which is fulfilled once the data is loaded into the storage. If no repository is passed, the default repository will be used. The stm will make an api call, using the repositories base url, appending the type and optioanl id as path parameters. Options will be passed as query parameters. All returned data objects will be put into the storage organized under the type passed in the type parameter.</p>
+<p>This will retrieve one or more objects from the specified repository. The function returns a promise, which is fulfilled once the data is loaded into the storage. If no repository is passed, the default repository will be used. The stm will make an api call, using the repositories base url, appending the type and optional id as path parameters. Options will be passed as query parameters. All returned data objects will be put into the storage organized under the type passed in the type parameter.</p>
 
 <p>If you want to provide visual feedback on the loading progess from the get_objects function, you can place a div with the id 'progressIndicator' into your page that contains a div with the id 'progressBar'. The indicator will be set to visible when data load occurs. The progressBar field will show the amount of data that has been loaded so far.</p>
 
@@ -108,95 +127,15 @@
 
 <p>If security is of concern, the allowed source and target origin of the message may be set by changing stm.SourceOrigin and stm.TargetOrigin. The default value for both is '*' (allow to/from any origin). If this is to be changed from the default setting, it must be changed in both source and target window.</p>
 
-<h2>STM - VARIABLES</h2>
-
-<h3>stm.DataStore</h3>
-
-<p>This variable holds all data. It is a hash of object types, where the key is the name of the object type and the key is a hash that stores the objects. Each type is a hash of object ids pointing to an actual object. The structure of the object is arbitrary.</p>
-
-<p>An example could look like this:</p>
-
-```javascript
-    { 'metagenome': { 'mgm10001.3': { 'name': 'metagenome1',
-                                      'biome': 'human-gut',
-                                      'project': { 'name': 'project1',
-                                                   'id': 'mgp10001' } },
-                      'mgm10002.3': ... },
-      'circles': { 'circ1': { 'x': 100,
-                              'y': 120,
-                              'r': 10,
-			      'circumference': function () { return 2 * Math.PI * r; } } } }
-```
-
-<h3>stm.DataRepositories</h3>
-
-<p>Holds structure data of all current data repositories.</p>
-
-<h3>stm.TypeData</h3>
-
-<p>Stores the names of all data types loaded in the data store and a count of objects for each.</p>
-
-<h3>stm.DataRepositoryDefault</h3>
-
-<p>A reference to the current default data repository. Passing a reference to a data repository will set the default to that repo. The default repository will be used in all get_objects calls without a defined repository.</p>
-
-<h3>stm.DataRepositoriesCount</h3>
-
-<p>The number of currently available data repositories.</p>
-
-<h3>stm.SourceOrigin</h3>
-
-<p>The allowed source origin for the send_message method. Default is '*' (allow any origin).</p>
-
-<h3>stm.TargetOrigin</h3>
-
-<p>The allowed target origin for the send_message method. Default is '*' (allow any origin).</p>
-
-<h2>Retina - FUNCTIONS</h2>
+<h2>Retina</h2>
 
 <h3>init({renderer_resources, widget_resources, library_resource})</h3>
 
 <p>Initializes the Retina instance. All passed parameters are optional.</p>
 
-<h3>each(array, function)</h3>
-
-<p>Executes the function on each of the elements of the array passed.</p>
-
-<h3>values(object)</h3>
-
-<p>Returns all attribute values of the object passed as an array.</p>
-
-<h3>keys(object)</h3>
-
-<p>Returns all keys of an object as an array.</p>
-
-<h3>require(library_name)</h3>
+<h3>require(library_name, success_callback, error_callback)</h3>
 
 <p>If the javascript library identified by the name passed is not yet loaded into the page, it will be asynchronously loaded. The function will return a promise which is fulfilled once the library is loaded.</p>
-
-<h3>capitalize(string)</h3>
-
-<p>Returns the passed string with the first character capitalized.</p>
-
-<h3>mouseCoords(event)</h3>
-
-<p>Returns an object with x and y attributes, containing the absolute mouse position of the event passed, relative to the top left of the document (including scrolls).</p>
-
-<h3>findPos(DOM object)</h3>
-
-<p>Returns an array with x and y coordinates of the object passed, relative to the top left of the document (including scrolls).</p>
-
-<h3>Numsort(a,b)</h3>
-
-<p>Sorting function for numbers that can be used by the javascript sort function.</p>
-
-<h3>Base64</h3>
-
-<p>Offers encode and decode functions for Base64 encoding.</p>
-
-<h3>svg2png(source, target, width, height)</h3>
-
-<p>If the source parameter is an SVG element and the target parameter is a container element, this function will render the SVG as a PNG in the target container. The width and height parameters will scale the target image.</p>
 
 <h3>query_renderer_resource(resource)</h3>
 
@@ -229,6 +168,90 @@
 <h3>load_library(library_name)</h3>
 
 <p>Loads a javascript library into memory, returning a promise which fulfills once the script is loaded.</p>
+
+<h2>Retina - Convenience functions</h2>
+
+<h3>each(array, function)</h3>
+
+<p>Executes the function on each of the elements of the array passed.</p>
+
+<h3>values(object)</h3>
+
+<p>Returns all attribute values of the object passed as an array.</p>
+
+<h3>keys(object)</h3>
+
+<p>Returns all keys of an object as an array.</p>
+
+<h3>propSort (property, direction)</h3>
+
+<p>Sorts a list of objects by a property in the given direction.</p>
+
+<h3>Numsort(a,b)</h3>
+
+<p>Sorting function for numbers that can be used by the javascript sort function.</p>
+
+<h3>capitalize(string)</h3>
+
+<p>Returns the passed string with the first character capitalized.</p>
+
+<h3>wait (ms)</h3>
+
+<p>Waits for the defined number of milliseconds before it returns.</p>
+
+<h3>date_string</h3>
+
+<p>Returns the current date as the local time string.</p>
+
+<h3>uuidv4</h3>
+
+<p>Returns an RFC4122 complient UUID v4.</p>
+
+<h3>mouseCoords(event)</h3>
+
+<p>Returns an object with x and y attributes, containing the absolute mouse position of the event passed, relative to the top left of the document (including scrolls).</p>
+
+<h3>findPos(DOM object)</h3>
+
+<p>Returns an array with x and y coordinates of the object passed, relative to the top left of the document (including scrolls).</p>
+
+<h3>Base64</h3>
+
+<p>Offers encode and decode functions for Base64 encoding.</p>
+
+<h3>svg2png(source, target, width, height)</h3>
+
+<p>If the source parameter is an SVG element and the target parameter is a container element, this function will render the SVG as a PNG in the target container. The width and height parameters will scale the target image.</p>
+
+<h3>cgiParam (param)</h3>
+
+<p>Returns the value of the cgi parameter.</p>
+
+<h3>dateString (date)</h3>
+
+<p>Returns a neatly formatted string for a time value.</p>
+
+<h2>Retina - Prototype functions</h2>
+
+<h3>Number.formatString</h3>
+
+<p>Formats a number to a fixed number of digits and puts in 1000 separators.</p>
+
+<h3>Number.padLeft</h3>
+
+<p>Prefixes a number with 0s until the defined length is hit.</p>
+
+<h3>Number.byteSize</h3>
+
+<p>Returns a string formatted to show the number of B/KB/MB and such.</p>
+
+<h3>String.hex[Encode|Decode]</h3>
+
+<p>Returns the hexadecimal value of a string or string value of a hexadecimal.</p>
+
+<h3>Array.[max|min]</h3>
+
+<p>Returns the maximum / minimum value inside an array respectively.</p>
 
 <h2>Retina - VARIABLES</h2>
 
