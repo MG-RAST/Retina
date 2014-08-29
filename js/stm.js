@@ -102,7 +102,7 @@
 	    stm.TypeData = [];
 	    stm.TypeData['object_count'] = [];
 	    stm.TypeData['type_count'] = 0;
-	    CallbackList = [];
+	    stm.CallbackList = [];
 	    stm.DataRepositories = [];
 	    stm.DataRepositoriesCount = 0;
 	    stm.DataRepositoryDefault = null;
@@ -451,10 +451,10 @@
     // executes the callback functions for a given type
     stm.callback = function (type) {
 	type = type.toLowerCase();
-	for (var c = 0; c < CallbackList[type].length; c++) {
-	    CallbackList[type][c][0].call(null, CallbackList[type][c][1], type);
+	for (var c = 0; c < stm.CallbackList[type].length; c++) {
+	    stm.CallbackList[type][c][0].call(null, stm.CallbackList[type][c][1], type);
 	}
-	CallbackList[type] = null;
+	stm.CallbackList[type] = null;
     };
     
     // deletes an object from the DataStore
