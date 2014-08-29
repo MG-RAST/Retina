@@ -1,7 +1,3 @@
-/*
- * retina.js
- *
- */
 (function () {
     var root = this;
     var Retina = root.Retina = {};
