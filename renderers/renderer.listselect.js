@@ -189,7 +189,7 @@
 	    filter_list.setAttribute('class', 'dropdown-menu');
 	    filter_list.setAttribute('style', renderer.settings.extra_wide ? 'left: 252px; max-height: 200px; overflow: auto;' : 'left: 58px; max-height: 200px; overflow: auto;');
 	    var filter_string = '';
-	    for (i=0; i<renderer.settings.filter.length; i++) {
+	    for (var i=0; i<renderer.settings.filter.length; i++) {
 		filter_string += '<li><a onclick="Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_value=\'\';Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_attribute=this.innerHTML.slice(0, -1);Retina.RendererInstances[\'listselect\']['+renderer.index+'].render();" style="cursor: pointer;">'+renderer.settings.filter[i]+' </a></li>';
 	    }
 	    filter_list.innerHTML = filter_string;
@@ -201,7 +201,7 @@
 	    // create the filter breadcrumbs
 	    var filter_breadcrumbs = document.createElement('div');
 	    filter_breadcrumbs.setAttribute('style', 'font-size: 9px; position: relative; top: -5px;');
-	    for (i=0;i<renderer.settings.filter_breadcrumbs.length;i++) {
+	    for (var i=0;i<renderer.settings.filter_breadcrumbs.length;i++) {
 		var bc_button = document.createElement('button');
 		bc_button.setAttribute('class', "btn btn-mini");
 		bc_button.setAttribute('style', "margin-right: 3px;");
@@ -232,9 +232,9 @@
 		button_left.setAttribute('style', 'position: relative; left: 36px; top: 40px;');
 		button_left.innerHTML = '<i class="icon-chevron-left"></i>';
 		button_left.addEventListener('click', function () {
-		    for (x=0; x<result_list.options.length; x++) {
+		    for (var x=0; x<result_list.options.length; x++) {
 			if (result_list.options[x].selected) {
-			    for (y=0;y<Retina.RendererInstances.listselect[index].settings.selection_data.length;y++) {
+			    for (var y=0;y<Retina.RendererInstances.listselect[index].settings.selection_data.length;y++) {
 				if (Retina.RendererInstances.listselect[index].settings.selection_data[y][Retina.RendererInstances.listselect[index].settings.value] == result_list.options[x].value) {
 				    Retina.RendererInstances.listselect[index].settings.selection_data.splice(y,1);
 				    break;
@@ -252,10 +252,10 @@
 		button_right.setAttribute('style', 'position: relative; right: 36px; bottom: 40px;');
 		button_right.innerHTML = '<i class="icon-chevron-right"></i>';
 		button_right.addEventListener('click', function () {
-		    for (x=0; x<selection_list.options.length; x++) {
+		    for (var x=0; x<selection_list.options.length; x++) {
 			if (selection_list.options[x].selected) {
 			    Retina.RendererInstances.listselect[index].settings.selection[selection_list.options[x].value] = 1;
-			    for (y=0;y<Retina.RendererInstances.listselect[index].settings.data.length;y++) {
+			    for (var y=0;y<Retina.RendererInstances.listselect[index].settings.data.length;y++) {
 				if (Retina.RendererInstances.listselect[index].settings.data[y][Retina.RendererInstances.listselect[index].settings.value] == selection_list.options[x].value) {
 				    Retina.RendererInstances.listselect[index].settings.selection_data.push(Retina.RendererInstances.listselect[index].settings.data[y]);
 				    break;
@@ -292,8 +292,8 @@
 		        submit_button.addEventListener('click', function () {
 			        var selection_result = [];
 			        if (renderer.settings.return_object) {
-			            for (x=0; x<result_list.options.length; x++) {
-			                for (y=0; y<renderer.settings.data.length; y++) {
+			            for (var x=0; x<result_list.options.length; x++) {
+			                for (var y=0; y<renderer.settings.data.length; y++) {
                                 if (result_list.options[x].value == renderer.settings.data[y][renderer.settings.value]) {
                                     selection_result.push(renderer.settings.data[y]);
                                     break;
@@ -301,7 +301,7 @@
                             }
 		                }
 			        } else {
-			            for (x=0; x<result_list.options.length; x++) {
+			            for (var x=0; x<result_list.options.length; x++) {
                             selection_result.push(result_list.options[x].value);
 		                }
 			        }
@@ -311,7 +311,7 @@
 		        selection_list.addEventListener('change', function () {
 		            var selection_result;
 		            if (renderer.settings.return_object) {
-                        for (x=0; x<renderer.settings.data.length; x++) {
+                        for (var x=0; x<renderer.settings.data.length; x++) {
                             if (selection_list.options[selection_list.selectedIndex].value == renderer.settings.data[x][renderer.settings.value]) {
                                 selection_result = renderer.settings.data[x];
                                 break;
@@ -326,7 +326,7 @@
 		        submit_button.addEventListener('click', function () {
 			        var selection_result;
 		            if (renderer.settings.return_object) {
-                        for (x=0; x<renderer.settings.data.length; x++) {
+                        for (var x=0; x<renderer.settings.data.length; x++) {
                             if (selection_list.options[selection_list.selectedIndex].value == renderer.settings.data[x][renderer.settings.value]) {
                                 selection_result = renderer.settings.data[x];
                                 break;
@@ -388,14 +388,14 @@
 	redrawResultlist: function (result_list, index) {  
 	    renderer = Retina.RendererInstances.listselect[index];
 	    var result_list_array = [];
-	    for (i=0; i<renderer.settings.selection_data.length; i++) {
+	    for (var i=0; i<renderer.settings.selection_data.length; i++) {
 		result_list_array.push( [ renderer.settings.selection_data[i][renderer.settings.value], '<option value="'+renderer.settings.selection_data[i][renderer.settings.value]+'" title="'+renderer.settings.selection_data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.selection_data[i][renderer.settings.filter_attribute]+'</option>'] );
 	    }
 	    if (renderer.settings.sort) {
 		result_list_array.sort(renderer.listsort);
 	    }
 	    var result_list_string = "";
-	    for (i=0; i<result_list_array.length; i++) {
+	    for (var i=0; i<result_list_array.length; i++) {
 		result_list_string += result_list_array[i][1];
 	    }
 	    result_list.innerHTML = result_list_string;
@@ -408,7 +408,7 @@
 	    renderer.settings.filtered_data = renderer.settings.data;
 
 	    // apply all filter breadcrumbs
-	    for (i=0; i<renderer.settings.filter_breadcrumbs.length; i++) {
+	    for (var i=0; i<renderer.settings.filter_breadcrumbs.length; i++) {
 		renderer.settings.filtered_data = renderer.filter({ data: renderer.settings.filtered_data, value: renderer.settings.filter_breadcrumbs[i][1], type: renderer.settings.filter_type, attribute: renderer.settings.filter_breadcrumbs[i][0] }, index);
 	    }
 	    
@@ -422,7 +422,7 @@
 	    
 	    // create the selection list
 	    var settings_string = "";
-	    for (i=0; i<renderer.settings.filtered_data.length; i++) {
+	    for (var i=0; i<renderer.settings.filtered_data.length; i++) {
 		if (! renderer.settings.selection[renderer.settings.filtered_data[i][renderer.settings.value]]) {
 		    settings_string += '<option value="'+renderer.settings.filtered_data[i][renderer.settings.value]+'" title="'+renderer.settings.filtered_data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.filtered_data[i][renderer.settings.filter_attribute]+'</option>';
 		}
@@ -442,7 +442,7 @@
 	update: function (index) {
 	    renderer = Retina.RendererInstances.listselect[index];
 	    var query = [];
-	    for (i=0; i<renderer.settings.filter_breadcrumbs.length; i++) {
+	    for (var i=0; i<renderer.settings.filter_breadcrumbs.length; i++) {
 		query.push( { "field": renderer.settings.filter_breadcrumbs[i][0],
 			      "searchword": renderer.settings.filter_breadcrumbs[i][1] } );
 	    }
@@ -457,7 +457,7 @@
 	filter: function(settings, index) {
 	    renderer = Retina.RendererInstances.listselect[index];
 	    var results = [];
-	    for (x=0;x<settings.data.length;x++) {
+	    for (var x=0;x<settings.data.length;x++) {
 		if (typeof(renderer.settings.selection[x]) == 'undefined') {
 		    if (settings.data[x].hasOwnProperty(settings.attribute) && typeof(settings.data[x][settings.attribute]) == 'string') {
 			if (settings.type == 'substring') {

@@ -346,8 +346,8 @@
 
 	transpose: function (data) {
 	    var result = [];
-	    for (i=0;i<data.length;i++) {
-		for (h=0;h<data[i].length;h++) {
+	    for (var i=0;i<data.length;i++) {
+		for (var h=0;h<data[i].length;h++) {
 		    if (i==0) {
 			result.push( [] );
 		    }
@@ -361,7 +361,7 @@
 	    var num_avail = data.length;
 	    var avail = {};
 	    var clusters = [];
-	    for (i=0;i<data.length;i++) {
+	    for (var i=0;i<data.length;i++) {
 		clusters.push( { points: [ i ], data: [ data[i] ], basepoints: [ i ], level: [ 0 ] } );
 		avail[i] = true;
 	    }
