@@ -40,29 +40,24 @@
 <p>The final part of the header section is the script that invokes the initial state of the widgets and renderers on the page. It looks a bit complicated, so let us check out what it does.</p>
 
 ```javascript
-    jQuery(function () {
-	stm.init('http://api.metagenomics.anl.gov/api2.cgi').then(function() {
-	    Retina.init( { library_resource: "./" } ).then( function () {
-		Retina.add_widget({"name": "Example", "resource": "./widgets/",  "filename": "widget.Example.js" });
-		Retina.load_widget("Example").then( function () {
-		    Retina.Widget.create('Example', {target: document.getElementById("content")});
-		});
-	    });
+    jQuery( document ).ready(function(){
+	stm.init({});
+	Retina.init({});
+        Retina.load_widget("Example").then( function () {
+             Retina.Widget.create('Example', {target: document.getElementById("content")});
 	});
     });
 ```
 
-<p>The first line wrapps this call into an anonymous jQuery function. This means that the code inside will be executed when the page is loads and the variables used within the function do not use up the global namespace (unless they are exported to it).</p>
+<p>The first line makes sure that the entire page with all resources is fully loaded before the following lines are executed.</p>
 
 <p>The second line initializes the stm library. This module takes care of loading data from an API and making it accesible to scripts on this page. It also allows scripts on this page to modify this client side cache, adding new data, modifying existing data, dumping it to a file or loading a previous data session back into the page. The only parameter to the function is the url of the api that is to provide the data. The function returns a promise, which means that when it is done with its initialization, it will execute whatever is passed to the <b>then</b> function.</p>
 
 <p>When the stm is ready, it is time to initialize the Retina module. You can pass a bunch of parameters here, but for now we only pass the <b>library_resource</b>. This determines the directory that holds any additional libraries that Retina needs to load. This function also returns a promise.</p>
 
-<p>When Retina is initialized, we can start loading widgets and renderers. Before we can load a widget, we need to tell Retina a litle bit about it. For now, leave the parameters here as they are. When you try out the widget-tutorial, you will be creating your own widgets. At that point we will explain what all these parameters do. The keen eyed might even guess just from their names. ;)</p>
+<p>When Retina is initialized, we can start loading widgets and renderers.</p>
 
 <p>A widget is a javascript module that creates some form of component on your page. A widget uses renderers to render certain parts of its content. It contains the logic to retrieve and format the data it needs. It layouts all of its subcomponents and controls the data flow between them. A widget may exchange information with other widgets, with the stm.DataStore and handle user interactions. A renderer in turn, knows nothing about its surroundings. It uses data of a clearly specified structure to render something. It may offer callback functions to inform other functions of state-changes or user interactions. You can read more about widgets and renderers in the follow up tutorials.</p>
-
-<p>When the widget is added, it can be loaded. While the adding tells Retina about the existence of the widget, the loading will actually load the javascript code into the page. These two steps are separated, because you can also supply Retina with a widget resource. Retina will then by itself query that resource for all available widgets and add them automatically.</p>
 
 <p>When a widget is loaded, Retina will first check if it is already loaded into the page, so subsequent calls to load_widget with the same widget will just instantly return without reloading the code. Loading a widget will also load all dependent libraries the widget needs. This will also load every library just once, even if it is required by two separate widgets. As usual, the loading function returns a promise.</p>
 
