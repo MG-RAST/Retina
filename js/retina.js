@@ -209,7 +209,7 @@
 		    script_url = library;
 		}
 		jQuery.getScript(script_url).then(function() {
-		    library_queue.shift();
+		    Retina.library_queue.shift();
 		    promise.resolve();
 		}, function(jqXHR, textStatus, errorThrown) {
 		    if (textStatus === 'parsererror') {
