@@ -185,21 +185,21 @@
     Retina.load_library = function (library) {
 	var promise;
 	if (library == undefined) {
-	    library = library_queue[0];
+	    library = Retina.library_queue[0];
 	}
-	if (loaded_libraries[library]) {
-	    promise = loaded_libraries[library];
+	if (Retina.loaded_libraries[library]) {
+	    promise = Retina.loaded_libraries[library];
 	} else {
 	    promise = jQuery.Deferred();
-	    loaded_libraries[library] = promise;
+	    Retina.loaded_libraries[library] = promise;
 	    
-	    if (library_queue.length) {
-		loaded_libraries[library_queue[library_queue.length - 1]].then(Retina.load_library());
-		library_queue.push(library);
+	    if (Retina.library_queue.length) {
+		Retina.loaded_libraries[Retina.library_queue[Retina.library_queue.length - 1]].then(Retina.load_library());
+		Retina.library_queue.push(library);
 		return promise;
 	    } else {
 
-		var script_url = library_resource + library;
+		var script_url = Retina.library_resource + library;
 		if (library.match(/^http/)) {
 		    script_url = library;
 		}
