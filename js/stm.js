@@ -5,7 +5,6 @@
     /*
       Setup
      */
-
     stm.Config = typeof RetinaConfig == 'undefined' ? {} : RetinaConfig;
 
     // set up / reset the DataHandler
