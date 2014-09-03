@@ -204,7 +204,7 @@
 		return promise;
 	    } else {
 
-		var script_url = library_resource + library;
+		var script_url = library_resource + "/" + library;
 		if (library.match(/^http/)) {
 		    script_url = library;
 		}
