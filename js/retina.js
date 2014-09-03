@@ -64,11 +64,11 @@
 	    widget = { name: widget };
 	}
 	var promise;
-	if (loaded_widgets[widget.name]) {
-	    promise = loaded_widgets[widget.name];
+	if (Retina.loaded_widgets[widget.name]) {
+	    promise = Retina.loaded_widgets[widget.name];
 	} else {
 	    promise = jQuery.Deferred();
-	    loaded_widgets[widget.name] = promise;
+	    Retina.loaded_widgets[widget.name] = promise;
 	    
 	    var promises = [];
 	    
@@ -139,11 +139,11 @@
 	    renderer = { name: renderer };
 	}
 	var promise;
-	if (loaded_renderers[renderer.name]) {
-	    promise = loaded_renderers[renderer.name];
+	if (Retina.loaded_renderers[renderer.name]) {
+	    promise = Retina.loaded_renderers[renderer.name];
 	} else {
 	    promise = jQuery.Deferred();
-	    loaded_renderers[renderer.name] = promise;
+	    Retina.loaded_renderers[renderer.name] = promise;
 	    
 	    var promises = [];
 	    var script_url = (renderer.hasOwnProperty('resource') ? renderer.resource : Retina.renderer_resource) + "/renderer." + renderer.name + ".js";
