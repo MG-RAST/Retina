@@ -184,8 +184,13 @@
      */
     Retina.load_library = function (library) {
 	var promise;
+	var library_resource = Retina.library_resource;
 	if (library == undefined) {
 	    library = Retina.library_queue[0];
+	}
+	if (typeof library != "string") {
+	    library_resource = library.resource;
+	    library = library.name;
 	}
 	if (Retina.loaded_libraries[library]) {
 	    promise = Retina.loaded_libraries[library];
@@ -199,7 +204,7 @@
 		return promise;
 	    } else {
 
-		var script_url = Retina.library_resource + library;
+		var script_url = library_resource + library;
 		if (library.match(/^http/)) {
 		    script_url = library;
 		}
