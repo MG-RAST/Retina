@@ -250,35 +250,40 @@
 			    }
 			}
 		    }
+		    var htmlFilter = new RegExp("<.+?>", "ig");
 		    for (var h=0; h<tdata.length; h++) {
 			var pass = 1;
 			for (var i in filter) {
+			    var word = tdata[h][header[i]] + "";
+			    if (! filter[i].keepHTML) {
+				word = word.replace(htmlFilter, "");
+			    }
 			    if (typeof(filter[i].searchword) != "undefined" && filter[i].searchword.length > 0) {
 				if (filter[i].operator) {
 				    switch (filter[i].operator[filter[i].active_operator]) {
 				    case "=":
-					if (tdata[h][header[i]] != filter[i].searchword) {
+					if (word != filter[i].searchword) {
 					    pass = 0;
 					}
 					break;
 				    case ">":
-					if (parseFloat(tdata[h][header[i]]) <= parseFloat(filter[i].searchword)) {
+					if (parseFloat(word) <= parseFloat(filter[i].searchword)) {
 					    pass = 0;
 					}
 					break;
 				    case "<":
-					if (parseFloat(tdata[h][header[i]]) >= parseFloat(filter[i].searchword)) {
+					if (parseFloat(word) >= parseFloat(filter[i].searchword)) {
 					    pass = 0;
 					}
 					break;				      
 				    case "><":
-					if (parseFloat(tdata[h][header[i]]) > parseFloat(filter[i].minmax[1]) || parseFloat(tdata[h][header[i]]) < parseFloat(filter[i].minmax[0])) {
+					if (parseFloat(word) > parseFloat(filter[i].minmax[1]) || parseFloat(word) < parseFloat(filter[i].minmax[0])) {
 					    pass = 0;
 					}
 					break;
 				    }
 				} else {
-				    if (! tdata[h][header[i]].match(filter[i].re)) {
+				    if (! word.match(filter[i].re)) {
 					pass = 0;
 				    }
 				}
@@ -436,11 +441,7 @@
 			    var filter_text  = document.createElement("input");
 			    filter_text.setAttribute('type', 'text');
 			    filter_text.value = filter[i].searchword;
-			    var pos = "bottom: 2px;";
-			    if (! renderer.settings.disable_sort[i]) {
-				pos = "top: 2px;";
-			    }
-			    filter_text.setAttribute("style", "margin-bottom: 0px; height: 16px; float: left; width: 100px; display: none; position: relative; "+pos);
+			    filter_text.setAttribute("style", "margin-bottom: 0px; margin-top: 2px; height: 16px; width: 100px; display: none; position: absolute; z-index: 100;");
 			    filter_text.i = i;
 			    filter_text.index = index;
 			    filter_text.onkeypress = function (e) {
