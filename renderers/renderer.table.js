@@ -320,7 +320,7 @@
 	    // create the actual table header
 	    var table_element = document.createElement("table");
 	    table_element.setAttribute("class", "table table-striped table-bordered table-condensed");
-	    table_element.setAttribute("style", "margin-bottom: 2px;");
+	    table_element.setAttribute("style", "margin-bottom: 2px; margin-top: 7px;");
 	    var thead = document.createElement("thead");
 	    var tr = document.createElement("tr");
 	    tr.setAttribute('style', 'height: 30px;');
@@ -791,12 +791,12 @@
 	    
 	    // goto
 	    var goto_label = document.createElement("span");
+	    goto_label.setAttribute('style', "font-size: 10.5px;");
 	    goto_label.innerHTML = "goto row ";
 	    var goto_text = document.createElement("input");
 	    goto_text.setAttribute("value", offset + 1);
-	    goto_text.setAttribute("class", "span1");
 	    goto_text.setAttribute("type", "text");
-	    goto_text.setAttribute("style", "position: relative; top: 4px; height: 16px;");
+	    goto_text.setAttribute("style", "height: 12px; font-size: 10.5px; margin-bottom: 0px; width: 30px; margin-left: 5px;");
 	    goto_text.index = index;
 	    goto_text.onkeypress = function (e) {
 		var index = this.index;
@@ -820,7 +820,7 @@
 	    // clear filter button
 	    var clear_btn = document.createElement("input");
 	    clear_btn.setAttribute("type", "button");
-	    clear_btn.setAttribute("class", "btn");
+	    clear_btn.setAttribute("class", "btn btn-mini");
 	    clear_btn.setAttribute("value", "clear all filters");
 	    clear_btn.style.marginLeft = "10px";
 	    clear_btn.index = index;
@@ -841,7 +841,7 @@
 	    var perpage = document.createElement("input");
 	    perpage.setAttribute("type", "text");
 	    perpage.setAttribute("value", rows);
-	    perpage.setAttribute("style", "position: relative; top: 4px; height: 16px; width: 30px;");
+	    perpage.setAttribute("style", "height: 12px; font-size: 10.5px; margin-bottom: 0px; width: 30px;");
 	    perpage.index = index;
 	    perpage.onkeypress = function (e) {
 		var index = this.index;
@@ -857,10 +857,10 @@
 		}
 	    };
 	    var ppspan1 = document.createElement("span");
-	    ppspan1.style.marginLeft = "10px";
+	    ppspan1.setAttribute('style', "margin-left: 10px; margin-right: 5px; font-size: 10.5px;");
 	    ppspan1.innerHTML = " show ";
 	    var ppspan2 = document.createElement("span");
-	    ppspan2.style.marginRight = "10px";
+	    ppspan2.setAttribute('style', "margin-left: 5px; font-size: 10.5px; margin-right: 10px;");
 	    ppspan2.innerHTML = " rows at a time";
 	    
 	    // handle onclick event
@@ -894,7 +894,7 @@
 	    
 	    var col_sel_span = document.createElement("span");
 	    var col_sel_btn = document.createElement("input");
-	    col_sel_btn.setAttribute("class", "btn");
+	    col_sel_btn.setAttribute("class", "btn btn-mini");
 	    col_sel_btn.setAttribute("type", "button");
 	    col_sel_btn.setAttribute("value", "select columns");
 	    var col_sel = document.createElement("div");
@@ -923,15 +923,15 @@
 	    var options_icon = document.createElement("div");
 	    options_icon.innerHTML = "<i class='icon-cog'></i>";
 	    options_icon.title ='table options, click to show';
-	    options_icon.className = "btn";
-	    options_icon.setAttribute("style", "cursor: pointer; position: relative; top: -1px; margin-bottom: 7px;");
+	    options_icon.className = "btn btn-mini";
+	    options_icon.setAttribute("style", "cursor: pointer;");
 	    options_icon.onclick = function () {
 		this.nextSibling.style.display = "";
 		this.style.display = "none";
 	    }
 	    var options_span = document.createElement("div");
-	    options_span.setAttribute('style', "display: none; position: relative; top: -5px;");
-	    options_span.innerHTML = "<div title='close options' onclick='this.parentNode.previousSibling.style.display=\"\";this.parentNode.style.display=\"none\";' style='cursor: pointer; margin-right: 5px;' class='btn'><i class='icon-remove'></div>";
+	    options_span.setAttribute('style', "display: none;");
+	    options_span.innerHTML = "<div title='close options' onclick='this.parentNode.previousSibling.style.display=\"\";this.parentNode.style.display=\"none\";' style='cursor: pointer; margin-right: 5px;' class='btn btn-mini'><i class='icon-remove'></div>";
 	    
 	    // append navigation to target element
 	    if (renderer.settings.hide_options == false) {
