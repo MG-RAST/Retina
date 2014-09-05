@@ -205,7 +205,7 @@
 	}
 	
 	return html;
-    }
+    };
 
     widget.perform_login = function (index) {
 	widget = Retina.WidgetInstances.login[index];
@@ -216,7 +216,7 @@
 	    questionmark = "&";
 	}
 	var header = {};
-	var auth_url = widget.authResources[widget.authResources.default].url+questionmark+(widget.authResources[widget.authResources.default].keyword || "auth")'='+(widget.authResources[widget.authResources.default].prefix || "")+Retina.Base64.encode(login+":"+pass);
+	var auth_url = widget.authResources[widget.authResources.default].url+questionmark+(widget.authResources[widget.authResources.default].keyword || "auth")+'='+(widget.authResources[widget.authResources.default].prefix || "")+Retina.Base64.encode(login+":"+pass);
 	if (widget.authResources[widget.authResources.default].useHeader) {
 	    auth_url = widget.authResources[widget.authResources.default].url;
 	    header[(widget.authResources[widget.authResources.default].keyword || "auth")] = (widget.authResources[widget.authResources.default].prefix || "")+Retina.Base64.encode(login+":"+pass);
