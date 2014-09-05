@@ -434,12 +434,13 @@
 			if (renderer.settings.filter[i].type == "text") {
 			    
 			    var filter_text  = document.createElement("input");
+			    filter_text.setAttribute('type', 'text');
 			    filter_text.value = filter[i].searchword;
 			    var pos = "bottom: 2px;";
 			    if (! renderer.settings.disable_sort[i]) {
 				pos = "top: 2px;";
 			    }
-			    filter_text.setAttribute("style", "float: left; width: 100px; display: none; position: relative; "+pos);
+			    filter_text.setAttribute("style", "margin-bottom: 0px; height: 16px; float: left; width: 100px; display: none; position: relative; "+pos);
 			    filter_text.i = i;
 			    filter_text.index = index;
 			    filter_text.onkeypress = function (e) {
@@ -466,10 +467,10 @@
 			    
 			    if (renderer.settings.filter[i].operator) {
 				filter_elem = document.createElement("div");
-				filter_elem.setAttribute("style", "float: left; margin-bottom: 0px; display: none;");
+				filter_elem.setAttribute("style", "float: left; margin-bottom: 0px; display: none; position: absolute; margin-top: 2px; height: 16px; z-index: 100;");
 				filter_elem.className = "input-prepend";
 				var operator_span = document.createElement("span");
-				operator_span.setAttribute("style", "cursor: pointer;");
+				operator_span.setAttribute("style", "cursor: pointer; height: 16px;");
 				operator_span.i = i;
 				operator_span.index = index;
 				operator_span.onclick = function () {
@@ -493,14 +494,14 @@
 				    var operator = document.createElement("span");
 				    operator.innerHTML = renderer.settings.filter[i].operator[h];
 				    if (h==renderer.settings.filter[i].active_operator) {
-					operator.setAttribute("style", "font-weight: bold;");
+					operator.setAttribute("style", "font-weight: bold; height: 16px;");
 				    } else {
-					operator.setAttribute("style", "display: none; font-weight: bold;");
+					operator.setAttribute("style", "display: none; font-weight: bold; height: 16px;");
 				    }
 				    operator.setAttribute("title", "click to switch filter operator");
 				    operator_span.appendChild(operator);
 				}
-				filter_text.setAttribute("style", "position: relative; left: -3px; width: 80px;");
+				filter_text.setAttribute("style", "position: relative; left: -3px; width: 80px; height: 16px;");
 				filter_elem.appendChild(operator_span);
 				filter_elem.appendChild(filter_text);
 			    } else {
@@ -509,7 +510,7 @@
 			    
 			} else if (renderer.settings.filter[i].type == "select") {
 			    filter_elem = document.createElement("select");
-			    filter_elem.setAttribute("style", "float: left; width: 100px; display: none;");
+			    filter_elem.setAttribute("style", "position: absolute; height: 26px; margin-bottom: 0px; margin-top: 2px; z-index: 100; display: none;");
 			    filter_elem.add(new Option("-show all-", ""), null);
 			    var selopts = [];
 			    for (var h=0;h<tdata.length;h++) {
@@ -518,10 +519,12 @@
 				}
 			    }
 			    for (var h in selopts) {
-				if (h == renderer.settings.filter[i].searchword) {
-				    filter_elem.add(new Option(h,h, true), null);
-				} else {
-				    filter_elem.add(new Option(h,h), null);
+				if (typeof selopts[h] != "function") {
+				    if (h == renderer.settings.filter[i].searchword) {
+					filter_elem.add(new Option(h,h, true), null);
+				    } else {
+					filter_elem.add(new Option(h,h), null);
+				    }
 				}
 			    }
 			    filter_elem.i = i;
@@ -531,6 +534,9 @@
 				Retina.RendererInstances.table[index].settings.filter[this.i].searchword = this.options[this.selectedIndex].value;
 				Retina.RendererInstances.table[index].settings.filter_changed = true;
 				Retina.RendererInstances.table[index].render();
+			    }
+			    if (filter_elem.options.length == 1) {
+				filter_elem = document.createElement('span');
 			    }
 			}
 		    }
