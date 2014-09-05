@@ -211,53 +211,69 @@
 	widget = Retina.WidgetInstances.login[index];
 	var login = document.getElementById('login').value;
 	var pass = document.getElementById('password').value;
-	var auth_url = widget.authResources[widget.authResources.default].url+'?auth='+widget.authResources[widget.authResources.default].prefix+Retina.Base64.encode(login+":"+pass);
-	jQuery.get(auth_url, function(d) {
-	    if (d && d.token) {
-		var user;
-		user = { login: d.login,
-			 firstname: d.firstname || d.login,
-			 lastname: d.lastname || "",
-			 email: d.email || "",
-		       };
-		if (stm) {
-		    stm.Authentication = d.token;
-		}
-		Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index, user);
-		document.getElementById('failure').innerHTML = "";
-		jQuery('#loginModal').modal('hide');
-		jQuery('#msgModal').modal('show');
-		jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "user": user,
-											   "token": d.token }), { expires: 7 });
-		if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
-		    Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
-									      'result': 'success',
-									      'token' : d.token,
-									      'user'  : user  });
-		}
-	    } else {
-		document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> Login failed.</div>';
-		if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
-		    Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
-									      'result': 'failed',
-									      'token' : null,
-									      'user'  : null  });
-		}
-	    }
-	}).fail(function() {
-	    document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> Login failed.</div>';
-		if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
-		    Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
-									      'result': 'failed',
-									      'token': null,
-									      'user': null });
-		}
-	});
+	var questionmark = "?";
+	if (widget.authResources[widget.authResources.default].url.match(/\?/)) {
+	    questionmark = "&";
+	}
+	var header = {};
+	var auth_url = widget.authResources[widget.authResources.default].url+questionmark+(widget.authResources[widget.authResources.default].keyword || "auth")'='+(widget.authResources[widget.authResources.default].prefix || "")+Retina.Base64.encode(login+":"+pass);
+	if (widget.authResources[widget.authResources.default].useHeader) {
+	    auth_url = widget.authResources[widget.authResources.default].url;
+	    header[(widget.authResources[widget.authResources.default].keyword || "auth")] = (widget.authResources[widget.authResources.default].prefix || "")+Retina.Base64.encode(login+":"+pass);
+	}
+	jQuery.ajax({ dataType: "json",
+		      url: auth_url,
+		      headers: header,
+		      error: function (xhr, error) {
+			  document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> Login failed.<br>'+(error || "unknown error")+'</div>';
+			  if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
+			      Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
+											'result': 'failed',
+											'token': null,
+											'user': null });
+			  }
+		      },
+		      success: function (d) {
+			  if (d && d.token) {
+			      var user;
+			      user = { login: d.login,
+				       firstname: d.firstname || d.login,
+				       lastname: d.lastname || "",
+				       email: d.email || "",
+				     };
+			      if (stm) {
+				  stm.Authentication = d.token;
+			      }
+			      Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index, user);
+			      document.getElementById('failure').innerHTML = "";
+			      jQuery('#loginModal').modal('hide');
+			      jQuery('#msgModal').modal('show');
+			      jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "user": user,
+													 "token": d.token }), { expires: 7 });
+			      if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
+				  Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
+											    'result': 'success',
+											    'token' : d.token,
+											    'user'  : user  });
+			      }
+			  } else {
+			      document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> Login failed.</div>';
+			      if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
+				  Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
+											    'result': 'failed',
+											    'token' : null,
+											    'user'  : null  });
+			      }
+			  }	  
+		      }
+		    });
     };
     
     widget.perform_logout = function (index) {
 	Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index);
-	stm.Authentication = null;
+	if (stm) {
+	    stm.Authentication = null;
+	}
 	jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "token": null,
 										   "user": null }));
 	if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
