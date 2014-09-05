@@ -211,33 +211,20 @@
 	widget = Retina.WidgetInstances.login[index];
 	var login = document.getElementById('login').value;
 	var pass = document.getElementById('password').value;
-	var auth_url = stm.Config.mgrast_api+'?auth='+widget.authResources[widget.authResources.default].prefix+Retina.Base64.encode(login+":"+pass);
+	var auth_url = widget.authResources[widget.authResources.default].url+'?auth='+widget.authResources[widget.authResources.default].prefix+Retina.Base64.encode(login+":"+pass);
 	jQuery.get(auth_url, function(d) {
 	    if (d && d.token) {
 		var user;
-		if (d.hasOwnProperty('firstname')) {
-		    user = { login: d.login,
-			     firstname: d.firstname,
-			     lastname: d.lastname,
-			     email: d.email,
-			   };
-		} else {
-		    jQuery.ajax({ url: stm.Config.mgrast_api+"/user/"+login,
-				  headers: { "Auth": d.token },
-				  success: function(result) {
-				      user = { login: result.login,
-					       firstname: result.firstname,
-					       lastname: result.lastname,
-					       email: result.email,
-					     };
-				  },
-				  async: false
-				});
+		user = { login: d.login,
+			 firstname: d.firstname || d.login,
+			 lastname: d.lastname || "",
+			 email: d.email || "",
+		       };
+		if (stm) {
+		    stm.Authentication = d.token;
 		}
-		stm.Authentication = d.token;
 		Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index, user);
 		document.getElementById('failure').innerHTML = "";
-		stm.Authentication = d.token;
 		jQuery('#loginModal').modal('hide');
 		jQuery('#msgModal').modal('show');
 		jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "user": user,
