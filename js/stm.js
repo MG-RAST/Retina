@@ -287,19 +287,19 @@
 	var dstring = "{";
 	for (var i in stm.DataStore) {
 	    if (stm.DataStore.hasOwnProperty(i)) {
-		dstring += '"'+i+'":[';
+		dstring += '"'+i+'":{';
 		var hasOne = false;
 		for (var h in stm.DataStore[i]) {
 		    if (stm.DataStore[i].hasOwnProperty(h)) {
 			hasOne = true;
-			dstring += JSON.stringify(stm.DataStore[i][h]);
+			dstring += '"'+h+'":'+JSON.stringify(stm.DataStore[i][h]);
 			dstring += ",";
 		    }
 		}
 		if (hasOne) {
 		    dstring = dstring.slice(0,-1);
 		}
-		dstring += "],";
+		dstring += "},";
 	    }
 	}
 	dstring = dstring.slice(0,-1);
