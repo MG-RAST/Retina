@@ -833,14 +833,14 @@
 	    clear_btn.index = index;
 	    clear_btn.onclick = function () {
 		var index = this.index;
-		    for (var i in Retina.RendererInstances.table[index].settings.filter) {
-		        Retina.RendererInstances.table[index].settings.filter[i].searchword = "";
-		    }
-		    if (typeof renderer.settings.navigation_callback == "function") {
-		        renderer.settings.navigation_callback({"goto": 0, "query": "default", "sort": "default"}, index);
+		for (var i in Retina.RendererInstances.table[index].settings.filter) {
+		    Retina.RendererInstances.table[index].settings.filter[i].searchword = "";
+		}
+		if (typeof renderer.settings.navigation_callback == "function") {
+		    renderer.settings.navigation_callback({"goto": 0, "query": renderer.settings.default_query || null, "sort": renderer.settings.default_sort || null }, index);
 	        } else {
-		        Retina.RendererInstances.table[index].settings.sorted = false;
-		        Retina.RendererInstances.table[index].render();
+		    Retina.RendererInstances.table[index].settings.sorted = false;
+		    Retina.RendererInstances.table[index].render();
 	        }
 	    };
 	    
@@ -984,16 +984,11 @@
 	    } 
 	    if (typeof params == 'object') {
 	        if (params.sort) {
-	            if (params.sort == 'default') {
-	                renderer.settings.sort = 'name';
-    		        renderer.settings.sortDir = 'asc';
-	            } else {
-		        renderer.settings.sort = params.sort;
-			if (renderer.settings.asynch_column_mapping) {
-			    renderer.settings.sort = renderer.settings.asynch_column_mapping[params.sort];
-			}
-		        renderer.settings.sortDir = params.dir;
-	            }
+		    renderer.settings.sort = params.sort;
+		    if (renderer.settings.asynch_column_mapping) {
+			renderer.settings.sort = renderer.settings.asynch_column_mapping[params.sort];
+		    }
+		    renderer.settings.sortDir = params.dir;
 	        }
 	        if (params.query) {
 		    if (params.clear) {
