@@ -236,6 +236,10 @@
 		      success: function (d) {
 			  if (d && d.token) {
 			      var user;
+			      if (d.hasOwnProperty('fullname')) {
+				  d.firstname = d.fullname.substr(0, d.fullname.lastIndexOf(' '));
+				  d.lastname = d.fullname.substr(d.fullname.lastIndexOf(' ') + 1);
+			      }
 			      user = { login: d.login,
 				       firstname: d.firstname || d.login,
 				       lastname: d.lastname || "",
