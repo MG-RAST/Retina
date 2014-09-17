@@ -189,7 +189,7 @@
 		stm.import_data({ "data": d, 'merge': true });
 		break;
 	    default:
-		if (retval.hasOwnProperty('data')) {
+		if (retval.hasOwnProperty('data') && retval.hasOwnProperty('total_count')) {
 		    stm.import_data({ "type": type, "data": retval.data, "merge": true, "structure": 'list' });
 		} else {
 		    stm.import_data({ "type": type, "data": retval, "merge": true, "structure": 'instance' });
