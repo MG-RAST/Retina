@@ -171,9 +171,9 @@
 	
 	xhr.onload = function() {
 	    var retval = JSON.parse(xhr.responseText);
-	    if (retval.hasOwnProperty('ERROR')) {
-		console.log('Error in stm.get_obects: '+retval.ERROR);
-		stm.error = retval.ERROR;
+	    if (retval.hasOwnProperty('error')) {
+		console.log('Error in stm.get_obects: '+retval.error);
+		stm.error = retval.error;
 		promise.resolve;
 		return;
 	    }
@@ -189,10 +189,10 @@
 		stm.import_data({ "data": d, 'merge': true });
 		break;
 	    default:
-		if (d.hasOwnProperty('data')) {
-		    stm.import_data({ "type": type, "data": d.data, "merge": true, "structure": 'list' });
+		if (retval.hasOwnProperty('data')) {
+		    stm.import_data({ "type": type, "data": retval.data, "merge": true, "structure": 'list' });
 		} else {
-		    stm.import_data({ "type": type, "data": d, "merge": true, "structure": 'instance' });
+		    stm.import_data({ "type": type, "data": retval, "merge": true, "structure": 'instance' });
 		}
 		break;
 	    }
