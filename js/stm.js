@@ -185,20 +185,14 @@
 	    switch (params.return_type) {
 	    case 'text':
 		d[type] = {};
-		d[type][params['id']] = xhr.responseText;
+		d[type][params['id']] = retval.data;
 		stm.import_data({ "data": d, 'merge': true });
 		break;
 	    default:
-		d = JSON.parse(xhr.responseText);
-		if (d.error == null) {
-		    if (d.hasOwnProperty('data')) {
-			stm.import_data({ "type": type, "data": d.data, "merge": true, "structure": 'list' });
-		    } else {
-			stm.import_data({ "type": type, "data": d, "merge": true, "structure": 'instance' });
-		    }
+		if (d.hasOwnProperty('data')) {
+		    stm.import_data({ "type": type, "data": d.data, "merge": true, "structure": 'list' });
 		} else {
-		    alert(d.error+' ('+d.status+')');
-		    console.log(d);
+		    stm.import_data({ "type": type, "data": d, "merge": true, "structure": 'instance' });
 		}
 		break;
 	    }
