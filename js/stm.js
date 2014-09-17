@@ -191,7 +191,7 @@
 	    default:
 		d = JSON.parse(xhr.responseText);
 		if (d.error == null) {
-		    if (d.hasOwnProperty('data') && d.hasOwnProperty('error')) {
+		    if (d.hasOwnProperty('data')) {
 			stm.import_data({ "type": type, "data": d.data, "merge": true, "structure": 'list' });
 		    } else {
 			stm.import_data({ "type": type, "data": d, "merge": true, "structure": 'instance' });
