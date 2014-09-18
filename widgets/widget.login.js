@@ -240,6 +240,9 @@
 				  d.firstname = d.fullname.substr(0, d.fullname.lastIndexOf(' '));
 				  d.lastname = d.fullname.substr(d.fullname.lastIndexOf(' ') + 1);
 			      }
+			      if (d.hasOwnProperty('username') && ! d.hasOwnProperty('login')) {
+				  d.login = d.username;
+			      }
 			      user = { login: d.login,
 				       firstname: d.firstname || d.login,
 				       lastname: d.lastname || "",
