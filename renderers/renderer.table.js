@@ -833,6 +833,7 @@
 	    clear_btn.index = index;
 	    clear_btn.onclick = function () {
 		var index = this.index;
+		Retina.RendererInstances.table[index].settings.filter_changed = true;
 		for (var i in Retina.RendererInstances.table[index].settings.filter) {
 		    Retina.RendererInstances.table[index].settings.filter[i].searchword = "";
 		}
