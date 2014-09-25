@@ -557,6 +557,48 @@
 	    size = size / 1024;
 	    magnitude = "TB";
 	}
+	if (size > 999) {
+	    size = size / 1024;
+	    magnitude = "PB";
+	}
+	size = size.toFixed(1);
+
+	size += '';
+	var x = size.split('.');
+	var x1 = x[0];
+	var x2 = x.length > 1 ? '.' + x[1] : '';
+	var rgx = /(\d+)(\d{3})/;
+	while (rgx.test(x1)) {
+	    x1 = x1.replace(rgx, '$1' + ',' + '$2');
+	}
+	size =  x1 + x2;
+
+	return size + " " + magnitude;
+    };
+
+    Number.prototype.baseSize = function() {
+	var size = this;
+	var magnitude = "B";
+	if (size > 999) {
+	    size = size / 1000;
+	    magnitude = "KB";
+	}
+	if (size > 999) {
+	    size = size / 1000;
+	    magnitude = "MB";
+	}
+	if (size > 999) {
+	    size = size / 1000;
+	    magnitude = "GB";
+	}
+	if (size > 999) {
+	    size = size / 1000;
+	    magnitude = "TB";
+	}
+	if (size > 999) {
+	    size = size / 1000;
+	    magnitude = "PB";
+	}
 	size = size.toFixed(1);
 
 	size += '';
