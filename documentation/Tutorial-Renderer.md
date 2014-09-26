@@ -12,8 +12,7 @@
 
 ```javascript
    widget.setup = function () {
-      return [ Retina.add_renderer({"name": "helloWorld", "resource": "./renderers/", "filename": "renderer.helloWorld.js" }),
-               this.loadRenderer('helloWorld') ];
+      return [ Retina.load_renderer("helloWorld") ];
    }
 ```
 
