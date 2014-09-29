@@ -205,7 +205,7 @@
    </button>\
 ' + (widget.registerEnabled ? '<a href="'+widget.registerLink+'" target=_blank class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;">\
       Register\
-</a>' : '') +'</div>';
+</a>' : '') +(widget.helpEnabled ? '<a href="'+widget.helpLink+'" target=_blank class="btn btn-inverse" style="border-radius: 0px 3px 3px 0px;">?</a>' : "")+'</div>';
 	}
 	
 	return html;
