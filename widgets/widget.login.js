@@ -150,6 +150,7 @@
         <table>\
           <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">login</th><td><input type="text" '+loginStyle+'id="login">'+authResourceSelect+'</td></tr>\
           <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">password</th><td><input type="password" id="password" onkeypress="event = event || window.event;if(event.keyCode == 13) { Retina.WidgetInstances.login['+index+'].perform_login('+index+');}"></td></tr>\
+'+(widget.forgotEnabled ? '<tr><td colspan=2><a href="'+widget.forgotLink+'">forgot password</a></td></tr>' : '')+'\
         </table>\
       </div>\
       <div class="modal-footer">\
