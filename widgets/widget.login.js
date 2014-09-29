@@ -15,6 +15,14 @@
     widget.callback = null;
     widget.cookiename = "mgauth";
     widget.authResources = RetinaConfig.authResources;
+    widget.registerEnabled = false;
+    widget.registerLink = null;
+    widget.helpEnabled = false;
+    widget.helpLink = null;
+    widget.forgotEnabled = false;
+    widget.forgotLink = null;
+    widget.myDataEnabled = false;
+    widget.myDataLink = null;
     
     widget.display = function (wparams) {
 	widget = this;
@@ -171,9 +179,6 @@
 
 	var html = "";
 
-	var registerEnabled = false;
-	var mydataEnabled = false;
-
 	if (user) {
 	    html ='\
 <div style="float: right; margin-right: 20px; margin-top: 7px; color: gray;">\
@@ -182,14 +187,14 @@
       '+user.firstname+' '+user.lastname+'\
       <span class="caret" style="margin-left: 5px;"></span>\
    </button>\
-   <button class="btn btn-inverse" style="border-radius: 0px 3px 3px 0px;">?</button>\
+'+(widget.helpEnabled ? '<a href="'+widget.helpLink+'" target=_blank class="btn btn-inverse" style="border-radius: 0px 3px 3px 0px;">?</a>' : "")+'\
 </div>\
 <div class="userinfo" id="userinfo" style="display: none;">\
    <img src="Retina/images/user.png">\
    <h4 style="margin-top: 5px;">'+user.firstname+' '+user.lastname+'</h4>\
 <p style="margin-top: -10px;">'+user.email+'</p>\
    <button class="btn btn-inverse" onclick="document.getElementById(\'userinfo\').style.display=\'none\';Retina.WidgetInstances.login['+index+'].perform_logout('+index+');">logout</button>\
-'+(mydataEnabled ? '<button class="btn" style="float: left;">myData</button>' : '')+'\
+'+(widget.myDataEnabled ? '<a href="'+widget.myDataLink+'" target=_blank class="btn" style="float: left;">myData</a>' : '')+'\
 </div>';
 	} else {
 	    html ='\
@@ -197,11 +202,9 @@
    <button class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="jQuery(\'#loginModal\').modal(\'show\');document.getElementById(\'login\').focus();">\
       Login\
    </button>\
-' + (registerEnabled ? '<button class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="alert(\'register\');">\
+' + (widget.registerEnabled ? '<a href="'+widget.registerLink+'" target=_blank class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;">\
       Register\
-</button>' : '') +'\
-   <button class="btn btn-inverse" style="border-radius: 0px 3px 3px 0px;">?</button>\
-</div>';
+</a>' : '') +'</div>';
 	}
 	
 	return html;
