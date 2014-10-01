@@ -61,6 +61,8 @@ must be called before any operations with stm can occur. Possible parameters are
   <li><b>Data</b><br>Initial data to be present in the storage. See 'import_data' for details.</li>
   <li><b>SourceOrigin</b><br>The allowed source origin for trans-frame messaging. Default is '*'.</li>
   <li><b>TargetOrigin</b><br>The allowed target origin for trans-frame messaging. Default is '*'.</li>
+  <li><b>useDB</b><br>Boolean whether data should be loaded from indexedDB if available. If set to true the database name can be passed as parameter dbName. If this option is used, the function returns a promise which is fulfilled once the data is loaded. Default is false.</li>
+  <li><b>dbName</b><br>Name of the indexedDB database to load the data from. This option is only valid if useDB is set to true. Default is 'stm'.</li>
 </ul>
 
 <h3>add_repository(params)</h3>
@@ -93,9 +95,10 @@ must be called before any operations with stm can occur. Possible parameters are
 
 <p>This function is suited for loading data dumped by stm.dump</p>
 
-<h3>dump</h3>
+<h3>dump(useDB, dbName)</h3>
 
 <p>Dumps the content of the stm.DataStore to a new window. If the content is saved to a file, it can later be loaded by the file_upload.</p>
+<p>If useDB is set to true, the data will be dumped to an indexedDB with the name dbName (default is 'stm'). In this case the function will return a promise that is fulfilled once the data import is complete.</p>
 
 <h3>save_as (data, filename)</h3>
 
