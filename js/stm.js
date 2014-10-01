@@ -22,6 +22,40 @@
 	if (params && params.Data) {
 	    stm.import_data({ merge: false, data: params.Data });
 	}
+	if (params.useDB) {
+	    var dbName = params.dbName || 'stm';
+	    var promise = jQuery.Deferred();
+	    var idb = indexedDB.open(dbName);
+	    idb.onerror = function (event) {
+		console.log(event);
+	    };
+	    idb.onsuccess = function (event) {
+		var db = event.target.result;
+		var trans = db.transaction(db.objectStoreNames,"readonly");
+		trans.oncomplete = function () {
+		    promise.resolve();
+		};
+		for (var i=0; i<db.objectStoreNames.length; i++) {
+		    var name = db.objectStoreNames[i];
+		    if (! stm.DataStore.hasOwnProperty(name)) {
+			stm.DataStore[name] = {};
+		    }
+		    var req = trans.objectStore(name).openCursor();
+		    req.name = name;
+		    req.onsuccess = function (event) {
+			var n = this.name;
+			var cursor = event.target.result;
+			if (cursor) {
+			    var id = cursor.value._stm_id;
+			    delete cursor.value._stm_id;
+			    stm.DataStore[n][id] = cursor.value;
+			    cursor.continue();
+			}
+		    }
+		}
+	    };
+	    return promise;
+	}
     };
     
     // adds / replaces a repository in the stm.DataRepositories list
@@ -277,33 +311,70 @@
     };
 
     // session dumping
-    stm.dump = function () {
-	var dstring = "{";
-	for (var i in stm.DataStore) {
-	    if (stm.DataStore.hasOwnProperty(i)) {
-		dstring += '"'+i+'":{';
-		var hasOne = false;
-		for (var h in stm.DataStore[i]) {
-		    if (stm.DataStore[i].hasOwnProperty(h)) {
-			hasOne = true;
-			dstring += '"'+h+'":'+JSON.stringify(stm.DataStore[i][h]);
-			dstring += ",";
+    stm.dump = function (useDB, dbName) {
+	if (useDB) {
+	    var promise = jQuery.Deferred();
+	    dbName = dbName || 'stm';
+	    indexedDB.deleteDatabase(dbName).onsuccess = function () {
+		var DBOpenRequest = indexedDB.open(dbName);
+		DBOpenRequest.onerror = function(event) {
+		    alert('session dump failed');
+		};
+		DBOpenRequest.onupgradeneeded = function(e) {
+		    var db = e.target.result;
+		    
+		    for (var i in stm.DataStore) {
+			if (stm.DataStore.hasOwnProperty(i)) {
+			    if (! db.objectStoreNames.contains(i)) {
+				db.createObjectStore(i, {keyPath: "_stm_id"});
+			    }
+			}
 		    }
+		};
+
+		DBOpenRequest.onsuccess = function(event) {
+		    var db = DBOpenRequest.result;	    
+		    var objTypes = Retina.keys(stm.DataStore);
+		    var trans = db.transaction(objTypes, "readwrite");
+		    trans.oncomplete = function () {
+			promise.resolve();
+		    };
+		    for (var i=0; i<objTypes.length; i++) {
+			var type = objTypes[i];
+			var store = trans.objectStore(type);
+			for (var h in stm.DataStore[type]) {
+			    if (stm.DataStore[type].hasOwnProperty(h)) {
+				stm.DataStore[type][h]._stm_id = h;
+				store.add(stm.DataStore[type][h]);
+			    }
+			}
+		    }
+		};
+	    };
+	    return promise;
+	} else {
+	    var dstring = "{";
+	    for (var i in stm.DataStore) {
+		if (stm.DataStore.hasOwnProperty(i)) {
+		    dstring += '"'+i+'":{';
+		    var hasOne = false;
+		    for (var h in stm.DataStore[i]) {
+			if (stm.DataStore[i].hasOwnProperty(h)) {
+			    hasOne = true;
+			    dstring += '"'+h+'":'+JSON.stringify(stm.DataStore[i][h]);
+			    dstring += ",";
+			}
+		    }
+		    if (hasOne) {
+			dstring = dstring.slice(0,-1);
+		    }
+		    dstring += "},";
 		}
-		if (hasOne) {
-		    dstring = dstring.slice(0,-1);
-		}
-		dstring += "},";
 	    }
+	    dstring = dstring.slice(0,-1);
+	    dstring += "}";
+	    stm.saveAs(dstring,"session.dump");
 	}
-	dstring = dstring.slice(0,-1);
-	dstring += "}";
-	stm.saveAs(dstring,"session.dump");
-	/*var w = window.open('', '_blank', '');
-	w.document.open();
-	w.document.write(dstring);
-	w.document.close();
-	w.document.title = "session.dump";*/
     };
 
     // save as dialog
