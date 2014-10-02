@@ -578,26 +578,26 @@
 
     Number.prototype.baseSize = function() {
 	var size = this;
-	var magnitude = "B";
+	var magnitude = "bp";
 	if (size > 999) {
 	    size = size / 1000;
-	    magnitude = "KB";
+	    magnitude = "Kbp";
 	}
 	if (size > 999) {
 	    size = size / 1000;
-	    magnitude = "MB";
+	    magnitude = "Mbp";
 	}
 	if (size > 999) {
 	    size = size / 1000;
-	    magnitude = "GB";
+	    magnitude = "Gbp";
 	}
 	if (size > 999) {
 	    size = size / 1000;
-	    magnitude = "TB";
+	    magnitude = "Tbp";
 	}
 	if (size > 999) {
 	    size = size / 1000;
-	    magnitude = "PB";
+	    magnitude = "Pbp";
 	}
 	size = size.toFixed(1);
 
