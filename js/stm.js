@@ -32,7 +32,7 @@
 	    idb.onsuccess = function (event) {
 		var db = event.target.result;
 		if (db.objectStoreNames.length == 0) {
-		    return;
+		    return promise.resolve();
 		}
 		var trans = db.transaction(db.objectStoreNames,"readonly");
 		trans.oncomplete = function () {
