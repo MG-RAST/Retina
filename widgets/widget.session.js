@@ -24,8 +24,8 @@
   <button type='button' class='btn btn-inverse' data-toggle='dropdown' title='display session information'><i class='icon-folder-open icon-white'></i></button>\
   <ul class='dropdown-menu pull-right' role='menu' aria-labelledby='dropdownMenu'>\
     <li class='disabled'><a tabindex='-1' href='#' style='color: black; font-weight: bold;'>Session Management</a></li>\
-    <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].download();' title='download session to disk'><i class='icon-download' style='margin-right: 5px; position: relative; top: 1px;'></i>download</a></li>\
-    <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].upload("+index+");' title='upload session from file'><i class='icon-upload' style='margin-right: 5px; position: relative; top: 1px;'></i>upload</a></li>\
+    <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].download();' title='download session to disk'><img style='height: 16px; position: relative; right: 5px; bottom: 2px;' src='Retina/images/download.png'>download</a></li>\
+    <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].upload("+index+");' title='upload session from file'><img style='height: 16px; position: relative; right: 5px; bottom: 2px;' src='Retina/images/upload.png'>upload</a></li>\
 "+( params.noInfo ? "" : "<li class='divider'></li>\
     <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.session["+index+"].sessionInfo("+index+");'><i class='icon-question-sign' style='margin-right: 5px; position: relative; top: 1px;'></i>info</a></li>\
 ")+"  </ul>\
