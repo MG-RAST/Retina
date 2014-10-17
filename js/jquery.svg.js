@@ -3108,6 +3108,9 @@
 	drawGraph: function(graph) {
 	    graph._drawChartBackground();
 	    var dims = graph._getDims();
+
+	    graph.xAxis._scale.max = graph._series[0]._values.length - 1;
+
 	    var xScale = dims[graph.W] / (graph.xAxis._scale.max - graph.xAxis._scale.min);
 	    var yScale = dims[graph.H] / (graph.yAxis._scale.max - graph.yAxis._scale.min);
 	    this._chart = graph._wrapper.group(graph._chartCont, {class_: 'chart'});
@@ -3115,7 +3118,8 @@
 		this._drawSeries(graph, i, dims, xScale, yScale);
 	    }
 	    graph._drawTitle();
-	    graph._drawAxes();
+	    graph._drawAxes(true);
+	    this._drawXAxis(graph, graph._series[0]._values.length, dims, xScale);
 	    graph._drawLegend();
 	},
 	
@@ -3135,12 +3139,43 @@
 		}
 		circles.push( [ x, y ]);
 	    }
-	    var p = graph._wrapper.path(this._chart, path,
-					jQuery.extend({id: 'series' + cur, fill: 'none', stroke: series._stroke,
-						       strokeWidth: series._strokeWidth}, series._settings || {}));
+	    if (! series._settings.noLines) {
+		graph._wrapper.path(this._chart, path,
+				    jQuery.extend({id: 'series' + cur, fill: 'none', stroke: series._stroke,
+						   strokeWidth: series._strokeWidth}, series._settings || {}));
+	    }
 	    for (i=0;i<circles.length;i++) {
-		var c = graph._wrapper.circle(this._chart, circles[i][0], circles[i][1], 4, { fill: 'white', strokeWidth: 2, stroke: series._stroke, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
+		var c = graph._wrapper.circle(this._chart, circles[i][0], circles[i][1], 3, { fill: 'white', strokeWidth: 1, stroke: series._stroke, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
 		graph._showStatus(c, series._name, series._values[i]);
+	    }
+	},
+
+	/* Draw the x-axis and its ticks. */
+	_drawXAxis: function(graph, numVal, dims, xScale) {
+	    var axis = graph.xAxis;
+	    if (axis._title) {
+		graph._wrapper.text(graph._chartCont, dims[graph.X] + dims[graph.W] / 2,
+				    dims[graph.Y] + dims[graph.H] + axis._titleOffset,
+				    axis._title, jQuery.extend({textAnchor: 'middle'}, axis._titleFormat || {}));
+	    }
+	    var gl = graph._wrapper.group(graph._chartCont, jQuery.extend({class_: 'xAxis'}, axis._lineFormat));
+	    var labelTextAnchor = axis.labelRotation ? "end" : "middle";
+	    var gt = graph._wrapper.group(graph._chartCont, jQuery.extend({class_: 'xAxisLabels',
+									   textAnchor: labelTextAnchor}, axis._labelFormat));
+	    graph._wrapper.line(gl, dims[graph.X], dims[graph.Y] + dims[graph.H],
+				dims[graph.X] + dims[graph.W], dims[graph.Y] + dims[graph.H]);
+	    if (axis._ticks.major) {
+		var offsets = graph._getTickOffsets(axis, true);
+		for (var i = 1; i < numVal; i++) {
+		    var x = dims[graph.X] + xScale * i;
+		    graph._wrapper.line(gl, x, dims[graph.Y] + dims[graph.H] + offsets[0] * axis._ticks.size,
+					x, dims[graph.Y] + dims[graph.H] + offsets[1] * axis._ticks.size);
+		}
+		for (var i = 0; i < numVal; i++) {
+		    var x = dims[graph.X] + xScale * i;
+		    graph._wrapper.text(gt, x, dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size,
+					(axis._labels ? axis._labels[i] : '' + i), (axis.labelRotation ? { transform: "rotate("+axis.labelRotation+", "+x+", "+(dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size)+")"} : null));
+		}
 	    }
 	}
     });

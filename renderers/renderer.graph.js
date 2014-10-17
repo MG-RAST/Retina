@@ -308,7 +308,7 @@
 	    }
 
 	    for (i=0;i<renderer.settings.data.length;i++) {
-		svg.graph.noDraw().addSeries( renderer.settings.data[i].name, renderer.settings.data[i].data, null, renderer.settings.data[i].lineColor || 'white', renderer.settings.data[i].lineWidth || renderer.settings.default_line_width);
+		svg.graph.noDraw().addSeries( renderer.settings.data[i].name, renderer.settings.data[i].data, null, renderer.settings.data[i].lineColor || 'white', renderer.settings.data[i].lineWidth || renderer.settings.default_line_width, renderer.settings.data[i].settings ? renderer.settings.data[i].settings : {});
 	    }
 	    
 	    svg.graph.xAxis.title(renderer.settings.x_title, renderer.settings.x_title_color).
