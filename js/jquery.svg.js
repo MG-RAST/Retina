@@ -3735,7 +3735,7 @@
 	    var dims = this._getDims();
 	    var zerox = dims[0] - (this.xAxis._scale.min * scales[0]);
 	    var zeroy = dims[1] + dims[3] + (this.yAxis._scale.min * scales[1]);
-	    var psettings = { size: 6, shape: this.series[series].shape, 'filled': this.series[series].filled || false, color: this.series[series].color };
+	    var psettings = { size: this.series[series].pointSize || 6, shape: this.series[series].shape, 'filled': this.series[series].filled || false, color: this.series[series].color };
 	    for (i=0;i<points.length;i++) {
 		var p = points[i];
 		jQuery.extend(p, psettings);
