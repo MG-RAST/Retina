@@ -159,7 +159,7 @@
       </div>\
     </div>\
 \
-    <div id="msgModal" class="modal hide fade" tabindex="-1" style="width: 400px;" role="dialog" aria-labelledby="msgModalLabel" aria-hidden="true" onkeypress="event = event || window.event;if(event.keyCode == 13) {document.getElementById(\'loginOKButton\').click();}">\
+    <div id="msgModal" class="modal hide fade" tabindex="-1" style="width: 400px; z-index: 10000;" role="dialog" aria-labelledby="msgModalLabel" aria-hidden="true" onkeypress="event = event || window.event;if(event.keyCode == 13) {document.getElementById(\'loginOKButton\').click();}">\
       <div class="modal-header">\
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>\
 	<h3 id="msgModalLabel">Login Information</h3>\
