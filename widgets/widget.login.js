@@ -145,8 +145,8 @@
 	<h3 id="loginModalLabel">Authentication</h3>\
       </div>\
       <div class="modal-body">\
-	<p>Enter your credentials.</p>\
         <div id="failure"></div>\
+	<p>Enter your credentials.</p>\
         <table>\
           <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">login</th><td><input type="text" '+loginStyle+'id="login">'+authResourceSelect+'</td></tr>\
           <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">password</th><td><input type="password" id="password" onkeypress="event = event || window.event;if(event.keyCode == 13) { Retina.WidgetInstances.login['+index+'].perform_login('+index+');}"></td></tr>\
@@ -228,8 +228,14 @@
 	jQuery.ajax({ dataType: "json",
 		      url: auth_url,
 		      headers: header,
-		      error: function (xhr, error) {
-			  document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> Login failed.<br>'+(error || "unknown error")+'</div>';
+		      error: function (xhr) {
+			  var error = "Unknown error";
+			  if (xhr.status == 401) {
+			      error = "invalid credentials";
+			  } else if (xhr.status = 404) {
+			      error = "authorization server unavailable";
+			  }
+			  document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button>login failed - '+error+'</div>';
 			  if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
 			      Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
 											'result': 'failed',
