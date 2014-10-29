@@ -614,6 +614,42 @@
 	return size + " " + magnitude;
     };
 
+    /* Round a number to a given number of decimal points. */
+    Number.prototype.round = function(num, dec) {
+	return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
+    }
+    
+    /* get a nice number */
+    Retina.niceNum = function (range, round) {
+        var exponent = Math.floor(Math.log10(range)); /** exponent of range */
+        var fraction = range / Math.pow(10, exponent); /** fractional part of range */
+        var niceFraction; /** nice, rounded fraction */
+	
+        if (round) {
+            if (fraction < 1.5) {
+                niceFraction = 1;
+	    } else if (fraction < 3) {
+                niceFraction = 2;
+            } else if (fraction < 7) {
+                niceFraction = 5;
+            } else {
+                niceFraction = 10;
+	    }
+        } else {
+            if (fraction <= 1) {
+                niceFraction = 1;
+            } else if (fraction <= 2) {
+                niceFraction = 2;
+            } else if (fraction <= 5) {
+                niceFraction = 5;
+            } else {
+                niceFraction = 10;
+	    }
+        }
+	
+        return niceFraction * Math.pow(10, exponent);
+    }
+
     /* get a nice scale, min, max and tick interval */
     Retina.niceScale = function (params) {
  	var minPoint = params.min;
