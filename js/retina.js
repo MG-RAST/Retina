@@ -660,7 +660,7 @@
 	var niceMin = Math.floor(minPoint / tickSpacing) * tickSpacing;;
 	var niceMax = Math.ceil(maxPoint / tickSpacing) * tickSpacing;
 	
-	return (niceMin, niceMax, tickSpacing);
+	return { min: niceMin, max: niceMax, space: tickSpacing };
     }
 
     String.prototype.hexDecode = function(){var r='';for(var i=0;i<this.length;i+=2){r+=unescape('%'+this.substr(i,2));}return r;}
