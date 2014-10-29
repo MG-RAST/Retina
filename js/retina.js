@@ -655,8 +655,8 @@
  	var minPoint = params.min;
 	var maxPoint = params.max;
 	var maxTicks = params.ticks || 10;
-	var tickSpacing = Retina.niceNum(range / (maxTicks - 1), true);
 	var range = Retina.niceNum(maxPoint - minPoint, false);
+	var tickSpacing = Retina.niceNum(range / (maxTicks - 1), true);
 	var niceMin = Math.floor(minPoint / tickSpacing) * tickSpacing;;
 	var niceMax = Math.ceil(maxPoint / tickSpacing) * tickSpacing;
 	
