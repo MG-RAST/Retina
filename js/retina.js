@@ -614,6 +614,19 @@
 	return size + " " + magnitude;
     };
 
+    /* get a nice scale, min, max and tick interval */
+    Retina.niceScale = function (params) {
+ 	var minPoint = params.min;
+	var maxPoint = params.max;
+	var maxTicks = params.ticks || 10;
+	var tickSpacing = niceNum(range / (maxTicks - 1), true);
+	var range = niceNum(maxPoint - minPoint, false);
+	var niceMin = Math.floor(minPoint / tickSpacing) * tickSpacing;;
+	var niceMax = Math.ceil(maxPoint / tickSpacing) * tickSpacing;
+	
+	return (niceMin, niceMax, tickSpacing);
+    }
+
     String.prototype.hexDecode = function(){var r='';for(var i=0;i<this.length;i+=2){r+=unescape('%'+this.substr(i,2));}return r;}
     String.prototype.hexEncode = function(){var r='';var i=0;var h;while(i<this.length){h=this.charCodeAt(i++).toString(16);while(h.length<2){h=h;}r+=h;}return r;}
 
