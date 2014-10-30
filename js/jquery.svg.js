@@ -19,7 +19,6 @@
 	}
     }
 
-
     /* SVG manager.
        Use the singleton instance of this class, jQuery.svg, 
        to interact with the SVG functionality. */
@@ -1570,52 +1569,7 @@
     function roundNumber(num, dec) {
 	return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
     }
-    
-    /* get a nice number */
-    function niceNum (range, round) {
-        var exponent = Math.floor(Math.log10(range)); /** exponent of range */
-        var fraction = range / Math.pow(10, exponent); /** fractional part of range */
-        var niceFraction; /** nice, rounded fraction */
-	
-        if (round) {
-            if (fraction < 1.5) {
-                niceFraction = 1;
-	    } else if (fraction < 3) {
-                niceFraction = 2;
-            } else if (fraction < 7) {
-                niceFraction = 5;
-            } else {
-                niceFraction = 10;
-	    }
-        } else {
-            if (fraction <= 1) {
-                niceFraction = 1;
-            } else if (fraction <= 2) {
-                niceFraction = 2;
-            } else if (fraction <= 5) {
-                niceFraction = 5;
-            } else {
-                niceFraction = 10;
-	    }
-        }
-	
-        return niceFraction * Math.pow(10, exponent);
-    }
-    
-    /* get a nice scale, min, max and tick interval */
-    function niceScale (params) {
- 	var minPoint = params.min;
-	var maxPoint = params.max;
-	var maxTicks = params.ticks || 10;
-	var tickSpacing = niceNum(range / (maxTicks - 1), true);
-	var range = niceNum(maxPoint - minPoint, false);
-	var niceMin = Math.floor(minPoint / tickSpacing) * tickSpacing;;
-	var niceMax = Math.ceil(maxPoint / tickSpacing) * tickSpacing;
-	
-	return (niceMin, niceMax, tickSpacing);
-    }
-    
-    
+
     // Singleton primary SVG interface
     jQuery.svg = new SVGManager();
 
@@ -2037,6 +1991,7 @@
 	    }
 	    if (this.yAxis) {
 		if (this.yAxis._title) {
+		    this.yAxis._titleOffset = dims[this.X] - (this.yAxis._titleFontSize || 14);
 		    this._wrapper.text(this._chartCont, 0, 0, this.yAxis._title, jQuery.extend({textAnchor: 'middle',
 												transform: 'translate(' + (dims[this.X] - this.yAxis._titleOffset) + ',' +
 												(dims[this.Y] + dims[this.H] / 2) + ') rotate(-90)'}, this.yAxis._titleFormat || {}));
@@ -2597,7 +2552,7 @@
 	    var axis = graph.xAxis;
 	    if (axis._title) {
 		graph._wrapper.text(graph._chartCont, dims[graph.X] + dims[graph.W] / 2,
-				    dims[graph.Y] + dims[graph.H] + axis._titleOffset,
+				    parseInt(graph._chartCont.attributes[3].value),//dims[graph.Y] + dims[graph.H] + axis._titleOffset,
 				    axis._title, jQuery.extend({textAnchor: 'middle'}, axis._titleFormat || {}));
 	    }
 	    var gl = graph._wrapper.group(graph._chartCont, jQuery.extend({class_: 'xAxis'}, axis._lineFormat));
@@ -4192,9 +4147,29 @@
 	    return this._plot;
 	}
     });
+
+    // css
+    jQuery("<style>")
+	.prop("type", "text/css")
+	.html("\
+svg:svg {\
+    display: none;\
+}\
+\
+.svg_error {\
+    color: red;\
+    font-weight: bold;\
+}\
+\
+.marquee {\
+    fill-opacity: 0.2;\
+    stroke: #000;\
+    stroke-dasharray: 2,4;\
+    vector-effect:non-scaling-stroke;\
+}")
+	.appendTo("head");
     
 })(jQuery);
-
 
 //===================
 /* Drag-Select-Box */
