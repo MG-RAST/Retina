@@ -129,7 +129,7 @@
 		'default_line_color': 'black',
 		'default_line_width': 1,
 		'show_legend': false,
-		'legend_position': 'left',
+		'legend_position': 'right',
 		'show_grid': false,
 		'short_axis_labels': false,
 		'normalize_stacked_area': true,

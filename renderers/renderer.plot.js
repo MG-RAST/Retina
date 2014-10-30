@@ -105,16 +105,16 @@
 		'default_line_color': 'black',
 		'default_line_width': 1,
 		'show_legend': true,
-		'legend_position': 'left',
+		'legend_position': 'right',
 		'series': [],
 		'connected': true,
 		'show_dots': true,
 		'width': 800,
 		'height': 400,
-		'x_min': 0,
-		'x_max': 1,
-		'y_min': 0,
-		'y_max': 100,
+		'x_min': undefined,
+		'x_max': undefined,
+		'y_min': undefined,
+		'y_max': undefined,
 		'x_scale': 'linear',
 		'y_scale': 'linear',
 		'x_title': '',
@@ -248,6 +248,27 @@
 			   '#2F96B4', // lightblue
 			   '#bd2fa6'  // purple 
 			 ];
+
+	    if (renderer.settings.x_min === undefined) {
+		var x_min = undefined;
+		var x_max = undefined;
+		var y_min = undefined;
+		var y_max = undefined;
+		for (var i=0; i<renderer.settings.data.points.length; i++) {
+		    for (var h=0; h<renderer.settings.data.points[i].length; h++) {
+			if (x_min === undefined || renderer.settings.data.points[i][h].x < x_min) x_min = renderer.settings.data.points[i][h].x;
+			if (x_max === undefined || renderer.settings.data.points[i][h].x > x_max) x_max = renderer.settings.data.points[i][h].x;
+			if (y_min === undefined || renderer.settings.data.points[i][h].y < y_min) y_min = renderer.settings.data.points[i][h].y;
+			if (y_max === undefined || renderer.settings.data.points[i][h].y > y_max) y_max = renderer.settings.data.points[i][h].y;
+		    }
+		}
+		var sx = Retina.niceScale({min: x_min, max: x_max});
+		renderer.settings.x_min = sx.min;
+		renderer.settings.x_max = sx.max;
+		var sy = Retina.niceScale({min: y_min, max: y_max});
+		renderer.settings.y_min = sy.min;
+		renderer.settings.y_max = sy.max;
+	    }
 	    
 	    svg.plot.noDraw().title(renderer.settings.title, renderer.settings.titleOffset, renderer.settings.title_color, renderer.settings.title_settings);
 	    for (i=0;i<renderer.settings.data.length;i++) {
