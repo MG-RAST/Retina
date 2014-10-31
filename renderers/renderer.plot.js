@@ -150,10 +150,8 @@
 		},
 		{ layout:
 		  [
-		      { name: 'show_legend', type: 'select', description: "sets whether the legend is displayed or not",
-			title: "show legend", options: [ 
-			    { value: 0, label: "no" },
-			    { value: 1, selected: true, label: "yes" } ] },
+		      { name: 'show_legend', type: 'bool', description: "sets whether the legend is displayed or not",
+			title: "show legend", defaultTrue: true },
 		      { name: 'width', type: 'int', description: "width of the plot in pixel", title: "width" },
 		      { name: 'height', type: 'int', description: "height of the plot in pixel", title: "height" },
 		      { name: 'legend_position', type: 'select',

@@ -91,6 +91,31 @@
 		'showTooltip': true,
 		'tooltipStyle': "popover"
 	    },
+	    options: [
+	      { general:
+		[
+		    { name: 'showCollapseAllButton', type: 'bool', description: "display the button to collapse the entire tree?",
+		      title: "show collapse all button" },
+		    { name: 'showExpandAllButton', type: 'bool', description: "display the button to expand the entire tree?",
+		      title: "show expand all button" },
+		    { name: 'showSearchBar', type: 'bool', description: "display a searchbar?",
+		      title: "show search bar" },
+		    { name: 'showTooltip', type: 'bool', description: "display a tooltip for the entries?",
+		      title: "show tooltip" },
+		    { name: 'tooltipStyle', type: 'select', description: "style of the tooltip",
+		      title: "tooltip style", options: [ 
+			  { value: "popover", label: "popover", selected: true },
+			  { value: "title", label: "title" } ] }
+		]
+	      },
+	      { layout:
+		[
+		    { name: 'width', type: 'int', description: "width of the plot in pixel", title: "width" },
+		    { name: 'height', type: 'int', description: "height of the plot in pixel", title: "height" },
+		    { name: 'indent', type: 'int', description: "number of pixels to indent each level", title: "indentation" },
+		]
+	      }
+	  ]
 	},
 
 	// example data to show the functionality of the tree renderer
