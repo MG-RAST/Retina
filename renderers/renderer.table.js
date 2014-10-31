@@ -109,7 +109,6 @@
 		'navigation_callback': null,
 		'navigation_url': null,
 		'target': 'table_space',
-		'data': null,
 		'synchronous': true,
 		'query_type': 'infix',
 		'asynch_column_mapping': null

@@ -95,13 +95,13 @@
 	      { general:
 		[
 		    { name: 'showCollapseAllButton', type: 'bool', description: "display the button to collapse the entire tree?",
-		      title: "show collapse all button" },
+		      title: "show collapse all button", defaultTrue: true },
 		    { name: 'showExpandAllButton', type: 'bool', description: "display the button to expand the entire tree?",
-		      title: "show expand all button" },
+		      title: "show expand all button", defaultTrue: true },
 		    { name: 'showSearchBar', type: 'bool', description: "display a searchbar?",
-		      title: "show search bar" },
+		      title: "show search bar", defaultTrue: true },
 		    { name: 'showTooltip', type: 'bool', description: "display a tooltip for the entries?",
-		      title: "show tooltip" },
+		      title: "show tooltip", defaultTrue: true },
 		    { name: 'tooltipStyle', type: 'select', description: "style of the tooltip",
 		      title: "tooltip style", options: [ 
 			  { value: "popover", label: "popover", selected: true },
