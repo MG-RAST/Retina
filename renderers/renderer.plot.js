@@ -123,7 +123,7 @@
 		'y_titleOffset': 45,
 		'titleOffset': 0,
 		'drag_select': null,
-		'data': [ ] },
+		'data': undefined },
 	    options: [
 		{ general:
 		  [
@@ -131,14 +131,10 @@
 			title: "default line color" },
 		      { name: 'default_line_width', type: 'int', description: "default width of the data lines of the plot in pixel",
 			title: "default line width" },
-		      { name: 'connected', type: 'select', description: "sets whether the data points are connected or not",
-			title: "connected", options: [ 
-			    { value: 0, label: "no" },
-			    { value: 1, selected: true, label: "yes" } ] },
-		      { name: 'show_dots', type: 'select', description: "sets whether the data points are displayed or not",
-			title: "show dots", options: [ 
-			    { value: 0, label: "no" },
-			    { value: 1, selected: true, label: "yes" } ] },
+		      { name: 'connected', type: 'bool', description: "sets whether the data points are connected or not",
+			title: "connected", defaultTrue: true },
+		      { name: 'show_dots', type: 'bool', description: "sets whether the data points are displayed or not",
+			title: "show dots", defaultTrue: true },
 		  ]
 		},
 		{ text:
