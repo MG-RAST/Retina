@@ -110,7 +110,7 @@
             version: "1.0",
             requires: [ "jquery.svg.js" ],
             defaults: {
-		'type': 'column', // [ column, stackedColumn, row, stackedRow, line, pie, stackedArea ]
+		'type': 'column', // [ column, stackedColumn, row, stackedRow, line, pie, stackedArea, deviation ]
 		'title': '',
 		'title_color': 'black',
 		'title_settings': { fontSize: '15px' },
@@ -146,7 +146,8 @@
 			  { value: "stackedRow", label: "stacked row" },
 			  { value: "line" },
 			  { value: "pie" },
-			  { value: "stackedArea", label: "stacked area" } ] },
+			  { value: "stackedArea", label: "stacked area" },
+			  { value: "deviation", label: "deviation" } ] },
 		      { name: 'default_line_color', type: 'color', description: "default color of the data lines of the graph", title: "default line color" },
 		      { name: 'default_line_width', type: 'int', description: "default width of the data lines of the graph in pixel", title: "default line width" },
 		      { name: 'show_grid', type: 'select', description: "sets whether grid is displayed or not", title: "show grid", options: [
@@ -222,7 +223,20 @@
 	    target.innerHTML = "<div id='graph_div"+index+"'></div>";
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
 	    jQuery('#graph_div'+index).svg();
-	    Retina.RendererInstances.graph[index].drawImage(jQuery('#graph_div'+index).svg('get'));
+
+	    var cmax;
+	    if (renderer.settings.type == 'deviation') {
+		for (var i=0; i<renderer.settings.data.length; i++) {
+		    var d = renderer.calculateData([ [ 10, 5, 7, 3, 5, 1, 9, 20, 13, 7, 9, 15, 4 ],
+						     [ 23, 5, 7, 14, 6, 16, 2, 13, 16, 17, 6, 9, 2 ],
+						     [ 12, 11, 15, 16, 18, 9, 10, 8, 9, 8, 11, 13, 14 ] ])
+		    renderer.settings.data[i].data = d.data;
+		    cmax = d.max;
+		    console.log(d);
+		}
+	    }
+
+	    Retina.RendererInstances.graph[index].drawImage(jQuery('#graph_div'+index).svg('get'), cmax);
 	    
 	    return renderer;
 	},
@@ -257,7 +271,7 @@
 		}
 	    }
 	},
-	drawImage: function (svg) {
+	drawImage: function (svg, cmax) {
 
 	    var chartAreas = [ [ 0.1, 0.1, 0.95, 0.9 ],   // no legend
 			       [ 0.2, 0.1, 0.95, 0.9 ],   // legend left
@@ -290,6 +304,7 @@
 		    }
 		}
 	    }
+	    max = cmax || max;
 	    
 	    svg.linearGradient(defs, 'fadeRed', [[0, '#EE5F5B'], [1, '#BD362F']]); 
 	    svg.linearGradient(defs, 'fadeBlue', [[0, '#0088CC'], [1, '#0044CC']]); 
@@ -353,6 +368,50 @@
 	    }
 	    svg.graph.noDraw().area(renderer.settings.chartArea ? renderer.settings.chartArea : chartAreas[chartLegend]).
 		type(chartType, chartOptions).redraw();
+	},
+	calculateData: function (data) {
+	    var fivenumbers = [];
+	    var min = data[0][0];
+	    var max = data[0][0];
+	    
+	    for (var i=0;i<data.length;i++) {
+		data[i] = data[i].sort(Retina.Numsort);
+		if (data[i][0] < min) {
+		    min = data[i][0];
+		}
+		if (data[i][data[i].length - 1] > max) {
+		    max = data[i][data[i].length - 1];
+		}
+		fivenumbers[i] = [];
+		fivenumbers[i]['min'] = data[i][0];
+		fivenumbers[i]['max'] = data[i][data[i].length - 1];
+		var boxarray = [];
+		if (data[i].length % 2 == 1) {
+		    var med = parseInt(data[i].length / 2);
+		    fivenumbers[i]['median'] = data[i][med];
+		    if ((med + 1) % 2 == 1) {
+			fivenumbers[i]['lower'] = data[i][parseInt((med + 1) / 2)];
+			fivenumbers[i]['upper'] = data[i][med + parseInt((med + 1) / 2)];
+		    } else {
+			fivenumbers[i]['lower'] = ((data[i][(med + 1) / 2]) + (data[i][((med + 1) / 2) + 1])) / 2;
+			fivenumbers[i]['upper'] = ((data[i][med + ((med + 1) / 2) - 1]) + (data[i][med + ((med + 1) / 2)])) / 2;
+		    }
+		} else {
+		    var medup = data[i].length / 2;
+		    var medlow = (data[i].length / 2) - 1;
+		    fivenumbers[i]['median'] = (data[i][medlow] + data[i][medup]) / 2;
+		    if (medup % 2 == 1) {
+			fivenumbers[i]['lower'] = data[i][medlow / 2];
+			fivenumbers[i]['upper'] = data[i][medup + (medlow / 2)];
+		    } else {
+			fivenumbers[i]['lower'] = (data[i][(medup / 2) - 1] + data[i][medup / 2]) / 2;
+			fivenumbers[i]['upper'] = (data[i][medup + (medup / 2) - 1] + data[i][medup + (medup / 2)]) / 2;
+		    }
+		}
+	    }
+
+	    var retval = { data: fivenumbers, min: min, max: max };
+	    return retval;
 	}
     });
 }).call(this);
