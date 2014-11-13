@@ -224,15 +224,12 @@
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
 	    jQuery('#graph_div'+index).svg();
 
-	    var cmax;
+	    var cmax = 0;
 	    if (renderer.settings.type == 'deviation') {
 		for (var i=0; i<renderer.settings.data.length; i++) {
-		    var d = renderer.calculateData([ [ 10, 5, 7, 3, 5, 1, 9, 20, 13, 7, 9, 15, 4 ],
-						     [ 23, 5, 7, 14, 6, 16, 2, 13, 16, 17, 6, 9, 2 ],
-						     [ 12, 11, 15, 16, 18, 9, 10, 8, 9, 8, 11, 13, 14 ] ])
+		    var d = renderer.calculateData(renderer.settings.data[i].data);
 		    renderer.settings.data[i].data = d.data;
-		    cmax = d.max;
-		    console.log(d);
+		    cmax = (cmax < d.maximum) ? d.maximum : cmax;
 		}
 	    }
 
@@ -410,7 +407,7 @@
 		}
 	    }
 
-	    var retval = { data: fivenumbers, min: min, max: max };
+	    var retval = { data: fivenumbers, minimum: min, maximum: max };
 	    return retval;
 	}
     });
