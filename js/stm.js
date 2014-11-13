@@ -313,6 +313,62 @@
 	delete stm.DataStore[type];
     };
 
+    stm.updateHardStorage = function (dbName, attributes, version) {
+	var promise = jQuery.Deferred();
+	dbName = dbName || 'stm';
+
+	var DBOpenRequest = indexedDB.open(dbName, version || 1);
+	DBOpenRequest.onerror = function(event) {
+	    alert('session update failed');
+	    promise.resolve();
+	};
+
+	DBOpenRequest.onupgradeneeded = function(e) {
+	    var db = e.target.result;
+	    
+	    for (var i in (attributes ? attributes : stm.DataStore)) {
+		if (stm.DataStore.hasOwnProperty(i)) {
+		    if (! db.objectStoreNames.contains(i)) {
+			db.createObjectStore(i, {keyPath: "_stm_id"});
+		    }
+		}
+	    }
+	};
+	
+	DBOpenRequest.onsuccess = function(event) {
+	    var db = DBOpenRequest.result;
+	    var onames = {};
+	    for (var i=0; i<db.objectStoreNames.length; i++) {
+		onames[db.objectStoreNames[i]] = true;
+	    }
+	    var objTypes = Retina.keys(attributes ? attributes : stm.DataStore);
+	    for (var i=0; i<objTypes.length; i++) {
+		if (! onames[objTypes[i]]) {
+		    var p2 = stm.updateHardStorage(dbName, attributes, db.version + 1);
+		    p2.then(function(){promise.resolve();});
+		    return;
+		}
+	    }
+	    var trans = db.transaction(objTypes, "readwrite");
+	    trans.oncomplete = function () {
+		promise.resolve();
+	    };
+	    for (var i=0; i<objTypes.length; i++) {
+		var type = objTypes[i];
+		var store = trans.objectStore(type);
+		store.clear();
+		for (var h in stm.DataStore[type]) {
+		    if (stm.DataStore[type].hasOwnProperty(h)) {
+			stm.DataStore[type][h]._stm_id = h;
+			store.add(stm.DataStore[type][h]);
+		    }
+		}
+	    }
+	};
+	
+	return promise;
+    };
+
     // session dumping
     stm.dump = function (useDB, dbName) {
 	if (useDB) {
