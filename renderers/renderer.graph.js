@@ -230,19 +230,6 @@
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
 	    jQuery('#graph_div'+index).svg();
 
-	    /*
-	      mixed chart test
-	     */
-
-	    renderer.settings.data[4].settings = { seriesType: "line", isY2: true };
-	    renderer.settings.data[4].lineColor = "red";
-	    renderer.settings.data[4].lineWidth = 2;
-	    renderer.settings.hasY2 = true;
-
-	    /*
-	      end mixed chart test
-	     */
-
 	    var cmax = 0;
 	    if (renderer.settings.type == 'deviation') {
 		for (var i=0; i<renderer.settings.data.length; i++) {
