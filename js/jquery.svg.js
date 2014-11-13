@@ -2633,7 +2633,7 @@
 	    var dims = graph._getDims();
 	    var xScale = dims[graph.W] / ((barCount * barWidth + barGap) * numVal + barGap);
 	    var yScale = dims[graph.H] / (graph.yAxis._scale.max - graph.yAxis._scale.min);
-	    var y2Scale = dims[graph.H] / (graph.y2Axis._scale.max - graph.y2Axis._scale.min);
+	    var y2Scale = graph.y2Axis ? dims[graph.H] / (graph.y2Axis._scale.max - graph.y2Axis._scale.min) : 0;
 	    this._chart = graph._wrapper.group(graph._chartCont, {class_: 'chart'});
 	    var barNum = 0;
 	    for (var i = 0; i < numSer; i++) {
