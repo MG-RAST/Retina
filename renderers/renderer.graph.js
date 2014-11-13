@@ -116,16 +116,22 @@
 		'title_settings': { fontSize: '15px' },
 		'x_title': '',
 		'y_title': '',
+		'y2_title': '',
 		'x_title_color': 'black',
 		'y_title_color': 'black',
+		'y2_title_color': 'black',
 		'x_labels': [],
 		'x_labels_rotation': null,
 		'y_labels': [],
 		'y_scale': 'linear',
+		'y2_labels': [],
+		'y2_scale': 'linear',
 		'x_tick_interval': 0,
 		'y_tick_interval': 30,
+		'y2_tick_interval': 30,
 		'x_labeled_tick_interval': 1,
 		'y_labeled_tick_interval': 5,
+		'y2_labeled_tick_interval': 5,
 		'default_line_color': 'black',
 		'default_line_width': 1,
 		'show_legend': false,
@@ -224,6 +230,19 @@
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
 	    jQuery('#graph_div'+index).svg();
 
+	    /*
+	      mixed chart test
+	     */
+
+	    renderer.settings.data[4].settings = { seriesType: "line", isY2: true };
+	    renderer.settings.data[4].lineColor = "red";
+	    renderer.settings.data[4].lineWidth = 2;
+	    renderer.settings.hasY2 = true;
+
+	    /*
+	      end mixed chart test
+	     */
+
 	    var cmax = 0;
 	    if (renderer.settings.type == 'deviation') {
 		for (var i=0; i<renderer.settings.data.length; i++) {
@@ -294,10 +313,17 @@
 	    
 	    var defs = svg.defs();
 	    var max = 0;
+	    var y2max = 0;
 	    for (i=0; i<renderer.settings.data.length; i++) {
 		for (h=0; h<renderer.settings.data[i].data.length; h++) {
-		    if (parseFloat(renderer.settings.data[i].data[h]) > max) {
-			max = parseFloat(renderer.settings.data[i].data[h]);
+		    if (renderer.settings.data[i].settings && renderer.settings.data[i].settings.isY2) {
+			if (parseFloat(renderer.settings.data[i].data[h]) > y2max) {
+			    y2max = parseFloat(renderer.settings.data[i].data[h]);
+			}
+		    } else { 
+			if (parseFloat(renderer.settings.data[i].data[h]) > max) {
+			    max = parseFloat(renderer.settings.data[i].data[h]);
+			}
 		    }
 		}
 	    }
@@ -334,9 +360,21 @@
 		title(renderer.settings.y_title, renderer.settings.y_title_color).
 		ticks(parseInt(max / renderer.settings.y_labeled_tick_interval), parseInt(max / renderer.settings.y_tick_interval), 'log').
 		scale(0,max,renderer.settings.y_scale);
+
+	    if (renderer.settings.hasY2) {
+		svg.graph.y2Axis.
+		    title(renderer.settings.y2_title || "", renderer.settings.y2_title_color).
+		    ticks(parseInt(y2max / renderer.settings.y2_labeled_tick_interval), parseInt(y2max / renderer.settings.y2_tick_interval), 'log').
+		    scale(0,y2max,renderer.settings.y2_scale);
+		if (renderer.settings.y2_labels.length) {
+		    svg.graph.y2Axis.labels(renderer.settings.y2_labels); 
+		}
+	    } else {
+		svg.graph.y2Axis = null;
+	    }
 	    
 	    if (renderer.settings.y_labels.length) {
-		svg.graph.xAxis.labels(renderer.settings.y_labels); 
+		svg.graph.yAxis.labels(renderer.settings.y_labels); 
 	    }
 	    svg.graph.legend.settings({fill: 'white', stroke: 'white'}); 
 	    

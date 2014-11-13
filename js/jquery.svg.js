@@ -1632,7 +1632,7 @@
 	this.yAxis = new SVGGraphAxis(this); // The main y-axis
 	this.yAxis.title('', 40);
 	this.x2Axis = null; // The secondary x-axis
-	this.y2Axis = null; // The secondary y-axis
+	this.y2Axis = new SVGGraphAxis(this); // The secondary y-axis
 	this.legend = new SVGGraphLegend(this); // The chart legend
 	this._drawNow = true;
     }
@@ -2029,7 +2029,7 @@
 	    var horiz = (y1 == y2);
 	    var gl = this._wrapper.group(this._chartCont, jQuery.extend({class_: id}, axis._lineFormat));
 	    var gt = this._wrapper.group(this._chartCont, jQuery.extend({class_: id + 'Labels',
-									 textAnchor: (horiz ? 'middle' : 'end')}, axis._labelFormat));
+									 textAnchor: (horiz ? 'middle' : (id=='y2Axis' ? 'left' : 'end'))}, axis._labelFormat));
 	    this._wrapper.line(gl, x1, y1, x2, y2);
 	    if (axis._ticks.major) {
 		var bottomRight = (x2 > (this._getValue(this._chartCont, 'width') / 2) &&
@@ -2072,7 +2072,7 @@
 			}
 
 			var logtext = this._wrapper.createText().string('10').span(cur, {dy: -10, fontSize: 10});
-			this._wrapper.text(gt, (horiz ? v : x1 - size), (horiz ? y1 + 2 * size : v),
+			this._wrapper.text(gt, (horiz ? v : (id=='y2Axis' ? x1 + size : x1 - size)), (horiz ? y1 + 2 * size : v),
 					   (axis._labels ? axis._labels[count++] : ((axis._scale.type == 'log') ? logtext : pretty_cur)));
 		    }
 		    
@@ -2623,39 +2623,79 @@
 	    var barWidth = graph._chartOptions.barWidth || 10;
 	    var barGap = graph._chartOptions.barGap || 10;
 	    var numSer = graph._series.length;
+	    var barCount = 0;
+	    for (var i=0; i<numSer; i++) {
+		if (! graph._series[i]._settings.hasOwnProperty('seriesType') || graph._series[i]._settings.seriesType!='line') {
+		    barCount++;
+		}
+	    }
 	    var numVal = (numSer ? (graph._series[0])._values.length : 0);
 	    var dims = graph._getDims();
-	    var xScale = dims[graph.W] / ((numSer * barWidth + barGap) * numVal + barGap);
+	    var xScale = dims[graph.W] / ((barCount * barWidth + barGap) * numVal + barGap);
 	    var yScale = dims[graph.H] / (graph.yAxis._scale.max - graph.yAxis._scale.min);
+	    var y2Scale = dims[graph.H] / (graph.y2Axis._scale.max - graph.y2Axis._scale.min);
 	    this._chart = graph._wrapper.group(graph._chartCont, {class_: 'chart'});
+	    var barNum = 0;
 	    for (var i = 0; i < numSer; i++) {
-		this._drawSeries(graph, i, numSer, barWidth, barGap, dims, xScale, yScale);
+		if (graph._series[i]._settings.isY2) {
+		    this._drawSeries(graph, barNum, barCount, barWidth, barGap, dims, xScale, y2Scale);
+		} else {
+		    this._drawSeries(graph, barNum, barCount, barWidth, barGap, dims, xScale, yScale);
+		}
+		if (! graph._series[i]._settings.hasOwnProperty('seriesType') || graph._series[i]._settings.seriesType!='line') {
+		    barNum++;
+		}
 	    }
 	    graph._drawTitle();
 	    graph._drawAxes(true);
-	    this._drawXAxis(graph, numSer, numVal, barWidth, barGap, dims, xScale);
+	    this._drawXAxis(graph, barNum, numVal, barWidth, barGap, dims, xScale);
 	    graph._drawLegend();
 	},
 	
 	/* Plot an individual series. */
 	_drawSeries: function(graph, cur, numSer, barWidth, barGap, dims, xScale, yScale, type) {
 	    var series = graph._series[cur];
-	    var g; 
-	    if (typeof(series._fill) == 'object') {
-		g = graph._wrapper.group(this._chart,
-					 jQuery.extend({class_: 'series' + cur, stroke: series._stroke,
-							strokeWidth: series._strokeWidth}, series._settings || {}));
+	    if (series._settings.hasOwnProperty('seriesType') && series._settings.seriesType=='line') {
+		var path = graph._wrapper.createPath();
+		var circles = [];
+		for (var i = 0; i < series._values.length; i++) {
+		    var x = dims[graph.X] + xScale * (barGap / 2 + (i + 0.5) * (numSer * barWidth + barGap));
+		    var y = dims[graph.Y] + ((series._settings.isY2 ? graph.y2Axis._scale.max : graph.yAxis._scale.max) - series._values[i]) * yScale;
+		    if (i === 0) {
+			path.move(x, y);
+		    }
+		    else {
+			path.line(x, y);
+		    }
+		    circles.push( [ x, y ]);
+		}
+		if (! series._settings.noLines) {
+		    graph._wrapper.path(this._chart, path,
+					jQuery.extend({id: 'series' + cur, fill: 'none', stroke: (series._stroke=="white") ? "black" : series._stroke,
+						       strokeWidth: series._strokeWidth}, series._settings || {}));
+		}
+		for (i=0;i<circles.length;i++) {
+		    var c = graph._wrapper.circle(this._chart, circles[i][0], circles[i][1], 3, { fill: 'white', strokeWidth: 1, stroke: (series._stroke=="white") ? "black" : series._stroke, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
+		    graph._showStatus(c, series._name, series._values[i]);
+		}
 	    } else {
-		g = graph._wrapper.group(this._chart,
-					 jQuery.extend({class_: 'series' + cur, fill: series._fill, stroke: series._stroke,
-							strokeWidth: series._strokeWidth}, series._settings || {}));
-	    }
-	    for (var i = 0; i < series._values.length; i++) {
-		var r = graph._wrapper.rect(g,
-					    dims[graph.X] + xScale * (barGap + i * (numSer * barWidth + barGap) + (cur * barWidth)),
-					    dims[graph.Y] + yScale * (graph.yAxis._scale.max - ((graph.yAxis._scale.type == 'log') ? log10(series._values[i]) : series._values[i])),
-					    xScale * barWidth, yScale * ((graph.yAxis._scale.type == 'log') ? log10(series._values[i]) : series._values[i]), (typeof(series._fill) == 'object') ? { fill: series._fill[i] } : {});
-		graph._showStatus(r, series._name, series._values[i]);
+		var g; 
+		if (typeof(series._fill) == 'object') {
+		    g = graph._wrapper.group(this._chart,
+					     jQuery.extend({class_: 'series' + cur, stroke: series._stroke,
+							    strokeWidth: series._strokeWidth}, series._settings || {}));
+		} else {
+		    g = graph._wrapper.group(this._chart,
+					     jQuery.extend({class_: 'series' + cur, fill: series._fill, stroke: series._stroke,
+							    strokeWidth: series._strokeWidth}, series._settings || {}));
+		}
+		for (var i = 0; i < series._values.length; i++) {
+		    var r = graph._wrapper.rect(g,
+						dims[graph.X] + xScale * (barGap + i * (numSer * barWidth + barGap) + (cur * barWidth)),
+						dims[graph.Y] + yScale * (graph.yAxis._scale.max - ((graph.yAxis._scale.type == 'log') ? log10(series._values[i]) : series._values[i])),
+						xScale * barWidth, yScale * ((graph.yAxis._scale.type == 'log') ? log10(series._values[i]) : series._values[i]), (typeof(series._fill) == 'object') ? { fill: series._fill[i] } : {});
+		    graph._showStatus(r, series._name, series._values[i]);
+		}
 	    }
 	},
 	
@@ -3208,11 +3248,11 @@
 	    }
 	    if (! series._settings.noLines) {
 		graph._wrapper.path(this._chart, path,
-				    jQuery.extend({id: 'series' + cur, fill: 'none', stroke: series._stroke,
+				    jQuery.extend({id: 'series' + cur, fill: 'none', stroke: (series._stroke=="white") ? "black" : series._stroke,
 						   strokeWidth: series._strokeWidth}, series._settings || {}));
 	    }
 	    for (i=0;i<circles.length;i++) {
-		var c = graph._wrapper.circle(this._chart, circles[i][0], circles[i][1], 3, { fill: 'white', strokeWidth: 1, stroke: series._stroke, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
+		var c = graph._wrapper.circle(this._chart, circles[i][0], circles[i][1], 3, { fill: 'white', strokeWidth: 1, stroke: (series._stroke=="white") ? "black" : series._stroke, onmouseover: "this.setAttribute('r', parseInt(this.getAttribute('r')) + 1)", onmouseout: "this.setAttribute('r', parseInt(this.getAttribute('r')) - 1)" });
 		graph._showStatus(c, series._name, series._values[i]);
 	    }
 	},
