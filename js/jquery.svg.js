@@ -2009,9 +2009,10 @@
 	    }
 	    if (this.y2Axis) {
 		if (this.y2Axis._title) {
+		    var titlePos = this._getValue(this._chartCont, 'width') - 10;
 		    this._wrapper.text(this._chartCont, 0, 0, this.y2Axis._title, jQuery.extend({textAnchor: 'middle',
-												 transform: 'translate(' + (dims[this.X] + dims[this.W] + this.y2Axis._titleOffset) +
-												 ',' + (dims[this.Y] + dims[this.H] / 2) + ') rotate(-90)'}, this.y2Axis._titleFormat || {}));
+												 transform: 'translate(' + titlePos +
+												 ',' + (dims[this.Y] + dims[this.H] / 2) + ') rotate(90)'}, this.y2Axis._titleFormat || {}));
 		}
 		this._drawAxis(this.y2Axis, 'y2Axis', dims[this.X] + dims[this.W], dims[this.Y],
 			       dims[this.X] + dims[this.W], dims[this.Y] + dims[this.H]);
@@ -2538,7 +2539,6 @@
 					 jQuery.extend({class_: 'series' + cur, fill: series._fill, stroke: series._stroke,
 							strokeWidth: series._strokeWidth}, series._settings || {}));
 	    }
-	    console.log(graph.yAxis._scale.max);
 	    for (var i = 0; i < series._values.length; i++) {
 		var xoffset = dims[graph.X] + xScale * (barGap + i * (numSer * barWidth + barGap) + (cur * barWidth));
 		var data = series._values[i];
