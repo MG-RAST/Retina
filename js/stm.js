@@ -313,11 +313,11 @@
 	delete stm.DataStore[type];
     };
 
-    stm.updateHardStorage = function (dbName, attributes, version) {
-	var promise = jQuery.Deferred();
+    stm.updateHardStorage = function (dbName, attributes, version, p) {
+	var promise = p || jQuery.Deferred();
 	dbName = dbName || 'stm';
 
-	var DBOpenRequest = indexedDB.open(dbName, version || 1);
+	var DBOpenRequest = indexedDB.open(dbName, version ? version : null);
 	DBOpenRequest.onerror = function(event) {
 	    alert('session update failed');
 	    promise.resolve();
@@ -344,8 +344,7 @@
 	    var objTypes = Retina.keys(attributes ? attributes : stm.DataStore);
 	    for (var i=0; i<objTypes.length; i++) {
 		if (! onames[objTypes[i]]) {
-		    var p2 = stm.updateHardStorage(dbName, attributes, db.version + 1);
-		    p2.then(function(){promise.resolve();});
+		    var p2 = stm.updateHardStorage(dbName, attributes, db.version + 1, promise);
 		    return;
 		}
 	    }
