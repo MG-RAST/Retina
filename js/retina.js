@@ -615,7 +615,8 @@
     };
 
     /* Round a number to a given number of decimal points. */
-    Number.prototype.round = function(num, dec) {
+    Number.prototype.round = function(dec) {
+	var num = this;
 	return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
     }
     
