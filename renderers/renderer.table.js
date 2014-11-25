@@ -555,6 +555,40 @@
 			    if (filter_elem.options.length == 1) {
 				filter_elem = document.createElement('span');
 			    }
+			}  else if (renderer.settings.filter[i].type == "premade-select") {
+			    filter_elem = document.createElement("select");
+			    filter_elem.setAttribute("style", "position: absolute; height: 26px; margin-bottom: 0px; margin-top: 2px; z-index: 100; display: none;");
+			    for (var ind=0; ind<renderer.settings.filter[i].options.length; ind++) {
+				if (renderer.settings.filter[i].options[ind].value == renderer.settings.filter[i].searchword) {
+				    filter_elem.add(new Option(renderer.settings.filter[i].options[ind].text, renderer.settings.filter[i].options[ind].value, true), null);
+				} else {
+				    filter_elem.add(new Option(renderer.settings.filter[i].options[ind].text, renderer.settings.filter[i].options[ind].value), null);
+				}
+			    }
+			    filter_elem.i = i;
+			    filter_elem.index = index;
+			    filter_elem.onchange = function () {
+				var index = this.index;
+				var renderer = Retina.RendererInstances.table[index];
+				renderer.settings.filter[this.i].searchword = this.options[this.selectedIndex].value;
+				if (typeof renderer.settings.navigation_callback == "function") {
+				    var query = [];
+				    for (var x in Retina.RendererInstances.table[index].settings.filter) {
+					if (Retina.RendererInstances.table[index].settings.filter.hasOwnProperty(x) && Retina.RendererInstances.table[index].settings.filter[x].hasOwnProperty('searchword')) {
+					    if (Retina.RendererInstances.table[index].settings.filter[x].searchword.length > 0) {
+						query.push( { "searchword": Retina.RendererInstances.table[index].settings.filter[x].searchword, "field": Retina.RendererInstances.table[index].settings.header[x], "comparison": Retina.RendererInstances.table[index].settings.filter[x].operator || "=" } );
+					    }
+					}
+				    }
+				    renderer.settings.navigation_callback( { "query": query }, index );
+				} else {
+				    renderer.settings.filter_changed = true;
+				    renderer.render();
+				}
+			    }
+			    if (filter_elem.options.length == 1) {
+				filter_elem = document.createElement('span');
+			    }
 			}
 		    }
 		    
