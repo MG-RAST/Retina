@@ -956,7 +956,7 @@
 	    col_sel_btn.setAttribute("type", "button");
 	    col_sel_btn.setAttribute("value", "select columns");
 	    var col_sel = document.createElement("div");
-	    col_sel.setAttribute('style', "position: absolute; top: 5px; left: 570px; min-width: 150px; border: 1px solid #BBB; background-color: white; z-index: 99000; display: none; box-shadow: 4px 4px 4px #666; padding: 2px;");
+	    col_sel.setAttribute('style', "position: absolute; left: 528px; min-width: 150px; border: 1px solid #BBB; background-color: white; z-index: 99000; display: none; box-shadow: 4px 4px 4px #666; padding: 2px;");
 	    col_sel_btn.addEventListener("click", function () {
 		
 		if (col_sel.style.display == "none") {
