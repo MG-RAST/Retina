@@ -239,7 +239,7 @@
 		}
 	    }
 
-	    Retina.RendererInstances.graph[index].drawImage(jQuery('#graph_div'+index).svg('get'), cmax);
+	    Retina.RendererInstances.graph[index].drawImage(jQuery('#graph_div'+index).svg('get'), cmax, index);
 	    
 	    return renderer;
 	},
@@ -274,8 +274,8 @@
 		}
 	    }
 	},
-	drawImage: function (svg, cmax) {
-
+	drawImage: function (svg, cmax, index) {
+	    var renderer = Retina.RendererInstances.graph[index];
 	    var chartAreas = [ [ 0.1, 0.1, 0.95, 0.9 ],   // no legend
 			       [ 0.2, 0.1, 0.95, 0.9 ],   // legend left
 			       [ 0.1, 0.1, 0.75, 0.9 ],   // legend right
