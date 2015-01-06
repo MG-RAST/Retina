@@ -221,7 +221,7 @@
         },
 
 	render: function () {
-	    renderer = this;
+	    var renderer = this;
 
 	    // get the target div
 	    var target = renderer.settings.target;
@@ -246,7 +246,7 @@
 	hover: function (title, value, event, e) {
 	    var id = e.currentTarget.ownerSVGElement.ownerSVGElement.parentNode.id;
 	    var index = id.substr(9);
-	    renderer = Retina.RendererInstances.graph[index];
+	    var renderer = Retina.RendererInstances.graph[index];
 	    var svg = jQuery('#'+id).svg('get');
 	    if (title) {
 		jQuery(this, svg.root()).attr('fill-opacity', .8);

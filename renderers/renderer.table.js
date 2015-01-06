@@ -608,7 +608,7 @@
 		    caret.appendChild(caret_tr1);
 		    caret.appendChild(caret_tr2);
 		    var th = document.createElement("th");
-		    var mw = 153;
+		    var mw = 1;
 		    if (renderer.settings.minwidths && renderer.settings.minwidths[i]) {
 			mw = renderer.settings.minwidths[i];
 		    }
