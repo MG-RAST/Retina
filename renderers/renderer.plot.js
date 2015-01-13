@@ -199,7 +199,7 @@
         },
 	
 	render: function () {
-	    renderer = this;
+	    var renderer = this;
 	    
 	    // get the target div
 	    var target = renderer.settings.target;
@@ -222,7 +222,7 @@
 	},
 	
 	drawImage: function (svg, index) {
-	    renderer = Retina.RendererInstances.plot[index];
+	    var renderer = Retina.RendererInstances.plot[index];
 	    
 	    var chartAreas  = [ [ 0.1, 0.1, 0.95, 0.9 ],
 				[ 0.2, 0.1, 0.95, 0.9 ],

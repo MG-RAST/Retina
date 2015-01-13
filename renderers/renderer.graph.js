@@ -231,12 +231,9 @@
 	    jQuery('#graph_div'+index).svg();
 
 	    var cmax = 0;
-	    if (renderer.settings.type == 'deviation') {
-		for (var i=0; i<renderer.settings.data.length; i++) {
-		    var d = renderer.calculateData(renderer.settings.data[i].data);
-		    renderer.settings.data[i].data = d.data;
-		    cmax = (cmax < d.maximum) ? d.maximum : cmax;
-		}
+	    if (renderer.settings.type == 'deviation' && ! renderer.settings.data[0].data.hasOwnProperty('upper')) {
+		renderer.calculateData(renderer.settings.data, index);
+		cmax = renderer.cmax;
 	    }
 
 	    Retina.RendererInstances.graph[index].drawImage(jQuery('#graph_div'+index).svg('get'), cmax, index);
@@ -391,49 +388,52 @@
 	    svg.graph.noDraw().area(renderer.settings.chartArea ? renderer.settings.chartArea : chartAreas[chartLegend]).
 		type(chartType, chartOptions).redraw();
 	},
-	calculateData: function (data) {
+	calculateData: function (data, index) {
+	    var renderer = Retina.RendererInstances.graph[index];
 	    var fivenumbers = [];
-	    var min = data[0][0];
-	    var max = data[0][0];
+	    var min = data[0].data[0];
+	    var max = data[0].data[0];
 	    
 	    for (var i=0;i<data.length;i++) {
-		data[i] = data[i].sort(Retina.Numsort);
-		if (data[i][0] < min) {
-		    min = data[i][0];
+		data[i].data = data[i].data.sort(Retina.Numsort);
+		if (data[i].data[0] < min) {
+		    min = data[i].data[0];
 		}
-		if (data[i][data[i].length - 1] > max) {
-		    max = data[i][data[i].length - 1];
+		if (data[i].data[data[i].length - 1] > max) {
+		    max = data[i].data[data[i].length - 1];
 		}
 		fivenumbers[i] = [];
-		fivenumbers[i]['min'] = data[i][0];
-		fivenumbers[i]['max'] = data[i][data[i].length - 1];
+		fivenumbers[i]['min'] = data[i].data[0];
+		fivenumbers[i]['max'] = data[i].data[data[i].data.length - 1];
 		var boxarray = [];
-		if (data[i].length % 2 == 1) {
-		    var med = parseInt(data[i].length / 2);
-		    fivenumbers[i]['median'] = data[i][med];
+		if (data[i].data.length % 2 == 1) {
+		    var med = parseInt(data[i].data.length / 2);
+		    fivenumbers[i]['median'] = data[i].data[med];
 		    if ((med + 1) % 2 == 1) {
-			fivenumbers[i]['lower'] = data[i][parseInt((med + 1) / 2)];
-			fivenumbers[i]['upper'] = data[i][med + parseInt((med + 1) / 2)];
+			fivenumbers[i]['lower'] = data[i].data[parseInt((med + 1) / 2)];
+			fivenumbers[i]['upper'] = data[i].data[med + parseInt((med + 1) / 2)];
 		    } else {
-			fivenumbers[i]['lower'] = ((data[i][(med + 1) / 2]) + (data[i][((med + 1) / 2) + 1])) / 2;
-			fivenumbers[i]['upper'] = ((data[i][med + ((med + 1) / 2) - 1]) + (data[i][med + ((med + 1) / 2)])) / 2;
+			fivenumbers[i]['lower'] = ((data[i].data[(med + 1) / 2]) + (data[i].data[((med + 1) / 2) + 1])) / 2;
+			fivenumbers[i]['upper'] = ((data[i].data[med + ((med + 1) / 2) - 1]) + (data[i].data[med + ((med + 1) / 2)])) / 2;
 		    }
 		} else {
-		    var medup = data[i].length / 2;
-		    var medlow = (data[i].length / 2) - 1;
-		    fivenumbers[i]['median'] = (data[i][medlow] + data[i][medup]) / 2;
+		    var medup = data[i].data.length / 2;
+		    var medlow = (data[i].data.length / 2) - 1;
+		    fivenumbers[i]['median'] = (data[i].data[medlow] + data[i].data[medup]) / 2;
 		    if (medup % 2 == 1) {
-			fivenumbers[i]['lower'] = data[i][medlow / 2];
-			fivenumbers[i]['upper'] = data[i][medup + (medlow / 2)];
+			fivenumbers[i]['lower'] = data[i].data[medlow / 2];
+			fivenumbers[i]['upper'] = data[i].data[medup + (medlow / 2)];
 		    } else {
-			fivenumbers[i]['lower'] = (data[i][(medup / 2) - 1] + data[i][medup / 2]) / 2;
-			fivenumbers[i]['upper'] = (data[i][medup + (medup / 2) - 1] + data[i][medup + (medup / 2)]) / 2;
+			fivenumbers[i]['lower'] = (data[i].data[(medup / 2) - 1] + data[i].data[medup / 2]) / 2;
+			fivenumbers[i]['upper'] = (data[i].data[medup + (medup / 2) - 1] + data[i].data[medup + (medup / 2)]) / 2;
 		    }
 		}
 	    }
 
-	    var retval = { data: fivenumbers, minimum: min, maximum: max };
-	    return retval;
+	    for (var i=0; i<data.length; i++) {
+		renderer.settings.data[i].data = [ fivenumbers[i] ];
+	    }
+	    renderer.cmax = max;
 	}
     });
 }).call(this);
