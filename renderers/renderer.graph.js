@@ -399,8 +399,8 @@
 		if (data[i].data[0] < min) {
 		    min = data[i].data[0];
 		}
-		if (data[i].data[data[i].length - 1] > max) {
-		    max = data[i].data[data[i].length - 1];
+		if (data[i].data[data[i].data.length - 1] > max) {
+		    max = data[i].data[data[i].data.length - 1];
 		}
 		fivenumbers[i] = [];
 		fivenumbers[i]['min'] = data[i].data[0];
