@@ -3332,7 +3332,7 @@
 	    var numSer = graph._series.length;
 	    var numVal = (numSer ? (graph._series[0])._values.length : 0);
 	    var path = graph._wrapper.createPath();
-	    var explode = graph._chartOptions.explode || [];
+	    var explode = []; //graph._chartOptions.explode || [];
 	    explode = (isArray(explode) ? explode : [explode]);
 	    var explodeDist = graph._chartOptions.explodeDist || 10;
 	    var pieGap = (numVal <= 1 ? 0 : graph._chartOptions.pieGap || 10);
@@ -3375,7 +3375,7 @@
 		    graph._showStatus(p, series._name,
 				      roundNumber((end - start) / 2 / Math.PI * 100, 2));
 		}
-		if (graph.xAxis) {
+		if (graph.xAxis && graph.xAxis._labels[i]) {
 		    graph._wrapper.text(gt, cx, dims[graph.Y] + dims[graph.H] + graph.xAxis._titleOffset,
 					graph.xAxis._labels[i]);
 		}
