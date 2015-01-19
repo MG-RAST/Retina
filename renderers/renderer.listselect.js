@@ -299,7 +299,7 @@
 		    resultField.setAttribute('type', 'text');
 		    resultField.setAttribute('placeholder', renderer.settings.result_field_placeholder);
 		    resultField.value = renderer.settings.result_field_default;
-		    resultField.setAttribute('style', 'margin-left: 110px;');
+		    resultField.setAttribute('style', 'margin-left: 110px; border-radius: 4px;');
 		    resultField.setAttribute('id', 'listselect'+index+'selectionname');
 		    filter_surround.appendChild(resultField);
 		}
