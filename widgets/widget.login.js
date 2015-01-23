@@ -258,6 +258,9 @@
 				       lastname: d.lastname || "",
 				       email: d.email || "",
 				     };
+			      if (d.hasOwnProperty('preferences')) {
+				  user.preferences = d.preferences;
+			      }
 			      if (stm) {
 				  stm.Authentication = d.token;
 			      }
