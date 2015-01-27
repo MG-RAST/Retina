@@ -2583,10 +2583,10 @@
 		    graph._wrapper.line(gl, x, dims[graph.Y] + dims[graph.H] + offsets[0] * axis._ticks.size,
 					x, dims[graph.Y] + dims[graph.H] + offsets[1] * axis._ticks.size);
 		}
-		for (var i = 0; i < numVal; i++) {
-		    var x = dims[graph.X] + xScale * (barGap / 2 + (i + 0.5) * (numSer * barWidth + barGap));
+		for (var i = 0; i < numSer; i++) {
+		    var x = dims[graph.X] + (xScale * barGap) + (barWidth / 2) + (i * (barGap * xScale));
 		    graph._wrapper.text(gt, x, dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size,
-					(axis._labels ? axis._labels[i] : '' + i), (axis.labelRotation ? { transform: "rotate("+axis.labelRotation+", "+x+", "+(dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size)+")"} : null));
+					(axis._labels ? axis._labels[i] : graph._series[i]._name), (axis.labelRotation ? { textAnchor: "end", transform: "rotate("+axis.labelRotation+", "+x+", "+(dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size)+")"} : { textAnchor: "end", transform: "rotate(-50, "+x+", "+(dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size)+")"}));
 		}
 	    }
 	}
