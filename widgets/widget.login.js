@@ -82,18 +82,13 @@
 	if (udata) {
 	    udata = JSON.parse(udata);
 	    if (udata.hasOwnProperty('user') && udata.user != null) {
-		var user = { login: udata.user.login,
-			     firstname: udata.user.firstname,
-			     lastname: udata.user.lastname,
-			     email: udata.user.email,
-			   };
 		stm.Authentication = udata.token;
-		Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index, user);
+		Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index, udata.user);
 		if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
 		    Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
 									      'result': 'success',
 									      'token' : udata.token,
-									      'user'  : user });
+									      'user'  : udata.user });
 		}
 	    }
 	}
