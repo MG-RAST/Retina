@@ -285,11 +285,11 @@
     Retina.propSort = function(prop, ltr) {
 	if (ltr) {
 	    return function(a, b) {
-		return b[prop].localeCompare(a[prop]);
+		return typeof a[prop].localeCompare == 'function' ? b[prop].localeCompare(a[prop]) : b - a;
 	    }
 	} else {
 	    return function(a, b) {
-		return a[prop].localeCompare(b[prop]);
+		return typeof a[prop].localeCompare == 'function' ? a[prop].localeCompare(b[prop]) : a - b;
 	    }
 	}
     };
