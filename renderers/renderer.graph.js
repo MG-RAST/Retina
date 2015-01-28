@@ -110,7 +110,7 @@
             version: "1.0",
             requires: [ "jquery.svg.js" ],
             defaults: {
-		'type': 'column', // [ column, stackedColumn, row, stackedRow, line, pie, stackedArea, deviation ]
+		'type': 'deviation', // [ column, stackedColumn, row, stackedRow, line, pie, stackedArea, deviation ]
 		'title': '',
 		'title_color': 'black',
 		'title_settings': { fontSize: '15px' },
@@ -123,7 +123,7 @@
 		'x_labels': [],
 		'x_labels_rotation': null,
 		'y_labels': [],
-		'y_scale': 'linear',
+		'y_scale': 'log',
 		'y2_labels': [],
 		'y2_scale': 'linear',
 		'x_tick_interval': 0,
@@ -136,7 +136,7 @@
 		'default_line_width': 1,
 		'show_legend': false,
 		'legend_position': 'right',
-		'show_grid': false,
+		'show_grid': true,
 		'short_axis_labels': false,
 		'normalize_stacked_area': true,
 		'width': 800,
@@ -213,11 +213,11 @@
 	    ]
 	},
 	exampleData: function () {
-	    return [ { "name": 'IE', "data": [95, 91, 78, 66] },
-		     { "name": 'Netscape', "data": [3, 12, 18, 18] },
-		     { "name": 'Firefox', "data": [0, 4, 8, 9] },
-		     { "name": 'Chrome', "data": [0, 8, 18, 22] },
-		     { "name": 'Gecko', "data": [1, 2, 3, 33] } ];
+	    return [ { "name": 'IE', "data": [ 9005, 91, 78, 66] },
+		     { "name": 'Netscape', "data": [ 3, 12, 18, 18] },
+		     { "name": 'Firefox', "data": [ 0, 4, 8, 9] },
+		     { "name": 'Chrome', "data": [ 0, 8, 18, 22] },
+		     { "name": 'Gecko', "data": [ 1, 2, 3, 33] } ];
         },
 
 	render: function () {
@@ -234,6 +234,7 @@
 	    if (renderer.settings.type == 'deviation' && ! renderer.settings.data[0].data.hasOwnProperty('upper')) {
 		renderer.calculateData(renderer.settings.data, index);
 		cmax = renderer.cmax;
+		renderer.settings.chartArea = [ 0.1, 0.1, 0.95, 0.8 ];
 	    }
 
 	    Retina.RendererInstances.graph[index].drawImage(jQuery('#graph_div'+index).svg('get'), cmax, index);
@@ -340,15 +341,17 @@
 		svg.graph.xAxis.labelRotation = renderer.settings.x_labels_rotation;
 		svg.graph.xAxis.labels(renderer.settings.x_labels);
 	    }
+
+	    var sy = Retina.niceScale({min: 0, max: max, ticks: renderer.settings.y_labeled_tick_interval });
 	    svg.graph.yAxis.
 		title(renderer.settings.y_title, renderer.settings.y_title_color).
-		ticks(parseInt(max / renderer.settings.y_labeled_tick_interval), parseInt(max / renderer.settings.y_tick_interval), 'log').
+		ticks(sy.max / renderer.settings.y_labeled_tick_interval, sy.max / renderer.settings.y_tick_interval, null, null, renderer.settings.y_scale).
 		scale(0,max,renderer.settings.y_scale);
 
 	    if (renderer.settings.hasY2) {
 		svg.graph.y2Axis.
 		    title(renderer.settings.y2_title || "", renderer.settings.y2_title_color).
-		    ticks(parseInt(y2max / renderer.settings.y2_labeled_tick_interval), parseInt(y2max / renderer.settings.y2_tick_interval), 'log').
+		    ticks(parseInt(y2max / renderer.settings.y2_labeled_tick_interval), parseInt(y2max / renderer.settings.y2_tick_interval), null, null, renderer.settings.y2_scale).
 		    scale(0,y2max,renderer.settings.y2_scale);
 		if (renderer.settings.y2_labels.length) {
 		    svg.graph.y2Axis.labels(renderer.settings.y2_labels); 
@@ -376,7 +379,7 @@
 		    break;
 		};
 	    }
-	    var chartOptions = { };
+	    var chartOptions = { barWidth: renderer.settings.barWidth || 20 };
 	    	    
 	    svg.graph.status(Retina.RendererInstances.graph[renderer.index].hover);
 
