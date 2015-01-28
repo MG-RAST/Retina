@@ -123,7 +123,7 @@
 		'x_labels': [],
 		'x_labels_rotation': null,
 		'y_labels': [],
-		'y_scale': 'log',
+		'y_scale': 'linear',
 		'y2_labels': [],
 		'y2_scale': 'linear',
 		'x_tick_interval': 0,
