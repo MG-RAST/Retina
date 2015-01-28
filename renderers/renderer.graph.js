@@ -110,7 +110,7 @@
             version: "1.0",
             requires: [ "jquery.svg.js" ],
             defaults: {
-		'type': 'deviation', // [ column, stackedColumn, row, stackedRow, line, pie, stackedArea, deviation ]
+		'type': 'column', // [ column, stackedColumn, row, stackedRow, line, pie, stackedArea, deviation ]
 		'title': '',
 		'title_color': 'black',
 		'title_settings': { fontSize: '15px' },
