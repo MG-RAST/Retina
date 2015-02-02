@@ -250,22 +250,7 @@
 		      },
 		      success: function (d) {
 			  if (d && d.token) {
-			      var user;
-			      if (d.hasOwnProperty('fullname')) {
-				  d.firstname = d.fullname.substr(0, d.fullname.lastIndexOf(' '));
-				  d.lastname = d.fullname.substr(d.fullname.lastIndexOf(' ') + 1);
-			      }
-			      if (d.hasOwnProperty('username') && ! d.hasOwnProperty('login')) {
-				  d.login = d.username;
-			      }
-			      user = { login: d.login,
-				       firstname: d.firstname || d.login,
-				       lastname: d.lastname || "",
-				       email: d.email || "",
-				     };
-			      if (stm) {
-				  stm.Authentication = d.token;
-			      }
+			      var user = d;
 			      Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index, user);
 			      document.getElementById('failure').innerHTML = "";
 			      jQuery('#loginModal').modal('hide');
@@ -293,9 +278,6 @@
     
     widget.perform_logout = function (index) {
 	Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index);
-	if (stm) {
-	    stm.Authentication = null;
-	}
 	jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "token": null,
 										   "user": null }));
 	if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
