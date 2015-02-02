@@ -90,6 +90,16 @@
 									      'token' : udata.token,
 									      'user'  : udata.user });
 		}
+	    } else {
+		if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
+		    Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
+									      'result': 'failure' });
+		}
+	    }
+	} else {
+	    if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
+		Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
+									  'result': 'failure' });
 	    }
 	}
 

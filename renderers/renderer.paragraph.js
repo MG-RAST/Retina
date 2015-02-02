@@ -38,7 +38,7 @@
             version: "1.0",
             requires: [],
             defaults: {
-		'width': '940',
+		'width': '',
 		'data': '',
 		'title_color': 'black',
 		'header_color': 'black',
@@ -66,7 +66,6 @@
 	    if (renderer.settings.raw) {
 		renderer.settings.target.innerHTML = renderer.settings.data;
 	    } else {
-		renderer.settings.target.innerHTML = "";
 		var div_styles  = "";
 		var html_string = "<style>\
 #para"+renderer.index+" > h2 { color: "+renderer.settings.title_color+"; }\
@@ -111,7 +110,7 @@
 			}
 			html_string += "</table>";
 		    }  else if (renderer.settings.data[i].hasOwnProperty('fancy_table')) {
-			html_string += "<table style='width: 100%;' class='table table-striped table-hover'>";
+			html_string += "<table style='width: 100%;' class='table table-condensed table-striped table-hover'>";
 			for (h=0;h<renderer.settings.data[i].fancy_table.data.length;h++) {
 			    html_string += "<tr>";
 			    for (j=0;j<renderer.settings.data[i].fancy_table.data[h].length;j++) {
@@ -130,7 +129,7 @@
 		}
 		html_string += "</div>";
 
-		renderer.settings.target.innerHTML = html_string;
+		renderer.settings.target.innerHTML += html_string;
 	    }
 	    return renderer;
 	}
