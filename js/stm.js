@@ -567,4 +567,27 @@
 		       }
 		     } );
     };
+
+    stm.loadPreferences = function () {
+	var promise = jQuery.Deferred();
+	jQuery.ajax( { method: "GET",
+		       dataType: "json",
+		       prom: promise,
+		       headers: stm.authHeader,
+		       url: RetinaConfig["mgrast_api"]+"/user/"+stm.user.login+"?verbosity=preferences",
+		       headers: stm.authHeader,
+		       success: function(data) {
+			   for (var i=0; i<data.preferences.length; i++) {
+			       if (data.preferences[i].name == "shock") {
+				   stm.user.preferences = data.preferences[i].value;
+			       }
+			   }
+			   this.prom.resolve();
+		       },
+		       error: function () {
+			   this.prom.resolve();
+		       }
+		     } );
+	return promise;
+    };
 }).call(this);
