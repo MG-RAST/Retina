@@ -82,7 +82,9 @@
 	if (udata) {
 	    udata = JSON.parse(udata);
 	    if (udata.hasOwnProperty('user') && udata.user != null) {
-		stm.Authentication = udata.token;
+		if (stm.user && stm.user.login == udata.login) {
+		    udata.user = stm.user;
+		}
 		Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index, udata.user);
 		if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
 		    Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
@@ -255,7 +257,10 @@
 			      document.getElementById('failure').innerHTML = "";
 			      jQuery('#loginModal').modal('hide');
 			      jQuery('#msgModal').modal('show');
-			      jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "user": user,
+			      jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "user": { firstname: d.firstname,
+														   lastname: d.lastname,
+														   email: d.email,
+														   login: d.login },
 													 "token": d.token }), { expires: 7 });
 			      if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
 				  Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',

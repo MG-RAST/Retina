@@ -17,8 +17,6 @@
 	stm.DataRepositoryDefault = params.DataRepositoryDefault || null;
 	stm.SourceOrigin = params.SourceOrigin || "*";
 	stm.TargetOrigin = params.TargetOrigin || "*";
-	stm.Authentication = params.Authentication || null;
-	stm.AuthHeaderName = params.AuthHeaderName || 'AUTH';
 	if (params && params.Data) {
 	    stm.import_data({ merge: false, data: params.Data });
 	}
@@ -253,8 +251,8 @@
 	    return;
 	};
 
-	if (stm.Authentication) {
-	    xhr.setRequestHeader(stm.authHeaderName, stm.Authentication);
+	if (stm.authHeader) {
+	    xhr.setRequestHeader(stm.authHeader);
 	}
 	
 	var progressIndicator = document.getElementById('progressIndicator');
@@ -540,4 +538,33 @@
 	frame.postMessage({ 'type': type, 'data': data }, stm.TargetOrigin);
     };
 
+    stm.storePreferences = function (message_ok, message_err, callback) {
+	if (! message_ok) {
+	    message_ok = "preferences stored";
+	}
+	if (! message_err) {
+	    message_err = "error storing preferences";
+	}
+	jQuery.ajax( { method: "PUT",
+		       cb: callback,
+		       mo: message_ok,
+		       me: message_err,
+		       headers: stm.authHeader,
+		       data: "prefs="+JSON.stringify(stm.user.preferences),
+		       url: RetinaConfig["mgrast_api"]+"/user/"+stm.user.login+"/preferences",
+		       headers: stm.authHeader,
+		       success: function(data) {
+			   alert(this.mo);
+			   if (this.cb) {
+			       this.cb.call(this, 'success');
+			   }
+		       },
+		       error: function () {
+			   alert(this.me);
+			   if (this.cb) {
+			       this.cb.call(this, 'error');
+			   }
+		       }
+		     } );
+    };
 }).call(this);
