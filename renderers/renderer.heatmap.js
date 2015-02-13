@@ -35,6 +35,12 @@
   selectedRows (array of boolean)
      Returns an array that has a value of true for all row indices that are currently selected.
 
+  showScale (boolean)
+     Indicates whether a scale should be drawn. Default is true.
+
+  colorScale (string)
+     Can be either 'red2green' or 'yellow2blue' and determines the color range. Default is 'red2green'.
+
   data (object)
      columns (array of string)
         names of the columns
@@ -69,6 +75,8 @@
 		'row_text_size': 15,
 		'col_text_size': 15,
 		'min_cell_height': 19,
+		'colorScale': 'red2green',
+		'showLegend': true,
 		'selectedRows': [],
 		'selectedColumns': [],
 		'cells': [] },
@@ -87,7 +95,8 @@
 			{ name: 'tree_height', type: 'int', description: "height of the dendogram", title: "dendogram height" },
 			{ name: 'tree_width', type: 'int', description: "width of the dendogram", title: "dendogram width" },
 			{ name: 'legend_height', type: 'int', description: "height of the legend", title: "legend height" },
-			{ name: 'legend_width', type: 'int', description: "width of the legend", title: "legend width" }
+			{ name: 'legend_width', type: 'int', description: "width of the legend", title: "legend width" },
+			{ name: 'showScale', type: 'boolean', description: "show a color scale", title: "show scale" }
 		    ]
 		}
 	    ]
@@ -153,6 +162,31 @@
 	    renderer.drawDendogram(svg, index, 0);
 	    renderer.drawDendogram(svg, index, 1);
 
+	    // draw legend
+	    if (renderer.settings.showScale) {
+		for (var h=-5;h<6;h++) {
+		    var cval = parseInt((255 / 5) * Math.abs(h));
+		    if (renderer.settings.colorScale == 'red2green') {
+			if (h < 0) {
+			    color = "rgb("+cval+",0,0)";
+			} else {
+			    color = "rgb(0,"+cval+",0)";
+			}
+		    } else {
+			if (h < 0) {
+			    color = "rgb(0,0,"+cval+")";
+			} else {
+			    color = "rgb("+cval+","+cval+",0)";
+			}
+		    }
+		    settings.fill = color;
+		    x = (h + 5) * boxwidth + 10;
+		    y = displayheight + (boxheight / 2) + renderer.settings.legend_height + renderer.settings.tree_height;
+		    svg.rect(null, x, y, boxwidth, boxheight, rx, ry, settings);
+		    svg.text(null, x + 7, y + (boxheight * 1.5), ''+(0.2 * h).toFixed(1), { textAnchor: 'middle', fill: fontColor, fontSize: parseInt(boxheight / 2)+"px" });
+		}
+	    }
+
 	    // draw the heatmap
 	    for (var i=0;i<renderer.settings.data.data.length;i++) {
 		// draw row text
@@ -191,10 +225,18 @@
 		    var color = "black";
 		    var adjusted_value = (renderer.settings.data.data[renderer.settings.data.rowindex[i]-1][renderer.settings.data.colindex[h]-1] * 2) - 1;
 		    var cval = parseInt(255 * Math.abs(adjusted_value));
-		    if (adjusted_value < 0) {
-			color = "rgb("+cval+",0,0)";
+		    if (renderer.settings.colorScale == 'red2green') {
+			if (adjusted_value < 0) {
+			    color = "rgb("+cval+",0,0)";
+			} else {
+			    color = "rgb(0,"+cval+",0)";
+			}
 		    } else {
-			color = "rgb(0,"+cval+",0)";
+			if (adjusted_value < 0) {
+			    color = "rgb(0,0,"+cval+")";
+			} else {
+			    color = "rgb("+cval+","+cval+",0)";
+			}
 		    }
 		    settings.fill = color;
 		    if (typeof renderer.settings.cellClicked == "function") {
