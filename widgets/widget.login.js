@@ -23,8 +23,6 @@
     widget.forgotLink = null;
     widget.myDataEnabled = false;
     widget.myDataLink = null;
-    widget.loginField = "login";
-    widget.tokenField = "token";
     
     widget.display = function (wparams) {
 	widget = this;
@@ -253,7 +251,7 @@
 			  }
 		      },
 		      success: function (d) {
-			  if (d && d[widget.tokenField]) {
+			  if (d && d[widget.authResources[widget.authResources.default].tokenField || "token"]) {
 			      if (d.hasOwnProperty('fullname')) {
 				  d.firstname = d.fullname.substr(0, d.fullname.lastIndexOf(' '));
 				  d.lastname = d.fullname.substr(d.fullname.lastIndexOf(' ') + 1);
@@ -263,15 +261,15 @@
 			      document.getElementById('failure').innerHTML = "";
 			      jQuery('#loginModal').modal('hide');
 			      jQuery('#msgModal').modal('show');
-			      jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "user": { firstname: d.firstname || d[widget.loginField],
+			      jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "user": { firstname: d.firstname || d[widget.authResources[widget.authResources.default].loginField || "login"],
 														   lastname: d.lastname || "",
 														   email: d.email || "",
-														   login: d[widget.loginField] },
-													 "token": d[widget.tokenField] }), { expires: 7 });
+														   login: d[widget.authResources[widget.authResources.default].loginField || "login"] },
+													 "token": d[widget.authResources[widget.authResources.default].tokenField || "token"] }), { expires: 7 });
 			      if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
 				  Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
 											    'result': 'success',
-											    'token' : d[widget.tokenField],
+											    'token' : d[widget.authResources[widget.authResources.default].tokenField || "token"],
 											    'user'  : user  });
 			      }
 			  } else {
