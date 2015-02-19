@@ -232,7 +232,8 @@
 	    auth_url = widget.authResources[widget.authResources.default].url;
 	    header[(widget.authResources[widget.authResources.default].keyword || "auth")] = (widget.authResources[widget.authResources.default].prefix || "")+Retina.Base64.encode(login+":"+pass);
 	}
-	jQuery.ajax({ dataType: "json",
+	jQuery.ajax({ method: widget.authResources[widget.authResources.default].method || "GET"
+		      dataType: "json",
 		      url: auth_url,
 		      headers: header,
 		      error: function (xhr) {
