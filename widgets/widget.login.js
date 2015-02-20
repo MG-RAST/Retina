@@ -265,7 +265,8 @@
 			      jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "user": { firstname: d.firstname || d[widget.authResources[widget.authResources.default].loginField || "login"],
 														   lastname: d.lastname || "",
 														   email: d.email || "",
-														   login: d[widget.authResources[widget.authResources.default].loginField || "login"] },
+														   login: d[widget.authResources[widget.authResources.default].loginField || "login"],
+														   id: d.id || null },
 													 "token": d[widget.authResources[widget.authResources.default].tokenField || "token"] }), { expires: 7 });
 			      if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
 				  Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
