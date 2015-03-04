@@ -258,6 +258,8 @@
 				  d.lastname = d.fullname.substr(d.fullname.lastIndexOf(' ') + 1);
 			      }
 			      var user = d;
+			      user.lastname = d.lastname || "";
+			      user.firstname = d.firstname || d[widget.authResources[widget.authResources.default].loginField || "login"]
 			      user.login = d[widget.authResources[widget.authResources.default].loginField];
 			      Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index, user);
 			      document.getElementById('failure').innerHTML = "";
