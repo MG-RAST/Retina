@@ -258,6 +258,7 @@
 				  d.lastname = d.fullname.substr(d.fullname.lastIndexOf(' ') + 1);
 			      }
 			      var user = d;
+			      user.login = d[widget.authResources[widget.authResources.default].loginField];
 			      Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index, user);
 			      document.getElementById('failure').innerHTML = "";
 			      jQuery('#loginModal').modal('hide');
