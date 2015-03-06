@@ -3801,6 +3801,9 @@
                         if (cur_str.substr(cur_str.indexOf('.')+1).length > 3) {
                                 cur_str = cur.toFixed(3).toString();
                         }
+			if (axis._scale.type == 'int') {
+			    cur_str = cur.toFixed(0).toString();
+			}
 			this._wrapper.text(this._plotCont, (horiz ? xy : zeroo - size),
 					   (horiz ? zeroo + size + 12 : xy + (size / 2)),
 					   (axis._scale.type == 'log') ? logtext : cur_str,

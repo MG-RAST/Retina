@@ -528,7 +528,7 @@
 			} else if (renderer.settings.filter[i].type == "select") {
 			    filter_elem = document.createElement("select");
 			    filter_elem.setAttribute("style", "position: absolute; height: 26px; margin-bottom: 0px; margin-top: 2px; z-index: 100; display: none;");
-			    filter_elem.add(new Option("-show all-", ""), null);
+			    filter_elem.add(new Option("-show all-", "-show all-"), null);
 			    var selopts = [];
 			    for (var h=0;h<tdata.length;h++) {
 				if (tdata[h][header[i]].length) {
