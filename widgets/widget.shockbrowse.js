@@ -590,10 +590,10 @@
 	    for (var i=widget.currentOffset; i<widget.data.data.length; i++) {
 		var ds = widget.data.data[i];
 		var fn = ds.file.name || ds.id;
-		html += "<div>";
+		html += "<div class='fileItem'>";
 		for (var h=0; h<widget.fileSectionColumns.length; h++) {
 		    var width = widget.fileSectionColumns[h].width ? widget.fileSectionColumns[h].width : parseInt(100 / widget.fileSectionColumns.length) + "%";
-		    html += "<div style='width: "+width+"; display: inline-block; vertical-align: top; text-align: "+(widget.fileSectionColumns[h].align || "left")+";'><div style='padding-left: 5px; padding-right: 5px;' class='fileItem' onclick='Retina.WidgetInstances.shockbrowse[1].showDetails(event);' fi='"+ds.id+"'>";
+		    html += "<div style='width: "+width+"; display: inline-block; vertical-align: top; text-align: "+(widget.fileSectionColumns[h].align || "left")+";'><div style='padding-left: 5px; padding-right: 5px;' onclick='Retina.WidgetInstances.shockbrowse[1].showDetails(event);' fi='"+ds.id+"'>";
 
 		    // determine file content, filename is the special case that allows drag and drop
 		    if (widget.fileSectionColumns[h].type == "file") {
@@ -893,7 +893,7 @@
 	    }
 	    
 	    widget.selectedFile = e.currentTarget;
-	    widget.selectedFile.style.backgroundColor = "#e6eaef";
+	    widget.selectedFile.parentNode.style.backgroundColor = "#e6eaef";
 
 	    widget.currentFileId = e.currentTarget.getAttribute('fi');
 	}
