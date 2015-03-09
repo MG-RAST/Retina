@@ -889,7 +889,7 @@
 
 	if (! update) {
 	    if (widget.selectedFile != null) {
-		widget.selectedFile.style.backgroundColor = null;
+		widget.selectedFile.parentNode.style.backgroundColor = null;
 	    }
 	    
 	    widget.selectedFile = e.currentTarget;
