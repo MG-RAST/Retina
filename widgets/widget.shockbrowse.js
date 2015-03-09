@@ -593,11 +593,11 @@
 		html += "<div>";
 		for (var h=0; h<widget.fileSectionColumns.length; h++) {
 		    var width = widget.fileSectionColumns[h].width ? widget.fileSectionColumns[h].width : parseInt(100 / widget.fileSectionColumns.length) + "%";
-		    html += "<div style='width: "+width+"; display: inline-block; vertical-align: top; text-align: "+(widget.fileSectionColumns[h].align || "left")+";'><div style='padding-left: 5px; padding-right: 5px;'>";
+		    html += "<div style='width: "+width+"; display: inline-block; vertical-align: top; text-align: "+(widget.fileSectionColumns[h].align || "left")+";'><div style='padding-left: 5px; padding-right: 5px;' class='fileItem' onclick='Retina.WidgetInstances.shockbrowse[1].showDetails(event);' fi='"+ds.id+"'>";
 
 		    // determine file content, filename is the special case that allows drag and drop
 		    if (widget.fileSectionColumns[h].type == "file") {
-			html += "<div id='file"+ds.id+"' class='fileItem' fi='"+ds.id+"' onclick='Retina.WidgetInstances.shockbrowse[1].showDetails(event);' draggable='true' data-downloadurl='application/octet-stream:"+fn+":"+widget.shockBase + "/node/" + ds.id + "?download&filename="+fn+"'>" + fn + "</div>";
+			html += "<div id='file"+ds.id+"' draggable='true' data-downloadurl='application/octet-stream:"+fn+":"+widget.shockBase + "/node/" + ds.id + "?download&filename="+fn+"'>" + fn + "</div>";
 		    } else {
 			// get the cell content
 			var pathItems = widget.fileSectionColumns[h].path.split(".");
