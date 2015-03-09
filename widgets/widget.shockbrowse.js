@@ -1178,8 +1178,16 @@
 		target.innerHTML = "";
 	    }
 	} else if (action == "clear") {
-	    widget.filters = widget.presetFilters || {};
-	    target.innerHTML = "";
+	    for (var item in widget.filters) {
+		var elem = document.getElementById('advFilter_'+item);
+		if (elem) {
+		    delete widget.filters[item];
+		    target.removeChild(elem);
+		    if (target.childNodes.length == 1) {
+			target.innerHTML = "";
+		    }
+		}
+	    }
 	} else if (action == "restore") {
 	    target.innerHTML = "";
 	    var pf = widget.presetFilters || {};
