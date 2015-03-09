@@ -42,6 +42,13 @@
 
   uploadRestrictions - array of objects with the attributes 'expression' which is a regular expression to match a filename and 'text' which will be displayed as an error alert to the user. Filenames that match will not be able to be uploaded. Default is an empty array.
 
+  fileSectionColumns - array of objects with the following attributes:
+     path  - string of the path within the node (i.e. file.name) to the attribute to list
+     name  - string to be displayed as the column header
+     width - HTML width string of the column, percentage values are advised
+     type  - type of the column for formatting, supported values are date, size, file and string
+     align - HTML align value of the column
+
 */
 (function () {
     var widget = Retina.Widget.extend({
@@ -119,6 +126,8 @@
     widget.showDetailACL = true;
     widget.showDetailPreview = true;
     widget.showDetailAttributes = true;
+
+    widget.fileSectionColumns = [ { "path": "file.name", "name": "filename" } ];
 
     widget.showStatusBar = true;
 
@@ -555,7 +564,7 @@
 	    }
 
 	    sectionContent = document.createElement('div');
-	    sectionContent.setAttribute("style", "padding-left: 5px; padding-top: 1px; padding-right: 5px; height: inherit; overflow-y: scroll; font-size: "+widget.fontSize+"px;");
+	    sectionContent.setAttribute("style", "padding-left: 5px; padding-top: 1px; padding-right: 5px; height: inherit; overflow-y: scroll; font-size: "+widget.fontSize+"px; word-wrap: break-word;");
 	    section.appendChild(sectionContent);
 	    widget.sections.fileSectionContent = sectionContent
 
@@ -578,12 +587,48 @@
 	    for (var i=widget.currentOffset; i<widget.data.data.length; i++) {
 		var ds = widget.data.data[i];
 		var fn = ds.file.name || ds.id;
-		html += "<div id='file"+ds.id+"' class='fileItem' fi='"+ds.id+"' onclick='Retina.WidgetInstances.shockbrowse[1].showDetails(event);' draggable='true' data-downloadurl='application/octet-stream:"+fn+":"+widget.shockBase + "/node/" + ds.id + "?download&filename="+fn+"'>" + fn + "</div>";
+		html += "<div>";
+		for (var h=0; h<widget.fileSectionColumns.length; h++) {
+		    var width = widget.fileSectionColumns[h].width ? widget.fileSectionColumns[h].width : parseInt(100 / widget.fileSectionColumns.length) + "%";
+		    html += "<div style='width: "+width+"; display: inline-block; vertical-align: top; text-align: "+(widget.fileSectionColumns[h].align || "left")+";'><div style='padding-left: 5px; padding-right: 5px;'>";
+
+		    // determine file content, filename is the special case that allows drag and drop
+		    if (widget.fileSectionColumns[h].type == "file") {
+			html += "<div id='file"+ds.id+"' class='fileItem' fi='"+ds.id+"' onclick='Retina.WidgetInstances.shockbrowse[1].showDetails(event);' draggable='true' data-downloadurl='application/octet-stream:"+fn+":"+widget.shockBase + "/node/" + ds.id + "?download&filename="+fn+"'>" + fn + "</div>";
+		    } else {
+			// get the cell content
+			var pathItems = widget.fileSectionColumns[h].path.split(".");
+			var item = ds;
+			for (var j=0; j<pathItems.length; j++) {
+			    item = item[pathItems[j]];
+			}
+			
+			// do formatting based on type
+			if (widget.fileSectionColumns[h].type == "size") {
+			    if (item) {
+				item = parseInt(item).byteSize();
+			    } else {
+				item = "--";
+			    }
+			} else if (widget.fileSectionColumns[h].type == "date") {
+			    item = Retina.date_string(item);
+			}
+			html += "<div>"+item+"</div>";
+		    }
+		    html += "</div></div>";
+		}
+		html += "</div>";
 	    }
 	    if (widget.append) {
 		sectionContent.innerHTML += html;
 	    } else {
-		sectionContent.innerHTML = html;
+		var sectionHeader = "<div style='font-size: 11px; width: "+(widget.fileWidth - 1)+"px; font-weight: bold; background-color: #f3f3f3; border-bottom: 1px solid #838383; margin-left: -5px; margin-right: -6px; margin-top: -1px;'>";
+		for (var i=0; i<widget.fileSectionColumns.length; i++) {
+		    var width = widget.fileSectionColumns[i].width ? widget.fileSectionColumns[i].width : parseInt(100 / widget.fileSectionColumns.length) + "%";
+		    sectionHeader += "<div style='width: "+width+"; display: inline-block; text-align: "+(widget.fileSectionColumns[i].align || "left")+";'><div style='border-right: 1px solid darkgray; width: 100%;'><div style='padding-left: 5px; padding-right: 5px;'>"+widget.fileSectionColumns[i].name+"</div></div></div>";
+		}
+		sectionHeader += "</div>";
+		sectionContent.innerHTML = sectionHeader + html;
 	    }
 
 	    for (var i=widget.currentOffset; i<widget.data.data.length; i++) {
