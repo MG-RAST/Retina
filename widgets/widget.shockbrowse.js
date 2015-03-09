@@ -7,6 +7,7 @@
   shockBase - URL of the SHOCK server to interact with, default is config.js-shock_url
   width - width of the browser in pixel, default is 1550
   height - height of the browser in pixel, default is 800
+  initialFileDetailRatio - initial size ratio between file and info section, default is 0.5 (both equal size)
   title - text displayed in the title bar, default is "SHOCK browser"
 
   showFilter - boolean whether the filter section is visible, default is true
@@ -84,6 +85,7 @@
     widget.fontSize = 13;
     widget.showFilter = true;
     widget.filterWidth = 232;
+    widget.initialFileDetailRatio = 0.5;
     widget.sizes = { "small": [ 800, 400 ] };
 
     // upload status information
@@ -200,8 +202,9 @@
 	}
 
 	var filterWidth = widget.showFilter ? widget.filterWidth : 0;
-	widget.fileWidth = Math.floor((widget.width - filterWidth) / 2) - 5;
-	widget.detailWidth = Math.floor((widget.width - filterWidth) / 2) - 5;
+	var remainWidth = widget.width - filterWidth - 10;
+	widget.fileWidth = Math.floor(remainWidth * widget.initialFileDetailRatio);
+	widget.detailWidth = remainWidth - widget.fileWidth;
 
 	widget.topHeight = widget.showTopSection ? (widget.showTitleBar ? 52 : 40) : 0;
 	widget.middleHeight = widget.height - (widget.showStatusBar ? (22 + widget.topHeight) : (1 + widget.topHeight));
