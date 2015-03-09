@@ -622,7 +622,7 @@
 	    if (widget.append) {
 		sectionContent.innerHTML += html;
 	    } else {
-		var sectionHeader = "<div style='font-size: 11px; width: "+(widget.fileWidth - 1)+"px; font-weight: bold; background-color: #f3f3f3; border-bottom: 1px solid #838383; margin-left: -5px; margin-right: -6px; margin-top: -1px;'>";
+		var sectionHeader = "<div style='font-size: 11px; font-weight: bold; background-color: #f3f3f3; border-bottom: 1px solid #838383; margin-left: -5px; margin-right: -6px; margin-top: -1px;'>";
 		for (var i=0; i<widget.fileSectionColumns.length; i++) {
 		    var width = widget.fileSectionColumns[i].width ? widget.fileSectionColumns[i].width : parseInt(100 / widget.fileSectionColumns.length) + "%";
 		    sectionHeader += "<div style='width: "+width+"; display: inline-block; text-align: "+(widget.fileSectionColumns[i].align || "left")+";'><div style='border-right: 1px solid darkgray; width: 100%;'><div style='padding-left: 5px; padding-right: 5px;'>"+widget.fileSectionColumns[i].name+"</div></div></div>";
