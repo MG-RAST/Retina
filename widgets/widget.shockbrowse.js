@@ -600,7 +600,12 @@
 			var pathItems = widget.fileSectionColumns[h].path.split(".");
 			var item = ds;
 			for (var j=0; j<pathItems.length; j++) {
-			    item = item[pathItems[j]];
+			    if (item.hasOwnProperty(pathItems[j])) {
+				item = item[pathItems[j]];
+			    } else {
+				item = "-";
+				break;
+			    }
 			}
 			
 			// do formatting based on type
@@ -633,9 +638,11 @@
 
 	    for (var i=widget.currentOffset; i<widget.data.data.length; i++) {
 		var div = document.getElementById("file"+widget.data.data[i].id);
-		div.addEventListener("dragstart", function(evt){
-		    evt.dataTransfer.setData("DownloadURL", typeof this.dataset === "undefined" ? this.getAttribute("data-downloadurl") : this.dataset.downloadurl);
-		},false);
+		if (div) {
+		    div.addEventListener("dragstart", function(evt){
+			evt.dataTransfer.setData("DownloadURL", typeof this.dataset === "undefined" ? this.getAttribute("data-downloadurl") : this.dataset.downloadurl);
+		    },false);
+		}
 	    }
 	    widget.append = false;
 	}
