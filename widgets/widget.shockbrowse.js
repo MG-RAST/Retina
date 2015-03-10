@@ -966,14 +966,13 @@
 		    widget.showDetails(null, true);
 		    return;
 		}
-		var url = widget.shockBase + "/node/" + node.id + "?download&index=size&part=1&chunksize="+widget.previewChunkSize;
+		var url = widget.shockBase + "/node/" + node.id + "?download_raw&length="+widget.previewChunkSize;
 		jQuery.ajax({ url: url,
 			      success: function(data, status, xhr) {
 				  var widget = Retina.WidgetInstances.shockbrowse[1];
 				  if (typeof widget.customPreview == 'function') {
 				      widget.detailInfo = widget.customPreview.call(null, { "node": node, "data": data, "error": null });
 				  } else {
-				      data = data.slice(0, widget.previewChunkSize);
 				      widget.detailInfo = "<h4>preview - "+(node.file.name || node.id)+"</h4><pre style='font-size: "+(widget.fontSize - 1)+"px;'>"+data+"</pre>";
 				  }
 				  widget.showDetails(null, true);
