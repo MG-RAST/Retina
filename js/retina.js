@@ -361,16 +361,19 @@
 
     /* create an image from an svg  */
     Retina.svg2png = function (source, target, width, height) {
+	var promise = jQuery.Deferred();
 	Retina.load_library('canvg.js').then( function () {
-	    var svg = source.innerHTML;
-	    svg = svg.replace(/:/, "");
-	    svg = svg.replace(/xlink:/g, "");
+	    var svg = document.querySelector(source || 'svg');
+	    var serializer = new XMLSerializer();
+	    svg = serializer.serializeToString(svg);
 	    var canvas = document.createElement('canvas');
 	    canvas.setAttribute("width", width+"px");
 	    canvas.setAttribute("height", height+"px");
 	    target.appendChild(canvas);
 	    canvg(canvas, svg);
+	    promise.resolve();
 	} );
+	return promise;
     }
 
     Retina.Base64 = {
