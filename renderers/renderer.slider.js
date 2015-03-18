@@ -11,9 +11,13 @@
 		'height': 10,
 		'color': "#08c",
 		'sliderWidth': 12,
-		'min': 0,
+		'min': -100,
 		'max': 100,
-		'current': 50
+		'current': 0,
+		'showValue': true,
+		'fontName': 'Arial',
+		'fontSize': '12px',
+		'fontColor': 'gray'
 	    },
 	},
 	exampleData: function () {
@@ -26,8 +30,9 @@
 	    var container = document.createElement('div');
 	    container.setAttribute('style', "width: "+renderer.settings.width + "px; height: "+renderer.settings.height+"px;");
 
-	    var workWidth = renderer.settings.width - 4;
-	    var middle = parseInt(workWidth / (renderer.settings.max - renderer.settings.min) * renderer.settings.current);
+	    var workWidth = renderer.settings.width - 4 - (renderer.settings.showValue ? 30 : 0);
+	    renderer.workWidth = workWidth;
+	    var middle = parseInt(workWidth / (renderer.settings.max - renderer.settings.min) * (renderer.settings.current + Math.abs(renderer.settings.min)));
 	    var rightWidth = parseInt(workWidth - middle - (renderer.settings.sliderWidth / 2));
 	    var leftWidth = workWidth - rightWidth - renderer.settings.sliderWidth;
 
@@ -74,6 +79,13 @@
 	    container.appendChild(sliderLeft);
 	    container.appendChild(slider);
 	    container.appendChild(sliderRight);
+	    if (renderer.settings.showValue) {
+		var valueDiv = document.createElement('div');
+		valueDiv.setAttribute('style', 'width: 25px; font-name: '+renderer.settings.fontName+'; font-size: '+renderer.settings.fontSize+'; color: '+renderer.settings.fontColor+'; float: left; position: relative; bottom: 4px; padding-left: 5px; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;');
+		valueDiv.innerHTML = renderer.settings.current;
+		renderer.valueDiv = valueDiv;
+		container.appendChild(valueDiv);
+	    }
 
 	    renderer.settings.target.appendChild(container);
 
@@ -94,7 +106,10 @@
 	    } else if (w2 == 0) {
 		renderer.settings.current = renderer.settings.max;
 	    } else {
-		renderer.settings.current = parseInt(renderer.settings.min + ((renderer.settings.max - renderer.settings.min) / (renderer.settings.width - renderer.settings.sliderWidth - 2) * w));
+		renderer.settings.current = parseInt(renderer.settings.min + ((renderer.settings.max - renderer.settings.min) / (renderer.workWidth - renderer.settings.sliderWidth) * w));
+	    }
+	    if (renderer.valueDiv) {
+		renderer.valueDiv.innerHTML = renderer.settings.current;
 	    }
 	    return renderer.settings.current;
 	}
