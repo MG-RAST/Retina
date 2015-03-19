@@ -16,6 +16,7 @@
 
   enableUpload - boolean whether upload is enabled, default is true
   enableDownload - boolean whether download is enabled, default is true
+  enableCompressedDownload - boolean whether download as zip is enabled, default is true
   showUploadPreview - boolean whether a preview is shown for files selected for upload
 
   showDetailBar - boolean whether the detail bar is visible, default is true
@@ -134,6 +135,7 @@
     widget.showStatusBar = true;
 
     widget.enableDownload = true;
+    widget.enableCompressedDownload = true;
     widget.enableUpload = true;
     widget.showUploadPreview = true;
 
@@ -398,7 +400,47 @@
 	    downloadButton.addEventListener('click', function(){
 		var widget = Retina.WidgetInstances.shockbrowse[1];
 		if (widget.selectedFile) {
-		    jQuery.ajax({ url: widget.shockBase + "/node/" + widget.selectedFile.getAttribute('fi') + "?download_url&filename="+widget.selectedFile.innerHTML,
+		    var fn = widget.selectedFile.innerHTML.replace(/\<\/?div\>/g, "");
+		    jQuery.ajax({ url: widget.shockBase + "/node/" + widget.selectedFile.getAttribute('fi') + "?download_url&filename="+fn,
+				  dataType: "json",
+				  success: function(data) {
+				      var widget = Retina.WidgetInstances.shockbrowse[1];
+				      if (data != null) {
+					  if (data.error != null) {
+					      console.log("error: "+data.error);
+					  }
+					  window.location = data.data.url;
+				      } else {
+					  console.log("error: invalid return structure from SHOCK server");
+					  console.log(data);
+				      }
+				  },
+				  error: function(jqXHR, error) {
+				      var widget = Retina.WidgetInstances.shockbrowse[1];
+				      console.log( "error: unable to connect to SHOCK server" );
+				      console.log(error);
+				  },
+				  crossDomain: true,
+				  headers: widget.authHeader
+				});
+		} else {
+		    alert('no file selected for download');
+		}
+	    });
+	    modifyBar.appendChild(downloadButton);
+	}
+
+	// download as zip button
+	if (widget.enableCompressedDownload) {
+	    var downloadButton = document.createElement('button');
+	    downloadButton.className = "btn btn-menu btn-small";
+	    downloadButton.title = "download selected file as gzip";
+	    downloadButton.innerHTML = "<img src='Retina/images/file-zip.png' style='height: 16px;'>";
+	    downloadButton.addEventListener('click', function(){
+		var widget = Retina.WidgetInstances.shockbrowse[1];
+		if (widget.selectedFile) {
+		    var fn = widget.selectedFile.innerHTML.replace(/\<\/?div\>/g, "");
+		    jQuery.ajax({ url: widget.shockBase + "/node/" + widget.selectedFile.getAttribute('fi') + "?download_url&compression=gzip&filename="+fn,
 				  dataType: "json",
 				  success: function(data) {
 				      var widget = Retina.WidgetInstances.shockbrowse[1];
@@ -921,8 +963,7 @@
 <tr><th>modified</th><td>"+node.last_modified+"</td></tr>\
 <tr><th>size</th><td>"+node.file.size.formatString()+"</td></tr>\
 <tr><th>MD5</th><td>"+node.file.checksum.md5+"</td></tr>\
-<tr><th>SHA1</th><td>"+node.file.checksum.sha1+"</td></tr>\
-<tr><th>format</th><td>"+(node.file.format ? node.file.format : "unknown")+"</td></tr>\
+"+(node.file.format ? "<tr><th>format</th><td>"+node.file.format+"</td></tr>" : "")+"\
 <tr><th>virtual</th><td>"+(node.file.virtual ? "yes" : "no")+"</td></tr>\
 </table>";
 	} else if (widget.detailType == "acl") {
@@ -1311,6 +1352,15 @@
 	var form = new FormData();
 	form.append('attributes', incomplete);
 	form.append('parts', chunks);
+	if (widget.doDecompress) {
+	    var ctype = "gzip";
+	    if (file.name.match(/\.bz2$/)) {
+		ctype = "bz2";
+	    } else if (file.name.match(/\.zip$/)) {
+		ctype = "zip";
+	    }
+	    form.append('compression', ctype);
+	}
 	form.append('file_name', file.name);
 	jQuery.ajax(widget.uploadURL, {
 	    contentType: false,
@@ -1576,8 +1626,9 @@
 	var html = "<p><table style='text-align: left;'><tr><th style='padding-right: 20px;'>filename</th><td>"+file.name+"</td><tr></tr><th>modified</th><td>"+file.lastModifiedDate+"</td></tr><tr><th>size</th><td>"+file.size.byteSize()+"</td></tr><tr><th>type</th><td>"+fileType+"</td></tr></table></p>";
 
 	// check for automatic decompression
-	if (file.name.match(/\.gz$/) || file.name.match(/\.bz2/) || file.name.match(/\.tgz/)) {
-	    html += "<p"+(widget.autoDecompress ? " style='display: none;'" : "")+"><input id='decompression' type='checkbox' checked value='decompress' style='margin: 0;'> automatically decompress after upload</p>";
+	if (file.name.match(/\.gz$/) || file.name.match(/\.bz2/) || file.name.match(/\.tgz/) || file.name.match(/\.zip/)) {
+	    widget.doDecompress = true;
+	    html += "<p"+(widget.autoDecompress ? " style='display: none;'" : "")+"><input type='checkbox' checked='checked' style='margin: 0;' onclick='if(this.checked){Retina.WidgetInstances.shockbrowse[1].doDecompress=true;}else{Retina.WidgetInstances.shockbrowse[1].doDecompress=false;}'> automatically decompress after upload</p>";
 	}
 	
 	var restricted = widget.checkUploadRestrictions(file.name);
