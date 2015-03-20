@@ -51,6 +51,9 @@
      type  - type of the column for formatting, supported values are date, size, file and string
      align - HTML align value of the column
 
+  Readonly Attributes:
+
+  fileList - list of SHOCK node objects that are currently displayed in the file section
 */
 (function () {
     var widget = Retina.Widget.extend({
@@ -140,6 +143,8 @@
     widget.showUploadPreview = true;
 
     widget.showTopSection = true;
+
+    widget.fileList = [];
 
     /*
      * STYLESHEET
@@ -629,8 +634,12 @@
 
 	if (widget.data) {
 	    var html = "";
+	    if(! widget.append) {
+		widget.fileList = [];
+	    }
 	    for (var i=widget.currentOffset; i<widget.data.data.length; i++) {
 		var ds = widget.data.data[i];
+		widget.fileList.push(ds);
 		var fn = ds.file.name || ds.id;
 		html += "<div class='fileItem'>";
 		for (var h=0; h<widget.fileSectionColumns.length; h++) {
