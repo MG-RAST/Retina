@@ -44,6 +44,10 @@
 
   uploadRestrictions - array of objects with the attributes 'expression' which is a regular expression to match a filename and 'text' which will be displayed as an error alert to the user. Filenames that match will not be able to be uploaded. Default is an empty array.
 
+  preUploadCustom - function that gets called when a file is selected for upload. Receives the file as a parameter. This function must return an object with the attributes:
+     html - HTML to be displayed before the commence upload button
+     preventUpload - boolean indicating whether this file may be uploaded or not
+
   fileSectionColumns - array of objects with the following attributes:
      path  - string of the path within the node (i.e. file.name) to the attribute to list
      name  - string to be displayed as the column header
@@ -1634,6 +1638,15 @@
 	var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
 	var html = "<p><table style='text-align: left;'><tr><th style='padding-right: 20px;'>filename</th><td>"+file.name+"</td><tr></tr><th>modified</th><td>"+file.lastModifiedDate+"</td></tr><tr><th>size</th><td>"+file.size.byteSize()+"</td></tr><tr><th>type</th><td>"+fileType+"</td></tr></table></p>";
 
+	// check for custom pre-upload handling
+	var custom = { "html": null, "preventUpload": false };
+	if (typeof widget.preUploadCustom == "function") {
+	    custom = widget.preUploadCustom.call(null, file);
+	}
+	if (custom.html) {
+	    html += custom.html;
+	}
+
 	// check for automatic decompression
 	if (file.name.match(/\.gz$/) || file.name.match(/\.bz2/) || file.name.match(/\.tgz/) || file.name.match(/\.zip/)) {
 	    widget.doDecompress = true;
@@ -1641,8 +1654,10 @@
 	}
 	
 	var restricted = widget.checkUploadRestrictions(file.name);
-	if (restricted) {
-	    html += restricted;
+	if (restricted || custom.preventUpload) {
+	    if (! custom.preventUpload) {
+		html += restricted;
+	    }
 	} else {
 	    html += "<div style='text-align: center;'><button class='btn btn-success' type='button' onclick='Retina.WidgetInstances.shockbrowse[1].uploadFile();'>commence upload</button><button class='btn pull-right' data-toggle='button' type='button' onclick='if(this.className.match(/active/)){document.getElementById(\"upload_advanced_options\").style.display=\"none\";}else{document.getElementById(\"upload_advanced_options\").style.display=\"\";}'><i class='icon icon-cog'></i> advanced</button></div><div id='upload_advanced_options' style='margin-top: 10px; border: 1px solid #bbbbbb; padding: 5px; margin-bottom: 10px; display: none;'><b>upload chunk size</b> <select id='upload_chunk_size' onchange='Retina.WidgetInstances.shockbrowse[1].uploadChunkSize=this.options[this.selectedIndex].value;' style='position: relative; top: 4px; left: 5px;'>";
 	
