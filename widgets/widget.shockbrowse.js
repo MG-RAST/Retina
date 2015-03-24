@@ -1638,7 +1638,7 @@
 
 	// check for custom pre-upload handling
 	if (typeof widget.preUploadCustom == "function") {
-	    html += "<div id='preUploadCustomHTML' style='text-align: center;'><img src='Retina/images/waiting.gif' style='width: 25px;'></div>";
+	    html += "<div id='preUploadCustomHTML' style='text-align: center;'><img src='Retina/images/waiting.gif' style='width: 25px; margin-bottom: 20px;'></div>";
 	}
 
 	// check for automatic decompression
