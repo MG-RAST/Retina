@@ -1676,8 +1676,8 @@
 	
 	section.innerHTML = html;
 
-	if (typeof widget.preUploadCustom == "function") {
-	    widget.preUploadCustom.call(null, file).then( function (customHTML, allow) {
+	if (typeof Retina.WidgetInstances.shockbrowse[1].preUploadCustom == "function") {
+	    Retina.WidgetInstances.shockbrowse[1].preUploadCustom.call(null, file).then( function (customHTML, allow) {
 		if (allow) {
 		    document.getElementById('commenceUploadButton').removeAttribute("disabled");
 		}
