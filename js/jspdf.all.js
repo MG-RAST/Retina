@@ -721,6 +721,8 @@ var jsPDF = (function(global) {
 			fontName  = fontName  !== undefined ? fontName  : fonts[activeFontKey].fontName;
 			fontStyle = fontStyle !== undefined ? fontStyle : fonts[activeFontKey].fontStyle;
 
+		    if (! fontStyle) { fontStyle = 'normal'; }
+
 			try {
 			 // get a string like 'F3' - the KEY corresponding tot he font + type combination.
 				key = fontmap[fontName][fontStyle];
@@ -4634,161 +4636,8 @@ Copyright (c) 2012 Willow Systems Corporation, willow-systems.com
  * ====================================================================
  */
 
-;(function(jsPDFAPI) {
-'use strict'
+;
 
-/**
-Parses SVG XML and converts only some of the SVG elements into
-PDF elements.
-
-Supports:
- paths
-
-@public
-@function
-@param
-@returns {Type}
-*/
-jsPDFAPI.addSVG = function(svgtext, x, y, w, h) {
-	// 'this' is _jsPDF object returned when jsPDF is inited (new jsPDF())
-
-	var undef
-
-	if (x === undef || y === undef) {
-		throw new Error("addSVG needs values for 'x' and 'y'");
-	}
-
-    function InjectCSS(cssbody, document) {
-        var styletag = document.createElement('style');
-        styletag.type = 'text/css';
-        if (styletag.styleSheet) {
-        	// ie
-            styletag.styleSheet.cssText = cssbody;
-        } else {
-        	// others
-            styletag.appendChild(document.createTextNode(cssbody));
-        }
-        document.getElementsByTagName("head")[0].appendChild(styletag);
-    }
-
-	function createWorkerNode(document){
-
-		var frameID = 'childframe' // Date.now().toString() + '_' + (Math.random() * 100).toString()
-		, frame = document.createElement('iframe')
-
-		InjectCSS(
-			'.jsPDF_sillysvg_iframe {display:none;position:absolute;}'
-			, document
-		)
-
-		frame.name = frameID
-		frame.setAttribute("width", 0)
-		frame.setAttribute("height", 0)
-		frame.setAttribute("frameborder", "0")
-		frame.setAttribute("scrolling", "no")
-		frame.setAttribute("seamless", "seamless")
-		frame.setAttribute("class", "jsPDF_sillysvg_iframe")
-		
-		document.body.appendChild(frame)
-
-		return frame
-	}
-
-	function attachSVGToWorkerNode(svgtext, frame){
-		var framedoc = ( frame.contentWindow || frame.contentDocument ).document
-		framedoc.write(svgtext)
-		framedoc.close()
-		return framedoc.getElementsByTagName('svg')[0]
-	}
-
-	function convertPathToPDFLinesArgs(path){
-		'use strict'
-		// we will use 'lines' method call. it needs:
-		// - starting coordinate pair
-		// - array of arrays of vector shifts (2-len for line, 6 len for bezier)
-		// - scale array [horizontal, vertical] ratios
-		// - style (stroke, fill, both)
-
-		var x = parseFloat(path[1])
-		, y = parseFloat(path[2])
-		, vectors = []
-		, position = 3
-		, len = path.length
-
-		while (position < len){
-			if (path[position] === 'c'){
-				vectors.push([
-					parseFloat(path[position + 1])
-					, parseFloat(path[position + 2])
-					, parseFloat(path[position + 3])
-					, parseFloat(path[position + 4])
-					, parseFloat(path[position + 5])
-					, parseFloat(path[position + 6])
-				])
-				position += 7
-			} else if (path[position] === 'l') {
-				vectors.push([
-					parseFloat(path[position + 1])
-					, parseFloat(path[position + 2])
-				])
-				position += 3
-			} else {
-				position += 1
-			}
-		}
-		return [x,y,vectors]
-	}
-
-	var workernode = createWorkerNode(document)
-	, svgnode = attachSVGToWorkerNode(svgtext, workernode)
-	, scale = [1,1]
-	, svgw = parseFloat(svgnode.getAttribute('width'))
-	, svgh = parseFloat(svgnode.getAttribute('height'))
-
-	if (svgw && svgh) {
-		// setting both w and h makes image stretch to size.
-		// this may distort the image, but fits your demanded size
-		if (w && h) {
-			scale = [w / svgw, h / svgh]
-		} 
-		// if only one is set, that value is set as max and SVG 
-		// is scaled proportionately.
-		else if (w) {
-			scale = [w / svgw, w / svgw]
-		} else if (h) {
-			scale = [h / svgh, h / svgh]
-		}
-	}
-
-	var i, l, tmp
-	, linesargs
-	, items = svgnode.childNodes
-	for (i = 0, l = items.length; i < l; i++) {
-		tmp = items[i]
-		if (tmp.tagName && tmp.tagName.toUpperCase() === 'PATH') {
-			linesargs = convertPathToPDFLinesArgs( tmp.getAttribute("d").split(' ') )
-			// path start x coordinate
-			linesargs[0] = linesargs[0] * scale[0] + x // where x is upper left X of image
-			// path start y coordinate
-			linesargs[1] = linesargs[1] * scale[1] + y // where y is upper left Y of image
-			// the rest of lines are vectors. these will adjust with scale value auto.
-			this.lines.call(
-				this
-				, linesargs[2] // lines
-				, linesargs[0] // starting x
-				, linesargs[1] // starting y
-				, scale
-			)
-		}
-	}
-
-	// clean up
-	// workernode.parentNode.removeChild(workernode)
-
-	return this
-}
-
-})(jsPDF.API);
 /** @preserve
  * jsPDF split_text_to_size plugin - MIT license.
  * Copyright (c) 2012 Willow Systems Corporation, willow-systems.com
@@ -4816,7 +4665,8 @@ jsPDFAPI.addSVG = function(svgtext, x, y, w, h) {
  * ====================================================================
  */
 
-;(function(API) {
+;
+(function(API) {
 'use strict'
 
 /**
@@ -9525,4 +9375,1226 @@ var FlateStream = (function() {
         return doc.getStringUnitWidth(txt) * doc.internal.getFontSize();
     }
 
+})(jsPDF.API);
+/*
+ * svgToPdf.js
+ *
+ * Copyright 2012 Florian Hülsmann <fh@cbix.de>
+ * Updated in 2013 by Datascope Analytics <info@datascopeanalytics.com>
+ * This script is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This script is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this file.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+(function(jsPDFAPI) {
+    'use strict';
+    // These are all of the currently supported attributes of the svg elements
+    // that we are converting to PDF. The path is empty and taken care of in a
+    // different way below.
+    var pdfSvgAttr = {
+	// allowed attributes. all others are removed from the preview.
+	g: ['stroke', 'fill', 'stroke-width'],
+	line: ['x1', 'y1', 'x2', 'y2', 'stroke', 'stroke-width', 'fill'],
+	rect: ['x', 'y', 'width', 'height', 'stroke', 'fill', 'stroke-width'],
+	ellipse: ['cx', 'cy', 'rx', 'ry', 'stroke', 'fill', 'stroke-width'],
+	circle: ['cx', 'cy', 'r', 'stroke', 'fill', 'stroke-width'],
+	text: ['x', 'y', 'font-size', 'font-family', 'text-anchor', 'font-weight', 'font-style', 'fill'],
+	path: []
+    };
+    
+    
+    var svgElementToPdf = function(element, pdf, options) {
+	// pdf is a jsPDF object
+	var remove = (typeof(options.removeInvalid) == 'undefined' ? remove = false : options.removeInvalid);
+	var k = (typeof(options.scale) == 'undefined' ? 1.0 : options.scale);
+	
+	var x_offset = (typeof(options.x_offset) == 'undefined' ? 0 : options.x_offset);
+	var y_offset = (typeof(options.y_offset) == 'undefined' ? 0 : options.y_offset);
+	var ego_or_link = (typeof(options.ego_or_link) == 'undefined' ? false : options.ego_or_link);
+	var colorMode = null;
+	$(element).children().each(function(i, node) {
+            var n = $(node);
+            if (n.is("g")) {
+		if (n.attr('transform') != null) {
+                    var matrix = n.attr('transform').replace(/,/g, ' ').replace('matrix(', '').replace(')', ' cm');
+                    pdf.internal.write('q');
+                    pdf.internal.write(matrix);
+                    svgElementToPdf(n, pdf, options);
+                    pdf.internal.write('Q');
+		} else {
+                    svgElementToPdf(n, pdf, options);
+		}
+            }
+	    
+            var hasFillColor = false;
+            var hasStrokeColor = false;
+            if (n.is('g,line,rect,ellipse,circle,text,path')) {
+		
+		var fillColor = n.attr('fill');
+		if (fillColor != null) {
+                    var fillRGB = new RGBColor(fillColor);
+		    
+                    if (fillRGB.ok) {
+			hasFillColor = true;
+			colorMode = 'F';
+                    } else {
+			colorMode = null;
+                    }
+		}
+            }
+	    
+            if (hasFillColor) {
+		pdf.setFillColor(fillRGB.r, fillRGB.g, fillRGB.b);
+            }
+	    
+            var strokeColor = n.attr('stroke');
+            if (strokeColor != null && strokeColor !== 'none') {
+		var strokeRGB = new RGBColor(strokeColor);
+		if (strokeRGB.ok) {
+                    hasStrokeColor = true;
+		    
+                    pdf.setDrawColor(strokeRGB.r, strokeRGB.g, strokeRGB.b);
+                    if (colorMode == 'F') {
+			colorMode = 'FD';
+                    } else {
+			
+			colorMode = "S";
+                    }
+		} else {
+                    colorMode = null;
+		}
+            }
+            switch (n.get(0).tagName.toLowerCase()) {
+	    case 'svg':
+	    case 'a':
+	    case 'g':
+		svgElementToPdf(node, pdf, options);
+		break;
+            case 'line':
+                pdf.line(
+                    k * (parseInt(n.attr('x1')) + x_offset),
+                    k * (parseInt(n.attr('y1')) + y_offset),
+		    k * (parseInt(n.attr('x2')) + x_offset),
+		    k * (parseInt(n.attr('y2')) + y_offset));
+                break;
+            case 'rect':
+                pdf.rect(
+                    k * (parseInt(n.attr('x')) + x_offset),
+                    k * (parseInt(n.attr('y')) + y_offset),
+                    k * parseInt(n.attr('width')),
+                    k * parseInt(n.attr('height')),
+                    colorMode);
+                break;
+            case 'ellipse':
+                pdf.ellipse(
+                    k * (parseInt(n.attr('cx')) + x_offset),
+		    k * (parseInt(n.attr('cy')) + y_offset),
+		    k * parseInt(n.attr('rx')),
+		    k * parseInt(n.attr('ry')),
+                    colorMode);
+                break;
+            case 'circle':
+                pdf.circle(
+                    k * (parseInt(n.attr('cx')) + x_offset),
+                    k * (parseInt(n.attr('cy')) + y_offset),
+                    k * parseInt(n.attr('r')),
+                    colorMode);
+                break;
+            case 'text':
+                var fontFamily = 'helvetica';
+                if (node.hasAttribute('font-family')) {
+		    
+                    switch (n.attr('font-family').toLowerCase().split(',')[0]) {
+                    case 'times':
+                        var fontFamily = 'times';
+                        pdf.setFont('times');
+                        break;
+                    case 'courier':
+                        var fontFamily = 'courier';
+                        pdf.setFont('courier');
+                        break;
+                    default:
+                        pdf.setFont('helvetica');
+                    }
+                }
+		
+                // If no font family, we set the font to the times by default
+                else {
+                    pdf.setFont('helvetica');
+                }
+		
+                var fontType = "normal";
+                if (node.hasAttribute('font-weight')) {
+                    if (n.attr('font-weight') == "bold") {
+                        fontType = "bold";
+                    } else {
+                        node.removeAttribute('font-weight');
+                    }
+                }
+
+                if (node.hasAttribute('font-style')) {
+                    if (n.attr('font-style') == "italic") {
+                        fontType += "italic";
+                    } else {
+                        node.removeAttribute('font-style');
+                    }
+                }
+
+                pdf.setFontType(fontType);
+                var pdfFontSize = parseInt(k * 9);
+		pdfFontSize == 0 ? pdfFontSize = 1 : "";
+                if (node.hasAttribute('font-size')) {
+                    pdfFontSize = parseInt(k * parseInt(n.attr('font-size')));
+                }
+		pdf.setFontSize(pdfFontSize);
+
+                var fontMetrics = pdf.internal.getFont(fontFamily, fontType).metadata.Unicode;
+
+                var text_value = n.text();
+                var name_length = pdf.getStringUnitWidth(text_value, fontMetrics) * pdfFontSize;
+
+                var label_offset = 0;
+                var x = parseInt(n.attr('x')) + x_offset - label_offset;
+                var y = parseInt(n.attr('y')) + y_offset;
+
+                if (node.hasAttribute('text-anchor')) {
+                    switch (n.attr('text-anchor')) {
+                    case 'end':
+			label_offset = name_length
+                        break;
+                    case 'middle':
+                        label_offset = name_length / 2;
+                        break;
+                    case 'start':
+                        label_offset = 0;
+                        break;
+                    case 'default':
+                        label_offset = 0;
+                        break;
+                    }
+                    x = parseInt(n.attr('x')) + x_offset - label_offset;
+                    y = parseInt(n.attr('y')) + y_offset;
+                }
+
+                pdf.text(
+                k * x,
+                k * y,
+                text_value);
+                break;
+            case 'path':
+                var updated_path = n.attr('d');
+                // Separate the svg 'd' string to a list of letter
+                // and number elements. Iterate on this list.
+                var svg_regex = /(m|l|h|v|c|s|a|z)/gi;
+                updated_path = updated_path.replace(/(e)?-/g, function($0, $1) {
+                    return $1 ? $0 : ' -';
+                })
+                .replace(svg_regex, ' $1 ')
+                    .replace(/,+/g, ' ')
+                    .replace(/^\s+|\s+$/g, '')
+                    .split(/[\s]+/);
+
+                var svg_element = null;
+                var i = 0;
+
+                // mx and my will define the starting points from each m/M case
+                var mx = null;
+                var my = null;
+                // x and y will redefine the starting points
+                var x = null;
+                var y = null;
+
+                // big list contains the large list of lists to pass to
+                // jspdf to render the appropriate path
+                var big_list = [];
+
+                // for S/s shorthand bezier calculations of 2nd control pts
+                var previous_element = {
+                    element: null,
+                    prev_numbers: [],
+                    point: []
+                };
+                var m_flag = 0;
+                // Go through our list until we are done with the updated_path
+                while (i < updated_path.length) {
+
+                    // Numbers will hold the list of numbers for the
+                    // appropriate updated_path
+                    var numbers = [];
+
+                    // svg_element is a letter corresponding to the type
+                    // of updated_path to draw
+                    var sci_regex = /[+\-]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?/;
+                    var svg_element = updated_path[i];
+                    if (sci_regex.test(svg_element)) {
+                        svg_element = String(Number(svg_element));
+                    }
+                    i++
+                    //if svg_element is s/S, need to find 1st control pts
+                    if (/s/i.test(svg_element)) {
+                        previous_element.point = find_s_points(svg_element,
+                        previous_element);
+                    }
+
+                    // for some reason z followed by another letter
+                    // i.e. 'z m' skips that 2nd letter, so added if
+                    // statement to get around that.
+                    if (/z/i.test(svg_element) == false) {
+
+                        // Parse through the updated_path until we find the next
+                        // letter or we are at the end of the updated_path
+                        while ((svg_regex.test(updated_path[i]) == false) && (i != updated_path.length)) {
+                            numbers.push(k * parseFloat(updated_path[i]));
+                            i++;
+                        }
+                    }
+                    switch (svg_element) {
+                        case 'm':
+                            //paths and subpaths must always start with m/M.
+                            //thus we call pdf.lines
+                            if (big_list.length != 0) {
+                                pdf.lines(big_list, mx, my, [1, 1], null);
+                            }
+                            big_list = [];
+
+                            // check if this is 1st command in the path
+                            if (previous_element.element == null) {
+                                x = numbers[0];
+                                mx = numbers[0];
+                                y = numbers[1];
+                                my = numbers[1];
+                            } else {
+                                x += numbers[0];
+                                mx += numbers[0];
+                                y += numbers[1];
+                                my += numbers[1];
+                            }
+                            if (numbers.length != 2) {
+                                var lines_numbers = numbers.slice(2, numbers.length);
+
+                                var new_numbers = change_numbers(lines_numbers, x, y, true);
+                                $.each(new_numbers, function(num) {
+                                    big_list.push(num);
+                                });
+                                x += sums(new_numbers, true);
+                                y += sums(new_numbers, false);
+                            }
+                            break;
+                        case 'M':
+                            if (big_list.length != 0) {
+                                pdf.lines(big_list, mx, my, [1, 1], null);
+                            }
+                            big_list = [];
+
+                            x = numbers[0];
+                            mx = numbers[0] + x_offset;
+                            y = numbers[1];
+                            my = numbers[1] + y_offset;
+
+                            if (numbers.length != 2) {
+                                x = numbers[0];
+                                y = numbers[1];
+                                var lines_numbers = numbers.slice(2, numbers.length);
+                                var new_numbers = change_numbers(lines_numbers,
+                                x, y, false);
+                                pdf.lines(new_numbers, x, y, [1, 1], null);
+                                x += new_numbers[new_numbers.length - 1][0];
+                                y += new_numbers[new_numbers.length - 1][1];
+
+                            }
+                            break;
+                        case 'l':
+                            var new_numbers = change_numbers(numbers, x, y, true);
+                            $.each(new_numbers, function(num) {
+                                big_list.push(num);
+                            });
+                            x += sums(new_numbers, true);
+                            y += sums(new_numbers, false);
+                            break;
+                        case 'L':
+                            var new_numbers = change_numbers(numbers, x, y, false);
+                            $.each(new_numbers, function(num) {
+                                big_list.push(num);
+                            });
+                            x += new_numbers[new_numbers.length - 1][0];
+                            y += new_numbers[new_numbers.length - 1][1];
+                            break;
+                        case 'h':
+                            // x does not change. Only y changes
+                            var sum = $.reduce(numbers,
+
+                            function(memo, num) {
+                                return memo + num;
+                            }, 0);
+                            var new_numbers = [
+                                [sum, 0]
+                            ];
+                            $.each(new_numbers, function(num) {
+                                big_list.push(num);
+                            });
+                            x += sum;
+                            break;
+                        case 'H':
+                            big_list.push([numbers[numbers.length - 1] - x, 0]);
+                            x = numbers[numbers.length - 1];
+                            break;
+                        case 'v':
+                            var sum = $.reduce(numbers,
+
+                            function(memo, num) {
+                                return memo + num;
+                            }, 0);
+                            var new_numbers = [
+                                [0, sum]
+                            ];
+                            $.each(new_numbers, function(num) {
+                                big_list.push(num);
+                            });
+                            y += sum;
+                            break;
+                        case 'V':
+                            big_list.push([0, numbers[numbers.length - 1] - y]);
+                            y = numbers[numbers.length - 1];
+                            break;
+                        case 'c':
+                            var new_numbers = bezier_numbers(numbers, x, y, true);
+                            $.each(new_numbers, function(num) {
+                                big_list.push(num);
+                            });
+                            x += sums(new_numbers, true);
+                            y += sums(new_numbers, false);
+                            break;
+                        case 'C':
+                            var new_numbers = bezier_numbers(numbers, x, y, false);
+                            $.each(new_numbers, function(num) {
+                                big_list.push(num);
+                            });
+                            x = numbers[numbers.length - 2];
+                            y = numbers[numbers.length - 1];
+                            break;
+                        case 's':
+                            var new_numbers = s_bezier_numbers(numbers, x, y,
+                            true, previous_element);
+                            $.each(new_numbers, function(num) {
+                                big_list.push(num);
+                            });
+                            x += sums(new_numbers, true);
+                            y += sums(new_numbers, false);
+                            break;
+                        case 'S':
+                            var new_numbers = s_bezier_numbers(numbers, x, y, false,
+                            previous_element);
+                            $.each(new_numbers, function(num) {
+                                big_list.push(num);
+                            });
+                            x = numbers[numbers.length - 2];
+                            y = numbers[numbers.length - 1];
+                            break;
+                        case 'A':
+                            break;
+                        case 'a':
+                            break;
+                        case 'z':
+                            big_list.push([mx - x, my - y]);
+                            x = mx;
+                            y = my;
+                            break;
+                        case 'Z':
+                            big_list.push([mx - x, my - y]);
+                            x = mx;
+                            y = my;
+                            break;
+                        default:
+                            console.log('Sorry, the', svg_element, 'svg command is not yet available.');
+                    }
+                    previous_element.element = svg_element;
+                    previous_element.prev_numbers = numbers;
+                }
+		if (big_list.length) {
+		    big_list.shift();
+		}
+                pdf.lines(big_list, mx, my, [1, 1], colorMode);
+                var numbs = null;
+                break;
+            default:
+                if (remove) {
+                    n.remove();
+                }
+            }
+	});
+	return pdf;
+    }
+
+    function sums(ListOfLists, is_x) {
+	if (is_x) {
+            var sum = $.reduce(ListOfLists,
+			       
+			       function(memo, num) {
+				   return memo + num[num.length - 2];
+			       }, 0);
+	} else {
+            var sum = $.reduce(ListOfLists,
+			       
+			       function(memo, num) {
+				   return memo + num[num.length - 1];
+			       }, 0);
+	}
+	return sum;
+    }
+    
+    function change_numbers(numbers, x, y, relative) {
+	var i = 0;
+	var prev_x = x;
+	var prev_y = y;
+	var new_numbers = [];
+	while (i < numbers.length) {
+            if (relative) {
+		x = numbers[i];
+		y = numbers[i + 1];
+            } else {
+		x = numbers[i] - prev_x;
+		y = numbers[i + 1] - prev_y;
+            }
+            prev_x = numbers[i];
+            prev_y = numbers[i + 1];
+            new_numbers.push([x, y]);
+            i += 2;
+	}
+	return new_numbers;
+    }
+    
+    function bezier_numbers(numbers, x, y, relative) {
+	// the bezier numbers are ALL relative to the
+	// previous case line's (x,y), not all relative to
+	// each other.
+	var i = 0;
+	var prev_x = x;
+	var prev_y = y;
+	var new_numbers = [];
+	while (i < numbers.length) {
+            if (relative) {
+		var numbers_to_push = numbers.slice(i, i + 6);
+            } else {
+		var numbers_to_push = [];
+		for (var k = i; k < i + 6; k = k + 2) {
+                    numbers_to_push.push(
+			numbers[k] - prev_x,
+			numbers[k + 1] - prev_y);
+		}
+            }
+            prev_x = numbers[i + 4];
+            prev_y = numbers[i + 5];
+            new_numbers.push(numbers_to_push);
+            i += 6;
+	}
+	return new_numbers;
+    }
+    
+    function s_bezier_numbers(numbers, x, y, relative,
+			      previous_element) {
+	var i = 0;
+	var prev_x = x;
+	var prev_y = y;
+	var new_numbers = [];
+	while (i < numbers.length) {
+            var numbers_to_push = [];
+            //need to check if relative for the 4 s/S numbers
+            if (relative) {
+		//find that 1st control point
+		if (i < 4 && (previous_element.element == 'c' || previous_element.element == 's')) {
+                    // case 1: there was a prev c/C/s/S
+                    // outside this numbers segment
+                    numbers_to_push.push(previous_element.point[0],
+					 previous_element.point[1]);
+		} else if (i >= 4) {
+                    //case 1: there was a prev s/S
+                    //within this numbers segment
+                    numbers_to_push.push(numbers[i - 2] - numbers[i - 4],
+					 numbers[i - 1] - numbers[i - 3]);
+		} else {
+                    // case 2: no prev c/C/s/S, therefore
+                    // 1st control pt = current pt.
+                    numbers_to_push.push(prev_x, prev_y);
+		}
+		//then add the rest of the s numbers
+		for (var k = i; k < i + 4; k++) {
+                    numbers_to_push.push(numbers[k]);
+		}
+            } else {
+		//find that 1st control point
+		if (i < 4 && (previous_element.element == 'C' || previous_element.element == 'S')) {
+                    // case 1: there was a prev c/C/s/S
+                    // outside this numbers segment
+                    numbers_to_push.push(previous_element.point[0] - prev_x,
+					 previous_element.point[1] - prev_y);
+		} else if (i >= 4) {
+                    //case 1: there was a prev s/S
+                    //within this numbers segment
+                    numbers_to_push.push(numbers[i - 2] + numbers[i - 2] - numbers[i - 4],
+					 numbers[i - 1] + numbers[i - 1] - numbers[i - 3]);
+		} else {
+                    // case 2: no prev c/C/s/S, therefore
+                    // 1st control pt = current pt.
+                    numbers_to_push.push(prev_x, prev_y);
+		}
+		//then add the rest of the s numbers
+		for (var k = i; k < i + 4; k = k + 2) {
+                    numbers_to_push.push(numbers[k] - prev_x);
+                    numbers_to_push.push(numbers[k + 1] - prev_y);
+		}
+            }
+	    
+            prev_x = numbers[i + 2];
+            prev_y = numbers[i + 3];
+	    
+            new_numbers.push(numbers_to_push);
+            i += 4;
+	}
+	return new_numbers;
+    }
+    
+    function find_s_points(svg_element, previous_element) {
+	if (/(s|c)/.test(previous_element.element)) {
+            numbs = previous_element.prev_numbers;
+            previous_element.point = [numbs[numbs.length - 2] - numbs[numbs.length - 4],
+				      numbs[numbs.length - 1] - numbs[numbs.length - 3]];
+	} else if (/(S|C)/.test(previous_element.element)) {
+            numbs = previous_element.prev_numbers;
+            previous_element.point = [2 * numbs[numbs.length - 2] - numbs[numbs.length - 4],
+				      2 * numbs[numbs.length - 1] - numbs[numbs.length - 3]];
+	}
+	return previous_element.point
+    }
+    
+    jsPDFAPI.addSVG = function(element, x, y, options) {
+        'use strict'
+        options = (typeof(options) == 'undefined' ? {} : options);
+        options.x_offset = x;
+        options.y_offset = y;
+	
+        svgElementToPdf(element, this, options);
+	
+        return this;
+    };
+})(jsPDF.API);
+/**
+ * jsPDF Context2D PlugIn
+ * Copyright (c) 2014 Steven Spungin (TwelveTone LLC)  steven@twelvetone.tv
+ *
+ * Licensed under the MIT License.
+ * http://opensource.org/licenses/mit-license
+ */
+
+/**
+ * This plugin mimicks the HTML5 Canvas's context2d.
+ * 
+ * The goal is to provide a way for current canvas implementations to print directly to a PDF.
+ */
+
+(function(jsPDFAPI) {
+	'use strict';
+
+	jsPDFAPI.events.push([
+			'initialized', function() {
+				this.context2d.pdf = this;
+				this.context2d.internal.pdf = this;
+				this.context2d.ctx = new context();
+				this.context2d.ctxStack = [];
+				this.context2d.path = [];
+			}
+	]);
+
+	jsPDFAPI.context2d = {
+
+		f2 : function(number) {
+			return number.toFixed(2);
+		},
+
+		fillRect : function(x,y,w,h) {
+			this.pdf.rect(x, y, w, h, "f");
+		},
+
+		strokeRect : function(x,y,w,h) {
+			this.pdf.rect(x, y, w, h, "s");
+		},
+
+		clearRect : function(x,y,w,h) {
+			this.save();
+			this.setFillStyle('#ffffff');
+			this.pdf.rect(x, y, w, h, "f");
+			this.restore();
+		},
+
+		save : function() {
+			this.ctx._fontSize = this.pdf.internal.getFontSize();
+			var ctx = new context();
+			ctx.copy(this.ctx);
+			this.ctxStack.push(this.ctx);
+			this.ctx = ctx;
+		},
+
+		restore : function() {
+			this.ctx = this.ctxStack.pop();
+			this.setFillStyle(this.ctx.fillStyle);
+			this.setStrokeStyle(this.ctx.strokeStyle);
+			this.setFont(this.ctx.font);
+			this.pdf.setFontSize(this.ctx._fontSize);
+			this.setLineCap(this.ctx.lineCap);
+			this.setLineWidth(this.ctx.lineWidth);
+			this.setLineJoin(this.ctx.lineJoin);
+		},
+
+		beginPath : function() {
+			this.path = [];
+		},
+
+		closePath : function() {
+			this.path.push({
+				type : 'close'
+			});
+		},
+
+		setFillStyle : function(style) {
+			if (style.charAt(0) != '#') {
+				style = this.internal.colorNameToHex(style);
+				if (!style) {
+					style = '#000000';
+				}
+			}
+			this.ctx.fillStyle = style;
+			var r = this.ctx.fillStyle.substring(1, 3);
+			r = parseInt(r, 16);
+			var g = this.ctx.fillStyle.substring(3, 5);
+			g = parseInt(g, 16);
+			var b = this.ctx.fillStyle.substring(5, 7);
+			b = parseInt(b, 16);
+			this.pdf.setFillColor(r, g, b);
+			this.pdf.setTextColor(r, g, b);
+		},
+
+		setStrokeStyle : function(style) {
+			if (style.charAt(0) != '#') {
+				style = this.internal.colorNameToHex(style);
+				if (!style) {
+					style = '#000000';
+				}
+			}
+			this.ctx.strokeStyle = style;
+			var r = this.ctx.strokeStyle.substring(1, 3);
+			r = parseInt(r, 16);
+			var g = this.ctx.strokeStyle.substring(3, 5);
+			g = parseInt(g, 16);
+			var b = this.ctx.strokeStyle.substring(5, 7);
+			b = parseInt(b, 16);
+			this.pdf.setDrawColor(r, g, b);
+		},
+
+		fillText : function(text,x,y,maxWidth) {
+			this.pdf.text(text, x, this._getBaseline(y));
+		},
+
+		strokeText : function(text,x,y,maxWidth) {
+			this.pdf.text(text, x, this._getBaseline(y), {
+				stroke : true
+			});
+		},
+
+		setFont : function(font) {
+			this.ctx.font = font;
+			var rx = /(\d+)pt\s+(\w+)\s*(\w+)?/;
+			var m = rx.exec(font);
+			var size = m[1];
+			var name = m[2];
+			var style = m[3];
+			if (!style) {
+				style = 'normal';
+			}
+			this.pdf.setFontSize(size);
+			this.pdf.setFont(name, style);
+		},
+
+		setTextBaseline : function(baseline) {
+			this.ctx.textBaseline = baseline;
+		},
+
+		setLineWidth : function(width) {
+			this.ctx.lineWidth = width;
+			this.pdf.setLineWidth(width);
+		},
+
+		setLineCap : function(style) {
+			this.ctx.lineCap = style;
+			this.pdf.setLineCap(style);
+		},
+
+		setLineJoin : function(style) {
+			this.ctx.lineJon = style;
+			this.pdf.setLineJoin(style);
+		},
+
+		moveTo : function(x,y) {
+			var obj = {
+				type : 'mt',
+				x : x,
+				y : y
+			};
+			this.path.push(obj);
+		},
+
+		lineTo : function(x,y) {
+			var obj = {
+				type : 'lt',
+				x : x,
+				y : y
+			};
+			this.path.push(obj);
+		},
+
+		arc : function(x,y,radius,startAngle,endAngle,anticlockwise) {
+			var obj = {
+				type : 'arc',
+				x : x,
+				y : y,
+				radius : radius,
+				startAngle : startAngle,
+				endAngle : endAngle,
+				anticlockwise : anticlockwise
+			}
+			this.path.push(obj);
+		},
+
+		drawImage : function(img,x,y,w,h) {
+			var format;
+			var rx = /data:image\/(\w+).*/i;
+			var m = rx.exec(img);
+			if (m != null) {
+				format = m[1];
+			} else {
+				//format = "jpeg";
+				format = "png";
+			}
+			this.pdf.addImage(img, format, x, y, w, h);
+		},
+
+		stroke : function() {
+			var start;
+			var deltas = [];
+			var last;
+			for (var i = 0; i < this.path.length; i++) {
+				var pt = this.path[i];
+				switch (pt.type) {
+				case 'mt':
+					start = pt;
+					if (typeof start != 'undefined') {
+						this.pdf.lines(deltas, start.x, start.y, null, 's');
+						deltas = [];
+					}
+					break;
+				case 'lt':
+					var delta = [
+							pt.x - this.path[i - 1].x, pt.y - this.path[i - 1].y
+					];
+					deltas.push(delta);
+					break;
+				}
+			}
+
+			if (typeof start != 'undefined') {
+				this.pdf.lines(deltas, start.x, start.y, null, 's');
+			}
+
+			for (var i = 0; i < this.path.length; i++) {
+				var pt = this.path[i];
+				switch (pt.type) {
+				case 'arc':
+					var start = pt.startAngle * 360 / (2 * Math.PI);
+					var end = pt.endAngle * 360 / (2 * Math.PI);
+					this.internal.arc(pt.x, pt.y, pt.radius, start, end, pt.anticlockwise, 's');
+					break;
+				}
+			}
+
+			this.path = [];
+		},
+
+		fill : function() {
+			var start;
+			var deltas = [];
+			var last;
+			for (var i = 0; i < this.path.length; i++) {
+				var pt = this.path[i];
+				switch (pt.type) {
+				case 'mt':
+					start = pt;
+					if (typeof start != 'undefined') {
+						this.pdf.lines(deltas, start.x, start.y, null, 'f');
+						deltas = [];
+					}
+					break;
+				case 'lt':
+					var delta = [
+							pt.x - this.path[i - 1].x, pt.y - this.path[i - 1].y
+					];
+					deltas.push(delta);
+					break;
+				}
+			}
+
+			if (typeof start != 'undefined') {
+				this.pdf.lines(deltas, start.x, start.y, null, 'f');
+			}
+
+			for (var i = 0; i < this.path.length; i++) {
+				var pt = this.path[i];
+				switch (pt.type) {
+				case 'arc':
+					var start = pt.startAngle * 360 / (2 * Math.PI);
+					var end = pt.endAngle * 360 / (2 * Math.PI);
+					this.internal.arc(pt.x, pt.y, pt.radius, start, end, pt.anticlockwise, 'f');
+					break;
+				case 'close':
+					this.pdf.internal.out('h');
+					break;
+				}
+			}
+
+			this.path = [];
+		},
+
+		_getBaseline : function(y) {
+			var height = parseInt(this.pdf.internal.getFontSize());
+			//TODO Get descent from font descriptor
+			var descent = height * .25;
+			switch (this.ctx.textBaseline) {
+			case 'bottom':
+				return y - descent;
+			case 'top':
+				return y + height;
+			case 'hanging':
+				return y + height - descent;
+			case 'middle':
+				return y + height / 2 - descent;
+			case 'ideographic':
+				//TODO not implemented
+				return y;
+			case 'alphabetic':
+			default:
+				return y;
+			}
+		}
+	};
+
+	var c2d = jsPDFAPI.context2d;
+
+	c2d.internal = {};
+
+	// http://hansmuller-flex.blogspot.com/2011/10/more-about-approximating-circular-arcs.html
+	c2d.internal.arc = function(xc,yc,r,a1,a2,anticlockwise,style) {
+
+		var k = this.pdf.internal.scaleFactor;
+		var pageHeight = this.pdf.internal.pageSize.height;
+		var f2 = this.pdf.internal.f2;
+
+		var a1r = a1 * (Math.PI / 180);
+		var a2r = a2 * (Math.PI / 180);
+		var curves = this.createArc(r, a1r, a2r, anticlockwise);
+		var pathData = null;
+
+		for (var i = 0; i < curves.length; i++) {
+			var curve = curves[i];
+			if (i == 0) {
+				this.pdf.internal.out([
+						f2((curve.x1 + xc) * k), f2((pageHeight - (curve.y1 + yc)) * k), 'm', f2((curve.x2 + xc) * k), f2((pageHeight - (curve.y2 + yc)) * k), f2((curve.x3 + xc) * k), f2((pageHeight - (curve.y3 + yc)) * k), f2((curve.x4 + xc) * k), f2((pageHeight - (curve.y4 + yc)) * k), 'c'
+				].join(' '));
+
+			} else {
+				this.pdf.internal.out([
+						f2((curve.x2 + xc) * k), f2((pageHeight - (curve.y2 + yc)) * k), f2((curve.x3 + xc) * k), f2((pageHeight - (curve.y3 + yc)) * k), f2((curve.x4 + xc) * k), f2((pageHeight - (curve.y4 + yc)) * k), 'c'
+				].join(' '));
+			}
+			//f2((curve.x1 + xc) * k), f2((pageHeight - (curve.y1 + yc)) * k), 'm', f2((curve.x2 + xc) * k), f2((pageHeight - (curve.y2 + yc)) * k), f2((curve.x3 + xc) * k), f2((pageHeight - (curve.y3 + yc)) * k), f2((curve.x4 + xc) * k), f2((pageHeight - (curve.y4 + yc)) * k), 'c'
+		}
+
+		if (style !== null) {
+			this.pdf.internal.out(this.pdf.internal.getStyle(style));
+		}
+	}
+
+	/**
+	 *  Return a array of objects that represent bezier curves which approximate the 
+	 *  circular arc centered at the origin, from startAngle to endAngle (radians) with 
+	 *  the specified radius.
+	 *  
+	 *  Each bezier curve is an object with four points, where x1,y1 and 
+	 *  x4,y4 are the arc's end points and x2,y2 and x3,y3 are the cubic bezier's 
+	 *  control points.
+	 */
+
+	c2d.internal.createArc = function(radius,startAngle,endAngle,anticlockwise) {
+
+		var EPSILON = 0.00001; // Roughly 1/1000th of a degree, see below    
+
+		// normalize startAngle, endAngle to [-2PI, 2PI]
+		var twoPI = Math.PI * 2;
+		var startAngleN = startAngle;
+		if (startAngleN < twoPI || startAngleN > twoPI) {
+			startAngleN = startAngleN % twoPI;
+		}
+		var endAngleN = endAngle;
+		if (endAngleN < twoPI || endAngleN > twoPI) {
+			endAngleN = endAngleN % twoPI;
+		}
+
+		// Compute the sequence of arc curves, up to PI/2 at a time.  
+		// Total arc angle is less than 2PI.
+		var curves = [];
+		var piOverTwo = Math.PI / 2.0;
+		//var sgn = (startAngle < endAngle) ? +1 : -1; // clockwise or counterclockwise
+		var sgn = anticlockwise ? -1 : +1;
+
+		var a1 = startAngle;
+		for (var totalAngle = Math.min(twoPI, Math.abs(endAngleN - startAngleN)); totalAngle > EPSILON;) {
+			var a2 = a1 + sgn * Math.min(totalAngle, piOverTwo);
+			curves.push(this.createSmallArc(radius, a1, a2));
+			totalAngle -= Math.abs(a2 - a1);
+			a1 = a2;
+		}
+
+		return curves;
+	}
+
+	/**
+	 *  Cubic bezier approximation of a circular arc centered at the origin, 
+	 *  from (radians) a1 to a2, where a2-a1 < pi/2.  The arc's radius is r.
+	 * 
+	 *  Returns an object with four points, where x1,y1 and x4,y4 are the arc's end points
+	 *  and x2,y2 and x3,y3 are the cubic bezier's control points.
+	 * 
+	 *  This algorithm is based on the approach described in:
+	 *  A. Riškus, "Approximation of a Cubic Bezier Curve by Circular Arcs and Vice Versa," 
+	 *  Information Technology and Control, 35(4), 2006 pp. 371-378.
+	 */
+
+	c2d.internal.createSmallArc = function(r,a1,a2) {
+		// Compute all four points for an arc that subtends the same total angle
+		// but is centered on the X-axis
+
+		var a = (a2 - a1) / 2.0;
+
+		var x4 = r * Math.cos(a);
+		var y4 = r * Math.sin(a);
+		var x1 = x4;
+		var y1 = -y4;
+
+		var q1 = x1 * x1 + y1 * y1;
+		var q2 = q1 + x1 * x4 + y1 * y4;
+		var k2 = 4 / 3 * (Math.sqrt(2 * q1 * q2) - q2) / (x1 * y4 - y1 * x4);
+
+		var x2 = x1 - k2 * y1;
+		var y2 = y1 + k2 * x1;
+		var x3 = x2;
+		var y3 = -y2;
+
+		// Find the arc points' actual locations by computing x1,y1 and x4,y4 
+		// and rotating the control points by a + a1
+
+		var ar = a + a1;
+		var cos_ar = Math.cos(ar);
+		var sin_ar = Math.sin(ar);
+
+		return {
+			x1 : r * Math.cos(a1),
+			y1 : r * Math.sin(a1),
+			x2 : x2 * cos_ar - y2 * sin_ar,
+			y2 : x2 * sin_ar + y2 * cos_ar,
+			x3 : x3 * cos_ar - y3 * sin_ar,
+			y3 : x3 * sin_ar + y3 * cos_ar,
+			x4 : r * Math.cos(a2),
+			y4 : r * Math.sin(a2)
+		};
+	}
+
+	c2d.internal.colorNameToHex = function(color) {
+		var colors = {
+			"aliceblue" : "#f0f8ff",
+			"antiquewhite" : "#faebd7",
+			"aqua" : "#00ffff",
+			"aquamarine" : "#7fffd4",
+			"azure" : "#f0ffff",
+			"beige" : "#f5f5dc",
+			"bisque" : "#ffe4c4",
+			"black" : "#000000",
+			"blanchedalmond" : "#ffebcd",
+			"blue" : "#0000ff",
+			"blueviolet" : "#8a2be2",
+			"brown" : "#a52a2a",
+			"burlywood" : "#deb887",
+			"cadetblue" : "#5f9ea0",
+			"chartreuse" : "#7fff00",
+			"chocolate" : "#d2691e",
+			"coral" : "#ff7f50",
+			"cornflowerblue" : "#6495ed",
+			"cornsilk" : "#fff8dc",
+			"crimson" : "#dc143c",
+			"cyan" : "#00ffff",
+			"darkblue" : "#00008b",
+			"darkcyan" : "#008b8b",
+			"darkgoldenrod" : "#b8860b",
+			"darkgray" : "#a9a9a9",
+			"darkgreen" : "#006400",
+			"darkkhaki" : "#bdb76b",
+			"darkmagenta" : "#8b008b",
+			"darkolivegreen" : "#556b2f",
+			"darkorange" : "#ff8c00",
+			"darkorchid" : "#9932cc",
+			"darkred" : "#8b0000",
+			"darksalmon" : "#e9967a",
+			"darkseagreen" : "#8fbc8f",
+			"darkslateblue" : "#483d8b",
+			"darkslategray" : "#2f4f4f",
+			"darkturquoise" : "#00ced1",
+			"darkviolet" : "#9400d3",
+			"deeppink" : "#ff1493",
+			"deepskyblue" : "#00bfff",
+			"dimgray" : "#696969",
+			"dodgerblue" : "#1e90ff",
+			"firebrick" : "#b22222",
+			"floralwhite" : "#fffaf0",
+			"forestgreen" : "#228b22",
+			"fuchsia" : "#ff00ff",
+			"gainsboro" : "#dcdcdc",
+			"ghostwhite" : "#f8f8ff",
+			"gold" : "#ffd700",
+			"goldenrod" : "#daa520",
+			"gray" : "#808080",
+			"green" : "#008000",
+			"greenyellow" : "#adff2f",
+			"honeydew" : "#f0fff0",
+			"hotpink" : "#ff69b4",
+			"indianred " : "#cd5c5c",
+			"indigo" : "#4b0082",
+			"ivory" : "#fffff0",
+			"khaki" : "#f0e68c",
+			"lavender" : "#e6e6fa",
+			"lavenderblush" : "#fff0f5",
+			"lawngreen" : "#7cfc00",
+			"lemonchiffon" : "#fffacd",
+			"lightblue" : "#add8e6",
+			"lightcoral" : "#f08080",
+			"lightcyan" : "#e0ffff",
+			"lightgoldenrodyellow" : "#fafad2",
+			"lightgrey" : "#d3d3d3",
+			"lightgreen" : "#90ee90",
+			"lightpink" : "#ffb6c1",
+			"lightsalmon" : "#ffa07a",
+			"lightseagreen" : "#20b2aa",
+			"lightskyblue" : "#87cefa",
+			"lightslategray" : "#778899",
+			"lightsteelblue" : "#b0c4de",
+			"lightyellow" : "#ffffe0",
+			"lime" : "#00ff00",
+			"limegreen" : "#32cd32",
+			"linen" : "#faf0e6",
+			"magenta" : "#ff00ff",
+			"maroon" : "#800000",
+			"mediumaquamarine" : "#66cdaa",
+			"mediumblue" : "#0000cd",
+			"mediumorchid" : "#ba55d3",
+			"mediumpurple" : "#9370d8",
+			"mediumseagreen" : "#3cb371",
+			"mediumslateblue" : "#7b68ee",
+			"mediumspringgreen" : "#00fa9a",
+			"mediumturquoise" : "#48d1cc",
+			"mediumvioletred" : "#c71585",
+			"midnightblue" : "#191970",
+			"mintcream" : "#f5fffa",
+			"mistyrose" : "#ffe4e1",
+			"moccasin" : "#ffe4b5",
+			"navajowhite" : "#ffdead",
+			"navy" : "#000080",
+			"oldlace" : "#fdf5e6",
+			"olive" : "#808000",
+			"olivedrab" : "#6b8e23",
+			"orange" : "#ffa500",
+			"orangered" : "#ff4500",
+			"orchid" : "#da70d6",
+			"palegoldenrod" : "#eee8aa",
+			"palegreen" : "#98fb98",
+			"paleturquoise" : "#afeeee",
+			"palevioletred" : "#d87093",
+			"papayawhip" : "#ffefd5",
+			"peachpuff" : "#ffdab9",
+			"peru" : "#cd853f",
+			"pink" : "#ffc0cb",
+			"plum" : "#dda0dd",
+			"powderblue" : "#b0e0e6",
+			"purple" : "#800080",
+			"red" : "#ff0000",
+			"rosybrown" : "#bc8f8f",
+			"royalblue" : "#4169e1",
+			"saddlebrown" : "#8b4513",
+			"salmon" : "#fa8072",
+			"sandybrown" : "#f4a460",
+			"seagreen" : "#2e8b57",
+			"seashell" : "#fff5ee",
+			"sienna" : "#a0522d",
+			"silver" : "#c0c0c0",
+			"skyblue" : "#87ceeb",
+			"slateblue" : "#6a5acd",
+			"slategray" : "#708090",
+			"snow" : "#fffafa",
+			"springgreen" : "#00ff7f",
+			"steelblue" : "#4682b4",
+			"tan" : "#d2b48c",
+			"teal" : "#008080",
+			"thistle" : "#d8bfd8",
+			"tomato" : "#ff6347",
+			"turquoise" : "#40e0d0",
+			"violet" : "#ee82ee",
+			"wheat" : "#f5deb3",
+			"white" : "#ffffff",
+			"whitesmoke" : "#f5f5f5",
+			"yellow" : "#ffff00",
+			"yellowgreen" : "#9acd32"
+		};
+
+		if (typeof colors[color.toLowerCase()] != 'undefined')
+			return colors[color.toLowerCase()];
+
+		return false;
+	};
+
+	function context() {
+		this.fillStyle = '#000000';
+		this.strokeStyle = '#000000';
+		this.font = "12pt times";
+		this.textBaseline = 'alphabetic'; //top,bottom,middle,ideographic,alphabetic,hanging
+		this.lineWidth = 1;
+		this.lineJoin = 'miter'; //round, bevel, miter
+		this.lineCap = 'butt'; //butt, round, square
+		//TODO miter limit //default 10
+
+		this.copy = function(ctx) {
+			this.fillStyle = ctx.fillStyle;
+			this.strokeStyle = ctx.strokeStyle;
+			this.font = ctx.font;
+			this.lineWidth = ctx.lineWidth;
+			this.lineJoin = ctx.lineJoin;
+			this.lineCap = ctx.lineCap;
+			this.textBaseline = ctx.textBaseline;
+			this._fontSize = ctx._fontSize;
+		};
+	}
+
+	return this;
 })(jsPDF.API);
