@@ -3960,7 +3960,7 @@ var jsPDF = (function(global) {
 		this.paragraph.text.push(text);
 		return this.paragraph.style.push(css);
 	};
-	FontNameDB = {
+	var FontNameDB = {
 		helvetica         : "helvetica",
 		"sans-serif"      : "helvetica",
 		"times new roman" : "times",
@@ -3969,7 +3969,7 @@ var jsPDF = (function(global) {
 		monospace         : "courier",
 		courier           : "courier"
 	};
-	FontWeightMap = {
+	var FontWeightMap = {
 		100 : "normal",
 		200 : "normal",
 		300 : "normal",
@@ -3984,27 +3984,27 @@ var jsPDF = (function(global) {
 		bolder  : "bold",
 		lighter : "normal"
 	};
-	FontStyleMap = {
+	var FontStyleMap = {
 		normal  : "normal",
 		italic  : "italic",
 		oblique : "italic"
 	};
-	TextAlignMap = {
+	var TextAlignMap = {
 		left    : "left",
 		right   : "right",
 		center  : "center",
 		justify : "justify"
 	};
-	FloatMap = {
+	var FloatMap = {
 		none : 'none',
 		right: 'right',
 		left: 'left'
 	};
-	ClearMap = {
+	var ClearMap = {
 	  none : 'none',
 	  both : 'both'
 	};
-	UnitedNumberMap = {
+	var UnitedNumberMap = {
 		normal : 1
 	};
 	/**
