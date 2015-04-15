@@ -77,6 +77,9 @@
         query: [ { searchword: $filter_value, field: $column_name_to_search, comparison: $comparison_operator }, ... ]
         goto: $row_index
         limit: $number_of_rows_per_page
+
+  minwidths (ARRAY of INT)
+      Sets the minimum widths of the columns in pixel, default is 1.
     
 */
 (function () {

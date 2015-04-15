@@ -1463,9 +1463,10 @@ svg:svg {\
 
 	axis: function(params) {
 	    var direction = params.direction == null ? "horizontal" : params.direction;
+	    var height = params.height == null ? this._height() : params.height;
 	    var length = params.length; // length of the axis
-	    var shift = params.shift == null ? (direction == "horizontal" ? 0 : this._height()) : (direction == "horizontal" ? params.shift : this._height() - params.shift);
-	    var base = params.base == null ? (direction == "horizontal" ? this._height() : 0) : (direction == "horizontal" ? this._height() - params.base : params.base);
+	    var shift = params.shift == null ? (direction == "horizontal" ? 0 : height) : (direction == "horizontal" ? params.shift : height - params.shift);
+	    var base = params.base == null ? (direction == "horizontal" ? height : 0) : (direction == "horizontal" ? height - params.base : params.base);
 
 	    var spaceMajor = params.spaceMajor == null ? parseInt(length / 10) : params.spaceMajor;
 	    var numMajor = parseInt(length / spaceMajor);
@@ -1505,9 +1506,9 @@ svg:svg {\
 	    
 	    // create ticks
 	    x1 = direction == "horizontal" ? shift + tickShift : base;
-	    y1 = direction == "horizontal" ? base : shift + tickShift;
+	    y1 = direction == "horizontal" ? base : shift - tickShift;
 	    x2 = direction == "horizontal" ? shift + tickShift : (labelPosition == "left-bottom" ? base - majorTickLength : base + majorTickLength);
-	    y2 = direction == "horizontal" ? (labelPosition == "left-bottom" ? base + majorTickLength : base - majorTickLength) : shift + tickShift;
+	    y2 = direction == "horizontal" ? (labelPosition == "left-bottom" ? base + majorTickLength : base - majorTickLength) : shift - tickShift;
 	    var x1m = direction == "horizontal" ? shift : base;
 	    var y1m = direction == "horizontal" ? base : shift;
 	    var x2m = direction == "horizontal" ? shift : (labelPosition == "left-bottom" ? base - minorTickLength : base + minorTickLength);
@@ -1570,10 +1571,11 @@ svg:svg {\
 	
 	grid: function(params) {
 	    var direction = params.direction == null ? "horizontal" : params.direction;
+	    var height = params.height == null ? this._height() : params.height;
 	    var width = params.width; // width of the grid
 	    var length = params.length; // length of the gridlines
-	    var shift = params.shift == null ? (direction == "horizontal" ? 0 : this._height()) : (direction == "horizontal" ? params.shift : this._height() - params.shift);
-	    var base = params.base == null ? (direction == "horizontal" ? this._height() : 0) : (direction == "horizontal" ? this._height() - params.base : params.base);
+	    var shift = params.shift == null ? (direction == "horizontal" ? 0 : height) : (direction == "horizontal" ? params.shift : height - params.shift);
+	    var base = params.base == null ? (direction == "horizontal" ? height : 0) : (direction == "horizontal" ? height - params.base : params.base);
 	    var space = params.space == null ? parseInt(width / 10) : params.space; // space between two lines of the grid
 	    var format = { stroke: "gray", strokeWidth: 1, "stroke-dasharray": "2,2" };
 	    if (params.format !== null) {
@@ -1605,8 +1607,9 @@ svg:svg {\
 
 	boxplot: function(params) {
 	    var shift = params.shift == null ? 0 : params.shift;
+	    var height = params.height == null ? this._height() : params.height;
 	    var direction = params.direction == null ? "vertical" : params.direction;
-	    var base = params.base == null ? (direction == "vertical" ? this._height() : 0) : (direction == "vertical" ? this._height() - params.base : params.base);
+	    var base = params.base == null ? (direction == "vertical" ? height : 0) : (direction == "vertical" ? height - params.base : params.base);
 	    var width = params.width == null ? 10 : params.width;
 	    var space = params.space == null ? 5 : params.space;
 	    var radius = params.radius == null ? width / 6 : params.radius;
@@ -1681,9 +1684,10 @@ svg:svg {\
 	},
 
 	barchart: function(params) {
-	    var shift = params.shift == null ? 0 : params.shift;
 	    var direction = params.direction == null ? "vertical" : params.direction;
-	    var base = params.base == null ? (direction == "vertical" ? this._height() : 0) : (direction == "vertical" ? this._height() - params.base : params.base);
+	    var height = params.height == null ? this._height() : params.height;
+	    var shift = params.shift == null ? (direction == "vertical" ? 0 : height) : (direction == "vertical" ? params.shift : height - params.shift);
+	    var base = params.base == null ? (direction == "vertical" ? height : 0) : (direction == "vertical" ? height - params.base : params.base);
 	    var width = params.width == null ? 10 : params.width;
 	    var space = params.space == null ? 5 : params.space;
 	    var bars = params.bars || [];
@@ -1694,6 +1698,7 @@ svg:svg {\
 
 	    // create group
 	    var g = this.group();
+	    var sgs = [];
 
 	    // initialize coords
 	    var x = direction == "vertical" ? shift : base;
@@ -1708,20 +1713,23 @@ svg:svg {\
 		var x1 = x;
 		var y1 = y;
 		for (var h=0; h<subbars.length; h++) {
+		    if (i==0) {
+			sgs.push(this.group(g));
+		    }
 		    var bar = subbars[h];
 		    var f = jQuery.extend({}, format, bar.format == null ? {} : bar.format);
 		    if (direction == "vertical") {
-			this.rect(g, x, y1 - bar.height, width, bar.height, 0, 0, f);
+			this.rect(sgs[h], x, y1 - bar.height, width, bar.height, 0, 0, f);
 			y1 -= bar.height;
 		    } else {
-			this.rect(g, x1, y, bar.height, width, 0, 0, f);
+			this.rect(sgs[h], x1, y, bar.height, width, 0, 0, f);
 			x1 += bar.height;
 		    }   
 		}
 		if (direction == "vertical") {
 		    x += space + width;
 		} else {
-		    y += space + width;
+		    y -= space + width;
 		}
 	    }
 
@@ -1730,7 +1738,8 @@ svg:svg {\
 
 	linechart: function(params) {
 	    var shift = params.shift == null ? 0 : params.shift;
-	    var base = params.base == null ? this._height() : this._height() - params.base;
+	    var height = params.height == null ? this._height() : params.height;
+	    var base = params.base == null ? height : height - params.base;
 	    var space = params.space == null ? 5 : params.space;
 	    var radius = params.radius;
 	    var points = params.points || [];
@@ -1777,7 +1786,8 @@ svg:svg {\
 
 	areachart: function(params) {
 	    var shift = params.shift == null ? 0 : params.shift;
-	    var base = params.base == null ? this._height() : this._height() - params.base;
+	    var height = params.height == null ? this._height() : params.height;
+	    var base = params.base == null ? height : height - params.base;
 	    var space = params.space == null ? 5 : params.space;
 	    var areas = params.areas || [];
 	    var format = { fill: "white", stroke: "black", strokeWidth: 1 };
@@ -1823,8 +1833,9 @@ svg:svg {\
 	},
 
 	plot: function(params) {
+	    var height = params.height == null ? this._height() : params.height;
 	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
-	    var shiftY = params.shiftY == null ? this._height() : this._height() - params.shiftY;
+	    var shiftY = params.shiftY == null ? height : height - params.shiftY;
 	    var radius = params.radius == null ? 2 : params.radius;
 	    var dots = params.dots || [];
 	    var format = { fill: "white", stroke: "black", strokeWidth: 1 };
@@ -1907,14 +1918,18 @@ svg:svg {\
 	    var format = params.format == null ? {} : params.format;
 	    
 	    var g = this.group();
-	    
+	    var sgs = [];
+
 	    for (var i=0; i<rims.length; i++) {
 		var start = startAngle;
 		for (var h=0; h<rims[i].length; h++) {
-		    end = start + rims[i][h].angle;
+		    if (i==0) {
+			sgs.push(this.group(g));
+		    }
+		    var end = start + rims[i][h].angle;
 		    var f = {};
 		    jQuery.extend(f, format, rims[i][h].format == null ? {} : rims[i][h].format);
-		    this.donutslice({ group: g, shiftX: shiftX, shiftY: shiftY, center: center, inner: inner, outer: outer, startAngle: start, endAngle: end, format: f });
+		    this.donutslice({ group: sgs[h], shiftX: shiftX, shiftY: shiftY, center: center, inner: inner, outer: outer, startAngle: start, endAngle: end, format: f });
 		    start = end;
 		}
 		outer = inner;

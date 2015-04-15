@@ -1,0 +1,40 @@
+.notebook {
+    font-family: "Helvetica";
+    font-size: 12pt;
+    line-height: normal;
+}
+.notebookTitle {
+    font-size: 20pt;
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+.notebookSubtitle {
+    font-size: 12pt;
+    font-style: italic;
+    margin-bottom: 10px;
+}
+.notebookHeader {
+    font-size: 14pt;
+    font-weight: bold;
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+.notebookIntroduction {
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: justify;
+}
+.notebookParagraph {
+    font-family: "Times New Roman";
+    margin-bottom: 10px;
+    text-align: justify;
+}
+.notebookImage {
+    margin-top: 25px;
+    margin-bottom: 35px;
+    text-align: center;
+    font-size: 10pt;
+}
+.notebookTable {
+    font-size: 10pt;
+}
