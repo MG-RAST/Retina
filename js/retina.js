@@ -623,6 +623,14 @@
 	return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
     }
     
+    /* calculate the log 10 of a number */
+    Retina.log10 = function (val) {
+	if (val == 0) {
+	    return 0;
+	}
+	return Math.log(val) / Math.LN10;
+    }
+
     /* get a nice number */
     Retina.niceNum = function (range, round) {
         var exponent = Math.floor(Math.log10(range)); /** exponent of range */

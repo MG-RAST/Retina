@@ -12,18 +12,15 @@
             defaults: {
 		dataLoaded: false,
 		flow: [ 
-		    { type: 'Title', text: '$$metadata.project.name$$' },
+		    { type: 'Title', text: '$$metadata.project.name$$', tocTitle: "Summary", tocName: "home" },
 		    { type: 'Subtitle', text: 'a project by $$metadata.project.data.PI_firstname$$ $$metadata.project.data.PI_lastname$$, $$metadata.project.data.PI_organization$$' },
 		    { type: 'Paragraph', text: '$$metadata.project.data.project_description$$' },
-		    { type: 'Header', text: 'Dataset Overview' },
-		    { type: 'Paragraph', text: 'The project consists of $$num_datasets$$ datasets that range from $$min_sequences$$ to $$max_sequences$$ sequences.' },
-		    { type: 'Image', reference: 'overview' },
-		    { type: 'Header', text: 'Dataset $$name$$ Summary' },
 		    { type: 'Paragraph', text: 'The dataset $$name$$ was uploaded on $$created$$ and contains $$statistics.sequence_stats.sequence_count_raw$$ sequences totaling $$statistics.sequence_stats.bp_count_raw$$ basepairs with an average length of $$statistics.sequence_stats.average_length_raw$$ bps. The piechart below breaks down the uploaded sequences into 5 distinct categories.' },
 		    { type: 'Paragraph', text: '$$qc_fail_seqs$$ sequences ($$qc_fail_seqs_percent$$%) failed to pass the QC pipeline. Of the sequences that passed QC, $$ann_rna_reads$$ sequences ($$ann_rna_reads_percent$$%) contain ribosomal RNA genes. Of the remainder, $$ann_aa_reads$$ sequences ($$ann_aa_reads_percent$$%) contain predicted proteins with known functions and $$unkn_aa_reads$$ sequences ($$unkn_aa_reads_percent$$%) contain predicted proteins with unknown function.' },
 		    { type: 'Paragraph', text: "The analysis results shown on this page are computed by MG-RAST. Please note that authors may upload data that they have published their own analysis for, in such cases comparison within the MG-RAST framework can not be done." },
-		    { type: 'Image', reference: 'sequence breakdown' },
-		    { type: 'Header', text: 'Analysis Statistics', width: 'span6' },
+		    { type: 'Header', text: 'Sequence Breakdown', tocTitle: "Sequence Breakdown", tocName: "breakdown"  },
+		    { type: 'Graphic', graphicType: 'piechart', data: [ { label: "Failed QC", value: "$$qc_fail_seqs$$" }, { label: "Unknown", value: "$$unknown_all$$" }, { label: "Unknown Protein", value: "$$unkn_aa_reads$$" }, { label: "Annotated Protein", value: "$$ann_aa_reads$$" }, { label: "ribosomal RNA", value: "$$ann_rna_reads$$" } ], settings: { showValuesOnLabel: true, graphWidth: 300, legendWidth: 400, sorted: true } },
+		    { type: 'Header', text: 'Analysis Statistics', width: 'span6', tocTitle: "Analysis Statistics", tocName: "stats"  },
 		    { type: 'Header', text: 'GSC MIxS Info', width: 'span5' },
 		    { type: 'Table', style: 'table-striped', width: 'span6', data: [ 
 			[ '<b>Upload: bp Count</b>', '$$statistics.sequence_stats.bp_count_raw$$ bp' ],
@@ -53,25 +50,46 @@
 			[ '<b>Sequencing Method</b>', '$$mixs.seq_method$$' ],
 			[ '<b>More Metadata</b>', '<a href="#metadata">click for full table</a>' ],
 		    ] },
+		    { type: 'Header', text: 'Functional Category Hits Distribution' },
+		    { type: 'Paragraph', text: 'The pie charts below illustrate the distribution of functional categories for COGs, KOs, NOGs, and Subsystems at the highest level supported by these functional hierarchies. Each slice indicates the percentage of reads with predicted protein functions annotated to the category for the given source.' },
+		    { type: 'Header', text: 'COG' },
+		    { type: 'Graphic', graphicType: 'piechart', data: "$$ontology.COG$$", settings: { showValuesOnLabel: true, graphWidth: 300, legendWidth: 400, sorted: true } },
+		    { type: 'Header', text: 'NOG' },
+		    { type: 'Graphic', graphicType: 'piechart', data: "$$ontology.NOG$$", settings: { showValuesOnLabel: true, graphWidth: 300, legendWidth: 400, sorted: true } },
+		    { type: 'Header', text: 'KO' },
+		    { type: 'Graphic', graphicType: 'piechart', data: "$$ontology.KO$$", settings: { showValuesOnLabel: true, graphWidth: 300, legendWidth: 400, sorted: true } },
+		    { type: 'Header', text: 'Subsystems' },
+		    { type: 'Graphic', graphicType: 'piechart', data: "$$ontology.Subsystems$$", settings: { showValuesOnLabel: true, graphWidth: 300, legendWidth: 400, sorted: true } },
+		    { type: 'Header', text: 'Taxonomic Hits Distribution' },
+		    { type: 'Paragraph', text: 'The chart below illustrates the distribution of taxonomic domains, phyla and orders for the annotations. Each slice indicates the percentage of reads with predicted proteins and ribosomal RNA genes annotated to the indicated taxonomic level. This information is based on all the annotation source databases used by MG-RAST.' },
+		    { type: 'Graphic', graphicType: 'donutchart', height: 800, data: [
+		    	{ label: "Domain", data: "$$taxonomy.domain$$" }, 
+		    	{ label: "Phylum", data: "$$taxonomy.phylum$$" },
+		    	{ label: "Class", data: "$$taxonomy.class$$" },
+		    	{ label: "Order", data: "$$taxonomy.order$$" }, 
+		    	{ label: "Family", data: "$$taxonomy.family$$" }, 
+		    	{ label: "Genus", data: "$$taxonomy.genus$$" }, 
+		    ], settings: { showValuesOnLabel: true, sorted: true, graphWidth: 800 } },
 		    { type: 'Header', text: 'DRISEE' },
 		    { type: 'Paragraph', text: 'Duplicate Read Inferred Sequencing Error Estimation (<a href="http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1002541" target=_blank>Keegan et al., PLoS Computational Biology, 2012</a>)' },
 		    { type: 'Paragraph', text: 'DRISEE successfully calculated an error profile.' },
 		    { type: 'Paragraph', text: 'DRISEE is a tool that utilizes artificial duplicate reads (ADRs) to provide a platform independent assessment of sequencing error in metagenomic (or genomic) sequencing data. DRISEE is designed to consider shotgun data. Currently, it is not appropriate for amplicon data.' },
 		    { type: 'Paragraph', text: 'Note that DRISEE is designed to examine sequencing error in raw whole genome shotgun sequence data. It assumes that adapter and/or barcode sequences have been removed, but that the sequence data have not been modified in any additional way. (e.g.) Assembly or merging, QC based triage or trimming will both reduce DRISEE\'s ability to provide an accurate assessment of error by removing error before it is analyzed.' },
+		    { type: 'Graphic', graphicType: 'lineChart', data: "$$drisee$$", height: 400, settings: { graphWidth: 550, showLegend: true, minValIsZeroX: true, strokeWidth: 2 } },
 		    { type: 'Header', text: 'Kmer Profile' },
 		    { type: 'Paragraph', text: 'The kmer rank abundance graph plots the kmer coverage as a function of abundance rank, with the most abundant sequences at left.' },
-		    { type: 'Image', reference: 'kmer' },
+		    { type: 'Graphic', graphicType: 'lineChart', data: [ { values: "$$kmer$$" } ], height: 400, settings: { graphWidth: 700, showLegend: false, logScaleX: true, logScaleY: true } },
 		    { type: 'Header', text: 'Nucleotide Histogram' },
 		    { type: 'Paragraph', text: 'These graphs show the fraction of base pairs of each type (A, C, G, T, or ambiguous base "N") at each position starting from the beginning of each read up to the first 100 base pairs. Amplicon datasets should show consensus sequences; shotgun datasets should have roughly equal proportions of basecalls.' },
-		    { type: 'Image', reference: 'histogram' },
+		    { type: 'Graphic', graphicType: 'areaGraph', data: "$$bpprofile$$", settings: { graphWidth: 580 } },
 		    { type: 'Header', text: 'Rank Abundance Plot' },
 		    { type: 'Paragraph', text: 'The plot below shows the family abundances ordered from the most abundant to least abundant. Only the top 50 most abundant are shown. The y-axis plots the abundances of annotations in each family on a log scale.' },
-		    { type: 'Paragraph', text: 'The rank abundance curve is a tool for visually representing taxonomic richness and evenness.' },
-		    { type: 'Image', reference: 'rank_abundance' },
+		    { type: 'Paragraph', text: 'The rank abundance chart is a tool for visually representing taxonomic richness and evenness.' },
+		    { type: 'Graphic', graphicType: 'barchart', data: "$$rankabundance$$", height: 600, settings: { labelRotation: 45, graphWidth: 700, showLegend: false, barSpace: 4, labelAxisWidth: 200, valueAxisWidth: 100, logScale: true, color: "#3366cc" } },
 		    { type: 'Header', text: 'Rarefaction Curve' },
 		    { type: 'Paragraph', text: 'The plot below shows the rarefaction curve of annotated species richness. This curve is a plot of the total number of distinct species annotations as a function of the number of sequences sampled. On the left, a steep slope indicates that a large fraction of the species diversity remains to be discovered. If the curve becomes flatter to the right, a reasonable number of individuals is sampled: more intensive sampling is likely to yield only few additional species.' },
 		    { type: 'Paragraph', text: 'Sampling curves generally rise very quickly at first and then level off towards an asymptote as fewer new species are found per unit of individuals collected. These rarefaction curves are calculated from the table of species abundance. The curves represent the average number of different species annotations for subsamples of the the complete dataset.' },
-		    { type: 'Image', reference: 'rarefaction' },
+		    { type: 'Graphic', graphicType: 'lineChart', data: [ { values: "$$rarefaction$$" } ], height: 400, settings: { graphWidth: 700, showLegend: false } },
 		    { type: 'Header', text: '<a name="metadata"></a>Metadata' },
 		    { type: 'Table', style: 'table-striped table-condensed table-bordered', header: [ 'category', 'field', 'value' ], dataReference: "allmetadata" }
 		],
@@ -93,6 +111,7 @@
 	    	return renderer;
 	    }
 	    var html = [ "<div class='notebook'>" ];
+	    var tocList = [];
 	    
 	    for (var i=0; i<renderer.settings.flow.length; i++) {
 		var item = renderer.settings.flow[i];
@@ -157,12 +176,40 @@
 		    html.push("</table>");
 		    html.push("</div>");
 		}
+		// this is an encoded graphic
+		else if (item.type == 'Graphic') {
+		    item.width = item.width || 800;
+		    item.height = item.height || 400;
+		    html.push("<div id='flowItem"+i+"' class='notebook"+item.type+"'"+edit+"><div id='flowGraphic"+i+"' style='margin-left: auto; margin-right: auto; width: "+item.width+"px;'></div></div>");
+		    if (typeof item.data == "string") {
+			item.data = renderer.parseVariables(item.data);
+		    } else {
+			for (var h=0; h<item.data.length; h++) {
+			    if (typeof item.data[h] == "object") {
+				var k = Retina.keys(item.data[h]);
+				for (var j=0; j<k.length; j++) {
+				    item.data[h][k[j]] = renderer.parseVariables(item.data[h][k[j]], true);
+				}
+			    } else {
+				item.data[h] = renderer.parseVariables(item.data[h], true);
+			    }
+			}
+		    }
+		    if (! item.hasOwnProperty("settings")) {
+			item.settings = {};
+		    }
+		    item.settings.data = item.data;
+		}
 		// this is some form of plain text
 		else {
 		    var variables = item.text.match(/\$\$[^\$]+\$\$/);
 		    var text = renderer.parseVariables(item.text);
-		    
-		    html.push("<div id='flowItem"+i+"' class='notebook"+item.type+width+"'"+edit+">"+text+"</div>");
+		    var toc = "";
+		    if (item.tocName) {
+			toc = "<a name='"+item.tocName+"' style='padding-top: 60px;'></a>";
+			tocList.push("<a href='#"+item.tocName+"'>"+(item.tocTitle || item.tocName)+"</a>");
+		    }
+		    html.push(toc+"<div id='flowItem"+i+"' class='notebook"+item.type+width+"'"+edit+">"+text+"</div>");
 		}
 	    }
 
@@ -170,13 +217,30 @@
 	    
 	    html = html.join("");
 
+	    if (renderer.settings.showTOC) {
+		renderer.settings.tocTarget.innerHTML = "<div style='padding: 10px;'><h3>Table of Contents</h3><table class='table table-condensed table-striped table-hover' style='width: 100%;'><tr><td>"+tocList.join("</td></tr><tr><td>")+"</td></tr></table></div>";
+	    }
+
 	    renderer.settings.target.innerHTML = html;
+
+	    // the html has been written, check for graphic renderer execution
+	    for (var i=0; i<renderer.settings.flow.length; i++) {
+		var item = renderer.settings.flow[i];
+		if (item.type == 'Graphic') {
+		    var r = Retina.Renderer.create('svg', {target: document.getElementById('flowGraphic'+i), width: item.width, height: item.height}).render()[item.graphicType](item.settings);
+		}
+	    }
 
 	    return renderer;
 	},
-	parseVariables: function (text) {
+	parseVariables: function (text, keepType) {
 	    var renderer = this;
-	    var variables = text.match(/\$\$[^\$]+\$\$/g);
+	    var variables = [];
+	    try {
+		variables = text.match(/\$\$[^\$]+\$\$/g);
+	    } catch (error) {
+
+	    }
 	    
 	    // if there are variables in the text, replace them
 	    if (variables !== null) {
@@ -195,6 +259,12 @@
 		    } catch (error) {
 			alert('variable '+variables[h]+' could not be resolved');
 			continue;
+		    }
+		    if (typeof value == "object") {
+			return value;
+		    }
+		    if (keepType) {
+			return value;
 		    }
 		    if (typeof value == "number") {
 			value = value.formatString();
@@ -405,6 +475,24 @@
 	    mg.num_datasets = 16;
 	    mg.min_sequences = "39,365";
 	    mg.max_sequences = "92,615";
+	    mg.taxonomy = {};
+	    var taxa = [ "domain", "phylum", "class", "order", "family", "genus" ];
+	    for (var h=0; h<taxa.length; h++) {
+		mg.taxonomy[taxa[h]] = [];
+		var d = mg.statistics.taxonomy[taxa[h]];
+		for (var j=0; j<d.length; j++) {
+		    mg.taxonomy[taxa[h]].push( { value: d[j][1], label: d[j][0]} );
+		}
+	    }
+	    mg.ontology = {};
+	    var onto = [ "NOG", "COG", "KO", "Subsystems" ];
+	    for (var h=0; h<onto.length; h++) {
+		mg.ontology[onto[h]] = [];
+		var d = mg.statistics.ontology[onto[h]];
+		for (var j=0; j<d.length; j++) {
+		    mg.ontology[onto[h]].push( { value: d[j][1], label: d[j][0]} );
+		}
+	    }
 
 	    var allmetadata = [];
 	    var cats = ['env_package', 'library', 'project', 'sample'];
@@ -415,6 +503,50 @@
 		}
 	    }
 	    mg.allmetadata = allmetadata;
+
+	    var bpprofile = [
+		{ label: "A", values: [] },
+		{ label: "T", values: [] },
+		{ label: "C", values: [] },
+		{ label: "G", values: [] },
+		{ label: "N", values: [] } ]
+	    for (var i=0; i<mg.statistics.qc.bp_profile.percents.data.length; i++) {
+		for (var h=0; h<bpprofile.length; h++) {
+		    bpprofile[h].values.push(mg.statistics.qc.bp_profile.percents.data[i][h+1]);
+		}
+	    }
+	    mg.bpprofile = bpprofile;
+
+	    var rankabundance = [];
+	    var t = mg.statistics.taxonomy.family.sort(function(a,b) {
+		return b[1] - a[1];
+            }).slice(0,50);
+	    for (var i=0; i<t.length; i++) {
+		rankabundance.push( { label: t[i][0], value: t[i][1] } );
+	    }
+	    mg.rankabundance = rankabundance;
+
+	    var rarefaction = [];
+	    for (var i=0; i<mg.statistics.rarefaction.length; i++) {
+		rarefaction.push({ x: mg.statistics.rarefaction[i][0], y: mg.statistics.rarefaction[i][1] });
+	    }
+	    mg.rarefaction = rarefaction;
+
+	    var drisee = [ { label: "A", values: [] }, { label: "T", values: [] }, { label: "C", values: [] }, { label: "G", values: [] }, { label: "N", values: [] }, { label: "InDel", values: [] }, { label: "Total", values: [] } ];
+	    var dr = mg.statistics.qc.drisee.percents.data;
+	    for (var i=0; i<dr.length; i++) {
+		for (var h=0; h<drisee.length; h++) {
+		    drisee[h].values.push({x: dr[i][0], y: dr[i][h+1] });
+		}
+	    }
+	    mg.drisee = drisee;
+
+	    var kmer = [];
+            for (var i = 0; i < mg.statistics.qc.kmer['15_mer']['data'].length; i+=2) {
+	        var thisY = mg.statistics.qc.kmer['15_mer']['data'][i][0];
+                kmer.push({ x: mg.statistics.qc.kmer['15_mer']['data'][i][3], y: thisY });
+            }
+	    mg.kmer = kmer;
 	},
 	variableExtractorDataContainer: function () {
 	    var renderer = this;

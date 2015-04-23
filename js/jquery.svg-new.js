@@ -1440,6 +1440,7 @@ svg:svg {\
     jQuery.extend(SVGWrapper.prototype, {
 	
 	legend: function(params) {
+	    var group = params.group || null;
 	    var top = params.top == null ? 0 : params.top;
 	    var left = params.left == null ? 0 : params.left;
 	    var labels = params.labels;
@@ -1451,7 +1452,7 @@ svg:svg {\
 	    var fontSize = parseInt(format.fontSize);
 	    var labelSpacing = params.labelSpacing == null ? 10 : params.labelSpacing;
 	    
-	    var g = this.group();
+	    var g = this.group(group);
 	    for (var i=0; i<labels.length; i++) {
 		this.rect(g, left, top, fontSize, fontSize, { stroke: "white", strokeWidth: 0, fill: colors[i] });
 		this.text(g, left + fontSize + fontSize, top + fontSize - 2, labels[i], format);
@@ -1462,6 +1463,7 @@ svg:svg {\
 	},
 
 	axis: function(params) {
+	    var group = params.group || null;
 	    var direction = params.direction == null ? "horizontal" : params.direction;
 	    var height = params.height == null ? this._height() : params.height;
 	    var length = params.length; // length of the axis
@@ -1495,7 +1497,7 @@ svg:svg {\
 	    var labelOrigin = params.labelOrigin == null ? true : params.labelOrigin;
 
 	    // create group
-	    var g = this.group();
+	    var g = this.group(group);
 	    
 	    // create baseline
 	    var x1 = direction == "horizontal" ? shift : base;
@@ -1536,7 +1538,7 @@ svg:svg {\
 		    var ly = y1 + parseInt(parseInt(labelFormat.fontSize) / (direction == "horizontal" ? (labelPosition == "left-bottom" ? 1 : -1) : 3)) + (direction == "horizontal" ? ((labelPosition == "left-bottom" ? 1 : -1) * majorTickLength) : 0);
 		    var f = { textAnchor: (direction == "horizontal" ? (labelRotation == null ? "middle" : "end") : (labelPosition == "left-bottom" ? "end" : "start")), transform: (labelRotation == null ? "" : "rotate(-"+labelRotation+","+lx+","+ly+")") };
 		    jQuery.extend(f, labelFormat);
-		    this.text(g, lx, ly, text, f);
+		    this.text(g, lx, ly, params.isLog ? (text == "0" ? "0" : "10^"+text) : text, f);
 		}
 		if (numMajor != i) {
 		    for (var h=0; h<numMinor; h++) {
@@ -1571,6 +1573,7 @@ svg:svg {\
 	
 	grid: function(params) {
 	    var direction = params.direction == null ? "horizontal" : params.direction;
+	    var group = params.group || null;
 	    var height = params.height == null ? this._height() : params.height;
 	    var width = params.width; // width of the grid
 	    var length = params.length; // length of the gridlines
@@ -1589,7 +1592,7 @@ svg:svg {\
 	    var x2 = direction == "horizontal" ? shift + length : base;	    
 	    var y2 = direction == "horizontal" ? base : shift - length;
 
-	    var g = this.group();
+	    var g = this.group(group);
 
 	    for (var i=0; i<=numLines; i++) {
 		this.line(g, x1, y1, x2, y2, format);
@@ -1606,6 +1609,7 @@ svg:svg {\
 	},
 
 	boxplot: function(params) {
+	    var group = params.group || null;
 	    var shift = params.shift == null ? 0 : params.shift;
 	    var height = params.height == null ? this._height() : params.height;
 	    var direction = params.direction == null ? "vertical" : params.direction;
@@ -1620,7 +1624,7 @@ svg:svg {\
 	    }
 
 	    // create group
-	    var g = this.group();
+	    var g = this.group(group);
 
 	    // initialize coords
 	    var x = direction == "vertical" ? shift : base;
@@ -1685,6 +1689,7 @@ svg:svg {\
 
 	barchart: function(params) {
 	    var direction = params.direction == null ? "vertical" : params.direction;
+	    var group = params.group || null;
 	    var height = params.height == null ? this._height() : params.height;
 	    var shift = params.shift == null ? (direction == "vertical" ? 0 : height) : (direction == "vertical" ? params.shift : height - params.shift);
 	    var base = params.base == null ? (direction == "vertical" ? height : 0) : (direction == "vertical" ? height - params.base : params.base);
@@ -1697,7 +1702,7 @@ svg:svg {\
 	    }
 
 	    // create group
-	    var g = this.group();
+	    var g = this.group(group);
 	    var sgs = [];
 
 	    // initialize coords
@@ -1712,17 +1717,15 @@ svg:svg {\
 		}
 		var x1 = x;
 		var y1 = y;
+		sgs.push(this.group(g));
 		for (var h=0; h<subbars.length; h++) {
-		    if (i==0) {
-			sgs.push(this.group(g));
-		    }
 		    var bar = subbars[h];
 		    var f = jQuery.extend({}, format, bar.format == null ? {} : bar.format);
 		    if (direction == "vertical") {
-			this.rect(sgs[h], x, y1 - bar.height, width, bar.height, 0, 0, f);
+			this.rect(sgs[i], x, y1 - bar.height, width, bar.height, 0, 0, f);
 			y1 -= bar.height;
 		    } else {
-			this.rect(sgs[h], x1, y, bar.height, width, 0, 0, f);
+			this.rect(sgs[i], x1, y, bar.height, width, 0, 0, f);
 			x1 += bar.height;
 		    }   
 		}
@@ -1743,13 +1746,14 @@ svg:svg {\
 	    var space = params.space == null ? 5 : params.space;
 	    var radius = params.radius;
 	    var points = params.points || [];
+	    var group = params.group || null;
 	    var format = { fill: "white", stroke: "black", strokeWidth: 1 };
 	    if (params.format != null) {
 		jQuery.extend(format, params.format);
 	    }
 
 	    // create group
-	    var g = this.group();
+	    var g = this.group(group);
 
 	    // initialize coords
 	    var x = shift;
@@ -1762,17 +1766,23 @@ svg:svg {\
 		var point = points[i];
 		var f = jQuery.extend({}, format, point.format == null ? {} : point.format);
 		var y1 = y - point.y;
+		var x1 = x;
+		if (point.hasOwnProperty('x')) {
+		    x1 = x + point.x;
+		}
 		if (i>0) {
-		    this.line(g, lastX, lastY, x, y1, { stroke: f.stroke, strokeWidth: f.strokeWidth });
+		    this.line(g, lastX, lastY, x1, y1, { stroke: f.stroke, strokeWidth: f.strokeWidth });
 		    var r = points[i - 1].radius == null ? radius : points[i - 1].radius;
 		    if (r) {
 			f = jQuery.extend({}, format, points[i - 1].format == null ? {} : points[i - 1].format);
 			this.circle(g, lastX, lastY, r, f); 
 		    }
 		}
-		lastX = x;
+		lastX = x1;
 		lastY = y1;
-		x += space;
+		if (! point.hasOwnProperty('x')) {
+		    x += space;
+		}
 	    }
 	    var point = points[points.length - 1];
 	    var f = jQuery.extend({}, format, point.format == null ? {} : point.format);
@@ -1785,6 +1795,7 @@ svg:svg {\
 	},
 
 	areachart: function(params) {
+	    var group = params.group || null;
 	    var shift = params.shift == null ? 0 : params.shift;
 	    var height = params.height == null ? this._height() : params.height;
 	    var base = params.base == null ? height : height - params.base;
@@ -1796,7 +1807,7 @@ svg:svg {\
 	    }
 
 	    // create group
-	    var g = this.group();
+	    var g = this.group(group);
 
 	    // initialize coords
 	    var x = shift;
@@ -1805,7 +1816,7 @@ svg:svg {\
 	    // iterate over the areas
 	    var lastPoints = [];
 	    var x1 = x;
-	    for (var h=0; h<areas[0].points.length; h++) {
+	    for (var h=0; h<areas[0].values.length; h++) {
 		lastPoints.push([x1, y]);
 		x1 += space;
 	    }
@@ -1816,9 +1827,9 @@ svg:svg {\
 		for (var h=0; h<lastPoints.length; h++) {
 		    points.push([lastPoints[h][0], lastPoints[h][1]]);
 		}
-		newLastPoints = [];
-		for (var h=0; h<areas[i].points.length; h++) {
-		    var y1 = lastPoints[lastPoints.length - 1 - h][1] - areas[i].points[h].y;
+		var newLastPoints = [];
+		for (var h=0; h<areas[i].values.length; h++) {
+		    var y1 = lastPoints[lastPoints.length - 1 - h][1] - areas[i].values[h];
 		    points.push([x1, y1]);
 		    newLastPoints.push([x1, y1]);
 		    x1 += space;
@@ -1833,6 +1844,7 @@ svg:svg {\
 	},
 
 	plot: function(params) {
+	    var group = params.group || null;
 	    var height = params.height == null ? this._height() : params.height;
 	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
 	    var shiftY = params.shiftY == null ? height : height - params.shiftY;
@@ -1844,7 +1856,7 @@ svg:svg {\
 	    }
 
 	    // create group
-	    var g = this.group();
+	    var g = this.group(group);
 
 	    // draw the dots
 	    for (var i=0; i<dots.length; i++) {
@@ -1867,6 +1879,7 @@ svg:svg {\
 	   @param format (object) any key/value pairs for the SVG element
 	   @return (element) the new shape node */
 	donutslice: function(params) {
+	    var group = params.group || null;
 	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
 	    var shiftY = params.shiftY == null ? 0 : params.shiftY;
 	    var center = params.center;
@@ -1876,7 +1889,6 @@ svg:svg {\
 	    var endAngle = params.endAngle == null ? 269 : params.endAngle - 90;
 	    var largeArc = endAngle - startAngle > 180 ? 1 : 0;
 	    var format = { stroke: "black", strokeWidth: 1, fill: "white" };
-	    var group = params.group;
 	    if (params.format != null) {
 		jQuery.extend(format, params.format);
 	    }
@@ -1907,6 +1919,7 @@ svg:svg {\
 	    return this.path(group, path, format);
 	},
 	donutchart: function(params) {
+	    var group = params.group || null;
 	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
 	    var shiftY = params.shiftY == null ? 0 : params.shiftY;
 	    var center = params.center;
@@ -1917,19 +1930,14 @@ svg:svg {\
 	    var startAngle = params.startAngle == null ? 0 : params.startAngle;
 	    var format = params.format == null ? {} : params.format;
 	    
-	    var g = this.group();
-	    var sgs = [];
-
+	    var g = this.group(group);
 	    for (var i=0; i<rims.length; i++) {
 		var start = startAngle;
 		for (var h=0; h<rims[i].length; h++) {
-		    if (i==0) {
-			sgs.push(this.group(g));
-		    }
 		    var end = start + rims[i][h].angle;
 		    var f = {};
 		    jQuery.extend(f, format, rims[i][h].format == null ? {} : rims[i][h].format);
-		    this.donutslice({ group: sgs[h], shiftX: shiftX, shiftY: shiftY, center: center, inner: inner, outer: outer, startAngle: start, endAngle: end, format: f });
+		    this.donutslice({ group: g, shiftX: shiftX, shiftY: shiftY, center: center, inner: inner, outer: outer, startAngle: start, endAngle: end, format: f });
 		    start = end;
 		}
 		outer = inner;
