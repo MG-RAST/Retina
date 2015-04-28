@@ -58,7 +58,7 @@
 	    
 	    return renderer;
 	},
-	piechart: function(params) {
+	pieChart: function(params) {
 	    var renderer = this;
 	    
 	    renderer.checkSettings(params);
@@ -100,7 +100,7 @@
 	    renderer.checkLegend();
 	    renderer.checkEvents();
 	},
-	donutchart: function(params) {
+	donutChart: function(params) {
 	    var renderer = this;
 	    
 	    renderer.checkSettings(params);
@@ -143,7 +143,7 @@
 	    renderer.graphic = renderer.svg.donutchart({ center: center, shiftX: renderer.settings.shiftX, rims: data });
 	    renderer.checkEvents();
 	},
-	barchart: function(params) {
+	barChart: function(params) {
 	    var renderer = this;
 
 	    renderer.checkSettings(params);
@@ -198,7 +198,7 @@
 	    renderer.checkLegend();
 	    renderer.checkEvents();
 	},
-	stackedBarchart: function(params) {
+	stackedBarChart: function(params) {
 	    var renderer = this;
 
 	    renderer.checkSettings(params);
