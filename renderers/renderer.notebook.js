@@ -11,12 +11,16 @@
             requires: [],
             defaults: {
 		dataLoaded: false,
+		flows: {},
 		flow: [],
 		images: {},
 		dataContainer: {},
 		trash: [],
 		editMode: false,
 		currentIndex: null,
+		currentFlow: null,
+		shockBase: RetinaConfig.shock_url,
+		flowsLoaded: false
 	    }
 	},
 	exampleData: function () {
@@ -24,11 +28,14 @@
         },
 	render: function () {
 	    var renderer = this;
-
+	    
 	    var html = [ "<div class='notebook'>" ];
 	    var tocList = [];
 	    if (renderer.settings.editMode && renderer.settings.editTarget) {
-		renderer.settings.editTarget.innerHTML = renderer.controller();
+		if (! renderer.settings.flowsLoaded) {
+		    renderer.settings.editTarget.innerHTML = renderer.controller();
+		    renderer.listSHOCKFlows();
+		}
 	    }
 	    for (var i=0; i<renderer.settings.flow.length; i++) {
 		try {
@@ -98,7 +105,18 @@
 		    else if (item.type == 'Graphic') {
 			item.width = item.width || 800;
 			item.height = item.height || 400;
-			html.push("<div id='flowItem"+i+"' class='notebook"+item.type+"'"+edit+"><div id='flowGraphic"+i+"' style='margin-left: auto; margin-right: auto; width: "+item.width+"px;'></div></div>");
+			var provenance = "<div class='btn-group pull-right'>";
+			if (item.hasOwnProperty("provenance")) {
+			    provenance += "<button title='show provenance information' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].showProvenance("+i+");'><i class='icon-info-sign'></i></button>";
+			}
+			if (! item.noDownload) {
+			    provenance += "<button title='download data' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadData("+i+");'><img src='Retina/images/file-css.png' style='width: 16px;'></button>";
+			    provenance += "<button title='download as SVG' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadSVG("+i+");'><img src='Retina/images/file-xml.png' style='width: 16px;'></button>";
+			    provenance += "<button title='download as PNG' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadPNG("+i+");'><img src='Retina/images/image.png' style='width: 16px;'></button>";
+			}
+			provenance += "</div>";
+
+			html.push("<div id='flowItem"+i+"' class='notebook"+item.type+"'"+edit+">"+provenance+"<div id='flowGraphic"+i+"' style='margin-left: auto; margin-right: auto; width: "+item.width+"px;'></div></div>");
 			if (typeof item.data == "string") {
 			    item.data = renderer.parseVariables(item.data);
 			} else {
@@ -142,7 +160,21 @@
 	    }
 
 	    html.push( "</div>" );
-	    
+
+	    // your friendly neighborhood modal
+	    html.push( '\
+<div id="notebookModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="notebookModalLabel" aria-hidden="true">\
+  <div class="modal-header">\
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>\
+    <h3 id="notebookModalLabel">Provenance Information</h3>\
+  </div>\
+  <div class="modal-body" id="notebookModalBody">\
+  </div>\
+  <div class="modal-footer">\
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>\
+  </div>\
+</div>');
+
 	    html = html.join("");
 
 	    if (renderer.settings.showTOC) {
@@ -179,7 +211,7 @@
 	    try {
 		variables = text.match(/\$\$[^\$]+\$\$/g);
 	    } catch (error) {
-
+		// guess it ain't text
 	    }
 	    
 	    // if there are variables in the text, replace them
@@ -224,6 +256,11 @@
 	    var renderer = this;
 
 	    var html = "<div style='padding: 10px;'>";
+
+	    html += "\
+<div class='input-append'><select id='availableFlows'></select><input type='button' class='btn' onclick='Retina.RendererInstances.notebook[1].showFlow();' value='show'></div>\
+<div class='input-append'><input type='text' id='flowNameField'>\
+<div class='btn-group'><button class='btn' title='save' onclick='Retina.RendererInstances.notebook[1].storeSHOCKFlow();' style='border-radius: 0;'><img src='Retina/images/disk.png' style='width: 16px;'></button><button class='btn' title='new' onclick='Retina.RendererInstances.notebook[1].settings.currentFlow=null;'><i class='icon-star-empty'></i></button><button class='btn btn-danger' title='delete' onclick='Retina.RendererInstances.notebook[1].deleteSHOCKFlow();'><i class='icon-trash'></i></button></div></div><hr style='margin-bottom: 10px; margin-top: 2px;'>";
 
 	    html += '\
 <div style="margin-bottom: 10px;">\
@@ -292,6 +329,63 @@
 	    html += "</div>";
 
 	    return html;
+	},
+	showProvenance: function (index) {
+	    var renderer = this;
+
+	    var provenance = renderer.settings.flow[index].provenance;
+	    var k = Retina.keys(provenance);
+	    for (var i=0; i<k.length; i++) {
+		if (typeof provenance[k[i]] == "string") {
+		    provenance[k[i]] = renderer.parseVariables(provenance[k[i]]);
+		} else {
+		    for (var j=0; j<provenance[k[i]].length; j++) {
+			provenance[k[i]][j] = renderer.parseVariables(provenance[k[i]][j]);
+		    }
+		}
+	    }
+	    
+	    var html = "This graphic was produced using data from the "+provenance.source+". It represents "+provenance.subselection+" data of "+provenance.type+" from the metagenome"+(provenance.metagenomes.length > 1 ? "s <i>'"+provenance.metagenomes.join("', '") : " <i>'"+provenance.metagenomes[0])+"'</i>."+(provenance.noCutoffs ? " No further cutoffs were used." : "<br><br>The cutoffs used were:<p style='padding-left: 50px; padding-top: 15px;'>alignment length: "+provenance["alignment length"]+"<br>e-value: "+provenance["e-value"]+"<br>percent identity: "+provenance["percent identity"]+"</p>");
+	    
+	    document.getElementById('notebookModalBody').innerHTML = html;
+	    jQuery('#notebookModal').modal({});
+	},
+	downloadSVG: function (index) {
+	    var renderer = this;
+
+	    var data = document.getElementById('flowGraphic'+index).firstChild.innerHTML;
+	    stm.saveAs(data, "graphic.svg");
+	},
+	downloadPNG: function (index) {
+	    var renderer = this;
+
+	    var source = document.getElementById('flowGraphic'+index).firstChild.firstChild;
+	    source.setAttribute('id', 'exportID');
+	    var resultDiv = document.createElement('div');
+	    resultDiv.setAttribute('id', 'svgExportDiv');
+	    document.body.appendChild(resultDiv);
+	    Retina.svg2png("#"+source.getAttribute('id'), resultDiv, source.getAttribute('width'), source.getAttribute('height')).then(
+		function() {
+		    // create the href and click it
+		    var href = document.createElement('a');
+		    var canvas = document.getElementById('svgExportDiv').children[0];
+		    href.setAttribute('href', canvas.toDataURL());
+		    href.setAttribute('download', "graphic.png");
+		    href.setAttribute('style', 'display: none;');
+		    document.body.appendChild(href);
+		    href.click();
+		    
+		    // remove the elements
+		    document.body.removeChild(href);
+		    document.body.removeChild(document.getElementById('svgExportDiv'));
+		    source.removeAttribute('id');
+		});
+	},
+	downloadData: function (index) {
+	    var renderer = this;
+
+	    var data = renderer.settings.flow[index].data;
+	    stm.saveAs(JSON.stringify(data, null, 2), "data.json");
 	},
 	updateTrash: function () {
 	    var renderer = this;
@@ -416,6 +510,113 @@
 
 	    renderer.render();
 	    renderer.editFlowItem(renderer.settings.currentIndex);
+	},
+	showFlow: function () {
+	    var renderer = this;
+
+	    if (Retina.keys(renderer.settings.flows).length > 0) {
+		var sel = document.getElementById('availableFlows');
+		var id = sel.options[sel.selectedIndex].value;
+		renderer.settings.flow = renderer.settings.flows[id].flow;
+		renderer.settings.currentFlow = id;
+		document.getElementById('flowNameField').value = renderer.settings.flows[id].name;
+		renderer.settings.flowsLoaded = true;
+		renderer.render();
+	    }
+	},
+	// file operations
+	listSHOCKFlows: function () {
+	    var renderer = this;
+
+	    jQuery.ajax({ url: renderer.settings.shockBase + "/node/?query&type=flow",
+			  dataType: "json",
+			  success: function(data) {
+			      var nb = Retina.RendererInstances.notebook[1];
+			      var opts = "";
+			      for (var i=0; i<data.data.length; i++) {
+				  var sel  = "";
+				  if (data.data[i].id == Retina.RendererInstances.notebook[1].settings.currentFlow) {
+				      sel = " selected=selected";
+				  }
+				  opts += "<option value='"+data.data[i].id+"'"+sel+">"+data.data[i].attributes.name+"</option>";
+				  nb.settings.flows[data.data[i].id] = data.data[i].attributes;
+			      }
+			      document.getElementById('availableFlows').innerHTML = opts;
+			      nb.showFlow();
+			  },
+			  error: function(jqXHR, error) {
+			      console.log( "error: unable to connect to SHOCK server" );
+			      console.log(error);
+			  },
+			  crossDomain: true,
+			  headers: stm.authHeader || {}
+			});
+	},
+	deleteSHOCKFlow: function () {
+	    var renderer = this;
+	    
+	    var id = renderer.settings.currentFlow;
+	    if (id !== null) {
+		jQuery.ajax(renderer.settings.shockBase+"/node/"+id, {
+		    success: function(data) {
+			Retina.RendererInstances.notebook[1].listSHOCKFlows();
+		    },
+		    error: function(jqXHR, error){
+			console.log(jqXHR);
+			console.log(error);
+		    },
+		    crossDomain: true,
+		    headers: stm.authHeader,
+		    type: "DELETE"
+		});
+	    }
+	},
+	storeSHOCKFlow: function () {
+	    var renderer = this;
+
+	    var name = document.getElementById('flowNameField').value;
+	    var flow = renderer.settings.flow;
+	    var id = renderer.settings.currentFlow;
+	    var attributes = new Blob([ JSON.stringify({ "name": name, "type": "flow", "owner": stm.user.login ,"flow": flow }) ], { "type" : "text\/json" });
+	    var form = new FormData();
+	    form.append('attributes', attributes);
+
+	    // this is an update to an existing node
+	    if (id) {
+		jQuery.ajax(renderer.settings.shockBase+"/node/"+id, {
+		    contentType: false,
+		    processData: false,
+		    data: form,
+		    success: function(data) {
+			Retina.RendererInstances.notebook[1].listSHOCKFlows();
+		    },
+		    error: function(jqXHR, error){
+			console.log(jqXHR);
+			console.log(error);
+		    },
+		    crossDomain: true,
+		    headers: stm.authHeader,
+		    type: "PUT"
+		});
+	    }
+	    // this is a new node
+	    else {
+		jQuery.ajax(renderer.settings.shockBase+"/node", {
+		    contentType: false,
+		    processData: false,
+		    data: form,
+		    success: function(data) {
+			Retina.RendererInstances.notebook[1].listSHOCKFlows();
+		    },
+		    error: function(jqXHR, error){
+			console.log(jqXHR);
+			console.log(error);
+		    },
+		    crossDomain: true,
+		    headers: stm.authHeader,
+		    type: "POST"
+		});
+	    }
 	}
     });
  }).call(this);
