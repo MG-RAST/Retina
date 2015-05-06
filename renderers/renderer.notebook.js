@@ -345,7 +345,7 @@
 		}
 	    }
 	    
-	    var html = "This graphic was produced using data from the "+provenance.source+". It represents "+provenance.subselection+" data of "+provenance.type+" from the metagenome"+(provenance.metagenomes.length > 1 ? "s <i>'"+provenance.metagenomes.join("', '") : " <i>'"+provenance.metagenomes[0])+"'</i>."+(provenance.noCutoffs ? " No further cutoffs were used." : "<br><br>The cutoffs used were:<p style='padding-left: 50px; padding-top: 15px;'>alignment length: "+provenance["alignment length"]+"<br>e-value: "+provenance["e-value"]+"<br>percent identity: "+provenance["percent identity"]+"</p>");
+	    var html = "This graphic was produced using data from the "+provenance.source+". It represents "+provenance.subselection+" data of "+provenance.type+" from the metagenome"+(provenance.metagenomes.length > 1 ? "s <i>'"+provenance.metagenomes.join("', '") : " <i>'"+provenance.metagenomes[0])+"'</i>."+(provenance.noCutoffs ? " No further cutoffs were used." : "<br><br>The cutoffs used were:<p style='padding-left: 50px; padding-top: 15px;'>alignment length: "+provenance["alignment length"]+"<br>e-value: "+provenance["e-value"]+"<br>percent identity: "+provenance["percent identity"]+"</p>")+"<p style='padding-top: 10px; padding-bottom: 5px;'>You can download this data from the following url. Note that private data requires you to append your <a href='' target=_blank>webkey</a>.</p><a href='"+provenance["link"]+"' target=_blank>"+provenance["link"]+"</a>";
 	    
 	    document.getElementById('notebookModalBody').innerHTML = html;
 	    jQuery('#notebookModal').modal({});
