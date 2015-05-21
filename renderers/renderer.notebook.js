@@ -15,6 +15,7 @@
 		flow: [],
 		images: {},
 		dataContainer: {},
+		graphicItems: [],
 		trash: [],
 		editMode: false,
 		currentIndex: null,
@@ -103,6 +104,9 @@
 		    }
 		    // this is an encoded graphic
 		    else if (item.type == 'Graphic') {
+			renderer.settings.graphicItems.push(jQuery.extend(true, {}, item));
+			item = renderer.settings.graphicItems[renderer.settings.graphicItems.length - 1];
+			item.index = i;
 			item.width = item.width || 800;
 			item.height = item.height || 400;
 			var provenance = "<div class='btn-group pull-right'>";
@@ -184,20 +188,20 @@
 	    renderer.settings.target.innerHTML = html;
 
 	    // the html has been written, check for graphic renderer execution
-	    for (var i=0; i<renderer.settings.flow.length; i++) {
-		var item = renderer.settings.flow[i];
-		if (item.type == 'Graphic') {
-		    try {
-			var r = Retina.Renderer.create('svg', {target: document.getElementById('flowGraphic'+i), width: item.width, height: item.height}).render()[item.graphicType](item.settings);
-			r = null;
-		    } catch (error) {
-			if (item.hasOwnProperty("error")) {
-			    document.getElementById('flowGraphic'+i).style = "";
-			    document.getElementById('flowGraphic'+i).innerHTML = "<div id='flowItem"+i+"' class='alert notebookParagraph"+width+"'"+edit+">"+item.error+"</div>";
-			} else {
-			    console.log("Error rendering flow item "+i+": "+error);
-			    console.log(item);
-			}
+	    for (var i=0; i<renderer.settings.graphicItems.length; i++) {
+		var item = renderer.settings.graphicItems[i];
+		console.log(item);
+		return;
+		try {
+		    var r = Retina.Renderer.create('svg', {target: document.getElementById('flowGraphic'+item.index), width: item.width, height: item.height}).render()[item.graphicType](item.settings);
+		    r = null;
+		} catch (error) {
+		    if (item.hasOwnProperty("error")) {
+			document.getElementById('flowGraphic'+item.index).style = "";
+			document.getElementById('flowGraphic'+item.index).innerHTML = "<div id='flowItem"+item.index+"' class='alert notebookParagraph"+width+"'"+edit+">"+item.error+"</div>";
+		    } else {
+			console.log("Error rendering flow item "+item.index+": "+error);
+			console.log(item);
 		    }
 		}
 	    }
@@ -476,7 +480,18 @@
 	    } else if (item.type == 'Table') {
 		document.getElementById('tableDataField').value = item.data;
 	    } else if (item.type == 'Graphic') {
-		alert('too much work...');
+		var sel = document.getElementById('graphicTypeField');
+		for (var i=0; i<sel.options.length; i++) {
+		    if (sel.options[i].value == item.graphicType) {
+			sel.selectedIndex = i;
+			break;
+		    }
+		}
+		document.getElementById('dataField').value = JSON.stringify(item.data, null, 2);
+		document.getElementById('graphWidthField').value = item.settings.graphWidth;
+		document.getElementById('legendWidthField').value = item.settings.legendWidth;
+		document.getElementById('heightField').value = item.height;
+		item.settings.showLegend ? document.getElementById('showLegendField').setAttribute("checked", "checked") : document.getElementById('showLegendField').removeAttribute("checked");
 	    }
 	},
 	deleteFlowItem: function () {

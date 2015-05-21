@@ -1015,6 +1015,9 @@
 	    } else {
 		if (node.file.size == 0) {
 		    widget.detailInfo = "<h4>preview - "+fn+"</h4><p>This node has no file</p>";
+		    if (typeof widget.customPreview == 'function') {
+			widget.detailInfo = widget.customPreview.call(null, { "node": node, "data": null, "error": null });
+		    }
 		    widget.showDetails(null, true);
 		    return;
 		}
