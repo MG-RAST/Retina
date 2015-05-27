@@ -1364,18 +1364,22 @@
 	// set up the node
 	var incomplete = new Blob([ JSON.stringify({ "incomplete": "1", "incomplete_size": file.size, "incomplete_name": file.name, "incomplete_user": widget.user.login, "incomplete_chunk": Retina.WidgetInstances.shockbrowse[1].currentUploadChunk, "incomplete_chunksize": Retina.WidgetInstances.shockbrowse[1].uploadChunkSize }) ], { "type" : "text\/json" });
 	var form = new FormData();
+	var filename = file.name;
 	form.append('attributes', incomplete);
 	form.append('parts', chunks);
 	if (widget.doDecompress) {
 	    var ctype = "gzip";
 	    if (file.name.match(/\.bz2$/)) {
-		ctype = "bz2";
+		ctype = "bzip2";
 	    } else if (file.name.match(/\.zip$/)) {
 		ctype = "zip";
 	    }
 	    form.append('compression', ctype);
+	    filename = filename.replace(/\.gz$/, "");
+	    filename = filename.replace(/\.zip$/, "");
+	    filename = filename.replace(/\.bz2$/, "");
 	}
-	form.append('file_name', file.name);
+	form.append('file_name', filename);
 	jQuery.ajax(widget.uploadURL, {
 	    contentType: false,
 	    processData: false,

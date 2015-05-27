@@ -147,6 +147,7 @@
 	}
 	var html = '\
         <div id="loginModal" class="modal show fade" tabindex="-1" style="width: 400px; display: none; z-index: 10000;" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">\
+        <div id="loginModalDisable" style="display: none; position: absolute; width: 400px; height: 275px; background-color: black; opacity: 0.3; z-index: 1;"><img src="Retina/images/waiting.gif" style="margin-top: 100px; margin-left: 40%;"></div>\
       <div class="modal-header">\
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>\
 	<h3 id="loginModalLabel">Authentication</h3>\
@@ -207,7 +208,7 @@
 	} else {
 	    html ='\
 <div style="float: right; margin-right: 20px; margin-top: 7px; color: gray;">\
-   <button class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="jQuery(\'#loginModal\').modal(\'show\');document.getElementById(\'login\').focus();">\
+   <button class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="document.getElementById(\'loginModalDisable\').style.display=\'none\';jQuery(\'#loginModal\').modal(\'show\');document.getElementById(\'login\').focus();">\
       Login\
    </button>\
 ' + (widget.registerEnabled ? '<a href="'+widget.registerLink+'" target=_blank class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;">\
@@ -220,6 +221,10 @@
 
     widget.perform_login = function (index) {
 	widget = Retina.WidgetInstances.login[index];
+
+	// disable the login field while loading
+	document.getElementById('loginModalDisable').style.display = "";
+
 	var login = document.getElementById('login').value;
 	var pass = document.getElementById('password').value;
 	var questionmark = "?";
