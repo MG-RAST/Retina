@@ -34,6 +34,7 @@
   presetFilters - hash of field name -> field value that is always added to the filter
   querymode - [ full | attributes ] determines which part of the node to search in, default is attributes
   keylist - array of hashes of items in the filter list. The form of the hash is { "name": "$filter_url_param", "value": "$label_in_filter_list" },
+  blacklist - hash of file names pointing to true to not show up
 
   previewChunkSize - size in bytes that is loaded from the server for the preview of a file, default is 2 KB
   uploadChunkSize - size in bytes uploaded to the server per chunk, default is 10 MB
@@ -126,6 +127,7 @@
     widget.filters = {};
     widget.querymode = "attributes";
     widget.detailType = "info";
+    widget.blacklist = {};
 
     widget.showTitleBar = true;
     widget.showResizer = true;
@@ -641,6 +643,9 @@
 	    }
 	    for (var i=widget.currentOffset; i<widget.data.data.length; i++) {
 		var ds = widget.data.data[i];
+		if (widget.blacklist.hasOwnProperty(ds.file.name)) {
+		    continue;
+		}
 		widget.fileList.push(ds);
 		var fn = ds.file.name || ds.id;
 		html += "<div class='fileItem'>";
