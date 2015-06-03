@@ -1575,7 +1575,6 @@
 	    var file = widget.uploadDialog.files[0];
 	    var fd = new FormData();
 	    fd.append('attributes', new Blob([ JSON.stringify({}) ], { "type" : "text\/json" }));
-	    fd.append('file_name', file.name);
 	    jQuery.ajax(url +  "/" + data.id, {
 		contentType: false,
 		processData: false,
@@ -1821,11 +1820,11 @@
 	} else {
 	    if (data.data.length) {
 		widget.resumableData = data.data;
-		var html = "<h4>Resumable Uploads</h4><table class='table' style='text-align: left; font-size: 12px;'><tr><th>filename</th><th>full size</th><th>complete</th><th>resume</th></tr>";
+		var html = "<h4>Resumable Uploads</h4><table class='table' style='text-align: left; font-size: 12px;'><tr><th>delete</th><th>filename</th><th>full size</th><th>complete</th><th>resume</th></tr>";
 		for (var i=0; i<data.data.length; i++) {
 		    var ds = data.data[i].attributes;
 		    var size = (ds.incomplete_chunk + 1) * ds.incomplete_chunksize;
-		    html += "<tr><td>"+ds.incomplete_name+"</td><td>"+ds.incomplete_size.byteSize()+"</td><td>"+size.byteSize()+"</td><td><button class='btn btn-small' onclick='Retina.WidgetInstances.shockbrowse[1].resumeUploadIndex="+i+";Retina.WidgetInstances.shockbrowse[1].uploadDialog.click();'><i class='icon-play'></i></button></td></tr>";
+		    html += "<tr><td><button class='btn btn-mini btn-danger' onclick='if(confirm(\"Really delete this file?\\nThis cannot be undone!\")){Retina.WidgetInstances.shockbrowse[1].removeNode({node:\""+data.data[i].id+"\"});}'><i class='icon-remove'></i></button></td><td>"+ds.incomplete_name+"</td><td>"+ds.incomplete_size.byteSize()+"</td><td>"+size.byteSize()+"</td><td><button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].resumeUploadIndex="+i+";Retina.WidgetInstances.shockbrowse[1].uploadDialog.click();'><i class='icon-play'></i></button></td></tr>";
 		}
 		html += "</table>";
 		section.innerHTML = html;
