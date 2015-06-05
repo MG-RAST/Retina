@@ -110,8 +110,8 @@
 	      },
 	      { layout:
 		[
-		    { name: 'width', type: 'int', description: "width of the plot in pixel", title: "width" },
-		    { name: 'height', type: 'int', description: "height of the plot in pixel", title: "height" },
+		    { name: 'width', type: 'int', description: "width of the tree in pixel", title: "width" },
+		    { name: 'height', type: 'int', description: "height of the tree in pixel", title: "height" },
 		    { name: 'indent', type: 'int', description: "number of pixels to indent each level", title: "indentation" },
 		]
 	      }
@@ -203,7 +203,7 @@
 		var cB = document.createElement('button');
 		cB.setAttribute("type", "button");
 		cB.className = "btn btn-small";
-		cB.innerHTML = "collapse all";
+		cB.innerHTML = "<icon class='icon-resize-small'></icon>";
 		cB.setAttribute('style', "margin-bottom: 5px; margin-right: 5px;");
 		cB.index = index;
 		cB.addEventListener('click', function () {
@@ -218,7 +218,7 @@
 		var cB = document.createElement('button');
 		cB.setAttribute("type", "button");
 		cB.className = "btn btn-small";
-		cB.innerHTML = "expand all";
+		cB.innerHTML = "<icon class='icon-fullscreen'></icon>";
 		cB.setAttribute('style', "margin-bottom: 5px; margin-right: 5px;");
 		cB.index = index;
 		cB.addEventListener('click', function () {
