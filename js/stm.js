@@ -434,7 +434,7 @@
     };
 
     // save as dialog
-    stm.saveAs = function (data, filename, raw) {
+    stm.saveAs = function (data, filename, raw, prefix) {
 	if (! raw) {
 	    try {
 		data = window.btoa(data);
@@ -455,7 +455,9 @@
 		data = window.btoa(utftext);
 	    }
 
-	    data = 'data:application/octet-stream;base64,'+data;
+	    data = prefix ? prefix + data : 'data:application/octet-stream;base64,'+data;
+	} else {
+	    data = prefix ? prefix + data : data;
 	}
 	
 	var anchor = document.createElement('a');
