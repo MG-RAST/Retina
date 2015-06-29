@@ -355,7 +355,7 @@
 	    var scaleY = Retina.niceScale({ min: renderer.settings.minValIsZeroY ? minY : 0, max: maxY});
 	    var shift = renderer.settings.valueAxisWidth;
 	    var base = renderer.settings.labelAxisWidth;
-	    var height = renderer.settings.height - shift - renderer.settings.graphTopMargin;
+	    var height = renderer.settings.height - base - renderer.settings.graphTopMargin;
 	    var width = renderer.settings.graphWidth;
 	    var factorY = height / (maxY - (renderer.settings.minValIsZeroY ? minY : 0));
 	    var factorX = width / (maxX - (renderer.settings.minValIsZeroX ? minX : 0));
@@ -377,10 +377,10 @@
 		renderer.svg.linechart({ group: renderer.graphic, points: d[i].values, shift: shift, base: base, format: { stroke: d[i].color || renderer.settings.colors[i], strokeWidth: renderer.settings.strokeWidth || 1 } });
 	    }
 	    renderer.settings.legendLabels = labels;
-	    renderer.svg.axis({ shift: base, base: shift, length: height, min: renderer.settings.minValIsZeroY ? minY : 0, max: scaleY.max, direction: "vertical", spaceMajor: renderer.settings.logScaleY ? height / Math.ceil(maxY) : null, isLog: renderer.settings.logScaleY });
-	    renderer.svg.axis({ shift: shift, base: base, length: width, min: renderer.settings.minValIsZeroX ? minX : 0, max: scaleX.max, direction: "horizontal", spaceMajor: renderer.settings.logScaleX ? width / Math.ceil(maxX) : null, isLog: renderer.settings.logScaleX });
-	    renderer.svg.grid({ shift: base, base: -50, width: height, height: height, length: width, space: renderer.settings.logScaleY ? height / Math.ceil(maxY) : null });
-	    renderer.svg.grid({ shift: -50, base: base, width: width, height: height, length: height, direction: "vertical", space: renderer.settings.logScaleX ? width / Math.ceil(maxX) : null });
+	    renderer.svg.axis({ shift: base, base: shift, length: height, min: renderer.settings.minValIsZeroY ? minY : 0, max: scaleY.max, direction: "vertical", spaceMajor: renderer.settings.logScaleY ? height / Math.ceil(maxY) : null, isLog: renderer.settings.logScaleY, labelRotation: renderer.settings.labelRotationY ? renderer.settings.labelRotationY : 0 });
+	    renderer.svg.axis({ shift: shift, base: base, length: width, min: renderer.settings.minValIsZeroX ? minX : 0, max: scaleX.max, direction: "horizontal", spaceMajor: renderer.settings.logScaleX ? width / Math.ceil(maxX) : null, isLog: renderer.settings.logScaleX, labelRotation: renderer.settings.labelRotationX ? renderer.settings.labelRotationX : 0 });
+	    renderer.svg.grid({ shift: shift, base: base, width: width, height: height, topMargin: renderer.settings.graphTopMargin, space: renderer.settings.logScaleY ? height / Math.ceil(maxY) : null });
+	    renderer.svg.grid({ shift: shift, base: base, width: width, height: height, topMargin: renderer.settings.graphTopMargin, direction: "vertical", space: renderer.settings.logScaleX ? width / Math.ceil(maxX) : null });
 
 	    renderer.checkEvents();
 	    renderer.checkLegend();

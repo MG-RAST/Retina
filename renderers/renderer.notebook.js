@@ -190,8 +190,6 @@
 	    // the html has been written, check for graphic renderer execution
 	    for (var i=0; i<renderer.settings.graphicItems.length; i++) {
 		var item = renderer.settings.graphicItems[i];
-		console.log(item);
-		return;
 		try {
 		    var r = Retina.Renderer.create('svg', {target: document.getElementById('flowGraphic'+item.index), width: item.width, height: item.height}).render()[item.graphicType](item.settings);
 		    r = null;

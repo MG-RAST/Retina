@@ -1574,23 +1574,23 @@ svg:svg {\
 	grid: function(params) {
 	    var direction = params.direction == null ? "horizontal" : params.direction;
 	    var group = params.group || null;
+	    var topMargin = params.topMargin == null ? 0 : params.topMargin;
 	    var height = params.height == null ? this._height() : params.height;
 	    var width = params.width; // width of the grid
-	    var length = params.length; // length of the gridlines
-	    var shift = params.shift == null ? (direction == "horizontal" ? 0 : height) : (direction == "horizontal" ? params.shift : height - params.shift);
-	    var base = params.base == null ? (direction == "horizontal" ? height : 0) : (direction == "horizontal" ? height - params.base : params.base);
-	    var space = params.space == null ? parseInt(width / 10) : params.space; // space between two lines of the grid
+	    var shift = params.shift == null ? 0 : params.shift;
+	    var base = params.base == null ? height : params.base;
+	    var space = params.space == null ? parseInt(direction == "horizontal" ? height : width) / 10 : params.space; // space between two lines of the grid
 	    var format = { stroke: "gray", strokeWidth: 1, "stroke-dasharray": "2,2" };
 	    if (params.format !== null) {
 		jQuery.extend(format, params.format);
 	    }
-	    
-	    var numLines = Math.floor(width / space);
 
-	    var x1 = direction == "horizontal" ? shift : base;
-	    var y1 = direction == "horizontal" ? base : shift;
-	    var x2 = direction == "horizontal" ? shift + length : base;	    
-	    var y2 = direction == "horizontal" ? base : shift - length;
+	    var numLines = Math.floor((direction == "horizontal" ? height : width) / space);
+
+	    var x1 = shift;
+	    var y1 = height + topMargin;
+	    var x2 = direction == "horizontal" ? shift + width : x1;
+	    var y2 = direction == "horizontal" ? y1 : y1 - height;
 
 	    var g = this.group(group);
 
