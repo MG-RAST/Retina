@@ -47,6 +47,9 @@
 
   preUploadCustom - function that gets called when a file is selected for upload. Receives the file as a parameter. This function must return a promise that resolves passing two parameters. The first is the HTML to be displayed before the commence upload button. The second is a boolean indicating whether this file may be uploaded or not.
 
+  calculateMD5 - boolean wheather md5 sum should be calculated on the source file and automatically compared with the taget file. Default is false.
+  MD5chunksize - size in bytes of the chunks for incremental MD5sum calculation. Default is 10MB
+
   fileSectionColumns - array of objects with the following attributes:
      path  - string of the path within the node (i.e. file.name) to the attribute to list
      name  - string to be displayed as the column header
@@ -64,7 +67,7 @@
             title: "SHOCK Browser Widget",
             name: "shockbrowse",
             author: "Tobias Paczian",
-            requires: [ 'jszip.min.js', 'jsoneditor.min.js' ]
+            requires: [ 'jszip.min.js', 'jsoneditor.min.js', 'spark-md5.min.js' ]
         }
     });
     
@@ -102,6 +105,8 @@
     widget.uploadPaused = false;
     widget.chunkComplete = false;
     widget.autoDecompress = false;
+    widget.calculateMD5 = false;
+    widget.MD5chunksize = 1024 * 1024 * 10; // 10 MB
     
     // upload restrictions
     widget.uploadRestrictions = [];
@@ -416,18 +421,17 @@
 				      var widget = Retina.WidgetInstances.shockbrowse[1];
 				      if (data != null) {
 					  if (data.error != null) {
-					      console.log("error: "+data.error);
+					      widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>There was an error downloading the data, "+data.error+"</div>";
 					  }
 					  window.location = data.data.url;
 				      } else {
-					  console.log("error: invalid return structure from SHOCK server");
+					  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>The data returned from the server was invalid.</div>";
 					  console.log(data);
 				      }
 				  },
 				  error: function(jqXHR, error) {
 				      var widget = Retina.WidgetInstances.shockbrowse[1];
-				      console.log( "error: unable to connect to SHOCK server" );
-				      console.log(error);
+				      widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred downloading the data.</div>";
 				  },
 				  crossDomain: true,
 				  headers: widget.authHeader
@@ -455,17 +459,17 @@
 				      var widget = Retina.WidgetInstances.shockbrowse[1];
 				      if (data != null) {
 					  if (data.error != null) {
-					      console.log("error: "+data.error);
+					      widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>There was an error downloading the data: "+data.error+"/div>";
 					  }
 					  window.location = data.data.url;
 				      } else {
-					  console.log("error: invalid return structure from SHOCK server");
+					  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>The data returned from the server was invalid.</div>";
 					  console.log(data);
 				      }
 				  },
 				  error: function(jqXHR, error) {
 				      var widget = Retina.WidgetInstances.shockbrowse[1];
-				      console.log( "error: unable to connect to SHOCK server" );
+				      widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred contacting the server.</div>";
 				      console.log(error);
 				  },
 				  crossDomain: true,
@@ -717,7 +721,7 @@
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
 	if (widget.preserveDetail) {
-	    widget.preserveDeatil = false;
+	    widget.preserveDetail = false;
 	    return;
 	}
 
@@ -899,10 +903,10 @@
 			  var widget = Retina.WidgetInstances.shockbrowse[1];
 			  if (data != null) {
 			      if (data.error != null) {
-				  console.log("error: "+data.error);
+				  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred updating the selected data: "+data.error+"</div>";
 			      }
 			  } else {
-			      console.log("error: invalid return structure from SHOCK server");
+			      widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>The server returned invalid data.</div>";
 			      console.log(data);
 			  }
 			  if (widget.currentOffset == 0) {
@@ -916,8 +920,7 @@
 		      },
 		      error: function(jqXHR, error) {
 			  var widget = Retina.WidgetInstances.shockbrowse[1];
-			  console.log( "error: unable to connect to SHOCK server" );
-			  console.log(error);
+			  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred contacting the server.</div>";
 			  widget.updateDisplay();
 		      },
 		      crossDomain: true,
@@ -1327,8 +1330,7 @@
 		alert('attributes updated');
 	    },
 	    error: function(jqXHR, error){
-		console.log(error);
-		console.log(jqXHR);
+		widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred saving the edited attributes.</div>";
 	    },
 	    crossDomain: true,
 	    headers: Retina.WidgetInstances.shockbrowse[1].authHeader,
@@ -1352,6 +1354,11 @@
 
 	// get the selected file
 	var file = widget.uploadDialog.files[0];
+
+	// check if we want to calculate the md5
+	if (widget.calculateMD5) {
+	    widget.calculatingMD5 = widget.md5sum(file);
+	}
 
 	// set up the url
 	var url = widget.shockBase+'/node';
@@ -1580,24 +1587,39 @@
 		processData: false,
 		data: fd,
 		success: function(data){
+		    var widget = Retina.WidgetInstances.shockbrowse[1];
+
 		    // get the section
-		    var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
+		    var section = widget.sections.detailSectionContent;
 		    var done = document.createElement('div');
 		    done.setAttribute('class', 'alert alert-success');
 		    done.innerHTML = "The upload has completed successfully";
 		    section.appendChild(done);
 
 		    var checksum = document.createElement('div');
-		    checksum.innerHTML = "<h4>check md5-sum</h4><p>To check for file corruption paste the md5-sum of your local file into the textbox below and click <b>check</b>.</p><input type='text' disabled value='"+data.data.file.checksum.md5+"' style='width: 240px;'><div class='input-append'><input type='text' placeholder='paste md5 here' style='width: 240px;'><button class='btn' onclick='if(this.previousSibling.value==\""+data.data.file.checksum.md5+"\"){alert(\"file is OK\");}else{alert(\"file is corrupted!\");}'>check</button></div>";
-		    section.appendChild(checksum);
+		    if (widget.calculateMD5 && (data.data.file.name == file.name)) {
+			checksum.innerHTML = "<h4>checking md5-sum</h4><p id='shockbrowseMD5check'><img src='Retina/images/waiting.gif' style='width: 24px;'></p>";
+			section.appendChild(checksum);
+			widget.calculatingMD5.then(function(){
+			    document.getElementById('shockbrowseMD5check').innerHTML = data.data.file.checksum.md5 == Retina.WidgetInstances.shockbrowse[1].md5 ? "<div class='alert alert-success'>The file has passed the MD5 check and is successfully deposited.</div>" : "<div class='alert alert-error'>The MD5 sum of the file on your computer does not match the one that reached the server. The uploaded file is likely corrupt. Please delete the file and try again.</div>";
+			});
+		    } else {
+			var decomp = "";
+			if (data.data.file.name != file.name) {
+			    decomp = "<br><b>NOTE:</b> Your file as been decompressed automatically, the MD5-sum shown is of the decompressed file, not of the archive.";
+			}
+			checksum.innerHTML = "<h4>check md5-sum</h4><p>To check for file corruption paste the md5-sum of your local file into the textbox below and click <b>check</b>."+decomp+"</p><input type='text' disabled value='"+data.data.file.checksum.md5+"' style='width: 240px;'><div class='input-append'><input type='text' placeholder='paste md5 here' style='width: 240px;'><button class='btn' onclick='if(this.previousSibling.value==\""+data.data.file.checksum.md5+"\"){alert(\"file is OK\");}else{alert(\"file is corrupted!\");}'>check</button></div>";
+			section.appendChild(checksum);
+		    }
 
-		    if (typeof Retina.WidgetInstances.shockbrowse[1].fileUploadCompletedCallback == 'function') {
-			Retina.WidgetInstances.shockbrowse[1].fileUploadCompletedCallback.call(null, data);
+
+		    if (typeof widget.fileUploadCompletedCallback == 'function') {
+			widget.fileUploadCompletedCallback.call(null, data);
 		    }
 		},
 		error: function(jqXHR, error){
-		    console.log(error);
-		    console.log(jqXHR);
+		    var widget = Retina.WidgetInstances.shockbrowse[1];
+		    widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred while finalizing the data upload.</div>";
 		},
 		crossDomain: true,
 		headers: Retina.WidgetInstances.shockbrowse[1].authHeader,
@@ -1616,7 +1638,8 @@
 	// get the filereader
 	var fileReader = new FileReader();
 	fileReader.onerror = function (error) {
-	    console.log(error);
+	    var widget = Retina.WidgetInstances.shockbrowse[1];
+	    widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>The selected file could not be opened.</div>";
 	};
 	var chunkSize = widget.previewChunkSize;
 	var start = 0;
@@ -1686,7 +1709,7 @@
 	}
 	
 	section.innerHTML = html;
-
+	
 	if (typeof Retina.WidgetInstances.shockbrowse[1].preUploadCustom == "function") {
 	    Retina.WidgetInstances.shockbrowse[1].preUploadCustom.call(null, file).then( function (customHTML, allow) {
 		if (allow) {
@@ -1744,7 +1767,6 @@
 		    }
 		    html += "</table>";
 		    var buf = zip.file(first).asText(10);
-		    console.log(buf);
 		    Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent.innerHTML += html;
 		}
 		fileReader.readAsArrayBuffer(file);
@@ -1800,9 +1822,7 @@
 		      },
 		      error: function(jqXHR, error) {
 			  var widget = Retina.WidgetInstances.shockbrowse[1];
-			  console.log( "error: unable to connect to SHOCK server" );
-			  console.log(error);
-			  widget.displayResumableUploads(null, error);
+			  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred contacting the server.</div>";
 		      },
 		      crossDomain: true,
 		      headers: widget.authHeader
@@ -1872,6 +1892,44 @@
 	    return;
 	}
     };
+
+    /* compute MD5 */
+    widget.md5sum = function(file) {
+	var p = jQuery.Deferred();
+        var bS = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice,
+        cS = Retina.WidgetInstances.shockbrowse[1].MD5chunksize,                             // Read in chunks of 10MB
+        c = Math.ceil(file.size / cS),
+        cC = 0,
+        spark = new SparkMD5.ArrayBuffer(),
+        fR = new FileReader();
+
+	fR.onload = function (e) {
+            spark.append(e.target.result); // Append array buffer
+            cC++;
+	    
+            if (cC < c) {
+		lN();
+            } else {
+		Retina.WidgetInstances.shockbrowse[1].md5 = spark.end();
+		p.resolve();
+            }
+	};
+	
+	fR.onerror = function () {
+            console.warn('error calculating md5.');
+	};
+	
+	function lN() {
+            var s = cC * cS,
+            e = ((s + cS) >= file.size) ? file.size : s + cS;
+	    
+            fR.readAsArrayBuffer(bS.call(file, s, e));
+	}
+	
+	lN();
+		
+	return p;
+    }
 
     /* CUSTOM PREVIEW */
     widget.previewStub = function (params) {

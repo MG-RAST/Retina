@@ -105,7 +105,8 @@
 		    // this is an encoded graphic
 		    else if (item.type == 'Graphic') {
 			renderer.settings.graphicItems.push(jQuery.extend(true, {}, item));
-			item = renderer.settings.graphicItems[renderer.settings.graphicItems.length - 1];
+			var gindex = renderer.settings.graphicItems.length - 1;
+			item = renderer.settings.graphicItems[gindex];
 			item.index = i;
 			item.width = item.width || 800;
 			item.height = item.height || 400;
@@ -114,7 +115,7 @@
 			    provenance += "<button title='show provenance information' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].showProvenance("+i+");'><i class='icon-info-sign'></i></button>";
 			}
 			if (! item.noDownload) {
-			    provenance += "<button title='download data' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadData("+i+");'><img src='Retina/images/file-css.png' style='width: 16px;'></button>";
+			    provenance += "<button title='download data' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadData("+gindex+");'><img src='Retina/images/file-css.png' style='width: 16px;'></button>";
 			    provenance += "<button title='download as SVG' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadSVG("+i+");'><img src='Retina/images/file-xml.png' style='width: 16px;'></button>";
 			    provenance += "<button title='download as PNG' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadPNG("+i+");'><img src='Retina/images/image.png' style='width: 16px;'></button>";
 			}
@@ -386,7 +387,7 @@
 	downloadData: function (index) {
 	    var renderer = this;
 
-	    var data = renderer.settings.flow[index].data;
+	    var data = renderer.settings.graphicItems[index].settings.data;
 	    stm.saveAs(JSON.stringify(data, null, 2), "data.json");
 	},
 	updateTrash: function () {
