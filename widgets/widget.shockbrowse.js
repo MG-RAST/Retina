@@ -1705,10 +1705,12 @@
 		html += "<option value='"+chunkSizes[i][0]+"'"+sel+">"+chunkSizes[i][1]+"</option>";
 	    }
 	    
-	    html += "</select></div>";
+	    html += "</select><img src='Retina/images/help.png' id='shockbrowse_advanced_help' style='position: relative; left: 10px;'></div>";
 	}
 	
 	section.innerHTML = html;
+
+	$('#shockbrowse_advanced_help').popover({title: "upload chunk size", content: "The upload chunk size determines the intervals in which you can resume an upload in case of a failure. Set this option higher to improve performance if you have a fast internet connection and large files or lower if your connection is slow / error prone.", trigger: "hover" });
 	
 	if (typeof Retina.WidgetInstances.shockbrowse[1].preUploadCustom == "function") {
 	    Retina.WidgetInstances.shockbrowse[1].preUploadCustom.call(null, file).then( function (customHTML, allow) {
