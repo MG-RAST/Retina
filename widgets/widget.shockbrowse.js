@@ -24,6 +24,7 @@
   showDetailAttributes - boolean whether the detail option 'attributes' is available, default is true
   showDetailACL - boolean whether the detail option 'acl' is available, default is true
   showDetailPreview - boolean whether the detail option 'preview' is available, default is true
+  keepSelectedFileAfterRefresh - boolean whether the selected file should stay selected after a display update, default is true
 
   showStatusBar - boolean whether the status bar at the bottom is displayed, default is true
 
@@ -141,6 +142,7 @@
     widget.showDetailACL = true;
     widget.showDetailPreview = true;
     widget.showDetailAttributes = true;
+    widget.keepSelectedFileAfterRefresh = true;
 
     widget.fileSectionColumns = [ { "path": "file.name", "name": "filename" } ];
 
@@ -938,6 +940,9 @@
 	    widget.status_bar();
 	    widget.file_section();
 	    widget.detail_section();
+	    if (widget.keepSelectedFileAfterRefresh && widget.selectedFile) {
+		widget.showDetails(null, true);
+	    }
 	}
     };
 
