@@ -894,7 +894,7 @@
 	if (Retina.keys(widget.filters).length) {
 	    url += "&"+(widget.querymode == "attributes" ? "query" : "querynode");
 	    for (var i in widget.filters) {
-		if (widget.filters.hasOwnProperty(i)) {
+		if (widget.filters.hasOwnProperty(i) && widget.filters[i] !== null) {
 		    url += "&"+i+"="+widget.filters[i];
 		}
 	    }
@@ -970,6 +970,9 @@
 		node = widget.data.data[i];
 		break;
 	    }
+	}
+	if (! node) {
+	    return;
 	}
 
 	var fn = node.file.name || node.id;
@@ -1379,7 +1382,7 @@
 	var chunks = Math.ceil(file.size / chunkSize);
 
 	// set up the node
-	var incomplete = new Blob([ JSON.stringify({ "incomplete": "1", "incomplete_size": file.size, "incomplete_name": file.name, "incomplete_user": widget.user.login, "incomplete_chunk": Retina.WidgetInstances.shockbrowse[1].currentUploadChunk, "incomplete_chunksize": Retina.WidgetInstances.shockbrowse[1].uploadChunkSize }) ], { "type" : "text\/json" });
+	var incomplete = new Blob([ JSON.stringify({ "incomplete": "1", "incomplete_size": file.size, "incomplete_name": file.name, "incomplete_chunk": Retina.WidgetInstances.shockbrowse[1].currentUploadChunk, "incomplete_chunksize": Retina.WidgetInstances.shockbrowse[1].uploadChunkSize }) ], { "type" : "text\/json" });
 	var form = new FormData();
 	var filename = file.name;
 	form.append('attributes', incomplete);
@@ -1439,7 +1442,7 @@
 	    var data = e.target.result;
 	    var fd = new FormData();
 	    var oMyBlob = new Blob([data], { "type" : file.type });
-	    var incomplete = new Blob([ JSON.stringify({ "incomplete": "1", "incomplete_size": file.size, "incomplete_name": file.name, "incomplete_user": widget.user.login, "incomplete_chunk": Retina.WidgetInstances.shockbrowse[1].currentUploadChunk, "incomplete_chunksize": Retina.WidgetInstances.shockbrowse[1].uploadChunkSize }) ], { "type" : "text\/json" });
+	    var incomplete = new Blob([ JSON.stringify({ "incomplete": "1", "incomplete_size": file.size, "incomplete_name": file.name, "incomplete_chunk": Retina.WidgetInstances.shockbrowse[1].currentUploadChunk, "incomplete_chunksize": Retina.WidgetInstances.shockbrowse[1].uploadChunkSize }) ], { "type" : "text\/json" });
 	    fd.append('attributes', incomplete);
 
 	    fd.append(Retina.WidgetInstances.shockbrowse[1].currentUploadChunk+1, oMyBlob);
@@ -1806,7 +1809,7 @@
 	widget.resumableData = [];
 
 	// construct URL
-	var url = widget.shockBase + "/node?query&incomplete=1&incomplete_user=" + widget.user.login;
+	var url = widget.shockBase + "/node?querynode&attributes.incomplete=1&owner=" + widget.user.login;
 
 	// get the section
 	var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
