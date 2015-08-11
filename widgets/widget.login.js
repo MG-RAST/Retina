@@ -257,6 +257,7 @@
 			  if (widget.callback && typeof(widget.callback) == 'function') {
 			      widget.callback.call(null, { 'action': 'login',
 							   'result': 'failed',
+							   'error': error,
 							   'token': null,
 							   'user': null });
 			  }
@@ -327,6 +328,22 @@
 	    }
 	    widget.perform_logout();
 	}
+    };
+
+    widget.verifyAuthentication = function (url, header) {
+	var widget = this;
+
+	jQuery.ajax({ method: widget.authResources[widget.authResources.default].method || "GET",
+		      dataType: "json",
+		      url: url,
+		      headers: header,
+		      error: function (xhr) {
+			  widget.perform_logout();
+		      },
+		      success: function (d) {
+			  //console.log(d);
+		      }
+		    });
     };
     
 })();
