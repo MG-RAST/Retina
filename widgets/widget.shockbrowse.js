@@ -1606,10 +1606,10 @@
 
 		    var checksum = document.createElement('div');
 		    if (widget.calculateMD5 && (data.data.file.name == file.name)) {
-			checksum.innerHTML = "<h4>checking md5-sum</h4><p id='shockbrowseMD5check'><img src='Retina/images/waiting.gif' style='width: 24px;'></p>";
+			checksum.innerHTML = "<h4>checking data integrity</h4><p id='shockbrowseMD5check'><img src='Retina/images/waiting.gif' style='width: 24px;'></p>";
 			section.appendChild(checksum);
 			widget.calculatingMD5.then(function(){
-			    document.getElementById('shockbrowseMD5check').innerHTML = data.data.file.checksum.md5 == Retina.WidgetInstances.shockbrowse[1].md5 ? "<div class='alert alert-success'>The file has passed the MD5 check and is successfully deposited.</div>" : "<div class='alert alert-error'>The MD5 sum of the file on your computer does not match the one that reached the server. The uploaded file is likely corrupt. Please delete the file and try again.</div>";
+			    document.getElementById('shockbrowseMD5check').innerHTML = data.data.file.checksum.md5 == Retina.WidgetInstances.shockbrowse[1].md5 ? "<div class='alert alert-success'>The integrity check has confirmed that the file on your disk matches the one that reached our server.</div>" : "<div class='alert alert-error'>The file on your disk does not match the one that reached our server, so the uploaded file is very likely corrupted (the MD5 sums did not match). Please delete the file and try again.</div>";
 			});
 		    } else {
 			var decomp = "";
