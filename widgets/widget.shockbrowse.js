@@ -50,6 +50,7 @@
 
   calculateMD5 - boolean wheather md5 sum should be calculated on the source file and automatically compared with the taget file. Default is false.
   MD5chunksize - size in bytes of the chunks for incremental MD5sum calculation. Default is 10MB
+  fileDoneAttributes - object of attributes to set for any uploaded file, default is {}
 
   fileSectionColumns - array of objects with the following attributes:
      path  - string of the path within the node (i.e. file.name) to the attribute to list
@@ -108,6 +109,7 @@
     widget.autoDecompress = false;
     widget.calculateMD5 = false;
     widget.MD5chunksize = 1024 * 1024 * 10; // 10 MB
+    widget.fileDoneAttributes = {};
     
     // upload restrictions
     widget.uploadRestrictions = [];
@@ -722,11 +724,6 @@
     widget.detail_section = function () {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
-	if (widget.preserveDetail) {
-	    widget.preserveDetail = false;
-	    return;
-	}
-
 	var section;
 	if (widget.sections.detailSection) {
 	    section = widget.sections.detailSection;
@@ -939,6 +936,12 @@
 	    widget.status = "loaded "+(maxNodes > numNodes ? numNodes : maxNodes)+" of "+numNodes+" nodes for current filter";
 	    widget.status_bar();
 	    widget.file_section();
+	    
+	    if (widget.preserveDetail) {
+		widget.preserveDetail = false;
+		return;
+	    }
+
 	    widget.detail_section();
 	    if (widget.keepSelectedFileAfterRefresh && widget.selectedFile) {
 		widget.showDetails(null, true);
@@ -1589,7 +1592,7 @@
 	    var url = widget.shockBase+'/node';
 	    var file = widget.uploadDialog.files[0];
 	    var fd = new FormData();
-	    fd.append('attributes', new Blob([ JSON.stringify({}) ], { "type" : "text\/json" }));
+	    fd.append('attributes', new Blob([ JSON.stringify(widget.fileDoneAttributes) ], { "type" : "text\/json" }));
 	    jQuery.ajax(url +  "/" + data.id, {
 		contentType: false,
 		processData: false,
