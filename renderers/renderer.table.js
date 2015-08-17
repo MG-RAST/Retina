@@ -1038,7 +1038,7 @@
 		    for (var i=0; i<renderer.settings.tdata.length; i++) {
 			var r = [];
 			for (var h=0; h<renderer.settings.header.length; h++) {
-			    r.push(renderer.settings.strip_html ? renderer.settings.tdata[i][renderer.settings.header[h]].replace(htmlFilter, "") : renderer.settings.tdata[i][renderer.settings.header[h]]);
+			    r.push((renderer.settings.strip_html && (typeof renderer.settings.tdata[i][renderer.settings.header[h]].replace == "function")) ? renderer.settings.tdata[i][renderer.settings.header[h]].replace(htmlFilter, "") : renderer.settings.tdata[i][renderer.settings.header[h]]);
 			}
 			d.push(r.join("\t"));
 		    }
