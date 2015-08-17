@@ -124,7 +124,7 @@
 		'synchronous': true,
 		'query_type': 'infix',
 		'asynch_column_mapping': null,
-		'show_export': true,
+		'show_export': false,
 		'strip_html': true
 	    },
 	  options: [
