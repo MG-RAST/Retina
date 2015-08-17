@@ -81,6 +81,15 @@
   minwidths (ARRAY of INT)
       Sets the minimum widths of the columns in pixel, default is 1.
     
+  maxwidths (ARRAY of INT)
+      Sets the maximum widths of the columns in pixel, default is null
+
+  show_export (BOOLEAN)
+      If true shows an export button that will download the table as a tab separated text file, default is false
+
+  strip_html (BOOLEAN)
+      If true strips html from cells before exporting them, default is true
+
 */
 (function () {
     var renderer = Retina.Renderer.extend({
@@ -114,7 +123,9 @@
 		'target': 'table_space',
 		'synchronous': true,
 		'query_type': 'infix',
-		'asynch_column_mapping': null
+		'asynch_column_mapping': null,
+		'show_export': true,
+		'strip_html': true
 	    },
 	  options: [
 	      { general:
@@ -615,7 +626,11 @@
 		    if (renderer.settings.minwidths && renderer.settings.minwidths[i]) {
 			mw = renderer.settings.minwidths[i];
 		    }
-		    th.setAttribute("style", "padding: 0px; padding-left: 4px; min-width: "+mw+"px;");
+		    var maxwidth = "";
+		    if (renderer.settings.maxwidths && renderer.settings.maxwidths[i]) {
+			maxwidth = " max-width: "+renderer.settings.maxwidths[i]+"px;";
+		    }
+		    th.setAttribute("style", "padding: 0px; padding-left: 4px; min-width: "+mw+"px;"+maxwidth);
 		    var th_div = document.createElement("div");
 		    th_div.setAttribute("style", "float: left; position: relative; height: 25px;");
 		    th_div.innerHTML = header[i];
@@ -1006,6 +1021,32 @@
 		options_span.appendChild(ppspan2);
 		options_span.appendChild(col_sel_span);
 	    }
+
+	    // check for export button
+	    if (renderer.settings.show_export) {
+		var exp = document.createElement('button');
+		exp.setAttribute('class', 'btn btn-mini');
+		exp.setAttribute('style', 'float: right;');
+		exp.setAttribute('title', 'export table data as tsv');
+		exp.innerHTML = '<i class="icon icon-file"></i>';
+		exp.setAttribute('index', renderer.index);
+		exp.addEventListener('click', function (e) {
+		    var renderer = Retina.RendererInstances.table[this.getAttribute('index')];
+		    var d = [];
+		    d.push(renderer.settings.header.join("\t"));
+		    var htmlFilter = new RegExp("<.+?>", "ig");
+		    for (var i=0; i<renderer.settings.tdata.length; i++) {
+			var r = [];
+			for (var h=0; h<renderer.settings.header.length; h++) {
+			    r.push(renderer.settings.strip_html ? renderer.settings.tdata[i][renderer.settings.header[h]].replace(htmlFilter, "") : renderer.settings.tdata[i][renderer.settings.header[h]]);
+			}
+			d.push(r.join("\t"));
+		    }
+		    stm.saveAs(d.join("\n"), "table.tsv");
+		});
+		target.appendChild(exp);
+	    }
+
 	    target.appendChild(table_element);
 	    target.appendChild(bottom_table);	  
 	    
