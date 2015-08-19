@@ -59,6 +59,9 @@
      type  - type of the column for formatting, supported values are date, size, file and string
      align - HTML align value of the column
 
+  order - stringified object path to order the file list by, default is last_modified
+  direction - string, either 'asc' or 'desc' representing ascending and descending sort order respectively, default is desc
+
   Readonly Attributes:
 
   fileList - list of SHOCK node objects that are currently displayed in the file section
@@ -96,7 +99,7 @@
     widget.borderRadius = 4;
     widget.fontSize = 13;
     widget.showFilter = true;
-    widget.filterWidth = 232;
+    widget.filterWidth = 235;
     widget.initialFileDetailRatio = 0.5;
     widget.sizes = { "small": [ 800, 400 ] };
 
@@ -146,7 +149,7 @@
     widget.showDetailAttributes = true;
     widget.keepSelectedFileAfterRefresh = true;
 
-    widget.fileSectionColumns = [ { "path": "file.name", "name": "filename" } ];
+    widget.fileSectionColumns = [ { "path": "file.name", "name": "filename", "sortable": true } ];
 
     widget.showStatusBar = true;
 
@@ -158,6 +161,10 @@
     widget.showTopSection = true;
 
     widget.fileList = [];
+
+    // sort options
+    widget.order = 'last_modified';
+    widget.direction = 'desc';
 
     /*
      * STYLESHEET
@@ -497,7 +504,9 @@
 	refreshButton.title = "refresh file list";
 	refreshButton.innerHTML = "<img src='Retina/images/loop.png' style='height: 16px;'>";
 	refreshButton.addEventListener('click', function(){
-	    Retina.WidgetInstances.shockbrowse[1].updateData();
+	    var widget = Retina.WidgetInstances.shockbrowse[1];
+	    widget.currentOffset = 0;
+	    widget.updateData();
 	});
 	updateBar.appendChild(refreshButton);
 
@@ -563,7 +572,7 @@
 	}
 
 	var sectionContent = document.createElement('div');
-	sectionContent.setAttribute("style", "padding-left: 5px; padding-top: 1px; padding-right: 5px; height: inherit; overflow-y: scroll;");
+	sectionContent.setAttribute("style", "padding-left: 5px; padding-top: 1px; padding-right: 5px; height: inherit; overflow-y: auto;");
 	section.appendChild(sectionContent);
 
 	sectionContent.innerHTML = '\
@@ -699,7 +708,15 @@
 		var sectionHeader = "<div style='font-size: 11px; font-weight: bold; background-color: #f3f3f3; border-bottom: 1px solid #838383; margin-left: -5px; margin-right: -6px; margin-top: -1px;'>";
 		for (var i=0; i<widget.fileSectionColumns.length; i++) {
 		    var width = widget.fileSectionColumns[i].width ? widget.fileSectionColumns[i].width : parseInt(100 / widget.fileSectionColumns.length) + "%";
-		    sectionHeader += "<div style='width: "+width+"; display: inline-block; text-align: "+(widget.fileSectionColumns[i].align || "left")+";'><div style='border-right: 1px solid darkgray; width: 100%;'><div style='padding-left: 5px; padding-right: 5px;'>"+widget.fileSectionColumns[i].name+"</div></div></div>";
+		    var sorterText = "";
+		    var sorterEvent = "";
+		    if (widget.fileSectionColumns[i].sortable) {
+			if (widget.order == widget.fileSectionColumns[i].path) {
+			    sorterText = '<i class="icon icon-arrow-'+(widget.order == 'asc' ? 'up' : 'down')+'" style="float: right; position: relative; top: 2px;"></i>';
+			}
+			sorterEvent = " onclick='Retina.WidgetInstances.shockbrowse["+widget.index+"].newSort(\""+widget.fileSectionColumns[i].path+"\");'";
+		    }
+		    sectionHeader += "<div style='width: "+width+"; display: inline-block; text-align: "+(widget.fileSectionColumns[i].align || "left")+";"+(widget.fileSectionColumns[i].sortable ? " cursor: pointer;" : "")+"'"+sorterEvent+"><div style='border-right: 1px solid darkgray; width: 100%;'><div style='padding-left: 5px; padding-right: 5px;'>"+widget.fileSectionColumns[i].name+sorterText+"</div></div></div>";
 		}
 		sectionHeader += "</div>";
 		sectionContent.innerHTML = sectionHeader + html;
@@ -887,7 +904,7 @@
 	widget.status = "<img src='Retina/images/waiting.gif' style='height: 15px;'> fetching data...";
 	widget.status_bar();
 	
-	var url = widget.shockBase + "/node/?limit="+widget.currentLimit+"&offset="+widget.currentOffset;
+	var url = widget.shockBase + "/node/?limit="+widget.currentLimit+(((widget.order !== null) && (widget.direction !== null)) ? "&order="+widget.order + "&direction=" + widget.direction : "")+"&offset="+widget.currentOffset;
 	if (Retina.keys(widget.filters).length) {
 	    url += "&"+(widget.querymode == "attributes" ? "query" : "querynode");
 	    for (var i in widget.filters) {
@@ -1943,6 +1960,26 @@
 		
 	return p;
     }
+
+    /* user is requesting a new file section sort */
+    widget.newSort = function(path) {
+	var widget = this;
+
+	// if the same column is clicked that is already the sort order, reverse the sort order
+	if (widget.order == path) {
+	    if (widget.direction == 'asc') {
+		widget.direction = 'desc';
+	    } else {
+		widget.direction = 'asc';
+	    }
+	}
+
+	// set the new sort column
+	widget.order = path;
+
+	widget.currentOffset = 0;
+	widget.updateData();
+    };
 
     /* CUSTOM PREVIEW */
     widget.previewStub = function (params) {
