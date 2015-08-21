@@ -9,6 +9,7 @@
   height - height of the browser in pixel, default is 800
   initialFileDetailRatio - initial size ratio between file and info section, default is 0.5 (both equal size)
   title - text displayed in the title bar, default is "SHOCK browser"
+  autoSizeAtStartup - boolean to set the initial size to fit into the current browser window, default is false
 
   showFilter - boolean whether the filter section is visible, default is true
   showTitleBar - boolean whether the title bar is visible, default is true
@@ -42,6 +43,7 @@
   currentLimit - maximum number of files loaded initially and whenever scrolling to the bottom
   authHeader - authentication header used when interacting with the server
   customPreview - optinally provided custom function for node preview, receives an object with the selected node (node), the first previewChunkSize bytes of the file (data) and the error if exists (error), must return the HTML to be displayed in the preview section
+  customMultiPreview - optionally provided custom function for preview of multiple file selection, receives the list of selected files, must return the HTML to be displayed in the preview section
   autoDecompress - automatically decompress compressed files after upload without asking the user, default is false
 
   uploadRestrictions - array of objects with the attributes 'expression' which is a regular expression to match a filename and 'text' which will be displayed as an error alert to the user. Filenames that match will not be able to be uploaded. Default is an empty array.
@@ -58,9 +60,11 @@
      width - HTML width string of the column, percentage values are advised
      type  - type of the column for formatting, supported values are date, size, file and string
      align - HTML align value of the column
+     sortable - boolean whether this column may be sorted by clicking on the column header
 
   order - stringified object path to order the file list by, default is last_modified
   direction - string, either 'asc' or 'desc' representing ascending and descending sort order respectively, default is desc
+  allowMultiselect - boolean to indicate whether multiple files may be selected at a time, default is false
 
   Readonly Attributes:
 
@@ -102,6 +106,8 @@
     widget.filterWidth = 235;
     widget.initialFileDetailRatio = 0.5;
     widget.sizes = { "small": [ 800, 400 ] };
+    widget.autoSizeAtStartup = false;
+    widget.initialized = false;
 
     // upload status information
     widget.previewChunkSize = 2048; // 2 KB
@@ -161,6 +167,8 @@
     widget.showTopSection = true;
 
     widget.fileList = [];
+    widget.highlightedDivs = [];
+    widget.selectedFiles = [];
 
     // sort options
     widget.order = 'last_modified';
@@ -186,6 +194,16 @@
 .fileItem:hover {\
   background-color: #e6eaef;\
 }\
+.disable {\
+  opacity: 0.4;\
+  background-image: url("Retina/images/waiting.gif");\
+  background-repeat: no-repeat;\
+  background-position: center;\
+}\
+.disable div,\
+.disable textarea {\
+  overflow: hidden;\
+}\
 </style>\
 ';
     };
@@ -202,6 +220,12 @@
 
 	if (widget.presetFilters && ! Retina.keys(widget.filters).length) {
 	    widget.filters = widget.presetFilters;
+	}
+
+	if (widget.autoSizeAtStartup && ! widget.initialized) {
+	    widget.initialized = true;
+	    widget.width = widget.target.offsetWidth - 20;	    
+	    widget.height = widget.target.offsetHeight || ((window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) - 20 - widget.target.getBoundingClientRect().top);
 	}
 
 	if (! widget.hasOwnProperty('keylist')) {
@@ -506,6 +530,7 @@
 	refreshButton.addEventListener('click', function(){
 	    var widget = Retina.WidgetInstances.shockbrowse[1];
 	    widget.currentOffset = 0;
+	    widget.scrollPosition = 0;
 	    widget.updateData();
 	});
 	updateBar.appendChild(refreshButton);
@@ -620,11 +645,14 @@
 	var section;
 	var sectionContent;
 	if (widget.append) {
+	    widget.sections.fileSection.className = "";
+	    widget.sections.fileSection.firstChild.style.overflowY = "scroll";
 	    sectionContent = widget.sections.fileSectionContent;
 	} else {
 	    if (widget.sections.fileSection) {
 		section = widget.sections.fileSection;
 		section.innerHTML = "";
+		section.className = "";
 		widget.sections.fileSectionContent = null;
 	    } else {
 		var height = widget.middleHeight;
@@ -642,6 +670,9 @@
 	    sectionContent.addEventListener('scroll', function(event) {
 		event = event || window.event;
 		var widget = Retina.WidgetInstances.shockbrowse[1];
+		if (widget.updating) {
+		    return;
+		}
 		if (widget.currentOffset + widget.currentLimit < widget.data.total_count) {
 		    if (event.target.scrollTop == event.target.scrollTopMax) {
 			widget.scrollPosition = event.target.scrollTop;
@@ -712,7 +743,7 @@
 		    var sorterEvent = "";
 		    if (widget.fileSectionColumns[i].sortable) {
 			if (widget.order == widget.fileSectionColumns[i].path) {
-			    sorterText = '<i class="icon icon-arrow-'+(widget.order == 'asc' ? 'up' : 'down')+'" style="float: right; position: relative; top: 2px;"></i>';
+			    sorterText = '<i class="icon icon-arrow-'+(widget.direction == 'asc' ? 'up' : 'down')+'" style="float: right; position: relative; top: 2px;"></i>';
 			}
 			sorterEvent = " onclick='Retina.WidgetInstances.shockbrowse["+widget.index+"].newSort(\""+widget.fileSectionColumns[i].path+"\");'";
 		    }
@@ -902,6 +933,9 @@
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
 	widget.status = "<img src='Retina/images/waiting.gif' style='height: 15px;'> fetching data...";
+	widget.sections.fileSection.className = "disable";
+	widget.sections.fileSection.firstChild.style.overflowY = "hidden";
+	widget.updating = true;
 	widget.status_bar();
 	
 	var url = widget.shockBase + "/node/?limit="+widget.currentLimit+(((widget.order !== null) && (widget.direction !== null)) ? "&order="+widget.order + "&direction=" + widget.direction : "")+"&offset="+widget.currentOffset;
@@ -932,11 +966,13 @@
 				  widget.data.data.push(data.data[i]);
 			      }
 			  }
+			  widget.updating = false;
 			  widget.updateDisplay();
 		      },
 		      error: function(jqXHR, error) {
 			  var widget = Retina.WidgetInstances.shockbrowse[1];
 			  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred contacting the server.</div>";
+			  widget.updating = false;
 			  widget.updateDisplay();
 		      },
 		      crossDomain: true,
@@ -969,41 +1005,148 @@
     widget.showDetails = function (e, update) {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
+	// if there is no file selected and no click event, do nothing
 	if (! widget.selectedFile && ! e) {
 	    return;
 	}
 
-	if (! update) {
-	    if (widget.selectedFile != null) {
-		widget.selectedFile.parentNode.style.backgroundColor = null;
-	    }
-	    
-	    widget.selectedFile = e.currentTarget;
-	    widget.selectedFile.parentNode.style.backgroundColor = "#e6eaef";
-
-	    widget.currentFileId = e.currentTarget.getAttribute('fi');
-	}
-	var id = widget.currentFileId;
-	var node;
-	for (var i=0; i<widget.data.data.length; i++) {
-	    if (widget.data.data[i].id == id) {
-		node = widget.data.data[i];
-		break;
-	    }
-	}
-	if (! node) {
+	// while waiting for a SHOCK response, do not handle clicks
+	if (widget.updating) {
 	    return;
 	}
 
-	var fn = node.file.name || node.id;
-	
 	var html;
-	var height = parseInt((widget.height - 85) / 2) - 50;
 
-	var detailInfo = widget.detailInfo || "<div style='padding-top: "+height+"px; text-align: center;'><img src='Retina/images/waiting.gif' style='width: 25px;'></div>";
+	// updates are not allowed in multi select mode
+	if (update && widget.selectedFiles.length) {
+	    return;
+	}
 
-	if (widget.detailType == "info") {
-	    html = "<h4>file information - "+fn+"</h4><table style='text-align: left; font-size: "+widget.fontSize+"px;'>\
+	// check if the shift key is pressed and we allow multiselect
+	if (widget.allowMultiselect && e && e.shiftKey && ! widget.selectedFiles.length) {
+	    var fid = e.currentTarget.getAttribute('fi');
+	    var oldIndex = null;
+	    var newIndex = null;
+	    for (var i=0; i<widget.fileList.length; i++) {
+		if (widget.fileList[i].id == fid) {
+		    newIndex = i;
+		}
+		if (widget.fileList[i].id == widget.currentFileId) {
+		    oldIndex = i;
+		}
+		if (oldIndex !== null && newIndex !== null) {
+		    break;
+		}
+	    }
+	    var multi = [];
+	    var highlightedDivs = [];
+	    var pnode = widget.selectedFile.parentNode;
+	    while (pnode.className !== "fileItem") {
+		pnode = pnode.parentNode;
+	    }
+	    if (oldIndex > newIndex) {
+		for (var i=newIndex; i<=oldIndex; i++) {
+		    pnode.style.backgroundColor = "#e6eaef";
+		    highlightedDivs.push(pnode);
+		    pnode = pnode.previousSibling;
+		    multi.push(widget.fileList[i]);
+		}
+	    } else if (newIndex > oldIndex) {
+		for (var i=oldIndex; i<=newIndex; i++) {
+		    pnode.style.backgroundColor = "#e6eaef";
+		    highlightedDivs.push(pnode);
+		    pnode = pnode.nextSibling;
+		    multi.push(widget.fileList[i]);
+		}
+	    } else {
+		return;
+	    }
+
+	    widget.highlightedDivs = highlightedDivs;
+	    widget.selectedFiles = multi;
+	    widget.selectedFile = null;
+	    widget.currentFileId = null;
+	    
+	    // show details for the current selection
+	    var totsize = 0;
+	    var totfiles = 0;
+	    for (var i=0; i<widget.selectedFiles.length; i++) {
+		if (widget.selectedFiles[i].file) {
+		    totfiles++;
+		    totsize += widget.selectedFiles[i].file.size;
+		}
+	    }
+	    html = "<h4>multiple file selection</h4><p>You have selected "+widget.selectedFiles.length+" nodes with "+totfiles+" files and a total of "+totsize.byteSize()+".</p>";
+
+	    // action buttons
+	    html += "<div>";
+
+	    // delete button
+	    html += '<button class="btn btn-small btn-danger" onclick="if(confirm(\'really delete all selected nodes?\')){Retina.WidgetInstances.shockbrowse[1].removeMultipleNodes();}" style="margin-right: 10px;" id="shockbrowserMultiDeleteButton">delete nodes</button>';
+
+	    if (typeof widget.customMultiPreview == 'function') {
+		html += widget.customMultiPreview.call(null, widget.selectedFiles);
+	    }
+
+	    html += "</div>";
+
+	    // progress area
+	    html += "<div id='shockbrowserMultiProgressDiv' style='margin-top: 25px;'></div>";
+	    
+	} else if (! update) {
+
+	    // if there were multiple selected files, unhighlight them and clear the selection
+	    widget.selectedFiles = [];
+	    for (var i=0; i<widget.highlightedDivs.length; i++) {
+		widget.highlightedDivs[i].style.backgroundColor = null;
+	    }
+	    widget.highlightedDivs = [];
+	    
+	    // unhighlight the previous node if there was one
+	    var pnode;
+	    if (widget.selectedFile != null) {
+		pnode = widget.selectedFile.parentNode;
+		while (pnode.className !== "fileItem") {
+		    pnode = pnode.parentNode;
+		}
+		pnode.style.backgroundColor = null;
+	    }
+	    
+	    // set the selected file
+	    widget.selectedFile = e.currentTarget;
+	    
+	    // highlight the new selected node
+	    pnode = widget.selectedFile.parentNode;
+	    while (pnode.className !== "fileItem") {
+		pnode = pnode.parentNode;
+	    }
+	    pnode.style.backgroundColor = "#e6eaef";
+	    
+	    // set the id of the current file
+	    widget.currentFileId = e.currentTarget.getAttribute('fi');
+	}
+	
+	if (! widget.selectedFiles.length) {
+	    var id = widget.currentFileId;
+	    var node;
+	    for (var i=0; i<widget.data.data.length; i++) {
+		if (widget.data.data[i].id == id) {
+		    node = widget.data.data[i];
+		    break;
+		}
+	    }
+	    if (! node) {
+		return;
+	    }
+	    
+	    var fn = node.file.name || node.id;
+	    
+	    var height = parseInt((widget.height - 85) / 2) - 50;
+	    
+	    var detailInfo = widget.detailInfo || "<div style='padding-top: "+height+"px; text-align: center;'><img src='Retina/images/waiting.gif' style='width: 25px;'></div>";
+	    
+	    if (widget.detailType == "info") {
+		html = "<h4>file information - "+fn+"</h4><table style='text-align: left; font-size: "+widget.fontSize+"px;'>\
 <tr><th style='width: 75px;'>name</th><td>"+fn+"</td></tr>\
 <tr><th style='width: 75px;'>node id</th><td>"+node.id+"</td></tr>\
 <tr><th>created</th><td>"+node.created_on+"</td></tr>\
@@ -1013,80 +1156,81 @@
 "+(node.file.format ? "<tr><th>format</th><td>"+node.file.format+"</td></tr>" : "")+"\
 <tr><th>virtual</th><td>"+(node.file.virtual ? "yes" : "no")+"</td></tr>\
 </table>";
-	} else if (widget.detailType == "acl") {
-	    html = "<h4>permissions - "+fn+"</h4>" + detailInfo;
-	    if (widget.detailInfo) {
-		widget.detailInfo = null;
-	    } else {
-		var url = widget.shockBase + "/node/" + node.id + "/acl";
-		jQuery.ajax({ url: url,
-			      success: function(data) {
-				  var widget = Retina.WidgetInstances.shockbrowse[1];
-				  widget.detailInfo = widget.aclDetail(data, node.id);
-				  widget.showDetails(null, true);
-			      },
-			      error: function(jqXHR, error) {
-				  var widget = Retina.WidgetInstances.shockbrowse[1];
-				  widget.detailInfo = "<div class='alert alert-error' style='text-align: center;'>Unable to retrieve access right information<br>You must be the owner of the node to see this data.";
-				  if (widget.showFilter && widget.querymode == "full" && widget.user) {
-				      widget.detailInfo += "<br><br><button class='btn' onclick='document.getElementById(\"filter_value\").value=\"owner="+Retina.WidgetInstances.shockbrowse[1].user.login+"\";Retina.WidgetInstances.shockbrowse[1].refineFilter(\"add\", null, true);'>show only files I own</button>";
-				  }
-				  widget.detailInfo += "</div>";
-				  widget.showDetails(null, true);
-			      },
-			      crossDomain: true,
-			      headers: widget.authHeader
-			    });
-	    }
-	} else if (widget.detailType == "attributes") {
-	    html = "<h4>attributes - "+fn+"<span id='attributesEditButtonSpan'></span></h4><div id='attributesEditor'></div>";
-	    widget.sections.detailSectionContent.innerHTML = html;
-            widget.jsonEditor = new JSONEditor(document.getElementById("attributesEditor"), { mode: 'view'}, node.attributes);
-	    widget.checkForAttributesEditButton(node.id);
-	    return;
-	} else if (widget.detailType == "preview") {
-	    html = detailInfo;
-	    if (widget.detailInfo) {
-		widget.detailInfo = null;
-	    } else {
-		if (node.file.size == 0) {
-		    widget.detailInfo = "<h4>preview - "+fn+"</h4><p>This node has no file</p>";
-		    if (typeof widget.customPreview == 'function') {
-			widget.detailInfo = widget.customPreview.call(null, { "node": node, "data": null, "error": null });
-		    }
-		    widget.showDetails(null, true);
-		    return;
+	    } else if (widget.detailType == "acl") {
+		html = "<h4>permissions - "+fn+"</h4>" + detailInfo;
+		if (widget.detailInfo) {
+		    widget.detailInfo = null;
+		} else {
+		    var url = widget.shockBase + "/node/" + node.id + "/acl";
+		    jQuery.ajax({ url: url,
+				  success: function(data) {
+				      var widget = Retina.WidgetInstances.shockbrowse[1];
+				      widget.detailInfo = widget.aclDetail(data, node.id);
+				      widget.showDetails(null, true);
+				  },
+				  error: function(jqXHR, error) {
+				      var widget = Retina.WidgetInstances.shockbrowse[1];
+				      widget.detailInfo = "<div class='alert alert-error' style='text-align: center;'>Unable to retrieve access right information<br>You must be the owner of the node to see this data.";
+				      if (widget.showFilter && widget.querymode == "full" && widget.user) {
+					  widget.detailInfo += "<br><br><button class='btn' onclick='document.getElementById(\"filter_value\").value=\"owner="+Retina.WidgetInstances.shockbrowse[1].user.login+"\";Retina.WidgetInstances.shockbrowse[1].refineFilter(\"add\", null, true);'>show only files I own</button>";
+				      }
+				      widget.detailInfo += "</div>";
+				      widget.showDetails(null, true);
+				  },
+				  crossDomain: true,
+				  headers: widget.authHeader
+				});
 		}
-		var url = widget.shockBase + "/node/" + node.id + "?download_raw&length="+widget.previewChunkSize;
-		jQuery.ajax({ url: url,
-			      success: function(data, status, xhr) {
-				  var widget = Retina.WidgetInstances.shockbrowse[1];
-				  if (typeof widget.customPreview == 'function') {
-				      widget.detailInfo = widget.customPreview.call(null, { "node": node, "data": data, "error": null });
-				  } else {
-				      widget.detailInfo = "<h4>preview - "+(node.file.name || node.id)+"</h4><pre style='font-size: "+(widget.fontSize - 1)+"px;'>"+data+"</pre>";
-				  }
-				  widget.showDetails(null, true);
-			      },
-			      error: function(jqXHR) {
-				  var error = "";
-				  try {
-				      error = JSON.parse(jqXHR.responseText);
-				      error = error.error;
-				  } catch (er) {
-				      console.log(er);
-				  }
-				  var widget = Retina.WidgetInstances.shockbrowse[1];
-				  if (typeof widget.customPreview == 'function') {
-				      widget.detailInfo = widget.customPreview.call(null, { "node": node, "data": null, "error": error });
-				  } else {
-				      widget.detailInfo = "<div class='alert alert-error' style='margin-top: 50px;'>unable to retrieve preview data: "+error+"</div>";
-				  }
-				  widget.showDetails(null, true);
-			      },
-			      crossDomain: true,
-			      headers: widget.authHeader
-			    });
+	    } else if (widget.detailType == "attributes") {
+		html = "<h4>attributes - "+fn+"<span id='attributesEditButtonSpan'></span></h4><div id='attributesEditor'></div>";
+		widget.sections.detailSectionContent.innerHTML = html;
+		widget.jsonEditor = new JSONEditor(document.getElementById("attributesEditor"), { mode: 'view'}, node.attributes);
+		widget.checkForAttributesEditButton(node.id);
+		return;
+	    } else if (widget.detailType == "preview") {
+		html = detailInfo;
+		if (widget.detailInfo) {
+		    widget.detailInfo = null;
+		} else {
+		    if (node.file.size == 0) {
+			widget.detailInfo = "<h4>preview - "+fn+"</h4><p>This node has no file</p>";
+			if (typeof widget.customPreview == 'function') {
+			    widget.detailInfo = widget.customPreview.call(null, { "node": node, "data": null, "error": null });
+			}
+			widget.showDetails(null, true);
+			return;
+		    }
+		    var url = widget.shockBase + "/node/" + node.id + "?download_raw&length="+widget.previewChunkSize;
+		    jQuery.ajax({ url: url,
+				  success: function(data, status, xhr) {
+				      var widget = Retina.WidgetInstances.shockbrowse[1];
+				      if (typeof widget.customPreview == 'function') {
+					  widget.detailInfo = widget.customPreview.call(null, { "node": node, "data": data, "error": null });
+				      } else {
+					  widget.detailInfo = "<h4>preview - "+(node.file.name || node.id)+"</h4><pre style='font-size: "+(widget.fontSize - 1)+"px;'>"+data+"</pre>";
+				      }
+				      widget.showDetails(null, true);
+				  },
+				  error: function(jqXHR) {
+				      var error = "";
+				      try {
+					  error = JSON.parse(jqXHR.responseText);
+					  error = error.error;
+				      } catch (er) {
+					  console.log(er);
+				      }
+				      var widget = Retina.WidgetInstances.shockbrowse[1];
+				      if (typeof widget.customPreview == 'function') {
+					  widget.detailInfo = widget.customPreview.call(null, { "node": node, "data": null, "error": error });
+				      } else {
+					  widget.detailInfo = "<div class='alert alert-error' style='margin-top: 50px;'>unable to retrieve preview data: "+error+"</div>";
+				      }
+				      widget.showDetails(null, true);
+				  },
+				  crossDomain: true,
+				  headers: widget.authHeader
+				});
+		}
 	    }
 	}
 
@@ -1978,6 +2122,102 @@
 	widget.order = path;
 
 	widget.currentOffset = 0;
+	widget.updateData();
+    };
+
+    /* user is requesting to delete multiple files */
+    widget.removeMultipleNodes = function () {
+	var widget = this;
+
+	var numnodes = widget.selectedFiles.length;
+	var target = document.getElementById('shockbrowserMultiProgressDiv');
+
+	var html = "<div id='shockbrowserMultiProgressText'></div><div style='height: 25px;' class='progress'><div class='bar' style='width: 0%;' id='shockbrowserMultiProgressBar'></div></div><button class='btn btn-small btn-danger' onclick='Retina.WidgetInstances.shockbrowse[1].removeMultipleNodesCompleted();'>abort</button>"
+
+	widget.deletionProgress = { "totalFiles": numnodes,
+				    "deletedFiles": 0,
+				    "success": 0,
+				    "errors": [],
+				    "requests": {} };
+	document.getElementById('shockbrowserMultiDeleteButton').setAttribute('disabled', 'disabled');
+	target.innerHTML = html;
+
+	for (var i=0; i<numnodes; i++) {
+	    var url = widget.shockBase + "/node/" + widget.selectedFiles[i].id;
+	    var xhr = new XMLHttpRequest();
+	    xhr.selectedNode = widget.selectedFiles[i];
+
+	    if ("withCredentials" in xhr) {
+		xhr.open("DELETE", url, true);
+	    } else if (typeof XDomainRequest != "undefined") {
+		xhr = new XDomainRequest();
+		xhr.open("DELETE", url);
+	    }
+	
+	    xhr.onload = function() {
+		var widget = Retina.WidgetInstances.shockbrowse[1];
+		var resp = JSON.parse(this.responseText);
+		widget.deletionProgress.deletedFiles++;
+		if (resp.hasOwnProperty('error') && resp.error.length) {
+		    widget.deletionProgress.errors.push("Deletion of "+(this.selectedNode.file && this.selectedNode.file.name ? this.selectedNode.file.name : this.selectedNode.id)+" failed: "+resp.error[0]);
+		} else {
+		    widget.deletionProgress.success++;
+		}
+		delete widget.deletionProgress.requests[this.selectedNode.id];
+		widget.removeMultipleNodesProgress();
+		return;
+	    };
+	
+	    xhr.onerror = function(xhr, error) {
+		var widget = Retina.WidgetInstances.shockbrowse[1];
+		widget.deletionProgress.deletedFiles++;
+		widget.deletionProgress.errors.push("Deletion of "+(xhr.selectedNode.file ? xhr.selectedNode.file.name : xhr.selectedNode.id)+" failed.");
+		widget.removeMultipleNodesProgress();
+		return;
+	    };
+	
+	    xhr.setRequestHeader("Authorization", widget.authHeader.Authorization);
+
+	    widget.deletionProgress.requests[widget.selectedFiles[i].id] = xhr;
+
+	    xhr.send();
+	}
+	
+    };
+
+    widget.removeMultipleNodesProgress = function () {
+	var widget = this;
+
+	document.getElementById('shockbrowserMultiProgressBar').style.width = (widget.deletionProgress.deletedFiles / widget.deletionProgress.totalFiles * 100) + "%";
+	document.getElementById('shockbrowserMultiProgressText').innerHTML = widget.deletionProgress.deletedFiles + " out of "+ widget.deletionProgress.totalFiles +" nodes done";
+
+	if (widget.deletionProgress.deletedFiles == widget.deletionProgress.totalFiles) {
+	    widget.removeMultipleNodesCompleted();
+	}
+    };
+
+    widget.removeMultipleNodesCompleted = function () {
+	var widget = this;
+
+	var target = document.getElementById('shockbrowserMultiProgressDiv');
+
+	// check if the request has been aborted
+	if (widget.deletionProgress.totalFiles !== widget.deletionProgress.deletedFiles) {
+	    widget.deletionProgress.errors.push("The request was aborted with "+widget.deletionProgress.requests.length+" remaining nodes.");
+	    for (var i in widget.deletionProgress.requests) {
+		widget.deletionProgress.requests[i].abort();
+	    }
+	}
+
+	if (widget.deletionProgress.errors.length) {
+	    target.innerHTML = "<div class='alert alert-error'>"+widget.deletionProgress.success+" out of "+widget.deletionProgress.totalFiles+" nodes were deleted.<br><br>"+widget.deletionProgress.errors.join("<br>")+"</div>";
+	} else {
+	    target.innerHTML = "<div class='alert alert-info'>The nodes were successfully deleted.</div>";
+	}
+
+	document.getElementById('shockbrowserMultiDeleteButton').style.display = "none";
+	widget.deletionProgress = null;
+	widget.preserveDetail = true;
 	widget.updateData();
     };
 
