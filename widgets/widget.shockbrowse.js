@@ -449,7 +449,7 @@
 	    downloadButton.addEventListener('click', function(){
 		var widget = Retina.WidgetInstances.shockbrowse[1];
 		if (widget.selectedFile) {
-		    var fn = widget.selectedFile.innerHTML.replace(/\<\/?div\>/g, "");
+		    var fn = widget.selectedFile.innerHTML.replace(/<(.|\n)*?>/g, "");
 		    jQuery.ajax({ url: widget.shockBase + "/node/" + widget.selectedFile.getAttribute('fi') + "?download_url&filename="+fn,
 				  dataType: "json",
 				  success: function(data) {
@@ -487,7 +487,7 @@
 	    downloadButton.addEventListener('click', function(){
 		var widget = Retina.WidgetInstances.shockbrowse[1];
 		if (widget.selectedFile) {
-		    var fn = widget.selectedFile.innerHTML.replace(/\<\/?div\>/g, "");
+		    var fn = widget.selectedFile.innerHTML.replace(/<(.|\n)*?>/g, "");
 		    jQuery.ajax({ url: widget.shockBase + "/node/" + widget.selectedFile.getAttribute('fi') + "?download_url&compression=gzip&filename="+fn,
 				  dataType: "json",
 				  success: function(data) {
@@ -947,37 +947,37 @@
 		}
 	    }
 	}
-	jQuery.ajax({ url: url,
-		      dataType: "json",
-		      success: function(data) {
-			  var widget = Retina.WidgetInstances.shockbrowse[1];
-			  if (data != null) {
-			      if (data.error != null) {
-				  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred updating the selected data: "+data.error+"</div>";
-			      }
-			  } else {
-			      widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>The server returned invalid data.</div>";
-			      console.log(data);
-			  }
-			  if (widget.currentOffset == 0) {
-			      widget.data = data;
-			  } else {
-			      for (var i=0; i<data.data.length; i++) {
-				  widget.data.data.push(data.data[i]);
-			      }
-			  }
-			  widget.updating = false;
-			  widget.updateDisplay();
-		      },
-		      error: function(jqXHR, error) {
-			  var widget = Retina.WidgetInstances.shockbrowse[1];
-			  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred contacting the server.</div>";
-			  widget.updating = false;
-			  widget.updateDisplay();
-		      },
-		      crossDomain: true,
-		      headers: widget.authHeader
-		    });
+	widget.dataUpdateRequest = jQuery.ajax({ url: url,
+						 dataType: "json",
+						 success: function(data) {
+						     var widget = Retina.WidgetInstances.shockbrowse[1];
+						     if (data != null) {
+							 if (data.error != null) {
+							     widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred updating the selected data: "+data.error+"</div>";
+							 }
+						     } else {
+							 widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>The server returned invalid data.</div>";
+							 console.log(data);
+						     }
+						     if (widget.currentOffset == 0) {
+							 widget.data = data;
+						     } else {
+							 for (var i=0; i<data.data.length; i++) {
+							     widget.data.data.push(data.data[i]);
+							 }
+						     }
+						     widget.updating = false;
+						     widget.updateDisplay();
+						 },
+						 error: function(jqXHR, error) {
+						     var widget = Retina.WidgetInstances.shockbrowse[1];
+						     widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred contacting the server.</div>";
+						     widget.updating = false;
+						     widget.updateDisplay();
+						 },
+						 crossDomain: true,
+						 headers: widget.authHeader
+					       });
     };
 
     widget.updateDisplay = function () {
