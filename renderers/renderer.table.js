@@ -1139,6 +1139,9 @@
 		renderer =  Retina.RendererInstances.table[index];
 		if (typeof renderer.settings.data_manipulation == "function") {
 		    renderer.settings.tdata = renderer.settings.data_manipulation(data.data);
+		    if (renderer.settings.tdata.length !== data.data.length) {
+			data.total_count += renderer.settings.tdata.length - data.data.length;
+		    }
 		} else {
 		    renderer.settings.tdata = data.data;
 		}
