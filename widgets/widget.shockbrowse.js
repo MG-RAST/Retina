@@ -2185,7 +2185,7 @@
 		var widget = Retina.WidgetInstances.shockbrowse[1];
 		var resp = JSON.parse(this.responseText);
 		widget.deletionProgress.deletedFiles++;
-		if (resp.hasOwnProperty('error') && resp.error.length) {
+		if (resp.hasOwnProperty('error') && resp.error !== null) {
 		    widget.deletionProgress.errors.push("Deletion of "+(this.selectedNode.file && this.selectedNode.file.name ? this.selectedNode.file.name : this.selectedNode.id)+" failed: "+resp.error[0]);
 		} else {
 		    widget.deletionProgress.success++;
