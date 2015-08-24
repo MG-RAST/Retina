@@ -31,6 +31,12 @@
 
   showTopSection - boolean whether the top section is visible, default is true
 
+  customButtons - array of objects that represent buttons in the toolbar. The objects have the properties:
+    title - string to be set as hover over title of the button
+    id - string, optional, will be set as the id attribute of the button
+    image - string, the path to the image the button should show
+    callback - function, the function to be called when the button is clicked
+
   detailType - one of [ info, attributes, acl, preview ] indicating the initial display when selecting a file, default is info
 
   presetFilters - hash of field name -> field value that is always added to the filter
@@ -145,6 +151,8 @@
     widget.querymode = "attributes";
     widget.detailType = "info";
     widget.blacklist = {};
+
+    widget.customButtons = [];
 
     widget.showTitleBar = true;
     widget.showResizer = true;
@@ -536,6 +544,25 @@
 	updateBar.appendChild(refreshButton);
 
 	toolBar.appendChild(updateBar);
+
+	// custom bar
+	if (widget.customButtons.length) {
+	    var customBar = document.createElement('div');
+	    customBar.className = 'btn-group';
+	    for (var i=0; i<widget.customButtons.length; i++) {
+		var b = widget.customButtons[i];
+		var cbutton = document.createElement('button');
+		cbutton.className = "btn btn-menu btn-small";
+		cbutton.title = b.title || "";
+		if (b.hasOwnProperty('id')) {
+		    cbutton.setAttribute('id', b.id);
+		}
+		cbutton.innerHTML = "<img src='"+b.image+"' style='height: 16px'>";
+		cbutton.addEventListener('click', b.callback);
+		customBar.appendChild(cbutton);
+	    }
+	    toolBar.appendChild(customBar);
+	}
 
 	// detail type
 	var detailBar = document.createElement('div');
