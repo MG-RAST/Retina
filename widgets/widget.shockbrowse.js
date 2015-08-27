@@ -51,6 +51,8 @@
   customPreview - optinally provided custom function for node preview, receives an object with the selected node (node), the first previewChunkSize bytes of the file (data) and the error if exists (error), must return the HTML to be displayed in the preview section
   customMultiPreview - optionally provided custom function for preview of multiple file selection, receives the list of selected files, must return the HTML to be displayed in the preview section
   autoDecompress - automatically decompress compressed files after upload without asking the user, default is false
+  autoUnarchive - automatically unpack archives after uploading without asking the user, default is false
+  deleteOriginalArchive - automatically delete the original archive after it has been unpacked successfully, default is true
 
   uploadRestrictions - array of objects with the attributes 'expression' which is a regular expression to match a filename and 'text' which will be displayed as an error alert to the user. Filenames that match will not be able to be uploaded. Default is an empty array.
 
@@ -125,6 +127,8 @@
     widget.calculateMD5 = false;
     widget.MD5chunksize = 1024 * 1024 * 10; // 10 MB
     widget.fileDoneAttributes = {};
+    widget.autoUnarchive = false;
+    widget.deleteOriginalArchive = true;
     
     // upload restrictions
     widget.uploadRestrictions = [];
@@ -1352,6 +1356,45 @@
 	}
     };
 
+    widget.unpackArchive = function(params) {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	var url = widget.shockBase + "/node";
+	var promise = jQuery.Deferred();
+	var form = new FormData();
+	form.append('unpack_node', params.node);
+	form.append('archive_format', params.format);
+	var atts = new Blob([ JSON.stringify(params.attributes || {}) ], { "type" : "text\/json" });
+	form.append('attributes', atts);
+	jQuery.ajax({ url: url,
+		      promise: promise,
+		      callback: params.callback,
+		      contentType: false,
+		      processData: false,
+		      data: form,
+		      success: function(data) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  widget.showDetails(null, true);
+			  this.promise.resolve();
+			  if (typeof this.callback == 'function') {
+			      this.callback.call(null, data);
+			  }
+		      },
+		      error: function(jqXHR, error) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  widget.showDetails(null, true);
+			  this.promise.resolve();
+			  if (typeof this.callback == 'function') {
+			      this.callback.call(null, { "error": jqXHR } );
+			  }
+		      },
+		      crossDomain: true,
+		      headers: widget.authHeader,
+		      type: "POST"
+		    });
+	return promise;
+    };
+
     widget.checkForAttributesEditButton = function(node) {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
@@ -1578,16 +1621,11 @@
 	var filename = file.name;
 	form.append('attributes', incomplete);
 	form.append('parts', chunks);
+
+	// do decompression if requested
 	if (widget.doDecompress) {
-	    var ctype = "gzip";
-	    if (file.name.match(/\.bz2$/)) {
-		ctype = "bzip2";
-	    } else if (file.name.match(/\.zip$/)) {
-		ctype = "zip";
-	    }
-	    form.append('compression', ctype);
+	    form.append('compression', file.name.match(/bz2$/) ? 'bz2' : 'gzip');
 	    filename = filename.replace(/\.gz$/, "");
-	    filename = filename.replace(/\.zip$/, "");
 	    filename = filename.replace(/\.bz2$/, "");
 	}
 	form.append('file_name', filename);
@@ -1811,9 +1849,53 @@
 			section.appendChild(checksum);
 		    }
 
+		    if (widget.autoUnarchive && data.data.file.name.match(/(zip|tar|tar\.gz|tar\.bz2)$/)) {
+			var unarchive = document.createElement('div');
+			unarchive.innerHTML = "<div class='alert alert-info' id='shockbrowse_archive_info'>You uploaded an archive which is now being unpacked. <img src='Retina/images/waiting.gif' style='position: relative; top: 2px; left: 2px; width: 16px; float: right;'></div>";
+			section.appendChild(unarchive);
 
-		    if (typeof widget.fileUploadCompletedCallback == 'function') {
-			widget.fileUploadCompletedCallback.call(null, data);
+			var format = "";
+			if (data.data.file.name.match(/zip$/)) {
+			    format = "zip";
+			} else if (data.data.file.name.match(/tar$/)) {
+			    format = "tar";
+			} else if (data.data.file.name.match(/tar\.gz$/)){
+			    format = "tar.gz";
+			} else if (data.data.file.name.match(/tar\.bz2/)) {
+			    format = "tar.bz2";
+			}
+
+			var fd = new FormData();
+			fd.append('attributes', new Blob([ JSON.stringify(widget.fileDoneAttributes) ], { "type" : "text\/json" }));
+			fd.append('unpack_node', data.data.id);
+			fd.append('archive_format', format);
+			jQuery.ajax(url, {
+			    contentType: false,
+			    processData: false,
+			    originalNode: data.data.id,
+			    data: fd,
+			    success: function(data){
+				var widget = Retina.WidgetInstances.shockbrowse[1];
+				if (widget.deleteOriginalArchive) {
+				    widget.removeNode({"node": this.originalNode});
+				}
+				document.getElementById('shockbrowse_archive_info').innerHTML = "Unpacking archive complete. Click <button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].updateData();'>refresh</button> to continue.";
+				if (typeof widget.fileUploadCompletedCallback == 'function') {
+				    widget.fileUploadCompletedCallback.call(null, data);
+				}
+			    },
+			    error: function(jqXHR, error){
+				var widget = Retina.WidgetInstances.shockbrowse[1];
+				widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred while unpacking the archive.</div>";
+			    },
+			    crossDomain: true,
+			    headers: Retina.WidgetInstances.shockbrowse[1].authHeader,
+			    type: "POST"
+			});
+		    } else {
+			if (typeof widget.fileUploadCompletedCallback == 'function') {
+			    widget.fileUploadCompletedCallback.call(null, data);
+			}
 		    }
 		},
 		error: function(jqXHR, error){
@@ -1875,7 +1957,7 @@
 	}
 
 	// check for automatic decompression
-	if (file.name.match(/\.gz$/) || file.name.match(/\.bz2/) || file.name.match(/\.tgz/) || file.name.match(/\.zip/)) {
+	if (file.name.match(/(gz|gzip|bz2)$/) && ! file.name.match(/tar\.(gz|bz2)$/)) {
 	    widget.doDecompress = true;
 	    html += "<p"+(widget.autoDecompress ? " style='display: none;'" : "")+"><input type='checkbox' checked='checked' style='margin: 0;' onclick='if(this.checked){Retina.WidgetInstances.shockbrowse[1].doDecompress=true;}else{Retina.WidgetInstances.shockbrowse[1].doDecompress=false;}'> automatically decompress after upload</p>";
 	}
