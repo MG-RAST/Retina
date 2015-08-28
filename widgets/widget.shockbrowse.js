@@ -1810,14 +1810,16 @@
 	jQuery(realUploadButton).on('change',  function(event){
 	    Retina.WidgetInstances.shockbrowse[1].uploadFileSelected(event);
 	});
-	widget.uploadDialog = widget.uploadDialog.parentNode.replaceChild(realUploadButton, widget.uploadDialog);
+	widget.uploadDialog.parentNode.replaceChild(realUploadButton, widget.uploadDialog);
+	widget.uploadDialog = realUploadButton;
 
 	var uploadButton = document.createElement('button');
 	uploadButton.className = "btn btn-menu btn-small";
 	uploadButton.title = "upload file";
 	uploadButton.innerHTML = "<img src='Retina/images/upload.png' style='height: 16px;'><div id='progress_button_progress' style='bottom: 20px; position: relative; margin-right: -11px; background-color: green; height: 26px; margin-top: -2px; margin-left: -10px; width: 0px; opacity: 0.4;'></div>";
 	uploadButton.addEventListener('click', function() { Retina.WidgetInstances.shockbrowse[1].uploadDialog.click()});
-	widget.uploadButton = widget.uploadButton.parentNode.replaceChild(uploadButton, widget.uploadButton);
+	widget.uploadButton.parentNode.replaceChild(uploadButton, widget.uploadButton);
+	widget.uploadButton = uploadButton;
 
 	widget.fileReader = null;
 	widget.sections.progressContainer.style.width = "100%";
@@ -1832,6 +1834,7 @@
     widget.uploadDone = function (data, error) {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
+	var file = { "name": widget.uploadDialog.files[0].name };
 	widget.purgeUpload();
 
 	// upload was successful, remove incomplete attributes
@@ -1840,7 +1843,6 @@
 	    
 	    // set up the url
 	    var url = widget.shockBase+'/node';
-	    var file = widget.uploadDialog.files[0];
 	    var fd = new FormData();
 	    fd.append('attributes', new Blob([ JSON.stringify(widget.fileDoneAttributes) ], { "type" : "text\/json" }));
 	    jQuery.ajax(url +  "/" + data.id, {
