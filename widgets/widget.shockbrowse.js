@@ -428,7 +428,7 @@
 	    uploadButton.className = "btn btn-menu btn-small";
 	    uploadButton.title = "upload file";
 	    uploadButton.innerHTML = "<img src='Retina/images/upload.png' style='height: 16px;'><div id='progress_button_progress' style='bottom: 20px; position: relative; margin-right: -11px; background-color: green; height: 26px; margin-top: -2px; margin-left: -10px; width: 0px; opacity: 0.4;'></div>";
-	    uploadButton.addEventListener('click', function(){ Retina.WidgetInstances.shockbrowse[1].uploadDialog.click(); });
+	    uploadButton.addEventListener('click', function() { Retina.WidgetInstances.shockbrowse[1].uploadDialog.click()});
 	    uploadBar.appendChild(uploadButton);
 	    widget.uploadButton = uploadButton;
 
@@ -1725,7 +1725,7 @@
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
 	// prevent another upload from starting simultaneously
-	widget.uploadButton.addEventListener('click', function(){ Retina.WidgetInstances.shockbrowse[1].currentUpload(); });
+	jQuery(widget.uploadButton).prop('disabled', true);
 
 	// get the section
 	var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
@@ -1800,15 +1800,39 @@
 	widget.sections.progressBar.style.width = percent+"%";
     };
 
-    // the upload has completed successfully, show the details about the uploaded file
-    widget.uploadDone = function (data, error) {
+    // purge any leftovers from previous uploads
+    widget.purgeUpload = function () {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
+	
+	var realUploadButton = document.createElement('input');
+	realUploadButton.setAttribute('type', 'file');
+	realUploadButton.setAttribute('style', 'display: none;');
+	jQuery(realUploadButton).on('change',  function(event){
+	    Retina.WidgetInstances.shockbrowse[1].uploadFileSelected(event);
+	});
+	widget.uploadDialog = widget.uploadDialog.parentNode.replaceChild(realUploadButton, widget.uploadDialog);
 
-	widget.uploadButton.addEventListener('click', function(){ Retina.WidgetInstances.shockbrowse[1].uploadDialog.click(); });
+	var uploadButton = document.createElement('button');
+	uploadButton.className = "btn btn-menu btn-small";
+	uploadButton.title = "upload file";
+	uploadButton.innerHTML = "<img src='Retina/images/upload.png' style='height: 16px;'><div id='progress_button_progress' style='bottom: 20px; position: relative; margin-right: -11px; background-color: green; height: 26px; margin-top: -2px; margin-left: -10px; width: 0px; opacity: 0.4;'></div>";
+	uploadButton.addEventListener('click', function() { Retina.WidgetInstances.shockbrowse[1].uploadDialog.click()});
+	widget.uploadButton = widget.uploadButton.parentNode.replaceChild(uploadButton, widget.uploadButton);
+
+	widget.fileReader = null;
 	widget.sections.progressContainer.style.width = "100%";
 	document.getElementById('progress_button_progress').style.display = "none";
 	widget.uploadPaused = false;
 	widget.chunkComplete = false;
+	widget.uploadURL = null;
+	widget.uploadXHR = null;
+    };
+
+    // the upload has completed successfully, show the details about the uploaded file
+    widget.uploadDone = function (data, error) {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	widget.purgeUpload();
 
 	// upload was successful, remove incomplete attributes
 	if (data) {
@@ -1915,7 +1939,7 @@
 
 	// get the selected file
 	var file = widget.uploadDialog.files[0];
-	
+
 	// get the filereader
 	var fileReader = new FileReader();
 	fileReader.onerror = function (error) {
@@ -1991,7 +2015,7 @@
 	
 	section.innerHTML = html;
 
-	$('#shockbrowse_advanced_help').popover({title: "upload chunk size", content: "The upload chunk size determines the intervals in which you can resume an upload in case of a failure. Set this option higher to improve performance if you have a fast internet connection and large files or lower if your connection is slow / error prone.", trigger: "hover" });
+	jQuery('#shockbrowse_advanced_help').popover({title: "upload chunk size", content: "The upload chunk size determines the intervals in which you can resume an upload in case of a failure. Set this option higher to improve performance if you have a fast internet connection and large files or lower if your connection is slow / error prone.", trigger: "hover" });
 	
 	if (typeof Retina.WidgetInstances.shockbrowse[1].preUploadCustom == "function") {
 	    Retina.WidgetInstances.shockbrowse[1].preUploadCustom.call(null, file).then( function (customHTML, allow) {
