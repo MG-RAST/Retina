@@ -51,10 +51,15 @@
   customPreview - optinally provided custom function for node preview, receives an object with the selected node (node), the first previewChunkSize bytes of the file (data) and the error if exists (error), must return the HTML to be displayed in the preview section
   customMultiPreview - optionally provided custom function for preview of multiple file selection, receives the list of selected files, must return the HTML to be displayed in the preview section
   autoDecompress - automatically decompress compressed files after upload without asking the user, default is false
+  autoUnarchive - automatically unpack archives after uploading without asking the user, default is false
+  deleteOriginalArchive - automatically delete the original archive after it has been unpacked successfully, default is true
 
   uploadRestrictions - array of objects with the attributes 'expression' which is a regular expression to match a filename and 'text' which will be displayed as an error alert to the user. Filenames that match will not be able to be uploaded. Default is an empty array.
 
   preUploadCustom - function that gets called when a file is selected for upload. Receives the file as a parameter. This function must return a promise that resolves passing two parameters. The first is the HTML to be displayed before the commence upload button. The second is a boolean indicating whether this file may be uploaded or not.
+
+  fileUploadCompletedCallback - function to be called when a file upload has completed. Gets passed the created nodes
+  fileDeletedCallback - function to be called when a file has been deleted. Gets passed true upon success and false upon error and as the second parameter the node object.
 
   calculateMD5 - boolean wheather md5 sum should be calculated on the source file and automatically compared with the taget file. Default is false.
   MD5chunksize - size in bytes of the chunks for incremental MD5sum calculation. Default is 10MB
@@ -71,6 +76,7 @@
   order - stringified object path to order the file list by, default is last_modified
   direction - string, either 'asc' or 'desc' representing ascending and descending sort order respectively, default is desc
   allowMultiselect - boolean to indicate whether multiple files may be selected at a time, default is false
+  allowMultiFileUpload - boolean to indicate whether multiple files may be selected for upload at a time, default is false
 
   Readonly Attributes:
 
@@ -125,9 +131,12 @@
     widget.calculateMD5 = false;
     widget.MD5chunksize = 1024 * 1024 * 10; // 10 MB
     widget.fileDoneAttributes = {};
+    widget.autoUnarchive = false;
+    widget.deleteOriginalArchive = true;
     
     // upload restrictions
     widget.uploadRestrictions = [];
+    widget.allowMultiFileUpload = false;
 
     // store the different sections
     widget.sections = {};
@@ -162,6 +171,7 @@
     widget.showDetailPreview = true;
     widget.showDetailAttributes = true;
     widget.keepSelectedFileAfterRefresh = true;
+    widget.allowMultiselect = false;
 
     widget.fileSectionColumns = [ { "path": "file.name", "name": "filename", "sortable": true } ];
 
@@ -251,7 +261,6 @@
 		    { "name": "file.size", "value": "filesize" },
 		    { "name": "file.checksum.md5", "value": "md5" },
 		    { "name": "owner", "value": "owner" },
-		    { "name": "id", "value": "id" },
 		    { "name": "attributes.type", "value": "type" },
 		    { "name": "attributes.data_type", "value": "data type" },
 		    { "name": "attributes.status", "value": "status" },
@@ -414,6 +423,9 @@
 
 	    var realUploadButton = document.createElement('input');
 	    realUploadButton.setAttribute('type', 'file');
+	    if (widget.allowMultiFileUpload) {
+		realUploadButton.setAttribute('multiple', 'multiple');
+	    }
 	    realUploadButton.setAttribute('style', 'display: none;');
 	    jQuery(realUploadButton).on('change',  function(event){
 		Retina.WidgetInstances.shockbrowse[1].uploadFileSelected(event);
@@ -425,7 +437,7 @@
 	    uploadButton.className = "btn btn-menu btn-small";
 	    uploadButton.title = "upload file";
 	    uploadButton.innerHTML = "<img src='Retina/images/upload.png' style='height: 16px;'><div id='progress_button_progress' style='bottom: 20px; position: relative; margin-right: -11px; background-color: green; height: 26px; margin-top: -2px; margin-left: -10px; width: 0px; opacity: 0.4;'></div>";
-	    uploadButton.addEventListener('click', function(){ Retina.WidgetInstances.shockbrowse[1].uploadDialog.click(); });
+	    uploadButton.addEventListener('click', function() { Retina.WidgetInstances.shockbrowse[1].uploadDialog.click()});
 	    uploadBar.appendChild(uploadButton);
 	    widget.uploadButton = uploadButton;
 
@@ -975,9 +987,6 @@
 		}
 	    }
 	}
-	if (widget.filters.hasOwnProperty('id') && widget.querymode != "attributes") {
-	    url = widget.shockBase + "/node/" + widget.filters.id;
-	}
 	widget.dataUpdateRequest = jQuery.ajax({ url: url,
 						 dataType: "json",
 						 success: function(data) {
@@ -991,10 +1000,6 @@
 							 console.log(data);
 						     }
 						     if (widget.currentOffset == 0) {
-							 if (widget.filters.hasOwnProperty('id') && widget.querymode != "attributes") {
-							     data.data = [ data.data ];
-							     data.total_count = 1;
-							 }
 							 widget.data = data;
 						     } else {
 							 for (var i=0; i<data.data.length; i++) {
@@ -1317,14 +1322,28 @@
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 	
 	var url = widget.shockBase + "/node/" + params.node;
+	var node = null;
+	for (var i=0; i<widget.data.data.length; i++) {
+	    if (widget.data.data[i].id == params.node) {
+		node = widget.data.data[i];
+		break;
+	    }
+	}
 	jQuery.ajax({ url: url,
+		      node: node,
 		      success: function(data) {
 			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  if (typeof widget.fileDeletedCallback == "function") {
+			      widget.fileDeletedCallback.call(null, true, this.node);
+			  }
 			  widget.updateData();
 		      },
 		      error: function(jqXHR, error) {
 			  var widget = Retina.WidgetInstances.shockbrowse[1];
-			  widget.showDetails(null, true);
+			  if (typeof widget.fileDeletedCallback == "function") {
+			      widget.fileDeletedCallback.call(null, false);
+			  }
+			  widget.showDetails(null, true, this.node);
 		      },
 		      crossDomain: true,
 		      headers: widget.authHeader,
@@ -1358,6 +1377,46 @@
 			});
 	    return promise;
 	}
+    };
+
+    widget.unpackArchive = function(params) {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	var url = widget.shockBase + "/node";
+	var promise = jQuery.Deferred();
+	var form = new FormData();
+	form.append('unpack_node', params.node);
+	form.append('archive_format', params.format);
+	var atts = new Blob([ JSON.stringify(params.attributes || {}) ], { "type" : "text\/json" });
+	form.append('attributes', atts);
+
+	jQuery.ajax({ url: url,
+		      promise: promise,
+		      callback: params.callback,
+		      contentType: false,
+		      processData: false,
+		      data: form,
+		      success: function(data) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  widget.showDetails(null, true);
+			  this.promise.resolve();
+			  if (typeof this.callback == 'function') {
+			      this.callback.call(null, data);
+			  }
+		      },
+		      error: function(jqXHR, error) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  widget.showDetails(null, true);
+			  this.promise.resolve();
+			  if (typeof this.callback == 'function') {
+			      this.callback.call(null, { "error": jqXHR } );
+			  }
+		      },
+		      crossDomain: true,
+		      headers: widget.authHeader,
+		      type: "POST"
+		    });
+	return promise;
     };
 
     widget.checkForAttributesEditButton = function(node) {
@@ -1560,7 +1619,11 @@
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
 	// get the selected file
-	var file = widget.uploadDialog.files[0];
+//	var file = widget.uploadDialog.files[0];
+	if (widget.currentFileIndex == null) {
+	    widget.currentFileIndex = 0;
+	}
+	var file = widget.uploadDialog.files[widget.currentFileIndex];
 
 	// check if we want to calculate the md5
 	if (widget.calculateMD5) {
@@ -1586,16 +1649,11 @@
 	var filename = file.name;
 	form.append('attributes', incomplete);
 	form.append('parts', chunks);
+
+	// do decompression if requested
 	if (widget.doDecompress) {
-	    var ctype = "gzip";
-	    if (file.name.match(/\.bz2$/)) {
-		ctype = "bzip2";
-	    } else if (file.name.match(/\.zip$/)) {
-		ctype = "zip";
-	    }
-	    form.append('compression', ctype);
+	    form.append('compression', file.name.match(/bz2$/) ? 'bz2' : 'gzip');
 	    filename = filename.replace(/\.gz$/, "");
-	    filename = filename.replace(/\.zip$/, "");
 	    filename = filename.replace(/\.bz2$/, "");
 	}
 	form.append('file_name', filename);
@@ -1695,7 +1753,7 @@
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
 	// prevent another upload from starting simultaneously
-	widget.uploadButton.addEventListener('click', function(){ Retina.WidgetInstances.shockbrowse[1].currentUpload(); });
+	jQuery(widget.uploadButton).prop('disabled', true);
 
 	// get the section
 	var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
@@ -1770,15 +1828,50 @@
 	widget.sections.progressBar.style.width = percent+"%";
     };
 
-    // the upload has completed successfully, show the details about the uploaded file
-    widget.uploadDone = function (data, error) {
+    // purge any leftovers from previous uploads
+    widget.purgeUpload = function () {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
+	
+	var realUploadButton = document.createElement('input');
+	realUploadButton.setAttribute('type', 'file');
+	realUploadButton.setAttribute('style', 'display: none;');
+	jQuery(realUploadButton).on('change',  function(event){
+	    Retina.WidgetInstances.shockbrowse[1].uploadFileSelected(event);
+	});
+	widget.uploadDialog.parentNode.replaceChild(realUploadButton, widget.uploadDialog);
+	widget.uploadDialog = realUploadButton;
 
-	widget.uploadButton.addEventListener('click', function(){ Retina.WidgetInstances.shockbrowse[1].uploadDialog.click(); });
+	var uploadButton = document.createElement('button');
+	uploadButton.className = "btn btn-menu btn-small";
+	uploadButton.title = "upload file";
+	uploadButton.innerHTML = "<img src='Retina/images/upload.png' style='height: 16px;'><div id='progress_button_progress' style='bottom: 20px; position: relative; margin-right: -11px; background-color: green; height: 26px; margin-top: -2px; margin-left: -10px; width: 0px; opacity: 0.4;'></div>";
+	uploadButton.addEventListener('click', function() { Retina.WidgetInstances.shockbrowse[1].uploadDialog.click()});
+	widget.uploadButton.parentNode.replaceChild(uploadButton, widget.uploadButton);
+	widget.uploadButton = uploadButton;
+
+	widget.fileReader = null;
 	widget.sections.progressContainer.style.width = "100%";
 	document.getElementById('progress_button_progress').style.display = "none";
 	widget.uploadPaused = false;
 	widget.chunkComplete = false;
+	widget.uploadURL = null;
+	widget.uploadXHR = null;
+    };
+
+    // the upload has completed successfully, show the details about the uploaded file
+    widget.uploadDone = function (data, error) {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	widget.currentFileIndex++;
+	if (widget.currentFileIndex < widget.uploadDialog.files.length) {
+	    widget.uploadFile();
+	    return;
+	} else {
+	    widget.currentFileIndex = null;
+	}
+
+	var file = { "name": widget.uploadDialog.files[0].name };
+	widget.purgeUpload();
 
 	// upload was successful, remove incomplete attributes
 	if (data) {
@@ -1786,7 +1879,6 @@
 	    
 	    // set up the url
 	    var url = widget.shockBase+'/node';
-	    var file = widget.uploadDialog.files[0];
 	    var fd = new FormData();
 	    fd.append('attributes', new Blob([ JSON.stringify(widget.fileDoneAttributes) ], { "type" : "text\/json" }));
 	    jQuery.ajax(url +  "/" + data.id, {
@@ -1819,9 +1911,54 @@
 			section.appendChild(checksum);
 		    }
 
+		    if (widget.autoUnarchive && data.data.file.name.match(/(zip|tar|tar\.gz|tar\.bz2)$/)) {
+			var unarchive = document.createElement('div');
+			unarchive.innerHTML = "<div class='alert alert-info' id='shockbrowse_archive_info'>You uploaded an archive which is now being unpacked. <img src='Retina/images/waiting.gif' style='position: relative; top: 2px; left: 2px; width: 16px; float: right;'></div>";
+			section.appendChild(unarchive);
 
-		    if (typeof widget.fileUploadCompletedCallback == 'function') {
-			widget.fileUploadCompletedCallback.call(null, data);
+			var format = "";
+			if (data.data.file.name.match(/zip$/)) {
+			    format = "zip";
+			} else if (data.data.file.name.match(/tar$/)) {
+			    format = "tar";
+			} else if (data.data.file.name.match(/tar\.gz$/)){
+			    format = "tar.gz";
+			} else if (data.data.file.name.match(/tar\.bz2/)) {
+			    format = "tar.bz2";
+			}
+
+			var fd = new FormData();
+			fd.append('attributes', new Blob([ JSON.stringify(widget.fileDoneAttributes) ], { "type" : "text\/json" }));
+			fd.append('unpack_node', data.data.id);
+			fd.append('archive_format', format);
+			
+			jQuery.ajax(url, {
+			    contentType: false,
+			    processData: false,
+			    originalNode: data.data.id,
+			    data: fd,
+			    success: function(data){
+				var widget = Retina.WidgetInstances.shockbrowse[1];
+				if (widget.deleteOriginalArchive) {
+				    widget.removeNode({"node": this.originalNode});
+				}
+				document.getElementById('shockbrowse_archive_info').innerHTML = "Unpacking archive complete. Click <button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].updateData();'>refresh</button> to continue.";
+				if (typeof widget.fileUploadCompletedCallback == 'function') {
+				    widget.fileUploadCompletedCallback.call(null, data);
+				}
+			    },
+			    error: function(jqXHR, error){
+				var widget = Retina.WidgetInstances.shockbrowse[1];
+				widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred while unpacking the archive.</div>";
+			    },
+			    crossDomain: true,
+			    headers: Retina.WidgetInstances.shockbrowse[1].authHeader,
+			    type: "POST"
+			});
+		    } else {
+			if (typeof widget.fileUploadCompletedCallback == 'function') {
+			    widget.fileUploadCompletedCallback.call(null, data);
+			}
 		    }
 		},
 		error: function(jqXHR, error){
@@ -1841,7 +1978,7 @@
 
 	// get the selected file
 	var file = widget.uploadDialog.files[0];
-	
+
 	// get the filereader
 	var fileReader = new FileReader();
 	fileReader.onerror = function (error) {
@@ -1883,7 +2020,7 @@
 	}
 
 	// check for automatic decompression
-	if (file.name.match(/\.gz$/) || file.name.match(/\.bz2/) || file.name.match(/\.tgz/) || file.name.match(/\.zip/)) {
+	if (file.name.match(/(gz|gzip|bz2)$/) && ! file.name.match(/tar\.(gz|bz2)$/)) {
 	    widget.doDecompress = true;
 	    html += "<p"+(widget.autoDecompress ? " style='display: none;'" : "")+"><input type='checkbox' checked='checked' style='margin: 0;' onclick='if(this.checked){Retina.WidgetInstances.shockbrowse[1].doDecompress=true;}else{Retina.WidgetInstances.shockbrowse[1].doDecompress=false;}'> automatically decompress after upload</p>";
 	}
@@ -1917,7 +2054,7 @@
 	
 	section.innerHTML = html;
 
-	$('#shockbrowse_advanced_help').popover({title: "upload chunk size", content: "The upload chunk size determines the intervals in which you can resume an upload in case of a failure. Set this option higher to improve performance if you have a fast internet connection and large files or lower if your connection is slow / error prone.", trigger: "hover" });
+	jQuery('#shockbrowse_advanced_help').popover({title: "upload chunk size", content: "The upload chunk size determines the intervals in which you can resume an upload in case of a failure. Set this option higher to improve performance if you have a fast internet connection and large files or lower if your connection is slow / error prone.", trigger: "hover" });
 	
 	if (typeof Retina.WidgetInstances.shockbrowse[1].preUploadCustom == "function") {
 	    Retina.WidgetInstances.shockbrowse[1].preUploadCustom.call(null, file).then( function (customHTML, allow) {
