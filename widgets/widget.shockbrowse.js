@@ -58,7 +58,8 @@
 
   preUploadCustom - function that gets called when a file is selected for upload. Receives the file as a parameter. This function must return a promise that resolves passing two parameters. The first is the HTML to be displayed before the commence upload button. The second is a boolean indicating whether this file may be uploaded or not.
 
-  fileUploadCompletedCallback - function to be called when a file upload has completed. Gets passed the created nodes
+  fileUploadCompletedCallback - function to be called when a file upload has completed. Gets passed the created node
+  allFileUploadCompletedCallback - function to be called when a selection of multiple files has completed uploading. Gets passed all created nodes
   fileDeletedCallback - function to be called when a file has been deleted. Gets passed true upon success and false upon error and as the second parameter the node object.
 
   calculateMD5 - boolean wheather md5 sum should be calculated on the source file and automatically compared with the taget file. Default is false.
@@ -184,9 +185,14 @@
 
     widget.showTopSection = true;
 
+    // status variables
     widget.fileList = [];
     widget.highlightedDivs = [];
     widget.selectedFiles = [];
+    widget.calculatingMD5 = [];
+    widget.doneData = [];
+    widget.md5 = [];
+    widget.md5Promises = [];
 
     // sort options
     widget.order = 'last_modified';
@@ -1619,7 +1625,6 @@
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
 	// get the selected file
-//	var file = widget.uploadDialog.files[0];
 	if (widget.currentFileIndex == null) {
 	    widget.currentFileIndex = 0;
 	}
@@ -1627,7 +1632,8 @@
 
 	// check if we want to calculate the md5
 	if (widget.calculateMD5) {
-	    widget.calculatingMD5 = widget.md5sum(file);
+	    widget.calculatingMD5[widget.currentFileIndex] = widget.md5sum(file, widget.currentFileIndex);
+	    widget.md5Promises[widget.currentFileIndex] = jQuery.Deferred();
 	}
 
 	// set up the url
@@ -1637,7 +1643,7 @@
 	widget.currentUpload();
 
 	widget.currentUploadChunk = 0;
-
+	widget.fileReader = null;
 	widget.initializeFileReader(file);
 	var chunkSize = widget.uploadChunkSize == 0 ? file.size : widget.uploadChunkSize;
 	widget.uploadChunkSize = chunkSize;
@@ -1739,7 +1745,7 @@
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
 	// get the selected file
-	var file = widget.uploadDialog.files[0];
+	var file = widget.uploadDialog.files[widget.currentFileIndex];
 
 	var start = parseInt(Retina.WidgetInstances.shockbrowse[1].currentUploadChunk * parseInt(Retina.WidgetInstances.shockbrowse[1].uploadChunkSize)),
 	end = ((start + parseInt(Retina.WidgetInstances.shockbrowse[1].uploadChunkSize)) >= file.size) ? file.size : start + parseInt(Retina.WidgetInstances.shockbrowse[1].uploadChunkSize);
@@ -1758,33 +1764,71 @@
 	// get the section
 	var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
 
-	// get the selected file
-	var file = widget.uploadDialog.files[0];
+	// get the selected files
+	var files = widget.uploadDialog.files;
 
-	var html = "<div style='margin-bottom: 25px;'><h4>uploading "+file.name+"</h4><table style='text-align: left;'><tr><th style='padding-right: 20px;'>filename</th><td>"+file.name+"</td><tr></tr><th>modified</th><td>"+file.lastModifiedDate+"</td></tr><tr><th>size</th><td>"+file.size.byteSize()+"</td></tr><tr><th>type</th><td>"+(file.type || "-")+"</td></tr></table></div>";
+	// if only one file is uploaded, keep it simple
+	var multiDiv = "";
+	if (files.length == 1) {
 
-	section.innerHTML = html;
+	    var file = files[0];
+	    
+	    var html = "<div style='margin-bottom: 25px;'><h4>uploading file</h4><table style='text-align: left;'><tr><th style='padding-right: 20px;'>filename</th><td>"+file.name+"</td><tr></tr><th>modified</th><td>"+file.lastModifiedDate+"</td></tr><tr><th>size</th><td>"+file.size.byteSize()+"</td></tr><tr><th>type</th><td>"+(file.type || "-")+"</td></tr></table></div>";
+	    
+	    section.innerHTML = html;
+	    
+	    var progressText = document.createElement('div');
+	    progressText.setAttribute('style', 'text-align: center;');
+	    section.appendChild(progressText);
+	    widget.sections.progressText = progressText;
+	    var progressContainer = document.createElement('div');
+	    widget.sections.progressContainer = progressContainer;
+	    progressContainer.setAttribute("style", "height: 25px;");
+	    progressContainer.className = "progress";
+	    var progressBar = document.createElement('div');
+	    progressBar.className = "bar";
+	    progressBar.setAttribute("style", "width: 0%;");
+	    progressContainer.appendChild(progressBar);	    
+	    widget.sections.progressBar = progressBar;
+	    section.appendChild(progressContainer);
+	}
+	// more than one file, create a table
+	else {
+	    var total = 0;
+	    var previous = 0;
+	    for (var i=0; i<files.length; i++) {
+		total += files[i].size;
+		if (i<widget.currentFileIndex) {
+		    previous += files[i].size;
+		}
+	    }
 
-	var progressText = document.createElement('div');
-	progressText.setAttribute('style', 'text-align: center;');
-	section.appendChild(progressText);
-	widget.sections.progressText = progressText;
-	var progressContainer = document.createElement('div');
-	widget.sections.progressContainer = progressContainer;
-	progressContainer.setAttribute("style", "height: 25px;");
-	progressContainer.className = "progress";
-	var progressBar = document.createElement('div');
-	progressBar.className = "bar";
-	progressBar.setAttribute("style", "width: 0%;");
-	progressContainer.appendChild(progressBar);	    
-	widget.sections.progressBar = progressBar;
-	section.appendChild(progressContainer);
+	    html = "<div style='margin-bottom: 25px;'><h4>uploading "+files.length+" files</h4><div id='shockbrowserProgressDivMultiUpload'><div>"+(files.length - widget.currentFileIndex)+" file"+((files.length - widget.currentFileIndex) == 1 ? "" : "s") +" remaining</div><div>total ("+total.byteSize()+"): "+previous.byteSize()+"</div><div class='progress' style='height: 25px;'><div class='bar' style='width: "+parseFloat(previous / total * 100)+"%;'></div></div><div>current file ("+files[0].size.byteSize()+"): 0B</div><div class='progress' style='height: 25px;'><div class='bar' style='width: 0%;'></div></div></div>";
+	    section.innerHTML = html;
+
+	    // this table needs to go below the abort and pause buttons
+	    multiDiv = "<table style='text-align: left; width: 100%; font-size: 12px;' class='table table-condensed'><tbody><tr><th style='padding-right: 20px;'>filename</th><th>type</th><th>size</th></tr>";
+	    for (var i=0; i<files.length; i++) {
+		var isCurrent = "";
+		if (i==widget.currentFileIndex) {
+		    isCurrent = " class='info'";
+		}
+		multiDiv += "<tr"+isCurrent+"><td>"+files[i].name+"</td><td>"+(files[i].type || "-")+"</td><td>"+files[i].size.byteSize()+"</td></tr>";
+	    }
+	    multiDiv += "</tbody></table></div>";
+	}
 
 	var buttons = document.createElement('div');
 	widget.abortButtons = buttons;
 	buttons.setAttribute('style', 'margin-top: 25px;');
 	buttons.innerHTML = "<button class='btn pull-left' type='button' onclick='Retina.WidgetInstances.shockbrowse[1].pauseUpload();'><i class='icon-pause'></i> pause upload</button><button class='btn btn-danger pull-right' type='button' onclick='Retina.WidgetInstances.shockbrowse[1].abortUpload();'><i class='icon-stop'></i> abort</button>";
 	section.appendChild(buttons);
+
+	// this will be empty for a single file and a table of the files for multi file upload
+	var d = document.createElement('div');
+	d.setAttribute('style', 'clear: both; padding-top: 15px;');
+	d.innerHTML = multiDiv;
+	section.appendChild(d);
     };
 
     widget.abortUpload = function () {
@@ -1817,15 +1861,40 @@
     widget.uploadProgress = function (event) {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
+	// get the total
+	var files = widget.uploadDialog.files;
+
 	// get the selected file
-	var file = widget.uploadDialog.files[0];
+	var file = files[widget.currentFileIndex];
 
 	var loaded = event.loaded + (widget.currentUploadChunk * widget.uploadChunkSize);
 	var total = file.size;
 	var percent = parseFloat(loaded / total * 100);
-	document.getElementById('progress_button_progress').style.width = parseInt(36 * percent / 100) + "px";
-	widget.sections.progressText.innerHTML = loaded.byteSize() + " complete";
-	widget.sections.progressBar.style.width = percent+"%";
+
+	if (files.length > 1) {
+	    var globalTotal = 0;
+	    var loadedPrevious = 0;
+	    for (var i=0; i<files.length; i++) {
+		globalTotal += files[i].size;
+		if (i<widget.currentFileIndex) {
+		    loadedPrevious += files[i].size;
+		}
+	    }
+	    
+	    var loadedTotal = loadedPrevious + loaded;
+	    var percentTotal = parseFloat(loadedTotal / globalTotal * 100);	
+	    
+	    var progress = document.getElementById('shockbrowserProgressDivMultiUpload');
+	    progress.childNodes[1].innerHTML = "total ("+globalTotal.byteSize()+"): " + loadedTotal.byteSize();
+	    progress.childNodes[2].firstChild.style.width = percentTotal + "%";
+	    progress.childNodes[3].innerHTML = "current file ("+total.byteSize()+"): " + loaded.byteSize();
+	    progress.childNodes[4].firstChild.style.width = percent + "%";
+	    document.getElementById('progress_button_progress').style.width = parseInt(36 * percentTotal / 100) + "px";
+	} else {
+	    widget.sections.progressText.innerHTML = loaded.byteSize() + " complete";
+	    widget.sections.progressBar.style.width = percent+"%";
+	    document.getElementById('progress_button_progress').style.width = parseInt(36 * percent / 100) + "px";
+	}
     };
 
     // purge any leftovers from previous uploads
@@ -1835,6 +1904,9 @@
 	var realUploadButton = document.createElement('input');
 	realUploadButton.setAttribute('type', 'file');
 	realUploadButton.setAttribute('style', 'display: none;');
+	if (widget.allowMultiFileUpload) {
+	    realUploadButton.setAttribute('multiple', 'multiple');
+	}
 	jQuery(realUploadButton).on('change',  function(event){
 	    Retina.WidgetInstances.shockbrowse[1].uploadFileSelected(event);
 	});
@@ -1850,19 +1922,131 @@
 	widget.uploadButton = uploadButton;
 
 	widget.fileReader = null;
-	widget.sections.progressContainer.style.width = "100%";
+	if (widget.sections.progressContainer) {
+	    widget.sections.progressContainer.style.width = "100%";
+	}
 	document.getElementById('progress_button_progress').style.display = "none";
 	widget.uploadPaused = false;
 	widget.chunkComplete = false;
 	widget.uploadURL = null;
 	widget.uploadXHR = null;
+	widget.calculatingMD5 = [];
+	widget.doneData = [];
+	widget.md5Promises = [];
     };
 
     // the upload has completed successfully, show the details about the uploaded file
     widget.uploadDone = function (data, error) {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
-	widget.currentFileIndex++;
+	if (error) {
+	    widget.purgeUpload();
+	    return;
+	}
+
+	widget.doneData[widget.currentFileIndex] = data;
+
+	var filename = widget.uploadDialog.files[widget.currentFileIndex].name;
+	var node = data;
+
+	// set up the url
+	var url = widget.shockBase+'/node';
+	var fd = new FormData();
+	fd.append('attributes', new Blob([ JSON.stringify(widget.fileDoneAttributes) ], { "type" : "text\/json" }));
+	jQuery.ajax(url +  "/" + node.id, {
+	    contentType: false,
+	    processData: false,
+	    data: fd,
+	    currentIndex: widget.currentFileIndex,
+	    filename: filename,
+	    success: function(data){
+		var widget = Retina.WidgetInstances.shockbrowse[1];
+		
+		// get the section
+		var section = widget.sections.detailSectionContent;
+		var done = document.createElement('div');
+		done.setAttribute('class', 'alert alert-success');
+		done.innerHTML = "<b>"+this.filename+"</b><br>upload completed successfully";
+		section.appendChild(done);
+		
+		var checksum = document.createElement('div');
+		if (widget.calculateMD5 && (data.data.file.name == this.filename)) {
+		    checksum.innerHTML = "<div id='shockbrowseMD5check"+this.currentIndex+"'><h5>checking data integrity</h5><img src='Retina/images/waiting.gif' style='width: 24px;'></div>";
+		    section.appendChild(checksum);
+		    widget.calculatingMD5[this.currentIndex].then(function(currentIndex){
+			document.getElementById('shockbrowseMD5check'+currentIndex).innerHTML = data.data.file.checksum.md5 == Retina.WidgetInstances.shockbrowse[1].md5[currentIndex] ? "<div class='alert alert-success'>The integrity check has confirmed that the file on your disk matches the one that reached our server.</div>" : "<div class='alert alert-error'>The file on your disk does not match the one that reached our server, so the uploaded file is very likely corrupted (the MD5 sums did not match). Please delete the file and try again.</div>";
+			Retina.WidgetInstances.shockbrowse[1].md5Promises[currentIndex].resolve();
+		    });
+		} else {
+		    var decomp = "";
+		    if (data.data.file.name != this.filename) {
+			decomp = "<br><b>NOTE:</b> Your file as been decompressed automatically, the MD5-sum shown is of the decompressed file, not of the archive.";
+		    }
+		    checksum.innerHTML = "<h4>check md5-sum</h4><p>To check for file corruption paste the md5-sum of your local file into the textbox below and click <b>check</b>."+decomp+"</p><input type='text' disabled value='"+data.data.file.checksum.md5+"' style='width: 240px;'><div class='input-append'><input type='text' placeholder='paste md5 here' style='width: 240px;'><button class='btn' onclick='if(this.previousSibling.value==\""+data.data.file.checksum.md5+"\"){alert(\"file is OK\");}else{alert(\"file is corrupted!\");}'>check</button></div>";
+		    section.appendChild(checksum);
+		}
+		
+		if (widget.autoUnarchive && data.data.file.name.match(/(zip|tar|tar\.gz|tar\.bz2)$/)) {
+		    var unarchive = document.createElement('div');
+		    unarchive.innerHTML = "<div class='alert alert-info' id='shockbrowse_archive_info"+this.currentIndex+"'>You uploaded an archive which is now being unpacked. <img src='Retina/images/waiting.gif' style='position: relative; top: 2px; left: 2px; width: 16px; float: right;'></div>";
+		    section.appendChild(unarchive);
+		    
+		    var format = "";
+		    if (data.data.file.name.match(/zip$/)) {
+			format = "zip";
+		    } else if (data.data.file.name.match(/tar$/)) {
+			format = "tar";
+		    } else if (data.data.file.name.match(/tar\.gz$/)){
+			format = "tar.gz";
+		    } else if (data.data.file.name.match(/tar\.bz2/)) {
+			format = "tar.bz2";
+		    }
+		    
+		    var fd = new FormData();
+		    fd.append('attributes', new Blob([ JSON.stringify(widget.fileDoneAttributes) ], { "type" : "text\/json" }));
+		    fd.append('unpack_node', data.data.id);
+		    fd.append('archive_format', format);
+		    
+		    jQuery.ajax(url, {
+			contentType: false,
+			processData: false,
+			currentIndex: this.currentIndex,
+			originalNode: data.data.id,
+			data: fd,
+			success: function(data){
+			    var widget = Retina.WidgetInstances.shockbrowse[1];
+			    if (widget.deleteOriginalArchive) {
+				widget.removeNode({"node": this.originalNode});
+			    }
+			    document.getElementById('shockbrowse_archive_info'+this.currentIndex).innerHTML = "Unpacking archive complete. Click <button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].updateData();'>refresh</button> to continue.";
+			    if (typeof widget.fileUploadCompletedCallback == 'function') {
+				widget.fileUploadCompletedCallback.call(null, data, this.currentIndex);
+			    }
+			},
+			error: function(jqXHR, error){
+			    var widget = Retina.WidgetInstances.shockbrowse[1];
+			    widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred while unpacking the archive.</div>";
+			},
+			crossDomain: true,
+			headers: Retina.WidgetInstances.shockbrowse[1].authHeader,
+			type: "POST"
+		    });
+		} else {
+		    if (typeof widget.fileUploadCompletedCallback == 'function') {
+			widget.fileUploadCompletedCallback.call(null, data);
+		    }
+		}
+	    },
+	    error: function(jqXHR, error){
+		var widget = Retina.WidgetInstances.shockbrowse[1];
+		widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred while finalizing the data upload.</div>";
+	    },
+	    crossDomain: true,
+	    headers: Retina.WidgetInstances.shockbrowse[1].authHeader,
+	    type: "PUT"
+	});
+	
+    	widget.currentFileIndex++;
 	if (widget.currentFileIndex < widget.uploadDialog.files.length) {
 	    widget.uploadFile();
 	    return;
@@ -1870,171 +2054,80 @@
 	    widget.currentFileIndex = null;
 	}
 
-	var file = { "name": widget.uploadDialog.files[0].name };
-	widget.purgeUpload();
-
 	// upload was successful, remove incomplete attributes
-	if (data) {
-	    widget.abortButtons.style.display = "none";
-	    
-	    // set up the url
-	    var url = widget.shockBase+'/node';
-	    var fd = new FormData();
-	    fd.append('attributes', new Blob([ JSON.stringify(widget.fileDoneAttributes) ], { "type" : "text\/json" }));
-	    jQuery.ajax(url +  "/" + data.id, {
-		contentType: false,
-		processData: false,
-		data: fd,
-		success: function(data){
-		    var widget = Retina.WidgetInstances.shockbrowse[1];
+	widget.abortButtons.style.display = "none";
 
-		    // get the section
-		    var section = widget.sections.detailSectionContent;
-		    var done = document.createElement('div');
-		    done.setAttribute('class', 'alert alert-success');
-		    done.innerHTML = "The upload has completed successfully";
-		    section.appendChild(done);
-
-		    var checksum = document.createElement('div');
-		    if (widget.calculateMD5 && (data.data.file.name == file.name)) {
-			checksum.innerHTML = "<h4>checking data integrity</h4><p id='shockbrowseMD5check'><img src='Retina/images/waiting.gif' style='width: 24px;'></p>";
-			section.appendChild(checksum);
-			widget.calculatingMD5.then(function(){
-			    document.getElementById('shockbrowseMD5check').innerHTML = data.data.file.checksum.md5 == Retina.WidgetInstances.shockbrowse[1].md5 ? "<div class='alert alert-success'>The integrity check has confirmed that the file on your disk matches the one that reached our server.</div>" : "<div class='alert alert-error'>The file on your disk does not match the one that reached our server, so the uploaded file is very likely corrupted (the MD5 sums did not match). Please delete the file and try again.</div>";
-			});
-		    } else {
-			var decomp = "";
-			if (data.data.file.name != file.name) {
-			    decomp = "<br><b>NOTE:</b> Your file as been decompressed automatically, the MD5-sum shown is of the decompressed file, not of the archive.";
-			}
-			checksum.innerHTML = "<h4>check md5-sum</h4><p>To check for file corruption paste the md5-sum of your local file into the textbox below and click <b>check</b>."+decomp+"</p><input type='text' disabled value='"+data.data.file.checksum.md5+"' style='width: 240px;'><div class='input-append'><input type='text' placeholder='paste md5 here' style='width: 240px;'><button class='btn' onclick='if(this.previousSibling.value==\""+data.data.file.checksum.md5+"\"){alert(\"file is OK\");}else{alert(\"file is corrupted!\");}'>check</button></div>";
-			section.appendChild(checksum);
-		    }
-
-		    if (widget.autoUnarchive && data.data.file.name.match(/(zip|tar|tar\.gz|tar\.bz2)$/)) {
-			var unarchive = document.createElement('div');
-			unarchive.innerHTML = "<div class='alert alert-info' id='shockbrowse_archive_info'>You uploaded an archive which is now being unpacked. <img src='Retina/images/waiting.gif' style='position: relative; top: 2px; left: 2px; width: 16px; float: right;'></div>";
-			section.appendChild(unarchive);
-
-			var format = "";
-			if (data.data.file.name.match(/zip$/)) {
-			    format = "zip";
-			} else if (data.data.file.name.match(/tar$/)) {
-			    format = "tar";
-			} else if (data.data.file.name.match(/tar\.gz$/)){
-			    format = "tar.gz";
-			} else if (data.data.file.name.match(/tar\.bz2/)) {
-			    format = "tar.bz2";
-			}
-
-			var fd = new FormData();
-			fd.append('attributes', new Blob([ JSON.stringify(widget.fileDoneAttributes) ], { "type" : "text\/json" }));
-			fd.append('unpack_node', data.data.id);
-			fd.append('archive_format', format);
-			
-			jQuery.ajax(url, {
-			    contentType: false,
-			    processData: false,
-			    originalNode: data.data.id,
-			    data: fd,
-			    success: function(data){
-				var widget = Retina.WidgetInstances.shockbrowse[1];
-				if (widget.deleteOriginalArchive) {
-				    widget.removeNode({"node": this.originalNode});
-				}
-				document.getElementById('shockbrowse_archive_info').innerHTML = "Unpacking archive complete. Click <button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].updateData();'>refresh</button> to continue.";
-				if (typeof widget.fileUploadCompletedCallback == 'function') {
-				    widget.fileUploadCompletedCallback.call(null, data);
-				}
-			    },
-			    error: function(jqXHR, error){
-				var widget = Retina.WidgetInstances.shockbrowse[1];
-				widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred while unpacking the archive.</div>";
-			    },
-			    crossDomain: true,
-			    headers: Retina.WidgetInstances.shockbrowse[1].authHeader,
-			    type: "POST"
-			});
-		    } else {
-			if (typeof widget.fileUploadCompletedCallback == 'function') {
-			    widget.fileUploadCompletedCallback.call(null, data);
-			}
-		    }
-		},
-		error: function(jqXHR, error){
-		    var widget = Retina.WidgetInstances.shockbrowse[1];
-		    widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred while finalizing the data upload.</div>";
-		},
-		crossDomain: true,
-		headers: Retina.WidgetInstances.shockbrowse[1].authHeader,
-		type: "PUT"
-	    });
+	if (typeof widget.allFileUploadCompletedCallback == "function") {
+	    widget.allFileUploadCompletedCallback.call(null, widget.doneData);
 	}
+
+	jQuery.when.apply(this, widget.md5Promises).then(function() {
+	    Retina.WidgetInstances.shockbrowse[1].purgeUpload();
+	});
     };
 
     // a file was selected for upload, show details, preview, settings and upload button
     widget.uploadFileSelected = function () {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
-	// get the selected file
-	var file = widget.uploadDialog.files[0];
+	// get the selected files
+	var files = widget.uploadDialog.files;
 
-	// get the filereader
-	var fileReader = new FileReader();
-	fileReader.onerror = function (error) {
-	    var widget = Retina.WidgetInstances.shockbrowse[1];
-	    widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>The selected file could not be opened.</div>";
-	};
-	var chunkSize = widget.previewChunkSize;
-	var start = 0;
-	var end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+	// initialize the html and get the section
+	var html = [];
+	var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
 
-	// check file type
-	var fileType = file.type || "-";
-	if (! file.type) {
-
-	    // check for sequence files
-	    var sequenceFiles = { "fasta$": "fasta",
-				  "fna$": "fasta",
-				  "fq$": "fastq",
-				  "fastq$": "fastq",
-				  "faa$": "fasta",
-				  "fa$": "fasta" };
-
-	    for (var i in sequenceFiles) {
-		if (sequenceFiles.hasOwnProperty(i)) {
-		    if (file.name.match(i)) {
-			fileType = "text/"+sequenceFiles[i];
+	// iterate over the files
+	for (var h=0; h<files.length; h++) {
+	    
+	    var file = files[h];
+	    
+	    // check file type
+	    var fileType = file.type || "-";
+	    if (! file.type) {
+		
+		// check for sequence files
+		var sequenceFiles = { "fasta$": "fasta",
+				      "fna$": "fasta",
+				      "fq$": "fastq",
+				      "fastq$": "fastq",
+				      "faa$": "fasta",
+				      "fa$": "fasta" };
+		
+		for (var i in sequenceFiles) {
+		    if (sequenceFiles.hasOwnProperty(i)) {
+			if (file.name.match(i)) {
+			    fileType = "text/"+sequenceFiles[i];
+			}
 		    }
 		}
 	    }
+	    
+	    // show file details and settings
+	    html.push("<p><table style='text-align: left;'><tr><th style='padding-right: 20px;'>filename</th><td>"+file.name+"</td><tr></tr><th>modified</th><td>"+file.lastModifiedDate+"</td></tr><tr><th>size</th><td>"+file.size.byteSize()+"</td></tr><tr><th>type</th><td>"+fileType+"</td></tr></table></p>");
+	    
+	    // check for custom pre-upload handling
+	    if (typeof widget.preUploadCustom == "function") {
+		html.push("<div id='preUploadCustomHTML"+h+"' style='text-align: center;'><img src='Retina/images/waiting.gif' style='width: 25px; margin-bottom: 20px;'></div>");
+	    }
+
+	    // check for automatic decompression
+	    if (file.name.match(/(gz|gzip|bz2)$/) && ! file.name.match(/tar\.(gz|bz2)$/)) {
+		widget.doDecompress = true;
+		html.push("<p"+(widget.autoDecompress ? " style='display: none;'" : "")+"><input type='checkbox' checked='checked' style='margin: 0;' onclick='if(this.checked){Retina.WidgetInstances.shockbrowse[1].doDecompress=true;}else{Retina.WidgetInstances.shockbrowse[1].doDecompress=false;}'> automatically decompress after upload</p>");
+	    }
 	}
 
-	// show file details and settings
-	var section = Retina.WidgetInstances.shockbrowse[1].sections.detailSectionContent;
-	var html = "<p><table style='text-align: left;'><tr><th style='padding-right: 20px;'>filename</th><td>"+file.name+"</td><tr></tr><th>modified</th><td>"+file.lastModifiedDate+"</td></tr><tr><th>size</th><td>"+file.size.byteSize()+"</td></tr><tr><th>type</th><td>"+fileType+"</td></tr></table></p>";
-
-	// check for custom pre-upload handling
-	if (typeof widget.preUploadCustom == "function") {
-	    html += "<div id='preUploadCustomHTML' style='text-align: center;'><img src='Retina/images/waiting.gif' style='width: 25px; margin-bottom: 20px;'></div>";
-	}
-
-	// check for automatic decompression
-	if (file.name.match(/(gz|gzip|bz2)$/) && ! file.name.match(/tar\.(gz|bz2)$/)) {
-	    widget.doDecompress = true;
-	    html += "<p"+(widget.autoDecompress ? " style='display: none;'" : "")+"><input type='checkbox' checked='checked' style='margin: 0;' onclick='if(this.checked){Retina.WidgetInstances.shockbrowse[1].doDecompress=true;}else{Retina.WidgetInstances.shockbrowse[1].doDecompress=false;}'> automatically decompress after upload</p>";
-	}
-	
-	var restricted = widget.checkUploadRestrictions(file.name);
+	var restricted = widget.checkUploadRestrictions(files);
 	if (restricted) {
-	    html += restricted;
+	    html.push(restricted);
 	} else {
 	    var disabled = "";
 	    if (typeof widget.preUploadCustom == "function") {
 		disabled = "disabled ";
 	    }
-	    html += "<div style='text-align: center;'><button id='commenceUploadButton'"+disabled+"class='btn btn-success' type='button' onclick='Retina.WidgetInstances.shockbrowse[1].uploadFile();'>start upload</button><button class='btn pull-right' data-toggle='button' type='button' onclick='if(this.className.match(/active/)){document.getElementById(\"upload_advanced_options\").style.display=\"none\";}else{document.getElementById(\"upload_advanced_options\").style.display=\"\";}'><i class='icon icon-cog'></i> advanced</button></div><div id='upload_advanced_options' style='margin-top: 10px; border: 1px solid #bbbbbb; padding: 5px; margin-bottom: 10px; display: none;'><b>upload chunk size</b> <select id='upload_chunk_size' onchange='Retina.WidgetInstances.shockbrowse[1].uploadChunkSize=this.options[this.selectedIndex].value;' style='position: relative; top: 4px; left: 5px;'>";
-	
+	    html.push("<div style='text-align: center;'><button id='commenceUploadButton'"+disabled+"class='btn btn-success' type='button' onclick='Retina.WidgetInstances.shockbrowse[1].uploadFile();'>start upload</button><button class='btn pull-right' data-toggle='button' type='button' onclick='if(this.className.match(/active/)){document.getElementById(\"upload_advanced_options\").style.display=\"none\";}else{document.getElementById(\"upload_advanced_options\").style.display=\"\";}'><i class='icon icon-cog'></i> advanced</button></div><div id='upload_advanced_options' style='margin-top: 10px; border: 1px solid #bbbbbb; padding: 5px; margin-bottom: 10px; display: none;'><b>upload chunk size</b> <select id='upload_chunk_size' onchange='Retina.WidgetInstances.shockbrowse[1].uploadChunkSize=this.options[this.selectedIndex].value;' style='position: relative; top: 4px; left: 5px;'>");
+	    
 	    // upload chunk size is currently the only advanced parameter
 	    var chunkSizes = [ [ 1024 * 100, "100 KB" ],
 			       [ 1024 * 1024, "1 MB" ],
@@ -2046,28 +2139,42 @@
 		if (chunkSizes[i][0] == widget.uploadChunkSize) {
 		    sel = " selected";
 		}
-		html += "<option value='"+chunkSizes[i][0]+"'"+sel+">"+chunkSizes[i][1]+"</option>";
+		html.push("<option value='"+chunkSizes[i][0]+"'"+sel+">"+chunkSizes[i][1]+"</option>");
 	    }
 	    
-	    html += "</select><img src='Retina/images/help.png' id='shockbrowse_advanced_help' style='position: relative; left: 10px;'></div>";
+	    html.push("</select><img src='Retina/images/help.png' id='shockbrowse_advanced_help' style='position: relative; left: 10px;'></div>");
 	}
-	
-	section.innerHTML = html;
 
+	section.innerHTML = html.join("");
+	
 	jQuery('#shockbrowse_advanced_help').popover({title: "upload chunk size", content: "The upload chunk size determines the intervals in which you can resume an upload in case of a failure. Set this option higher to improve performance if you have a fast internet connection and large files or lower if your connection is slow / error prone.", trigger: "hover" });
 	
-	if (typeof Retina.WidgetInstances.shockbrowse[1].preUploadCustom == "function") {
-	    Retina.WidgetInstances.shockbrowse[1].preUploadCustom.call(null, file).then( function (customHTML, allow) {
-		if (allow) {
-		    document.getElementById('commenceUploadButton').removeAttribute("disabled");
-		}
-		document.getElementById('preUploadCustomHTML').innerHTML = customHTML;
-	    });
+	for (var i=0; i<files.length; i++) {
+	    if (typeof Retina.WidgetInstances.shockbrowse[1].preUploadCustom == "function") {
+		Retina.WidgetInstances.shockbrowse[1].preUploadCustom.call(null, files[i], i).then( function (customHTML, allow, customIndex) {
+		    if (allow) {
+			document.getElementById('commenceUploadButton').removeAttribute("disabled");
+		    }
+		    document.getElementById('preUploadCustomHTML'+customIndex).innerHTML = customHTML;
+		});
+	    }
 	}
 
-	var blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
+	// file previews are only shown when a single file is selected
+	if (widget.showUploadPreview && files.length == 1) {
+	    var file = files[0];
+	    var blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
+	    // get the filereader
+	    var fileReader = new FileReader();
+	    fileReader.onerror = function (error) {
+		var widget = Retina.WidgetInstances.shockbrowse[1];
+		widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>The selected file could not be opened.</div>";
+	    };
+	    var chunkSize = widget.previewChunkSize;
+	    var start = 0;
+	    var end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+	    var fileType = file.type || "-";
 
-	if (widget.showUploadPreview) {
 	    // check if we can show a preview
 	    if (fileType.match(/json$/)) {
 		fileReader.onload = function(e) {
@@ -2121,14 +2228,26 @@
     }
 
     // check if the file may be uploaded
-    widget.checkUploadRestrictions = function (filename) {
+    widget.checkUploadRestrictions = function (files) {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
-	var html = false;
-	for (var i=0; i<widget.uploadRestrictions.length; i++) {
-	    if (filename.match(widget.uploadRestrictions[i].expression)) {
+	var html = [];
+	for (var h=0; h<files.length; h++) {
+	    var filename = files[h].name;
+	    for (var i=0; i<widget.uploadRestrictions.length; i++) {
+		if (filename.match(widget.uploadRestrictions[i].expression)) {
+		    html.push(filename);
+		    break;
+		}
+	    }
+	}
+	if (html.length == 0) {
+	    html = false;
+	} else {
+	    if (files.length == 1) {
 		html = "<div class='alert alert-error'>"+widget.uploadRestrictions[i].text+"</div>";
-		break;
+	    } else {
+		html = "<div class='alert alert-error'>"+widget.uploadRestrictions[i].text+"<br>The following files do not match these criteria:<br>"+html.join("<br>")+"</div>";
 	    }
 	}
 
@@ -2240,24 +2359,24 @@
     };
 
     /* compute MD5 */
-    widget.md5sum = function(file) {
+    widget.md5sum = function(file, currentIndex) {
 	var p = jQuery.Deferred();
         var bS = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice,
-        cS = Retina.WidgetInstances.shockbrowse[1].MD5chunksize,                             // Read in chunks of 10MB
+        cS = Retina.WidgetInstances.shockbrowse[1].MD5chunksize,
         c = Math.ceil(file.size / cS),
         cC = 0,
         spark = new SparkMD5.ArrayBuffer(),
         fR = new FileReader();
-
+	fR.currentIndex = currentIndex;
 	fR.onload = function (e) {
-            spark.append(e.target.result); // Append array buffer
+            spark.append(e.target.result);
             cC++;
 	    
             if (cC < c) {
 		lN();
             } else {
-		Retina.WidgetInstances.shockbrowse[1].md5 = spark.end();
-		p.resolve();
+		Retina.WidgetInstances.shockbrowse[1].md5[this.currentIndex] = spark.end();
+		p.resolve(this.currentIndex);
             }
 	};
 	
