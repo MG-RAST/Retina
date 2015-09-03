@@ -1683,10 +1683,6 @@
     widget.initializeFileReader = function (file) {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
-	if (widget.fileReader) {
-	    return;
-	}
-
 	// get the tools
 	var blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
 	var chunkSize = widget.uploadChunkSize == 0 ? file.size : widget.uploadChunkSize;
@@ -2061,9 +2057,14 @@
 	    widget.allFileUploadCompletedCallback.call(null, widget.doneData);
 	}
 
-	jQuery.when.apply(this, widget.md5Promises).then(function() {
-	    Retina.WidgetInstances.shockbrowse[1].purgeUpload();
-	});
+	if (widget.uploadDialog.files.length > 1) {
+	    jQuery.when.apply(this, widget.md5Promises).then(function() {
+		document.getElementById('shockbrowserProgressDivMultiUpload').innerHTML = "<div class='alert alert-success'>All files completed.</div>";
+		Retina.WidgetInstances.shockbrowse[1].purgeUpload();
+	    });
+	} else {
+	    widget.purgeUpload();
+	}
     };
 
     // a file was selected for upload, show details, preview, settings and upload button
@@ -2305,7 +2306,7 @@
 		var html = "<h4>Resumable Uploads</h4><table class='table' style='text-align: left; font-size: 12px;'><tr><th>delete</th><th>filename</th><th>full size</th><th>complete</th><th>resume</th></tr>";
 		for (var i=0; i<data.data.length; i++) {
 		    var ds = data.data[i].attributes;
-		    var size = (ds.incomplete_chunk + 1) * ds.incomplete_chunksize;
+		    var size = data.data[i].parts.length * ds.incomplete_chunksize;
 		    html += "<tr><td><button class='btn btn-mini btn-danger' onclick='if(confirm(\"Really delete this file?\\nThis cannot be undone!\")){Retina.WidgetInstances.shockbrowse[1].removeNode({node:\""+data.data[i].id+"\"});}'><i class='icon-remove'></i></button></td><td>"+ds.incomplete_name+"</td><td>"+ds.incomplete_size.byteSize()+"</td><td>"+size.byteSize()+"</td><td><button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].resumeUploadIndex="+i+";Retina.WidgetInstances.shockbrowse[1].uploadDialog.click();'><i class='icon-play'></i></button></td></tr>";
 		}
 		html += "</table>";
@@ -2343,6 +2344,7 @@
 
  	// check if the selected file matches the one to be resumed
 	if (file.name == node.attributes.incomplete_name && file.size == node.attributes.incomplete_size) {
+	    widget.currentFileIndex = 0;
 	    widget.currentUploadChunk = node.attributes.incomplete_chunk + 1;
 	    widget.currentChunksize = node.attributes.incomplete_chunksize;
 	    widget.uploadURL = widget.shockBase + "/node/" + node.id;
