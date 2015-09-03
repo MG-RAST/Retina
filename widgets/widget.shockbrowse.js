@@ -1632,7 +1632,7 @@
 
 	// check if we want to calculate the md5
 	if (widget.calculateMD5) {
-	    widget.calculatingMD5[widget.currentFileIndex] = widget.md5sum(file, widget.currentFileIndex);
+	    widget.calculatingMD5[widget.currentFileIndex] = widget.md5sum(file);
 	    widget.md5Promises[widget.currentFileIndex] = jQuery.Deferred();
 	}
 
@@ -2063,7 +2063,9 @@
 		Retina.WidgetInstances.shockbrowse[1].purgeUpload();
 	    });
 	} else {
-	    widget.purgeUpload();
+	    jQuery.when.apply(this, widget.md5Promises).then(function() {
+		widget.purgeUpload();
+	    });
 	}
     };
 
@@ -2358,7 +2360,7 @@
     };
 
     /* compute MD5 */
-    widget.md5sum = function(file, currentIndex) {
+    widget.md5sum = function(file) {
 	var p = jQuery.Deferred();
         var bS = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice,
         cS = Retina.WidgetInstances.shockbrowse[1].MD5chunksize,
@@ -2366,7 +2368,7 @@
         cC = 0,
         spark = new SparkMD5.ArrayBuffer(),
         fR = new FileReader();
-	fR.currentIndex = currentIndex;
+	fR.currentIndex = Retina.WidgetInstances.shockbrowse[1].currentFileIndex;
 	fR.onload = function (e) {
             spark.append(e.target.result);
             cC++;
