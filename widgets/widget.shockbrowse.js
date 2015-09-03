@@ -1803,7 +1803,7 @@
 		}
 	    }
 
-	    html = "<div style='margin-bottom: 25px;'><h4>uploading "+files.length+" files</h4><div id='shockbrowserProgressDivMultiUpload'><div>"+(files.length - widget.currentFileIndex)+" file"+((files.length - widget.currentFileIndex) == 1 ? "" : "s") +" remaining</div><div>total ("+total.byteSize()+"): "+previous.byteSize()+"</div><div class='progress' style='height: 25px;'><div class='bar' style='width: "+parseFloat(previous / total * 100)+"%;'></div></div><div>current file ("+files[0].size.byteSize()+"): 0B</div><div class='progress' style='height: 25px;'><div class='bar' style='width: 0%;'></div></div></div>";
+	    html = "<div style='margin-bottom: 25px;'><h4>uploading "+files.length+" files</h4><div id='shockbrowserProgressDivMultiUpload'><div>"+(files.length - widget.currentFileIndex)+" file"+((files.length - widget.currentFileIndex) == 1 ? "" : "s") +" remaining</div><div>total ("+total.byteSize()+"): "+previous.byteSize()+"</div><div class='progress' style='height: 25px;'><div class='bar' style='width: "+parseFloat(previous / total * 100)+"%;'></div></div><div>current file ("+files[widget.currentFileIndex].size.byteSize()+"): 0B</div><div class='progress' style='height: 25px;'><div class='bar' style='width: 0%;'></div></div></div>";
 	    section.innerHTML = html;
 
 	    // this table needs to go below the abort and pause buttons
@@ -2123,10 +2123,7 @@
 	    html.push(restricted);
 	} else {
 	    var disabled = "";
-	    if (typeof widget.preUploadCustom == "function") {
-		disabled = "disabled ";
-	    }
-	    html.push("<div style='text-align: center;'><button id='commenceUploadButton'"+disabled+"class='btn btn-success' type='button' onclick='Retina.WidgetInstances.shockbrowse[1].uploadFile();'>start upload</button><button class='btn pull-right' data-toggle='button' type='button' onclick='if(this.className.match(/active/)){document.getElementById(\"upload_advanced_options\").style.display=\"none\";}else{document.getElementById(\"upload_advanced_options\").style.display=\"\";}'><i class='icon icon-cog'></i> advanced</button></div><div id='upload_advanced_options' style='margin-top: 10px; border: 1px solid #bbbbbb; padding: 5px; margin-bottom: 10px; display: none;'><b>upload chunk size</b> <select id='upload_chunk_size' onchange='Retina.WidgetInstances.shockbrowse[1].uploadChunkSize=this.options[this.selectedIndex].value;' style='position: relative; top: 4px; left: 5px;'>");
+	    html.push("<div style='text-align: center;'><button id='commenceUploadButton' class='btn btn-success' type='button' onclick='Retina.WidgetInstances.shockbrowse[1].uploadFile();'>start upload</button><button class='btn pull-right' data-toggle='button' type='button' onclick='if(this.className.match(/active/)){document.getElementById(\"upload_advanced_options\").style.display=\"none\";}else{document.getElementById(\"upload_advanced_options\").style.display=\"\";}'><i class='icon icon-cog'></i> advanced</button></div><div id='upload_advanced_options' style='margin-top: 10px; border: 1px solid #bbbbbb; padding: 5px; margin-bottom: 10px; display: none;'><b>upload chunk size</b> <select id='upload_chunk_size' onchange='Retina.WidgetInstances.shockbrowse[1].uploadChunkSize=this.options[this.selectedIndex].value;' style='position: relative; top: 4px; left: 5px;'>");
 	    
 	    // upload chunk size is currently the only advanced parameter
 	    var chunkSizes = [ [ 1024 * 100, "100 KB" ],
@@ -2152,11 +2149,11 @@
 	for (var i=0; i<files.length; i++) {
 	    if (typeof Retina.WidgetInstances.shockbrowse[1].preUploadCustom == "function") {
 		Retina.WidgetInstances.shockbrowse[1].preUploadCustom.call(null, files[i], i).then( function (customHTML, allow, customIndex) {
-		    if (allow) {
-			document.getElementById('commenceUploadButton').removeAttribute("disabled");
+		    if (! allow) {
+			document.getElementById('commenceUploadButton').setAttribute("disabled", "disabled");
 		    }
 		    document.getElementById('preUploadCustomHTML'+customIndex).innerHTML = customHTML;
-		});
+		});		
 	    }
 	}
 
