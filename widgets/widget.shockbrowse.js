@@ -2347,8 +2347,11 @@
  	// check if the selected file matches the one to be resumed
 	if (file.name == node.attributes.incomplete_name && file.size == node.attributes.incomplete_size) {
 	    widget.currentFileIndex = 0;
+	    if (widget.calculateMD5) {
+		widget.calculatingMD5[widget.currentFileIndex] = widget.md5sum(file);
+	    }
 	    widget.currentUploadChunk = node.attributes.incomplete_chunk + 1;
-	    widget.currentChunksize = node.attributes.incomplete_chunksize;
+	    widget.uploadChunkSize = node.attributes.incomplete_chunksize;
 	    widget.uploadURL = widget.shockBase + "/node/" + node.id;
 	    widget.currentUpload();
 	    widget.initializeFileReader(file);
