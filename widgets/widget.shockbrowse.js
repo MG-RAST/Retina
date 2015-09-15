@@ -2342,13 +2342,14 @@
 
 	// get the file to be resumed
 	var node = widget.resumableData[Retina.WidgetInstances.shockbrowse[1].resumeUploadIndex];
-	Retina.WidgetInstances.shockbrowse[1].resumeUploadIndex = null;
+	widget.resumeUploadIndex = null;
 
  	// check if the selected file matches the one to be resumed
 	if (file.name == node.attributes.incomplete_name && file.size == node.attributes.incomplete_size) {
 	    widget.currentFileIndex = 0;
 	    if (widget.calculateMD5) {
 		widget.calculatingMD5[widget.currentFileIndex] = widget.md5sum(file);
+		widget.md5Promises[widget.currentFileIndex] = jQuery.Deferred();
 	    }
 	    widget.currentUploadChunk = node.attributes.incomplete_chunk + 1;
 	    widget.uploadChunkSize = node.attributes.incomplete_chunksize;
