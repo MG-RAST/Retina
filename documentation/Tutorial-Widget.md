@@ -42,12 +42,11 @@
 
 <p>When the create function is called to run your widget, this function will be called first. It must return a list of promises. Once all promises in the return are fulfilled, the display function of your widget will be called. This is a good spot to load data into the DataStore or renderers that you want to use within your widget. The function will ensure that all resources you need are ready to go when it is time to use them in the display function.</p>
 
-<p>As an example, let's add and load the table renderer:</p>
+<p>As an example, let's load the table renderer:</p>
 
 ```javascript
    widget.setup = function () {
-      return [ Retina.add_renderer({"name": "table", "resource": "./renderers/", "filename": "renderer.table.js" }),
-               this.loadRenderer('table') ];
+      return [ Retina.load_renderer("table") ];
    }
 ```
 

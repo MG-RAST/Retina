@@ -35,13 +35,11 @@
      <!--initialization-->
      <script type="text/javascript">
      	     jQuery( document ).ready(function(){
-	          stm.init();
-		  Retina.init( { library_resource: LOCATION_OF_LIBRARY_FILES } ).then( function () {
-                       Retina.add_widget({"name": "myWidget", "resource": "widgets/",  "filename": "widget.myWidget.js"});
-		       Retina.load_widget("myWidget").then( function () {
-		            Retina.Widget.myWidget.create("myWidget", { WIDGET PARAMETERS });
-		       });
- 		  });
+	          stm.init({});
+		  Retina.init({});
+		  Retina.load_widget("myWidget").then( function () {
+		       Retina.Widget.myWidget.create("myWidget", { WIDGET PARAMETERS });
+		  });
 	      });
     </script>
 ```
@@ -63,6 +61,8 @@ must be called before any operations with stm can occur. Possible parameters are
   <li><b>Data</b><br>Initial data to be present in the storage. See 'import_data' for details.</li>
   <li><b>SourceOrigin</b><br>The allowed source origin for trans-frame messaging. Default is '*'.</li>
   <li><b>TargetOrigin</b><br>The allowed target origin for trans-frame messaging. Default is '*'.</li>
+  <li><b>useDB</b><br>Boolean whether data should be loaded from indexedDB if available. If set to true the database name can be passed as parameter dbName. If this option is used, the function returns a promise which is fulfilled once the data is loaded. Default is false.</li>
+  <li><b>dbName</b><br>Name of the indexedDB database to load the data from. This option is only valid if useDB is set to true. Default is 'stm'.</li>
 </ul>
 
 <h3>add_repository(params)</h3>
@@ -87,7 +87,7 @@ must be called before any operations with stm can occur. Possible parameters are
 
 <h3>import_data(params)</h3>
 
-<p>Data to be imported has to be passed as a hash of types, containing a hash of ids pointing at the actual objects. The optional parameter 'merge' determines whether a type is replaced if it exists or whether only existing ids will be overwritten.</p>
+<p>The import data function accepts three types of data, a list of objects, a hash of objects or a single object instance. The optional parameter 'merge' determines whether a type is replaced if it exists or whether only existing ids will be overwritten.</p>
 
 <h3>file_upload</h3>
 
@@ -95,9 +95,10 @@ must be called before any operations with stm can occur. Possible parameters are
 
 <p>This function is suited for loading data dumped by stm.dump</p>
 
-<h3>dump</h3>
+<h3>dump(useDB, dbName)</h3>
 
 <p>Dumps the content of the stm.DataStore to a new window. If the content is saved to a file, it can later be loaded by the file_upload.</p>
+<p>If useDB is set to true, the data will be dumped to an indexedDB with the name dbName (default is 'stm'). In this case the function will return a promise that is fulfilled once the data import is complete.</p>
 
 <h3>save_as (data, filename)</h3>
 
@@ -137,35 +138,15 @@ must be called before any operations with stm can occur. Possible parameters are
 
 <p>If the javascript library identified by the name passed is not yet loaded into the page, it will be asynchronously loaded. The function will return a promise which is fulfilled once the library is loaded.</p>
 
-<h3>query_renderer_resource(resource)</h3>
-
-<p>Makes an API call to the url of the resource and retrieves the list of available renderers of that resource, adding them to the available_renderers list.</p>
-
-<h3>query_widget_resource(resource)</h3>
-
-<p>Makes an API call to the url of the resource and retrieves the list of available widgets of that resource, adding them to the available_widgets list.</p>
-
-<h3>test_renderer({renderer, target})</h3>
-
-<p>Loads the specified renderer, if not already loaded and has it render its example data into the specified target.</p>
-
-<h3>add_renderer({name, resource, filename})</h3>
-
-<p>Adds a renderer to the available_renderers list. Name must be the name of the renderer, resource must be the base url that provides the renderer code and filename the name of the javscript file holding the code.</p>
-
-<h3>load_renderer(renderer_name)</h3>
+<h3>load_renderer({ name: renderer_name, resource: renderer_base_location })</h3>
 
 <p>Loads a renderer into memory, returning a promise which fulfills once the renderer is loaded.</p>
 
-<h3>add_widget({name, resource, filename})</h3>
-
-<p>Adds a widget to the available_widgets list. Name must be the name of the widget, resource must be the base url that provides the widget code and filename the name of the javscript file holding the code.</p>
-
-<h3>load_widget(widget_name)</h3>
+<h3>load_widget({ name: widget_name, resource: widget_base_location })</h3>
 
 <p>Loads a widget into memory, returning a promise which fulfills once the widget is loaded.</p>
 
-<h3>load_library(library_name)</h3>
+<h3>load_library({ name: library_name, resource: library_base_location })</h3>
 
 <p>Loads a javascript library into memory, returning a promise which fulfills once the script is loaded.</p>
 

@@ -77,7 +77,19 @@
         query: [ { searchword: $filter_value, field: $column_name_to_search, comparison: $comparison_operator }, ... ]
         goto: $row_index
         limit: $number_of_rows_per_page
+
+  minwidths (ARRAY of INT)
+      Sets the minimum widths of the columns in pixel, default is 1.
     
+  maxwidths (ARRAY of INT)
+      Sets the maximum widths of the columns in pixel, default is null
+
+  show_export (BOOLEAN)
+      If true shows an export button that will download the table as a tab separated text file, default is false
+
+  strip_html (BOOLEAN)
+      If true strips html from cells before exporting them, default is true
+
 */
 (function () {
     var renderer = Retina.Renderer.extend({
@@ -109,11 +121,29 @@
 		'navigation_callback': null,
 		'navigation_url': null,
 		'target': 'table_space',
-		'data': 'exampleData()',
 		'synchronous': true,
 		'query_type': 'infix',
-		'asynch_column_mapping': null
-	    }
+		'asynch_column_mapping': null,
+		'show_export': false,
+		'strip_html': true
+	    },
+	  options: [
+	      { general:
+		[
+		    { name: 'editable', type: 'bool', description: "can cell data be edited?",
+		      title: "editable" },
+		    { name: 'filter_autodetect', type: 'bool', description: "should all columns have an auto detected filter?",
+		      title: "filter autodetection" },
+		]
+	      },
+	      { layout:
+		[
+		    { name: 'width', type: 'int', description: "width of the plot in pixel", title: "width" },
+		    { name: 'height', type: 'int', description: "height of the plot in pixel", title: "height" },
+		    { name: 'rows_per_page', type: 'int', description: "number of rows diplayed per page", title: "rows per page" },
+		]
+	      }
+	  ]
       },
 	exampleData: function () {
 	    return {
@@ -159,6 +189,9 @@
 	    }
 	    
 	    renderer.settings.target.innerHTML = "";
+	    if (renderer.settings.synchronous == false) {
+		renderer.settings.target.innerHTML = '<div style="position: absolute; width: 100%; height: 100%; opacity: 0.7; background-color: white; display: none;"></div>';
+	    }
 	    
 	    // check if we have a header, otherwise interpret the first line as the header
 	    if (renderer.settings.data.length) {
@@ -247,35 +280,40 @@
 			    }
 			}
 		    }
+		    var htmlFilter = new RegExp("<.+?>", "ig");
 		    for (var h=0; h<tdata.length; h++) {
 			var pass = 1;
 			for (var i in filter) {
+			    var word = tdata[h][header[i]] + "";
+			    if (! filter[i].keepHTML) {
+				word = word.replace(htmlFilter, "");
+			    }
 			    if (typeof(filter[i].searchword) != "undefined" && filter[i].searchword.length > 0) {
 				if (filter[i].operator) {
 				    switch (filter[i].operator[filter[i].active_operator]) {
 				    case "=":
-					if (tdata[h][header[i]] != filter[i].searchword) {
+					if (word != filter[i].searchword) {
 					    pass = 0;
 					}
 					break;
 				    case ">":
-					if (parseFloat(tdata[h][header[i]]) <= parseFloat(filter[i].searchword)) {
+					if (parseFloat(word) <= parseFloat(filter[i].searchword)) {
 					    pass = 0;
 					}
 					break;
 				    case "<":
-					if (parseFloat(tdata[h][header[i]]) >= parseFloat(filter[i].searchword)) {
+					if (parseFloat(word) >= parseFloat(filter[i].searchword)) {
 					    pass = 0;
 					}
 					break;				      
 				    case "><":
-					if (parseFloat(tdata[h][header[i]]) > parseFloat(filter[i].minmax[1]) || parseFloat(tdata[h][header[i]]) < parseFloat(filter[i].minmax[0])) {
+					if (parseFloat(word) > parseFloat(filter[i].minmax[1]) || parseFloat(word) < parseFloat(filter[i].minmax[0])) {
 					    pass = 0;
 					}
 					break;
 				    }
 				} else {
-				    if (! tdata[h][header[i]].match(filter[i].re)) {
+				    if (! word.match(filter[i].re)) {
 					pass = 0;
 				    }
 				}
@@ -317,7 +355,7 @@
 	    // create the actual table header
 	    var table_element = document.createElement("table");
 	    table_element.setAttribute("class", "table table-striped table-bordered table-condensed");
-	    table_element.setAttribute("style", "margin-bottom: 2px;");
+	    table_element.setAttribute("style", "margin-bottom: 2px; margin-top: 7px;");
 	    var thead = document.createElement("thead");
 	    var tr = document.createElement("tr");
 	    tr.setAttribute('style', 'height: 30px;');
@@ -431,12 +469,9 @@
 			if (renderer.settings.filter[i].type == "text") {
 			    
 			    var filter_text  = document.createElement("input");
+			    filter_text.setAttribute('type', 'text');
 			    filter_text.value = filter[i].searchword;
-			    var pos = "bottom: 2px;";
-			    if (! renderer.settings.disable_sort[i]) {
-				pos = "top: 2px;";
-			    }
-			    filter_text.setAttribute("style", "float: left; width: 100px; display: none; position: relative; "+pos);
+			    filter_text.setAttribute("style", "margin-bottom: 0px; margin-top: 2px; height: 16px; width: 100px; display: none; position: absolute; z-index: 100;");
 			    filter_text.i = i;
 			    filter_text.index = index;
 			    filter_text.onkeypress = function (e) {
@@ -463,10 +498,10 @@
 			    
 			    if (renderer.settings.filter[i].operator) {
 				filter_elem = document.createElement("div");
-				filter_elem.setAttribute("style", "float: left; margin-bottom: 0px; display: none;");
+				filter_elem.setAttribute("style", "float: left; margin-bottom: 0px; display: none; position: absolute; margin-top: 2px; height: 16px; z-index: 100;");
 				filter_elem.className = "input-prepend";
 				var operator_span = document.createElement("span");
-				operator_span.setAttribute("style", "cursor: pointer;");
+				operator_span.setAttribute("style", "cursor: pointer; height: 16px;");
 				operator_span.i = i;
 				operator_span.index = index;
 				operator_span.onclick = function () {
@@ -490,14 +525,14 @@
 				    var operator = document.createElement("span");
 				    operator.innerHTML = renderer.settings.filter[i].operator[h];
 				    if (h==renderer.settings.filter[i].active_operator) {
-					operator.setAttribute("style", "font-weight: bold;");
+					operator.setAttribute("style", "font-weight: bold; height: 16px;");
 				    } else {
-					operator.setAttribute("style", "display: none; font-weight: bold;");
+					operator.setAttribute("style", "display: none; font-weight: bold; height: 16px;");
 				    }
 				    operator.setAttribute("title", "click to switch filter operator");
 				    operator_span.appendChild(operator);
 				}
-				filter_text.setAttribute("style", "position: relative; left: -3px; width: 80px;");
+				filter_text.setAttribute("style", "position: relative; left: -3px; width: 80px; height: 16px;");
 				filter_elem.appendChild(operator_span);
 				filter_elem.appendChild(filter_text);
 			    } else {
@@ -506,8 +541,8 @@
 			    
 			} else if (renderer.settings.filter[i].type == "select") {
 			    filter_elem = document.createElement("select");
-			    filter_elem.setAttribute("style", "float: left; width: 100px; display: none;");
-			    filter_elem.add(new Option("-show all-", ""), null);
+			    filter_elem.setAttribute("style", "position: absolute; height: 26px; margin-bottom: 0px; margin-top: 2px; z-index: 100; display: none;");
+			    filter_elem.add(new Option("-show all-", "-show all-"), null);
 			    var selopts = [];
 			    for (var h=0;h<tdata.length;h++) {
 				if (tdata[h][header[i]].length) {
@@ -515,10 +550,12 @@
 				}
 			    }
 			    for (var h in selopts) {
-				if (h == renderer.settings.filter[i].searchword) {
-				    filter_elem.add(new Option(h,h, true), null);
-				} else {
-				    filter_elem.add(new Option(h,h), null);
+				if (typeof selopts[h] != "function") {
+				    if (h == renderer.settings.filter[i].searchword) {
+					filter_elem.add(new Option(h,h, true), null);
+				    } else {
+					filter_elem.add(new Option(h,h), null);
+				    }
 				}
 			    }
 			    filter_elem.i = i;
@@ -528,6 +565,43 @@
 				Retina.RendererInstances.table[index].settings.filter[this.i].searchword = this.options[this.selectedIndex].value;
 				Retina.RendererInstances.table[index].settings.filter_changed = true;
 				Retina.RendererInstances.table[index].render();
+			    }
+			    if (filter_elem.options.length == 1) {
+				filter_elem = document.createElement('span');
+			    }
+			}  else if (renderer.settings.filter[i].type == "premade-select") {
+			    filter_elem = document.createElement("select");
+			    filter_elem.setAttribute("style", "position: absolute; height: 26px; margin-bottom: 0px; margin-top: 2px; z-index: 100; display: none;");
+			    for (var ind=0; ind<renderer.settings.filter[i].options.length; ind++) {
+				if (renderer.settings.filter[i].options[ind].value == renderer.settings.filter[i].searchword) {
+				    filter_elem.add(new Option(renderer.settings.filter[i].options[ind].text, renderer.settings.filter[i].options[ind].value, true), null);
+				} else {
+				    filter_elem.add(new Option(renderer.settings.filter[i].options[ind].text, renderer.settings.filter[i].options[ind].value), null);
+				}
+			    }
+			    filter_elem.i = i;
+			    filter_elem.index = index;
+			    filter_elem.onchange = function () {
+				var index = this.index;
+				var renderer = Retina.RendererInstances.table[index];
+				renderer.settings.filter[this.i].searchword = this.options[this.selectedIndex].value;
+				if (typeof renderer.settings.navigation_callback == "function") {
+				    var query = [];
+				    for (var x in Retina.RendererInstances.table[index].settings.filter) {
+					if (Retina.RendererInstances.table[index].settings.filter.hasOwnProperty(x) && Retina.RendererInstances.table[index].settings.filter[x].hasOwnProperty('searchword')) {
+					    if (Retina.RendererInstances.table[index].settings.filter[x].searchword.length > 0) {
+						query.push( { "searchword": Retina.RendererInstances.table[index].settings.filter[x].searchword, "field": Retina.RendererInstances.table[index].settings.header[x], "comparison": Retina.RendererInstances.table[index].settings.filter[x].operator || "=" } );
+					    }
+					}
+				    }
+				    renderer.settings.navigation_callback( { "query": query }, index );
+				} else {
+				    renderer.settings.filter_changed = true;
+				    renderer.render();
+				}
+			    }
+			    if (filter_elem.options.length == 1) {
+				filter_elem = document.createElement('span');
 			    }
 			}
 		    }
@@ -548,11 +622,15 @@
 		    caret.appendChild(caret_tr1);
 		    caret.appendChild(caret_tr2);
 		    var th = document.createElement("th");
-		    var mw = 153;
+		    var mw = 1;
 		    if (renderer.settings.minwidths && renderer.settings.minwidths[i]) {
 			mw = renderer.settings.minwidths[i];
 		    }
-		    th.setAttribute("style", "padding: 0px; padding-left: 4px; min-width: "+mw+"px;");
+		    var maxwidth = "";
+		    if (renderer.settings.maxwidths && renderer.settings.maxwidths[i]) {
+			maxwidth = " max-width: "+renderer.settings.maxwidths[i]+"px;";
+		    }
+		    th.setAttribute("style", "padding: 0px; padding-left: 4px; min-width: "+mw+"px;"+maxwidth);
 		    var th_div = document.createElement("div");
 		    th_div.setAttribute("style", "float: left; position: relative; height: 25px;");
 		    th_div.innerHTML = header[i];
@@ -788,12 +866,12 @@
 	    
 	    // goto
 	    var goto_label = document.createElement("span");
+	    goto_label.setAttribute('style', "font-size: 10.5px;");
 	    goto_label.innerHTML = "goto row ";
 	    var goto_text = document.createElement("input");
 	    goto_text.setAttribute("value", offset + 1);
-	    goto_text.setAttribute("class", "span1");
 	    goto_text.setAttribute("type", "text");
-	    goto_text.setAttribute("style", "position: relative; top: 4px; height: 16px;");
+	    goto_text.setAttribute("style", "height: 12px; font-size: 10.5px; margin-bottom: 0px; width: 30px; margin-left: 5px;");
 	    goto_text.index = index;
 	    goto_text.onkeypress = function (e) {
 		var index = this.index;
@@ -817,20 +895,21 @@
 	    // clear filter button
 	    var clear_btn = document.createElement("input");
 	    clear_btn.setAttribute("type", "button");
-	    clear_btn.setAttribute("class", "btn");
+	    clear_btn.setAttribute("class", "btn btn-mini");
 	    clear_btn.setAttribute("value", "clear all filters");
 	    clear_btn.style.marginLeft = "10px";
 	    clear_btn.index = index;
 	    clear_btn.onclick = function () {
 		var index = this.index;
-		    for (var i in Retina.RendererInstances.table[index].settings.filter) {
-		        Retina.RendererInstances.table[index].settings.filter[i].searchword = "";
-		    }
-		    if (typeof renderer.settings.navigation_callback == "function") {
-		        renderer.settings.navigation_callback({"goto": 0, "query": "default", "sort": "default"}, index);
+		Retina.RendererInstances.table[index].settings.filter_changed = true;
+		for (var i in Retina.RendererInstances.table[index].settings.filter) {
+		    Retina.RendererInstances.table[index].settings.filter[i].searchword = "";
+		}
+		if (typeof renderer.settings.navigation_callback == "function") {
+		    renderer.settings.navigation_callback({"goto": 0, "query": renderer.settings.default_query || null, "sort": renderer.settings.default_sort || null }, index);
 	        } else {
-		        Retina.RendererInstances.table[index].settings.sorted = false;
-		        Retina.RendererInstances.table[index].render();
+		    Retina.RendererInstances.table[index].settings.sorted = false;
+		    Retina.RendererInstances.table[index].render();
 	        }
 	    };
 	    
@@ -838,7 +917,7 @@
 	    var perpage = document.createElement("input");
 	    perpage.setAttribute("type", "text");
 	    perpage.setAttribute("value", rows);
-	    perpage.setAttribute("style", "position: relative; top: 4px; height: 16px; width: 30px;");
+	    perpage.setAttribute("style", "height: 12px; font-size: 10.5px; margin-bottom: 0px; width: 30px;");
 	    perpage.index = index;
 	    perpage.onkeypress = function (e) {
 		var index = this.index;
@@ -854,10 +933,10 @@
 		}
 	    };
 	    var ppspan1 = document.createElement("span");
-	    ppspan1.style.marginLeft = "10px";
+	    ppspan1.setAttribute('style', "margin-left: 10px; margin-right: 5px; font-size: 10.5px;");
 	    ppspan1.innerHTML = " show ";
 	    var ppspan2 = document.createElement("span");
-	    ppspan2.style.marginRight = "10px";
+	    ppspan2.setAttribute('style', "margin-left: 5px; font-size: 10.5px; margin-right: 10px;");
 	    ppspan2.innerHTML = " rows at a time";
 	    
 	    // handle onclick event
@@ -891,11 +970,11 @@
 	    
 	    var col_sel_span = document.createElement("span");
 	    var col_sel_btn = document.createElement("input");
-	    col_sel_btn.setAttribute("class", "btn");
+	    col_sel_btn.setAttribute("class", "btn btn-mini");
 	    col_sel_btn.setAttribute("type", "button");
 	    col_sel_btn.setAttribute("value", "select columns");
 	    var col_sel = document.createElement("div");
-	    col_sel.setAttribute('style', "position: absolute; top: 5px; left: 570px; min-width: 150px; border: 1px solid #BBB; background-color: white; z-index: 1000; display: none; box-shadow: 4px 4px 4px #666; padding: 2px;");
+	    col_sel.setAttribute('style', "position: absolute; left: 528px; min-width: 150px; border: 1px solid #BBB; background-color: white; z-index: 99000; display: none; box-shadow: 4px 4px 4px #666; padding: 2px;");
 	    col_sel_btn.addEventListener("click", function () {
 		
 		if (col_sel.style.display == "none") {
@@ -920,15 +999,15 @@
 	    var options_icon = document.createElement("div");
 	    options_icon.innerHTML = "<i class='icon-cog'></i>";
 	    options_icon.title ='table options, click to show';
-	    options_icon.className = "btn";
-	    options_icon.setAttribute("style", "cursor: pointer; position: relative; top: -1px; margin-bottom: 7px;");
+	    options_icon.className = "btn btn-mini";
+	    options_icon.setAttribute("style", "cursor: pointer;");
 	    options_icon.onclick = function () {
 		this.nextSibling.style.display = "";
 		this.style.display = "none";
 	    }
 	    var options_span = document.createElement("div");
-	    options_span.setAttribute('style', "display: none; position: relative; top: -5px;");
-	    options_span.innerHTML = "<div title='close options' onclick='this.parentNode.previousSibling.style.display=\"\";this.parentNode.style.display=\"none\";' style='cursor: pointer; margin-right: 5px;' class='btn'><i class='icon-remove'></div>";
+	    options_span.setAttribute('style', "display: none;");
+	    options_span.innerHTML = "<div title='close options' onclick='this.parentNode.previousSibling.style.display=\"\";this.parentNode.style.display=\"none\";' style='cursor: pointer; margin-right: 5px;' class='btn btn-mini'><i class='icon-remove'></div>";
 	    
 	    // append navigation to target element
 	    if (renderer.settings.hide_options == false) {
@@ -942,6 +1021,32 @@
 		options_span.appendChild(ppspan2);
 		options_span.appendChild(col_sel_span);
 	    }
+
+	    // check for export button
+	    if (renderer.settings.show_export) {
+		var exp = document.createElement('button');
+		exp.setAttribute('class', 'btn btn-mini');
+		exp.setAttribute('style', 'float: right;');
+		exp.setAttribute('title', 'export table data as tsv');
+		exp.innerHTML = '<i class="icon icon-file"></i>';
+		exp.setAttribute('index', renderer.index);
+		exp.addEventListener('click', function (e) {
+		    var renderer = Retina.RendererInstances.table[this.getAttribute('index')];
+		    var d = [];
+		    d.push(renderer.settings.header.join("\t"));
+		    var htmlFilter = new RegExp("<.+?>", "ig");
+		    for (var i=0; i<renderer.settings.tdata.length; i++) {
+			var r = [];
+			for (var h=0; h<renderer.settings.header.length; h++) {
+			    r.push((renderer.settings.strip_html && (typeof renderer.settings.tdata[i][renderer.settings.header[h]].replace == "function")) ? renderer.settings.tdata[i][renderer.settings.header[h]].replace(htmlFilter, "") : renderer.settings.tdata[i][renderer.settings.header[h]]);
+			}
+			d.push(r.join("\t"));
+		    }
+		    stm.saveAs(d.join("\n"), "table.tsv");
+		});
+		target.appendChild(exp);
+	    }
+
 	    target.appendChild(table_element);
 	    target.appendChild(bottom_table);	  
 	    
@@ -949,6 +1054,8 @@
 	},
 	update: function (params, index) {
 	    renderer = Retina.RendererInstances.table[index];
+
+	    renderer.settings.target.firstChild.style.display = "";
 
 	    if (typeof params == 'string') {
 	        if (params == 'first') {
@@ -972,16 +1079,11 @@
 	    } 
 	    if (typeof params == 'object') {
 	        if (params.sort) {
-	            if (params.sort == 'default') {
-	                renderer.settings.sort = 'name';
-    		        renderer.settings.sortDir = 'asc';
-	            } else {
-		        renderer.settings.sort = params.sort;
-			if (renderer.settings.asynch_column_mapping) {
-			    renderer.settings.sort = renderer.settings.asynch_column_mapping[params.sort];
-			}
-		        renderer.settings.sortDir = params.dir;
-	            }
+		    renderer.settings.sort = params.sort;
+		    if (renderer.settings.asynch_column_mapping) {
+			renderer.settings.sort = renderer.settings.asynch_column_mapping[params.sort];
+		    }
+		    renderer.settings.sortDir = params.dir;
 	        }
 	        if (params.query) {
 		    if (params.clear) {
@@ -1037,6 +1139,9 @@
 		renderer =  Retina.RendererInstances.table[index];
 		if (typeof renderer.settings.data_manipulation == "function") {
 		    renderer.settings.tdata = renderer.settings.data_manipulation(data.data);
+		    if (renderer.settings.tdata.length !== data.data.length) {
+			data.total_count += renderer.settings.tdata.length - data.data.length;
+		    }
 		} else {
 		    renderer.settings.tdata = data.data;
 		}

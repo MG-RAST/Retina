@@ -110,27 +110,33 @@
             version: "1.0",
             requires: [ "jquery.svg.js" ],
             defaults: {
-		'type': 'column', // [ column, stackedColumn, row, stackedRow, line, pie, stackedArea ]
+		'type': 'column', // [ column, stackedColumn, row, stackedRow, line, pie, stackedArea, deviation ]
 		'title': '',
 		'title_color': 'black',
 		'title_settings': { fontSize: '15px' },
 		'x_title': '',
 		'y_title': '',
+		'y2_title': '',
 		'x_title_color': 'black',
 		'y_title_color': 'black',
+		'y2_title_color': 'black',
 		'x_labels': [],
 		'x_labels_rotation': null,
 		'y_labels': [],
 		'y_scale': 'linear',
+		'y2_labels': [],
+		'y2_scale': 'linear',
 		'x_tick_interval': 0,
 		'y_tick_interval': 30,
+		'y2_tick_interval': 30,
 		'x_labeled_tick_interval': 1,
 		'y_labeled_tick_interval': 5,
+		'y2_labeled_tick_interval': 5,
 		'default_line_color': 'black',
 		'default_line_width': 1,
 		'show_legend': false,
-		'legend_position': 'left',
-		'show_grid': false,
+		'legend_position': 'right',
+		'show_grid': true,
 		'short_axis_labels': false,
 		'normalize_stacked_area': true,
 		'width': 800,
@@ -146,7 +152,8 @@
 			  { value: "stackedRow", label: "stacked row" },
 			  { value: "line" },
 			  { value: "pie" },
-			  { value: "stackedArea", label: "stacked area" } ] },
+			  { value: "stackedArea", label: "stacked area" },
+			  { value: "deviation", label: "deviation" } ] },
 		      { name: 'default_line_color', type: 'color', description: "default color of the data lines of the graph", title: "default line color" },
 		      { name: 'default_line_width', type: 'int', description: "default width of the data lines of the graph in pixel", title: "default line width" },
 		      { name: 'show_grid', type: 'select', description: "sets whether grid is displayed or not", title: "show grid", options: [
@@ -206,15 +213,15 @@
 	    ]
 	},
 	exampleData: function () {
-	    return [ { "name": 'IE', "data": [95, 91, 78, 66] },
-		     { "name": 'Netscape', "data": [3, 12, 18, 18] },
-		     { "name": 'Firefox', "data": [0, 4, 8, 9] },
-		     { "name": 'Chrome', "data": [0, 8, 18, 22] },
-		     { "name": 'Gecko', "data": [1, 2, 3, 33] } ];
+	    return [ { "name": 'IE', "data": [ 9005, 91, 78, 66] },
+		     { "name": 'Netscape', "data": [ 3, 12, 18, 18] },
+		     { "name": 'Firefox', "data": [ 0, 4, 8, 9] },
+		     { "name": 'Chrome', "data": [ 0, 8, 18, 22] },
+		     { "name": 'Gecko', "data": [ 1, 2, 3, 33] } ];
         },
 
 	render: function () {
-	    renderer = this;
+	    var renderer = this;
 
 	    // get the target div
 	    var target = renderer.settings.target;
@@ -222,14 +229,22 @@
 	    target.innerHTML = "<div id='graph_div"+index+"'></div>";
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
 	    jQuery('#graph_div'+index).svg();
-	    Retina.RendererInstances.graph[index].drawImage(jQuery('#graph_div'+index).svg('get'));
+
+	    var cmax = 0;
+	    if (renderer.settings.type == 'deviation' && ! renderer.settings.data[0].data.hasOwnProperty('upper')) {
+		renderer.calculateData(renderer.settings.data, index);
+		cmax = renderer.cmax;
+		renderer.settings.chartArea = [ 0.1, 0.1, 0.95, 0.8 ];
+	    }
+
+	    Retina.RendererInstances.graph[index].drawImage(jQuery('#graph_div'+index).svg('get'), cmax, index);
 	    
 	    return renderer;
 	},
 	hover: function (title, value, event, e) {
 	    var id = e.currentTarget.ownerSVGElement.ownerSVGElement.parentNode.id;
 	    var index = id.substr(9);
-	    renderer = Retina.RendererInstances.graph[index];
+	    var renderer = Retina.RendererInstances.graph[index];
 	    var svg = jQuery('#'+id).svg('get');
 	    if (title) {
 		jQuery(this, svg.root()).attr('fill-opacity', .8);
@@ -257,8 +272,8 @@
 		}
 	    }
 	},
-	drawImage: function (svg) {
-
+	drawImage: function (svg, cmax, index) {
+	    var renderer = Retina.RendererInstances.graph[index];
 	    var chartAreas = [ [ 0.1, 0.1, 0.95, 0.9 ],   // no legend
 			       [ 0.2, 0.1, 0.95, 0.9 ],   // legend left
 			       [ 0.1, 0.1, 0.75, 0.9 ],   // legend right
@@ -283,13 +298,21 @@
 	    
 	    var defs = svg.defs();
 	    var max = 0;
-	    for (i=0; i<renderer.settings.data.length; i++) {
-		for (h=0; h<renderer.settings.data[i].data.length; h++) {
-		    if (parseFloat(renderer.settings.data[i].data[h]) > max) {
-			max = parseFloat(renderer.settings.data[i].data[h]);
+	    var y2max = 0;
+	    for (var i=0; i<renderer.settings.data.length; i++) {
+		for (var h=0; h<renderer.settings.data[i].data.length; h++) {
+		    if (renderer.settings.data[i].settings && renderer.settings.data[i].settings.isY2) {
+			if (parseFloat(renderer.settings.data[i].data[h]) > y2max) {
+			    y2max = parseFloat(renderer.settings.data[i].data[h]);
+			}
+		    } else { 
+			if (parseFloat(renderer.settings.data[i].data[h]) > max) {
+			    max = parseFloat(renderer.settings.data[i].data[h]);
+			}
 		    }
 		}
 	    }
+	    max = cmax || max;
 	    
 	    svg.linearGradient(defs, 'fadeRed', [[0, '#EE5F5B'], [1, '#BD362F']]); 
 	    svg.linearGradient(defs, 'fadeBlue', [[0, '#0088CC'], [1, '#0044CC']]); 
@@ -308,7 +331,7 @@
 	    }
 
 	    for (i=0;i<renderer.settings.data.length;i++) {
-		svg.graph.noDraw().addSeries( renderer.settings.data[i].name, renderer.settings.data[i].data, null, renderer.settings.data[i].lineColor || 'white', renderer.settings.data[i].lineWidth || renderer.settings.default_line_width);
+		svg.graph.noDraw().addSeries( renderer.settings.data[i].name, renderer.settings.data[i].data, null, renderer.settings.data[i].lineColor || 'white', renderer.settings.data[i].lineWidth || renderer.settings.default_line_width, renderer.settings.data[i].settings ? renderer.settings.data[i].settings : {});
 	    }
 	    
 	    svg.graph.xAxis.title(renderer.settings.x_title, renderer.settings.x_title_color).
@@ -318,13 +341,27 @@
 		svg.graph.xAxis.labelRotation = renderer.settings.x_labels_rotation;
 		svg.graph.xAxis.labels(renderer.settings.x_labels);
 	    }
+
+	    var sy = Retina.niceScale({min: 0, max: max, ticks: renderer.settings.y_labeled_tick_interval });
 	    svg.graph.yAxis.
 		title(renderer.settings.y_title, renderer.settings.y_title_color).
-		ticks(parseInt(max / renderer.settings.y_labeled_tick_interval), parseInt(max / renderer.settings.y_tick_interval), 'log').
+		ticks(sy.max / renderer.settings.y_labeled_tick_interval, sy.max / renderer.settings.y_tick_interval, null, null, renderer.settings.y_scale).
 		scale(0,max,renderer.settings.y_scale);
+
+	    if (renderer.settings.hasY2) {
+		svg.graph.y2Axis.
+		    title(renderer.settings.y2_title || "", renderer.settings.y2_title_color).
+		    ticks(parseInt(y2max / renderer.settings.y2_labeled_tick_interval), parseInt(y2max / renderer.settings.y2_tick_interval), null, null, renderer.settings.y2_scale).
+		    scale(0,y2max,renderer.settings.y2_scale);
+		if (renderer.settings.y2_labels.length) {
+		    svg.graph.y2Axis.labels(renderer.settings.y2_labels); 
+		}
+	    } else {
+		svg.graph.y2Axis = null;
+	    }
 	    
 	    if (renderer.settings.y_labels.length) {
-		svg.graph.xAxis.labels(renderer.settings.y_labels); 
+		svg.graph.yAxis.labels(renderer.settings.y_labels); 
 	    }
 	    svg.graph.legend.settings({fill: 'white', stroke: 'white'}); 
 	    
@@ -342,7 +379,7 @@
 		    break;
 		};
 	    }
-	    var chartOptions = { };
+	    var chartOptions = { barWidth: renderer.settings.barWidth || 20 };
 	    	    
 	    svg.graph.status(Retina.RendererInstances.graph[renderer.index].hover);
 
@@ -353,6 +390,53 @@
 	    }
 	    svg.graph.noDraw().area(renderer.settings.chartArea ? renderer.settings.chartArea : chartAreas[chartLegend]).
 		type(chartType, chartOptions).redraw();
+	},
+	calculateData: function (data, index) {
+	    var renderer = Retina.RendererInstances.graph[index];
+	    var fivenumbers = [];
+	    var min = data[0].data[0];
+	    var max = data[0].data[0];
+	    
+	    for (var i=0;i<data.length;i++) {
+		data[i].data = data[i].data.sort(Retina.Numsort);
+		if (data[i].data[0] < min) {
+		    min = data[i].data[0];
+		}
+		if (data[i].data[data[i].data.length - 1] > max) {
+		    max = data[i].data[data[i].data.length - 1];
+		}
+		fivenumbers[i] = [];
+		fivenumbers[i]['min'] = data[i].data[0];
+		fivenumbers[i]['max'] = data[i].data[data[i].data.length - 1];
+		var boxarray = [];
+		if (data[i].data.length % 2 == 1) {
+		    var med = parseInt(data[i].data.length / 2);
+		    fivenumbers[i]['median'] = data[i].data[med];
+		    if ((med + 1) % 2 == 1) {
+			fivenumbers[i]['lower'] = data[i].data[parseInt((med + 1) / 2)];
+			fivenumbers[i]['upper'] = data[i].data[med + parseInt((med + 1) / 2)];
+		    } else {
+			fivenumbers[i]['lower'] = ((data[i].data[(med + 1) / 2]) + (data[i].data[((med + 1) / 2) + 1])) / 2;
+			fivenumbers[i]['upper'] = ((data[i].data[med + ((med + 1) / 2) - 1]) + (data[i].data[med + ((med + 1) / 2)])) / 2;
+		    }
+		} else {
+		    var medup = data[i].data.length / 2;
+		    var medlow = (data[i].data.length / 2) - 1;
+		    fivenumbers[i]['median'] = (data[i].data[medlow] + data[i].data[medup]) / 2;
+		    if (medup % 2 == 1) {
+			fivenumbers[i]['lower'] = data[i].data[medlow / 2];
+			fivenumbers[i]['upper'] = data[i].data[medup + (medlow / 2)];
+		    } else {
+			fivenumbers[i]['lower'] = (data[i].data[(medup / 2) - 1] + data[i].data[medup / 2]) / 2;
+			fivenumbers[i]['upper'] = (data[i].data[medup + (medup / 2) - 1] + data[i].data[medup + (medup / 2)]) / 2;
+		    }
+		}
+	    }
+
+	    for (var i=0; i<data.length; i++) {
+		renderer.settings.data[i].data = [ fivenumbers[i] ];
+	    }
+	    renderer.cmax = max;
 	}
     });
 }).call(this);

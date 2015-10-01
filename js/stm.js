@@ -5,7 +5,6 @@
     /*
       Setup
      */
-
     stm.Config = typeof RetinaConfig == 'undefined' ? {} : RetinaConfig;
 
     // set up / reset the DataHandler
@@ -18,10 +17,45 @@
 	stm.DataRepositoryDefault = params.DataRepositoryDefault || null;
 	stm.SourceOrigin = params.SourceOrigin || "*";
 	stm.TargetOrigin = params.TargetOrigin || "*";
-	stm.Authentication = params.Authentication || null;
-	stm.AuthHeaderName = params.AuthHeaderName || 'AUTH';
-	if (params.Data) {
-	    stm.import_data({ merge: false, data: params.data });
+	if (params && params.Data) {
+	    stm.import_data({ merge: false, data: params.Data });
+	}
+	if (params.useDB) {
+	    var dbName = params.dbName || 'stm';
+	    var promise = jQuery.Deferred();
+	    var idb = indexedDB.open(dbName);
+	    idb.onerror = function (event) {
+		console.log(event);
+	    };
+	    idb.onsuccess = function (event) {
+		var db = event.target.result;
+		if (db.objectStoreNames.length == 0) {
+		    return promise.resolve();
+		}
+		var trans = db.transaction(db.objectStoreNames,"readonly");
+		trans.oncomplete = function () {
+		    promise.resolve();
+		};
+		for (var i=0; i<db.objectStoreNames.length; i++) {
+		    var name = db.objectStoreNames[i];
+		    if (! stm.DataStore.hasOwnProperty(name)) {
+			stm.DataStore[name] = {};
+		    }
+		    var req = trans.objectStore(name).openCursor();
+		    req.name = name;
+		    req.onsuccess = function (event) {
+			var n = this.name;
+			var cursor = event.target.result;
+			if (cursor) {
+			    var id = cursor.value._stm_id;
+			    delete cursor.value._stm_id;
+			    stm.DataStore[n][id] = cursor.value;
+			    cursor.continue();
+			}
+		    }
+		}
+	    };
+	    return promise;
 	}
     };
     
@@ -56,15 +90,32 @@
     // import a JSON data structure into the DataStore
     stm.import_data = function (params) {
 	var merge = params.hasOwnProperty('merge') ? params.merge : true;
-	var data = params.data || [];
-	for (var i in data) {
-	    if (data.hasOwnProperty(i)) {
-		if (! stm.DataStore.hasOwnProperty(i) || ! merge) {
-		    stm.DataStore[i] = [];
-		}
-		for (var h in data[i]) {
-		    if (data[i].hasOwnProperty(h)) {
+	var data = params.data;
+	
+	if (params.structure == 'instance') {
+	    var identifier = params.id || data.id;
+	    if (! stm.DataStore.hasOwnProperty(params.type)) {
+		stm.DataStore[params.type] = {};
+	    }
+	    stm.DataStore[params.type][identifier] = data;
+	} else if (params.structure == 'list') {
+	    var identifier = params.id || "id";
+	    if (! stm.DataStore.hasOwnProperty(params.type) || ! merge) {
+		stm.DataStore[params.type] = {};
+	    }
+	    for (var i=0;i<data.length;i++) {
+		stm.DataStore[params.type][data[i][identifier]] = data[i];
+	    }
+	} else {
+	    for (var i in data) {
+		if (data.hasOwnProperty(i)) {
+		    if (! stm.DataStore.hasOwnProperty(i) || ! merge) {
+			stm.DataStore[i] = {};
+		    }
+		    for (var h in data[i]) {
+			if (data[i].hasOwnProperty(h)) {
 			stm.DataStore[i][h] = data[i][h];
+			}
 		    }
 		}
 	    }
@@ -155,9 +206,9 @@
 	
 	xhr.onload = function() {
 	    var retval = JSON.parse(xhr.responseText);
-	    if (retval.hasOwnProperty('ERROR')) {
-		console.log('Error in stm.get_obects: '+retval.ERROR);
-		stm.error = retval.ERROR;
+	    if (retval.hasOwnProperty('error')) {
+		console.log('Error in stm.get_obects: '+retval.error);
+		stm.error = retval.error;
 		promise.resolve;
 		return;
 	    }
@@ -169,18 +220,14 @@
 	    switch (params.return_type) {
 	    case 'text':
 		d[type] = {};
-		d[type][params['id']] = xhr.responseText;
+		d[type][params['id']] = retval.data;
 		stm.import_data({ "data": d, 'merge': true });
 		break;
 	    default:
-		d = JSON.parse(xhr.responseText);
-		if (d.error == null) {
-		    var data = {};
-		    data[type] = d.data;
-		    stm.import_data({ "data": data, "merge": true });
+		if (retval.hasOwnProperty('data') && retval.hasOwnProperty('total_count')) {
+		    stm.import_data({ "type": type, "data": retval.data, "merge": true, "structure": 'list' });
 		} else {
-		    alert(d.error+' ('+d.status+')');
-		    console.log(d);
+		    stm.import_data({ "type": type, "data": retval, "merge": true, "structure": 'instance' });
 		}
 		break;
 	    }
@@ -204,8 +251,8 @@
 	    return;
 	};
 
-	if (stm.Authentication) {
-	    xhr.setRequestHeader(stm.authHeaderName, stm.Authentication);
+	if (stm.authHeader) {
+	    xhr.setRequestHeader(stm.authHeader);
 	}
 	
 	var progressIndicator = document.getElementById('progressIndicator');
@@ -264,57 +311,154 @@
 	delete stm.DataStore[type];
     };
 
-    // session dumping
-    stm.dump = function () {
-	var dstring = "{";
-	for (var i in stm.DataStore) {
-	    if (stm.DataStore.hasOwnProperty(i)) {
-		dstring += '"'+i+'":[';
-		var hasOne = false;
-		for (var h in stm.DataStore[i]) {
-		    if (stm.DataStore[i].hasOwnProperty(h)) {
-			hasOne = true;
-			dstring += JSON.stringify(stm.DataStore[i][h]);
-			dstring += ",";
+    stm.updateHardStorage = function (dbName, attributes, version, p) {
+	var promise = p || jQuery.Deferred();
+	dbName = dbName || 'stm';
+
+	var DBOpenRequest = indexedDB.open(dbName, version ? version : null);
+	DBOpenRequest.onerror = function(event) {
+	    alert('session update failed');
+	    promise.resolve();
+	};
+
+	DBOpenRequest.onupgradeneeded = function(e) {
+	    var db = e.target.result;
+	    
+	    for (var i in (attributes ? attributes : stm.DataStore)) {
+		if (stm.DataStore.hasOwnProperty(i)) {
+		    if (! db.objectStoreNames.contains(i)) {
+			db.createObjectStore(i, {keyPath: "_stm_id"});
 		    }
 		}
-		if (hasOne) {
-		    dstring = dstring.slice(0,-1);
-		}
-		dstring += "],";
 	    }
+	};
+	
+	DBOpenRequest.onsuccess = function(event) {
+	    var db = DBOpenRequest.result;
+	    var onames = {};
+	    for (var i=0; i<db.objectStoreNames.length; i++) {
+		onames[db.objectStoreNames[i]] = true;
+	    }
+	    var objTypes = Retina.keys(attributes ? attributes : stm.DataStore);
+	    for (var i=0; i<objTypes.length; i++) {
+		if (! onames[objTypes[i]]) {
+		    var p2 = stm.updateHardStorage(dbName, attributes, db.version + 1, promise);
+		    return;
+		}
+	    }
+	    var trans = db.transaction(objTypes, "readwrite");
+	    trans.oncomplete = function () {
+		promise.resolve();
+	    };
+	    for (var i=0; i<objTypes.length; i++) {
+		var type = objTypes[i];
+		var store = trans.objectStore(type);
+		store.clear();
+		for (var h in stm.DataStore[type]) {
+		    if (stm.DataStore[type].hasOwnProperty(h)) {
+			stm.DataStore[type][h]._stm_id = h;
+			store.add(stm.DataStore[type][h]);
+		    }
+		}
+	    }
+	};
+	
+	return promise;
+    };
+
+    // session dumping
+    stm.dump = function (useDB, dbName) {
+	if (useDB) {
+	    var promise = jQuery.Deferred();
+	    dbName = dbName || 'stm';
+	    indexedDB.deleteDatabase(dbName).onsuccess = function () {
+		var DBOpenRequest = indexedDB.open(dbName);
+		DBOpenRequest.onerror = function(event) {
+		    alert('session dump failed');
+		};
+		DBOpenRequest.onupgradeneeded = function(e) {
+		    var db = e.target.result;
+		    
+		    for (var i in stm.DataStore) {
+			if (stm.DataStore.hasOwnProperty(i)) {
+			    if (! db.objectStoreNames.contains(i)) {
+				db.createObjectStore(i, {keyPath: "_stm_id"});
+			    }
+			}
+		    }
+		};
+
+		DBOpenRequest.onsuccess = function(event) {
+		    var db = DBOpenRequest.result;	    
+		    var objTypes = Retina.keys(stm.DataStore);
+		    var trans = db.transaction(objTypes, "readwrite");
+		    trans.oncomplete = function () {
+			promise.resolve();
+		    };
+		    for (var i=0; i<objTypes.length; i++) {
+			var type = objTypes[i];
+			var store = trans.objectStore(type);
+			for (var h in stm.DataStore[type]) {
+			    if (stm.DataStore[type].hasOwnProperty(h)) {
+				stm.DataStore[type][h]._stm_id = h;
+				store.add(stm.DataStore[type][h]);
+			    }
+			}
+		    }
+		};
+	    };
+	    return promise;
+	} else {
+	    var dstring = "{";
+	    for (var i in stm.DataStore) {
+		if (stm.DataStore.hasOwnProperty(i)) {
+		    dstring += '"'+i+'":{';
+		    var hasOne = false;
+		    for (var h in stm.DataStore[i]) {
+			if (stm.DataStore[i].hasOwnProperty(h)) {
+			    hasOne = true;
+			    dstring += '"'+h+'":'+JSON.stringify(stm.DataStore[i][h]);
+			    dstring += ",";
+			}
+		    }
+		    if (hasOne) {
+			dstring = dstring.slice(0,-1);
+		    }
+		    dstring += "},";
+		}
+	    }
+	    dstring = dstring.slice(0,-1);
+	    dstring += "}";
+	    stm.saveAs(dstring,"session.dump");
 	}
-	dstring = dstring.slice(0,-1);
-	dstring += "}";
-	stm.saveAs(dstring,"session.dump");
-	/*var w = window.open('', '_blank', '');
-	w.document.open();
-	w.document.write(dstring);
-	w.document.close();
-	w.document.title = "session.dump";*/
     };
 
     // save as dialog
-    stm.saveAs = function (data, filename) {
-	try {
-	    data = window.btoa(data);
-	} catch (err) {
-	    var utftext = "";
-	    for(var n=0; n<data.length; n++) {
-		var c=data.charCodeAt(n);
-		if (c<128)
-		    utftext += String.fromCharCode(c);
-                else if((c>127) && (c<2048)) {
-                    utftext += String.fromCharCode((c>>6)|192);
-                    utftext += String.fromCharCode((c&63)|128);}
-		else {
-		    utftext += String.fromCharCode((c>>12)|224);
-                    utftext += String.fromCharCode(((c>>6)&63)|128);
-                    utftext += String.fromCharCode((c&63)|128);}
-            }
-	    data = window.btoa(utftext);
+    stm.saveAs = function (data, filename, raw, prefix) {
+	if (! raw) {
+	    try {
+		data = window.btoa(data);
+	    } catch (err) {
+		var utftext = "";
+		for(var n=0; n<data.length; n++) {
+		    var c=data.charCodeAt(n);
+		    if (c<128)
+			utftext += String.fromCharCode(c);
+                    else if((c>127) && (c<2048)) {
+			utftext += String.fromCharCode((c>>6)|192);
+			utftext += String.fromCharCode((c&63)|128);}
+		    else {
+			utftext += String.fromCharCode((c>>12)|224);
+			utftext += String.fromCharCode(((c>>6)&63)|128);
+			utftext += String.fromCharCode((c&63)|128);}
+		}
+		data = window.btoa(utftext);
+	    }
+
+	    data = prefix ? prefix + data : 'data:application/octet-stream;base64,'+data;
+	} else {
+	    data = prefix ? prefix + data : data;
 	}
-	data = 'data:application/octet-stream;base64,'+data;
 	
 	var anchor = document.createElement('a');
 	anchor.setAttribute('download', filename || "download.txt");
@@ -399,4 +543,56 @@
 	frame.postMessage({ 'type': type, 'data': data }, stm.TargetOrigin);
     };
 
+    stm.storePreferences = function (message_ok, message_err, callback) {
+	if (! message_ok) {
+	    message_ok = "preferences stored";
+	}
+	if (! message_err) {
+	    message_err = "error storing preferences";
+	}
+	jQuery.ajax( { method: "PUT",
+		       cb: callback,
+		       mo: message_ok,
+		       me: message_err,
+		       headers: stm.authHeader,
+		       data: "prefs="+JSON.stringify(stm.user.preferences),
+		       url: RetinaConfig["mgrast_api"]+"/user/"+stm.user.login+"/preferences",
+		       headers: stm.authHeader,
+		       success: function(data) {
+			   alert(this.mo);
+			   if (this.cb) {
+			       this.cb.call(this, 'success');
+			   }
+		       },
+		       error: function () {
+			   alert(this.me);
+			   if (this.cb) {
+			       this.cb.call(this, 'error');
+			   }
+		       }
+		     } );
+    };
+
+    stm.loadPreferences = function () {
+	var promise = jQuery.Deferred();
+	jQuery.ajax( { method: "GET",
+		       dataType: "json",
+		       prom: promise,
+		       headers: stm.authHeader,
+		       url: RetinaConfig["mgrast_api"]+"/user/"+stm.user.login+"?verbosity=preferences",
+		       headers: stm.authHeader,
+		       success: function(data) {
+			   for (var i=0; i<data.preferences.length; i++) {
+			       if (data.preferences[i].name == "shock") {
+				   stm.user.preferences = data.preferences[i].value;
+			       }
+			   }
+			   this.prom.resolve();
+		       },
+		       error: function () {
+			   this.prom.resolve();
+		       }
+		     } );
+	return promise;
+    };
 }).call(this);

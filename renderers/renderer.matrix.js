@@ -54,7 +54,7 @@
             defaults: { minOpacity: 0.1,
 			circleColor: 'purple',
 			dataFontSize: '10px',
-			circleSize: 30,
+			circleSize: 50,
 			colHeaderHeight: 100,
 			orientation: 'normal' },
 	    options: [

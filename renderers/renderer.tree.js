@@ -91,6 +91,31 @@
 		'showTooltip': true,
 		'tooltipStyle': "popover"
 	    },
+	    options: [
+	      { general:
+		[
+		    { name: 'showCollapseAllButton', type: 'bool', description: "display the button to collapse the entire tree?",
+		      title: "show collapse all button", defaultTrue: true },
+		    { name: 'showExpandAllButton', type: 'bool', description: "display the button to expand the entire tree?",
+		      title: "show expand all button", defaultTrue: true },
+		    { name: 'showSearchBar', type: 'bool', description: "display a searchbar?",
+		      title: "show search bar", defaultTrue: true },
+		    { name: 'showTooltip', type: 'bool', description: "display a tooltip for the entries?",
+		      title: "show tooltip", defaultTrue: true },
+		    { name: 'tooltipStyle', type: 'select', description: "style of the tooltip",
+		      title: "tooltip style", options: [ 
+			  { value: "popover", label: "popover", selected: true },
+			  { value: "title", label: "title" } ] }
+		]
+	      },
+	      { layout:
+		[
+		    { name: 'width', type: 'int', description: "width of the tree in pixel", title: "width" },
+		    { name: 'height', type: 'int', description: "height of the tree in pixel", title: "height" },
+		    { name: 'indent', type: 'int', description: "number of pixels to indent each level", title: "indentation" },
+		]
+	      }
+	  ]
 	},
 
 	// example data to show the functionality of the tree renderer
@@ -178,7 +203,7 @@
 		var cB = document.createElement('button');
 		cB.setAttribute("type", "button");
 		cB.className = "btn btn-small";
-		cB.innerHTML = "collapse all";
+		cB.innerHTML = "<icon class='icon-resize-small'></icon>";
 		cB.setAttribute('style', "margin-bottom: 5px; margin-right: 5px;");
 		cB.index = index;
 		cB.addEventListener('click', function () {
@@ -193,7 +218,7 @@
 		var cB = document.createElement('button');
 		cB.setAttribute("type", "button");
 		cB.className = "btn btn-small";
-		cB.innerHTML = "expand all";
+		cB.innerHTML = "<icon class='icon-fullscreen'></icon>";
 		cB.setAttribute('style', "margin-bottom: 5px; margin-right: 5px;");
 		cB.index = index;
 		cB.addEventListener('click', function () {
@@ -250,7 +275,7 @@
 	    }
 
 	    // set the border style of the outer div
-	    renderer.settings.target.setAttribute('style', renderer.settings.target.getAttribute('style')+"border: 1px solid #333333; width: "+renderer.settings.width+"px; overflow: auto; height: "+renderer.settings.height+"px; padding: 5px; border-radius: 3px;");
+	    renderer.settings.target.setAttribute('style', renderer.settings.target.getAttribute('style')+"border: 1px solid #333333;"+(renderer.settings.width ? " width: "+renderer.settings.width+"px;" : "")+" overflow: auto; height: "+renderer.settings.height+"px; padding: 5px; border-radius: 3px;");
 
 	    // create a space for the actual nodes
 	    renderer.settings.nodeSpace = document.createElement('div');
@@ -360,7 +385,7 @@
 		    // check for tooltip style, either popover or plain
 		    if (renderer.settings.tooltipStyle == 'popover') {
 			description = description.replace(/\n/g, "<br>");
-			tooltip = "data-title='<span style=\"color: #333333;\">"+label+"</span>' data-html='true' data-content='<span style=\"color: #333333;\">"+description+"</span>' onmouseover='jQuery(this).popover(\"show\");' onmouseout='jQuery(this).popover(\"destroy\");' ";
+			tooltip = "data-title='<span style=\"color: #333333;\">"+label+"</span>' data-html='true' data-content='<span style=\"color: #333333;\">"+description+"</span>' data-container='body' onmouseover='jQuery(this).popover(\"show\");' onmouseout='jQuery(this).popover(\"destroy\");' ";
 		    } else {
 			tooltip = "title='"+description+"' ";
 		    }

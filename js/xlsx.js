@@ -1,15 +1,5 @@
-//----------------------------------------------------------
-// Copyright (C) Microsoft Corporation. All rights reserved.
-// Released under the Microsoft Office Extensible File License
-// https://raw.github.com/stephen-hardy/xlsx.js/master/LICENSE.txt
-//----------------------------------------------------------
-
-if ((typeof JSZip === 'undefined' || !JSZip) && typeof require === 'function') {
-	var JSZip = require('node-zip');
-}
-
 function xlsx(file) { 
-	'use strict'; // v2.3.2
+	'use strict';
 
 	var result, zip = new JSZip(), zipTime, processTime, s, f, i, j, k, l, t, w, sharedStrings, styles, index, data, val, style, borders, border, borderIndex, fonts, font, fontIndex,
 		docProps, xl, xlWorksheets, worksheet, contentTypes = [[], []], props = [], xlRels = [], worksheets = [], id, columns, cols, colWidth, cell, row, merges, merged,
@@ -46,9 +36,10 @@ function xlsx(file) {
 	
 	function unescapeXML(s) { return typeof s === 'string' ? s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#x27;/g, '\'') : ''; }
 
-   if (typeof file === 'string') { // Load
+    if (typeof file === 'string' || (typeof file === 'object' && ! file.hasOwnProperty('worksheets'))) { // Load
 		zipTime = Date.now();
-		zip = zip.load(file, { base64: true });
+		zip = zip.load(file);
+
 		result = { worksheets: [], zipTime: Date.now() - zipTime };
 		processTime = Date.now();
 		sharedStrings = [];
@@ -130,6 +121,40 @@ function xlsx(file) {
 		}
 
 		result.processTime = Date.now() - processTime;
+
+/*
+  CUSTOM OBJECT FUNCTIONS
+*/
+	
+	result.addWorksheet = function (params) {
+	    var data = jQuery.extend({ data: [ [ { formatCode: "General", value: "" } ] ],
+				       maxRow: 0,
+				       maxCol: 0,
+				       name: "sheet"+ this.worksheets.length,
+				       table: false }, params || {});
+	    this.worksheets.push(data);
+	};
+
+	result.removeWorksheet = function (index) {
+	    this.worksheets.splice(index,1);
+	};
+
+	result.setCell = function (ws, x, y, val) {
+	    if (! this.worksheets[ws].data.hasOwnProperty(y)) {
+		this.worksheets[ws].data[y] = [];
+	    }
+	    this.worksheets[ws].data[y][x] = { formatCode: "General", value: val };
+	    if (x >= this.worksheets[ws].maxCol) {
+		this.worksheets[ws].maxCol = x + 1;
+	    }
+	    if (y >= this.worksheets[ws].maxRow) {
+		this.worksheets[ws].maxRow = y + 1;
+	    }
+	};
+
+/*
+  CUSTOMIZATION END
+*/
 	}
 	else { // Save
 		processTime = Date.now();
@@ -151,7 +176,7 @@ function xlsx(file) {
 		styles = new Array(1);
 		borders = new Array(1);
 		fonts = new Array(1);
-		
+
 		w = file.worksheets.length;
 		while (w--) { 
 			// Generate worksheet (gather sharedStrings), and possibly table files, then generate entries for constant files below
@@ -163,9 +188,11 @@ function xlsx(file) {
 			merges = [];
 			i = -1; l = data.length;
 			while (++i < l) {
+			    if (! data[i]) { continue; }
 				j = -1; k = data[i].length;
 				s += '<row r="' + (i + 1) + '" x14ac:dyDescent="0.25">';
 				while (++j < k) {
+				    if (! data[i][j]) { continue; }
 					cell = data[i][j]; val = cell.hasOwnProperty('value') ? cell.value : cell; t = '';
 					style = { // supported styles: borders, hAlign, formatCode and font style
 						borders: cell.borders, 

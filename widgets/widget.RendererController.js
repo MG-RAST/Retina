@@ -22,26 +22,12 @@
 	widget.params = widget.params || params;
 
 	if (! Retina.RendererInstances.hasOwnProperty(widget.params.type)) {
-	    Retina.add_renderer({"name": widget.params.type, "resource": "Retina/renderers/",  "filename": "renderer."+widget.params.type+".js" }),
-            Retina.load_renderer(widget.params.type, true);
+	    Retina.load_renderer(widget.params.type, true);
 	}
 
-	if (! widget.d) {
-	    widget.d = jQuery.extend(true, {}, Retina.RendererInstances[widget.params.type][0].settings, widget.params.settings);
-	    if (! widget.d.data) {
-		widget.d.data = jQuery.extend(true, {}, Retina.RendererInstances[widget.params.type][0].exampleData());
-		if (typeof Retina.RendererInstances[widget.params.type][0].exampleData().length === 'number') {
-		    var d = [];
-		    var k = Retina.keys(widget.d.data).sort();
-		    for (var i=0; i<k.length; i++) {
-			if (widget.d.data.hasOwnProperty(i)) {
-			    d.push(widget.d.data[i]);
-			}
-		    }
-		    widget.d.data = d;
-		}
-	    }
-	}
+	widget.d = { data: Retina.RendererInstances[widget.params.type][0].exampleData() };
+	widget.d = jQuery.extend(true, widget.d, Retina.RendererInstances[widget.params.type][0].settings, widget.params.settings);
+
 	var cDiv = widget.controlDiv = document.createElement('div');
 	widget.displayDiv = document.createElement('div');
 	widget.d.target = widget.displayDiv;
@@ -143,6 +129,15 @@
     
     widget.inputRenderint = function (opt) {
 	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=parseInt(this.value);Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();' id='RendererControllerInput_"+opt.index+"_"+opt.name+"'>";
+    };
+
+    widget.inputRenderbool = function (opt) {
+	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=(this.selectedIndex==0 ? true : false);Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();' id='RendererControllerInput_"+opt.index+"_"+opt.name+"'>";
+
+	html += "<option"+(opt.defaultTrue ? " selected=selected" : "")+">yes</option><option"+(opt.defaultTrue ? "" : " selected=selected")+">no</option>";
+
+	html += "</select>";
+	return html;
     };
 
     widget.inputRenderselect = function (opt) {

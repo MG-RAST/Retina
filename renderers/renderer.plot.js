@@ -105,16 +105,16 @@
 		'default_line_color': 'black',
 		'default_line_width': 1,
 		'show_legend': true,
-		'legend_position': 'left',
+		'legend_position': 'right',
 		'series': [],
 		'connected': true,
 		'show_dots': true,
 		'width': 800,
 		'height': 400,
-		'x_min': 0,
-		'x_max': 1,
-		'y_min': 0,
-		'y_max': 100,
+		'x_min': undefined,
+		'x_max': undefined,
+		'y_min': undefined,
+		'y_max': undefined,
 		'x_scale': 'linear',
 		'y_scale': 'linear',
 		'x_title': '',
@@ -123,7 +123,7 @@
 		'y_titleOffset': 45,
 		'titleOffset': 0,
 		'drag_select': null,
-		'data': [ ] },
+		'data': undefined },
 	    options: [
 		{ general:
 		  [
@@ -131,14 +131,10 @@
 			title: "default line color" },
 		      { name: 'default_line_width', type: 'int', description: "default width of the data lines of the plot in pixel",
 			title: "default line width" },
-		      { name: 'connected', type: 'select', description: "sets whether the data points are connected or not",
-			title: "connected", options: [ 
-			    { value: 0, label: "no" },
-			    { value: 1, selected: true, label: "yes" } ] },
-		      { name: 'show_dots', type: 'select', description: "sets whether the data points are displayed or not",
-			title: "show dots", options: [ 
-			    { value: 0, label: "no" },
-			    { value: 1, selected: true, label: "yes" } ] },
+		      { name: 'connected', type: 'bool', description: "sets whether the data points are connected or not",
+			title: "connected", defaultTrue: true },
+		      { name: 'show_dots', type: 'bool', description: "sets whether the data points are displayed or not",
+			title: "show dots", defaultTrue: true },
 		  ]
 		},
 		{ text:
@@ -154,10 +150,8 @@
 		},
 		{ layout:
 		  [
-		      { name: 'show_legend', type: 'select', description: "sets whether the legend is displayed or not",
-			title: "show legend", options: [ 
-			    { value: 0, label: "no" },
-			    { value: 1, selected: true, label: "yes" } ] },
+		      { name: 'show_legend', type: 'bool', description: "sets whether the legend is displayed or not",
+			title: "show legend", defaultTrue: true },
 		      { name: 'width', type: 'int', description: "width of the plot in pixel", title: "width" },
 		      { name: 'height', type: 'int', description: "height of the plot in pixel", title: "height" },
 		      { name: 'legend_position', type: 'select',
@@ -205,7 +199,7 @@
         },
 	
 	render: function () {
-	    renderer = this;
+	    var renderer = this;
 	    
 	    // get the target div
 	    var target = renderer.settings.target;
@@ -228,7 +222,7 @@
 	},
 	
 	drawImage: function (svg, index) {
-	    renderer = Retina.RendererInstances.plot[index];
+	    var renderer = Retina.RendererInstances.plot[index];
 	    
 	    var chartAreas  = [ [ 0.1, 0.1, 0.95, 0.9 ],
 				[ 0.2, 0.1, 0.95, 0.9 ],
@@ -248,6 +242,27 @@
 			   '#2F96B4', // lightblue
 			   '#bd2fa6'  // purple 
 			 ];
+
+	    if (renderer.settings.x_min === undefined) {
+		var x_min = undefined;
+		var x_max = undefined;
+		var y_min = undefined;
+		var y_max = undefined;
+		for (var i=0; i<renderer.settings.data.points.length; i++) {
+		    for (var h=0; h<renderer.settings.data.points[i].length; h++) {
+			if (x_min === undefined || renderer.settings.data.points[i][h].x < x_min) x_min = renderer.settings.data.points[i][h].x;
+			if (x_max === undefined || renderer.settings.data.points[i][h].x > x_max) x_max = renderer.settings.data.points[i][h].x;
+			if (y_min === undefined || renderer.settings.data.points[i][h].y < y_min) y_min = renderer.settings.data.points[i][h].y;
+			if (y_max === undefined || renderer.settings.data.points[i][h].y > y_max) y_max = renderer.settings.data.points[i][h].y;
+		    }
+		}
+		var sx = Retina.niceScale({min: x_min, max: x_max});
+		renderer.settings.x_min = sx.min;
+		renderer.settings.x_max = sx.max;
+		var sy = Retina.niceScale({min: y_min, max: y_max});
+		renderer.settings.y_min = sy.min;
+		renderer.settings.y_max = sy.max;
+	    }
 	    
 	    svg.plot.noDraw().title(renderer.settings.title, renderer.settings.titleOffset, renderer.settings.title_color, renderer.settings.title_settings);
 	    for (i=0;i<renderer.settings.data.length;i++) {
