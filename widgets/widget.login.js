@@ -25,7 +25,7 @@
     widget.myDataLink = null;
     
     widget.display = function (wparams) {
-	widget = this;
+	var widget = this;
 	var index = widget.index;
 	
 	if (wparams && wparams.hasOwnProperty('authResources')) {
@@ -34,7 +34,7 @@
 
 	// append the modals to the body
 	var space = document.createElement('div');
-	space.innerHTML = widget.modals(index);
+	space.innerHTML = widget.modals();
 	document.body.appendChild(space);
 
 	// put the login thing into the target space
@@ -71,7 +71,7 @@
 	document.body.appendChild(css_container);
 
 	widget.target = wparams.target;
-	widget.target.innerHTML = widget.login_box(index);
+	widget.target.innerHTML = widget.login_box();
 
 	if (wparams.callback && typeof(wparams.callback) == 'function') {
 	    widget.callback = wparams.callback;
@@ -85,30 +85,31 @@
 		if (stm.user && stm.user.login == udata.login) {
 		    udata.user = stm.user;
 		}
-		Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index, udata.user);
-		if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
-		    Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
-									      'result': 'success',
-									      'token' : udata.token,
-									      'user'  : udata.user });
+		widget.target.innerHTML = widget.login_box(udata.user);
+		if (widget.callback && typeof(widget.callback) == 'function') {
+		    widget.callback.call(null, { 'action': 'login',
+						 'result': 'success',
+						 'token' : udata.token,
+						 'user'  : udata.user });
 		}
 	    } else {
-		if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
-		    Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
-									      'result': 'failure' });
+		if (widget.callback && typeof(widget.callback) == 'function') {
+		    widget.callback.call(null, { 'action': 'login',
+						 'result': 'failure' });
 		}
 	    }
 	} else {
-	    if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
-		Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
-									  'result': 'failure' });
+	    if (widget.callback && typeof(widget.callback) == 'function') {
+		widget.callback.call(null, { 'action': 'login',
+					     'result': 'failure' });
 	    }
 	}
 
     };
 
-    widget.modals = function (index) {
-	widget = Retina.WidgetInstances.login[index];
+    widget.modals = function () {
+	var widget = this;
+	var index = widget.index;
 	var authResourceSelect = "";
 	var loginStyle = "";
 	if (Retina.keys(widget.authResources).length > 2) {
@@ -147,6 +148,7 @@
 	}
 	var html = '\
         <div id="loginModal" class="modal show fade" tabindex="-1" style="width: 400px; display: none; z-index: 10000;" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">\
+        <div id="loginModalDisable" style="display: none; position: absolute; width: 400px; height: 275px; background-color: black; opacity: 0.3; z-index: 1;"><img src="Retina/images/waiting.gif" style="margin-top: 100px; margin-left: 40%;"></div>\
       <div class="modal-header">\
 	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>\
 	<h3 id="loginModalLabel">Authentication</h3>\
@@ -156,13 +158,13 @@
 	<p>Enter your credentials.</p>\
         <table>\
           <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">login</th><td><input type="text" '+loginStyle+'id="login">'+authResourceSelect+'</td></tr>\
-          <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">password</th><td><input type="password" id="password" onkeypress="event = event || window.event;if(event.keyCode == 13) { Retina.WidgetInstances.login['+index+'].perform_login('+index+');}"></td></tr>\
+          <tr><th style="vertical-align: top;padding-top: 5px;width: 100px;text-align: left;">password</th><td><input type="password" id="password" onkeypress="event = event || window.event;if(event.keyCode == 13) { Retina.WidgetInstances.login['+index+'].perform_login();}"></td></tr>\
 '+(widget.forgotEnabled ? '<tr><td colspan=2 style="text-align: right;"><a href="'+widget.forgotLink+'" target=_blank>forgot password</a></td></tr>' : '')+'\
         </table>\
       </div>\
       <div class="modal-footer">\
 	<button class="btn btn-danger pull-left" data-dismiss="modal" aria-hidden="true">cancel</button>\
-	<button class="btn btn-success" onclick="Retina.WidgetInstances.login['+index+'].perform_login('+index+');">log in</button>\
+	<button class="btn btn-success" onclick="Retina.WidgetInstances.login['+index+'].perform_login();">log in</button>\
       </div>\
     </div>\
 \
@@ -182,8 +184,9 @@
 	return html;
     };
 
-    widget.login_box = function (index, user) {
-	widget = Retina.WidgetInstances.login[index];
+    widget.login_box = function (user) {
+	var widget = this;
+	var index = widget.index;
 
 	var html = "";
 
@@ -201,13 +204,13 @@
    <img src="Retina/images/user.png">\
    <h4 style="margin-top: 5px;">'+user.firstname+' '+user.lastname+'</h4>\
 <p style="margin-top: -10px;">'+user.email+'</p>\
-   <button class="btn btn-inverse" onclick="document.getElementById(\'userinfo\').style.display=\'none\';Retina.WidgetInstances.login['+index+'].perform_logout('+index+');">logout</button>\
+   <button class="btn btn-inverse" onclick="document.getElementById(\'userinfo\').style.display=\'none\';Retina.WidgetInstances.login['+index+'].perform_logout();">logout</button>\
 '+(widget.myDataEnabled ? '<a href="'+widget.myDataLink+'" target=_blank class="btn" style="float: left;">myData</a>' : '')+'\
 </div>';
 	} else {
 	    html ='\
 <div style="float: right; margin-right: 20px; margin-top: 7px; color: gray;">\
-   <button class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="jQuery(\'#loginModal\').modal(\'show\');document.getElementById(\'login\').focus();">\
+   <button class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="document.getElementById(\'loginModalDisable\').style.display=\'none\';jQuery(\'#loginModal\').modal(\'show\');document.getElementById(\'login\').focus();">\
       Login\
    </button>\
 ' + (widget.registerEnabled ? '<a href="'+widget.registerLink+'" target=_blank class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;">\
@@ -218,8 +221,13 @@
 	return html;
     };
 
-    widget.perform_login = function (index) {
-	widget = Retina.WidgetInstances.login[index];
+    widget.perform_login = function () {
+	var widget = this;
+	var index = this.index;
+
+	// disable the login field while loading
+	document.getElementById('loginModalDisable').style.display = "";
+
 	var login = document.getElementById('login').value;
 	var pass = document.getElementById('password').value;
 	var questionmark = "?";
@@ -232,10 +240,13 @@
 	    auth_url = widget.authResources[widget.authResources.default].url;
 	    header[(widget.authResources[widget.authResources.default].keyword || "auth")] = (widget.authResources[widget.authResources.default].prefix || "")+Retina.Base64.encode(login+":"+pass);
 	}
-	jQuery.ajax({ dataType: "json",
+	jQuery.ajax({ method: widget.authResources[widget.authResources.default].method || "GET",
+		      dataType: "json",
 		      url: auth_url,
 		      headers: header,
 		      error: function (xhr) {
+			  var widget = Retina.WidgetInstances.login[index];
+			  document.getElementById('loginModalDisable').style.display = "none";
 			  var error = "Unknown error";
 			  if (xhr.status == 401) {
 			      error = "invalid credentials";
@@ -243,51 +254,96 @@
 			      error = "authorization server unavailable";
 			  }
 			  document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button>login failed - '+error+'</div>';
-			  if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
-			      Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
-											'result': 'failed',
-											'token': null,
-											'user': null });
+			  if (widget.callback && typeof(widget.callback) == 'function') {
+			      widget.callback.call(null, { 'action': 'login',
+							   'result': 'failed',
+							   'error': error,
+							   'token': null,
+							   'user': null });
 			  }
 		      },
 		      success: function (d) {
-			  if (d && d.token) {
+			  var widget = Retina.WidgetInstances.login[index];
+			  document.getElementById('loginModalDisable').style.display = "none";
+			  if (d && d[widget.authResources[widget.authResources.default].tokenField || "token"]) {
+			      if (d.hasOwnProperty('fullname')) {
+				  d.firstname = d.fullname.substr(0, d.fullname.lastIndexOf(' '));
+				  d.lastname = d.fullname.substr(d.fullname.lastIndexOf(' ') + 1);
+			      }
 			      var user = d;
-			      Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index, user);
+			      user.lastname = d.lastname || "";
+			      user.firstname = d.firstname || d[widget.authResources[widget.authResources.default].loginField || "login"]
+			      user.login = d[widget.authResources[widget.authResources.default].loginField];
+			      widget.target.innerHTML = widget.login_box(user);
 			      document.getElementById('failure').innerHTML = "";
 			      jQuery('#loginModal').modal('hide');
 			      jQuery('#msgModal').modal('show');
-			      jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "user": { firstname: d.firstname,
-														   lastname: d.lastname,
-														   email: d.email,
-														   login: d.login },
-													 "token": d.token }), { expires: 7 });
-			      if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
-				  Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
-											    'result': 'success',
-											    'token' : d.token,
-											    'user'  : user  });
+			      jQuery.cookie(widget.cookiename, JSON.stringify({ "user": { firstname: d.firstname || d[widget.authResources[widget.authResources.default].loginField || "login"],
+											  lastname: d.lastname || "",
+											  email: d.email || "",
+											  login: d[widget.authResources[widget.authResources.default].loginField || "login"],
+											  id: d.id || null },
+										"token": d[widget.authResources[widget.authResources.default].tokenField || "token"] }), { expires: 7 });
+			      if (widget.callback && typeof(widget.callback) == 'function') {
+				  widget.callback.call(null, { 'action': 'login',
+							       'result': 'success',
+							       'token' : d[widget.authResources[widget.authResources.default].tokenField || "token"],
+							       'user'  : user  });
 			      }
 			  } else {
 			      document.getElementById('failure').innerHTML = '<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> Login failed.</div>';
-			      if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
-				  Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'login',
-											    'result': 'failed',
-											    'token' : null,
-											    'user'  : null  });
+			      if (widget.callback && typeof(widget.callback) == 'function') {
+				  widget.callback.call(null, { 'action': 'login',
+							       'result': 'failed',
+							       'token' : null,
+							       'user'  : null  });
 			      }
 			  }	  
 		      }
 		    });
     };
     
-    widget.perform_logout = function (index) {
-	Retina.WidgetInstances.login[index].target.innerHTML = Retina.WidgetInstances.login[index].login_box(index);
-	jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "token": null,
-										   "user": null }));
-	if (Retina.WidgetInstances.login[index].callback && typeof(Retina.WidgetInstances.login[index].callback) == 'function') {
-	    Retina.WidgetInstances.login[index].callback.call(null, { 'action': 'logout' });
+    widget.perform_logout = function () {
+	var widget = this;
+	var index = widget.index;
+
+	widget.target.innerHTML = widget.login_box();
+	jQuery.cookie(widget.cookiename, JSON.stringify({ "token": null,
+							  "user": null }));
+	if (widget.callback && typeof(widget.callback) == 'function') {
+	    widget.callback.call(null, { 'action': 'logout' });
 	}
+    };
+
+    widget.handleAuthFailure = function (xhr) {
+	var widget = this;
+	var index = widget.index;
+
+	var response = JSON.parse(xhr.responseText);
+	if (response && response.hasOwnProperty('ERROR') && response.ERROR == "authentication failed  - webkey expired") {
+	    alert('Your session as expired, please log in again');
+	    if (stm) {
+		stm.user = null;
+		stm.authHeader = {};
+	    }
+	    widget.perform_logout();
+	}
+    };
+
+    widget.verifyAuthentication = function (url, header) {
+	var widget = this;
+
+	jQuery.ajax({ method: widget.authResources[widget.authResources.default].method || "GET",
+		      dataType: "json",
+		      url: url,
+		      headers: header,
+		      error: function (xhr) {
+			  widget.perform_logout();
+		      },
+		      success: function (d) {
+			  //console.log(d);
+		      }
+		    });
     };
     
 })();

@@ -299,8 +299,8 @@
 	    var defs = svg.defs();
 	    var max = 0;
 	    var y2max = 0;
-	    for (i=0; i<renderer.settings.data.length; i++) {
-		for (h=0; h<renderer.settings.data[i].data.length; h++) {
+	    for (var i=0; i<renderer.settings.data.length; i++) {
+		for (var h=0; h<renderer.settings.data[i].data.length; h++) {
 		    if (renderer.settings.data[i].settings && renderer.settings.data[i].settings.isY2) {
 			if (parseFloat(renderer.settings.data[i].data[h]) > y2max) {
 			    y2max = parseFloat(renderer.settings.data[i].data[h]);

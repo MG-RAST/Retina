@@ -2151,17 +2151,22 @@
 			       this.legend._bgSettings);
 	    var horiz = false;// dims[this.W] > dims[this.H];
 	    var numSer = this._series.length;
-	    var offset = (horiz ? dims[this.W] : dims[this.H]) / numSer;
+	    var offset = this.legend._sampleSize * 1.2;//(horiz ? dims[this.W] : dims[this.H]) / numSer;
 	    var xBase = dims[this.X] + 5;
 	    var yBase = dims[this.Y] + ((horiz ? dims[this.H] : offset) + this.legend._sampleSize) / 2;
 	    for (var i = 0; i < numSer; i++) {
 		var series = this._series[i];
-		this._wrapper.rect(g, xBase + (horiz ? i * offset : 0),
+		this._wrapper.rect(g,
+				   xBase + (horiz ? i * offset : 0),
 				   yBase + (horiz ? 0 : i * offset) - this.legend._sampleSize,
-				   this.legend._sampleSize, this.legend._sampleSize,
+				   this.legend._sampleSize,
+				   this.legend._sampleSize,
 				   {fill: series._fill, stroke: series._stroke, strokeWidth: 1});
-		this._wrapper.text(g, xBase + (horiz ? i * offset : 0) + this.legend._sampleSize + 5,
-				   yBase + (horiz ? 0 : i * offset), series._name, this.legend._textSettings);
+		this._wrapper.text(g,
+				   xBase + (horiz ? i * offset : 0) + this.legend._sampleSize + 5,
+				   yBase + (horiz ? 0 : i * offset) - 4,
+				   series._name,
+				   this.legend._textSettings);
 	    }
 	},
 	
@@ -3801,6 +3806,9 @@
                         if (cur_str.substr(cur_str.indexOf('.')+1).length > 3) {
                                 cur_str = cur.toFixed(3).toString();
                         }
+			if (axis._scale.type == 'int') {
+			    cur_str = cur.toFixed(0).toString();
+			}
 			this._wrapper.text(this._plotCont, (horiz ? xy : zeroo - size),
 					   (horiz ? zeroo + size + 12 : xy + (size / 2)),
 					   (axis._scale.type == 'log') ? logtext : cur_str,
@@ -3935,16 +3943,22 @@
 	    var dims = this._getDims(this.legend._area);
 	    var horiz = false;// dims[this.W] > dims[this.H];
 	    var numFn = this._functions.length || this.series.length;
-	    var offset = (horiz ? dims[this.W] : dims[this.H]) / numFn;
+	    var offset = this.legend._sampleSize * 1.2;//(horiz ? dims[this.W] : dims[this.H]) / numFn;
 	    var xBase = dims[this.X] + 5;
 	    var yBase = dims[this.Y] + ((horiz ? dims[this.H] : offset) + this.legend._sampleSize) / 2;
 	    for (var i = 0; i < numFn; i++) {
 		var fn = this._functions.lenth ? this._functions[i] : this.series[i];
-		this._wrapper.rect(g, xBase + (horiz ? i * offset : 0),
+		this._wrapper.rect(g,
+				   xBase + (horiz ? i * offset : 0),
 				   yBase + (horiz ? 0 : i * offset) - this.legend._sampleSize,
-				   this.legend._sampleSize, this.legend._sampleSize, {fill: fn._stroke ? fn._stroke : fn.color });
-		this._wrapper.text(g, xBase + (horiz ? i * offset : 0) + this.legend._sampleSize + 5,
-				   yBase + (horiz ? 0 : i * offset), fn._name ? fn._name : fn.name, this.legend._textSettings);
+				   this.legend._sampleSize,
+				   this.legend._sampleSize,
+				   {fill: fn._stroke ? fn._stroke : fn.color });
+		this._wrapper.text(g,
+				   xBase + (horiz ? i * offset : 0) + this.legend._sampleSize + 5,
+				   yBase + (horiz ? 0 : i * offset) - 3,
+				   fn._name ? fn._name : fn.name,
+				   this.legend._textSettings);
 	    }
 	},
 	

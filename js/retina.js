@@ -285,11 +285,11 @@
     Retina.propSort = function(prop, ltr) {
 	if (ltr) {
 	    return function(a, b) {
-		return typeof a[prop].localeCompare == 'function' ? b[prop].localeCompare(a[prop]) : b - a;
+		return typeof a[prop].localeCompare == 'function' ? b[prop].localeCompare(a[prop]) : b[prop] - a[prop];
 	    }
 	} else {
 	    return function(a, b) {
-		return typeof a[prop].localeCompare == 'function' ? a[prop].localeCompare(b[prop]) : a - b;
+		return typeof a[prop].localeCompare == 'function' ? a[prop].localeCompare(b[prop]) : a[prop] - b[prop];
 	    }
 	}
     };
@@ -361,16 +361,19 @@
 
     /* create an image from an svg  */
     Retina.svg2png = function (source, target, width, height) {
+	var promise = jQuery.Deferred();
 	Retina.load_library('canvg.js').then( function () {
-	    var svg = source.innerHTML;
-	    svg = svg.replace(/:/, "");
-	    svg = svg.replace(/xlink:/g, "");
+	    var svg = document.querySelector(source || 'svg');
+	    var serializer = new XMLSerializer();
+	    svg = serializer.serializeToString(svg);
 	    var canvas = document.createElement('canvas');
 	    canvas.setAttribute("width", width+"px");
 	    canvas.setAttribute("height", height+"px");
 	    target.appendChild(canvas);
 	    canvg(canvas, svg);
+	    promise.resolve();
 	} );
+	return promise;
     }
 
     Retina.Base64 = {
@@ -620,6 +623,14 @@
 	return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
     }
     
+    /* calculate the log 10 of a number */
+    Retina.log10 = function (val) {
+	if (val == 0) {
+	    return 0;
+	}
+	return Math.log(val) / Math.LN10;
+    }
+
     /* get a nice number */
     Retina.niceNum = function (range, round) {
         var exponent = Math.floor(Math.log10(range)); /** exponent of range */
