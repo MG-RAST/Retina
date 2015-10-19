@@ -569,7 +569,7 @@
 
 	    var url = renderer.settings.navigation_url + query + "&limit=" + renderer.settings.asynch_limit + "&offset=" + (renderer.settings.offset || 0) + "&order=" +renderer.settings.asynch_filter_attribute;
 
-	    var headers = stm.Authentication ? {'AUTH': stm.Authentication} : {};
+        var headers = renderer.settings.hasOwnProperty('headers') ? renderer.settings.headers : (stm.Authentication ? {'AUTH': stm.Authentication} : {});
 	
 	    jQuery.ajax({ url: url, headers: headers, dataType: "json", success: function(data) {
 		renderer =  Retina.RendererInstances.listselect[index];
