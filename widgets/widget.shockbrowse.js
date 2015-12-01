@@ -52,6 +52,7 @@
   customMultiPreview - optionally provided custom function for preview of multiple file selection, receives the list of selected files, must return the HTML to be displayed in the preview section
   autoDecompress - automatically decompress compressed files after upload without asking the user, default is false
   autoUnarchive - automatically unpack archives after uploading without asking the user, default is false
+  hasExpiration - set expiration time for uploads, default is off (empty string). in format of \d+[MHD] where M = minute, H = hour, D = day
   deleteOriginalArchive - automatically delete the original archive after it has been unpacked successfully, default is true
 
   uploadRestrictions - array of objects with the attributes 'expression' which is a regular expression to match a filename and 'text' which will be displayed as an error alert to the user. Filenames that match will not be able to be uploaded. Default is an empty array.
@@ -129,6 +130,7 @@
     widget.uploadPaused = false;
     widget.chunkComplete = false;
     widget.autoDecompress = false;
+    widget.hasExpiration = "";
     widget.calculateMD5 = false;
     widget.MD5chunksize = 1024 * 1024 * 10; // 10 MB
     widget.fileDoneAttributes = {};
@@ -1662,6 +1664,11 @@
 	    filename = filename.replace(/\.gz$/, "");
 	    filename = filename.replace(/\.bz2$/, "");
 	}
+	// add expiration if requested
+	if (widget.hasExpiration && (widget.hasExpiration != "")) {
+	    form.append('expiration', widget.hasExpiration);
+    }
+    
 	form.append('file_name', filename);
 	jQuery.ajax(widget.uploadURL, {
 	    contentType: false,
