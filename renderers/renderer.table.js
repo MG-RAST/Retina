@@ -190,7 +190,7 @@
 	    
 	    renderer.settings.target.innerHTML = "";
 	    if (renderer.settings.synchronous == false) {
-		renderer.settings.target.innerHTML = '<div style="position: absolute; width: 100%; height: 100%; opacity: 0.7; background-color: white; display: none;"></div>';
+		renderer.settings.target.innerHTML = '<div style="position: absolute; opacity: 0.7; background-color: white; display: none;"></div>';
 	    }
 	    
 	    // check if we have a header, otherwise interpret the first line as the header
@@ -1056,6 +1056,9 @@
 	    renderer = Retina.RendererInstances.table[index];
 
 	    renderer.settings.target.firstChild.style.display = "";
+	    var t = renderer.settings.target.childNodes[1];
+	    renderer.settings.target.firstChild.style.width = t.offsetWidth + 'px';
+	    renderer.settings.target.firstChild.style.height = t.offsetHeight + 'px';
 
 	    if (typeof params == 'string') {
 	        if (params == 'first') {
