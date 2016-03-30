@@ -555,7 +555,7 @@
 		       mo: message_ok,
 		       me: message_err,
 		       headers: stm.authHeader,
-		       data: "prefs="+JSON.stringify(stm.user.preferences),
+		       data: "prefs="+JSON.stringify(stm.user.preferences).replace(/\./g , "||"),
 		       url: RetinaConfig["mgrast_api"]+"/user/"+stm.user.login+"/preferences",
 		       headers: stm.authHeader,
 		       success: function(data) {
@@ -584,7 +584,7 @@
 		       success: function(data) {
 			   for (var i=0; i<data.preferences.length; i++) {
 			       if (data.preferences[i].name == "shock") {
-				   stm.user.preferences = data.preferences[i].value;
+				   stm.user.preferences = JSON.parse(JSON.stringify(data.preferences[i].value).replace(/\|\|/g , "."));
 			       }
 			   }
 			   this.prom.resolve();

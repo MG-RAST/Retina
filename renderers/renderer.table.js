@@ -53,7 +53,8 @@
         case_sensitive - boolean to turn on / off case sensitivity in filtering
         operator - list of operators available in this filter
         active_operator - selected operator
-        type - text or select
+        type - text, select or premade-select
+        options - premade-select only, a list of hashes with the keys "text" and "value"
 
   hide_options (BOOLEAN)
       Turns display of the options button on and off. Default is false (the option button is visible).
@@ -853,7 +854,7 @@
 	    // display of window offset
 	    var showing = document.createElement("td");
 	    showing.setAttribute("style", "text-align: center;");	  
-	    showing.innerHTML = "showing rows "+ ((renderer.settings.offset || offset) + 1) +"-"+(disp.length + (renderer.settings.offset || offset))+" of "+(renderer.settings.numrows || tdata.length);
+	    showing.innerHTML = tdata.length ? "showing rows "+ ((renderer.settings.offset || offset) + 1) +"-"+(disp.length + (renderer.settings.offset || offset))+" of "+(renderer.settings.numrows || tdata.length) : "there are no rows to display";
 	    
 	    // create the table to host navigation
 	    var bottom_table = document.createElement("table");
@@ -1137,7 +1138,7 @@
 	    }
 	    var headers = renderer.settings.hasOwnProperty('headers') ? renderer.settings.headers : (stm.Authentication ? {'AUTH': stm.Authentication} : {});
 	
-	    jQuery.ajax({ url: url, headers: headers, dataType: "json", index: index, success: function(data) {
+	    return jQuery.ajax({ url: url, headers: headers, dataType: "json", index: index, success: function(data) {
 		var index = this.index;
 		renderer =  Retina.RendererInstances.table[index];
 		if (typeof renderer.settings.data_manipulation == "function") {

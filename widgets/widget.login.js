@@ -197,25 +197,47 @@
       <i class="icon-user icon-white" style="margin-right: 5px;"></i>\
       '+user.firstname+' '+user.lastname+'\
       <span class="caret" style="margin-left: 5px;"></span>\
-   </button>\
-'+(widget.helpEnabled ? '<a href="'+widget.helpLink+'" target=_blank class="btn btn-inverse" style="border-radius: 0px 3px 3px 0px;">?</a>' : "")+'\
-</div>\
+</button>';
+	    if (widget.helpEnabled) {
+	    	if (widget.helpMenu) {
+		    html += '<button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown" href="#">?</button><ul class="dropdown-menu pull-right">';
+		    for (var i=0; i<widget.helpMenu.length; i++) {
+			html += '<li><a href="'+widget.helpMenu[i].url+'" target=_blank>'+widget.helpMenu[i].title+'</a></li>';
+		    }
+		    html += '</ul>'
+		} else {
+		    html += '<a href="'+widget.helpLink+'" target=_blank class="btn btn-inverse" style="border-radius: 0px 3px 3px 0px;">?</a>';
+		}
+	    }
+	    html += '</div>\
 <div class="userinfo" id="userinfo" style="display: none;">\
    <img src="Retina/images/user.png">\
    <h4 style="margin-top: 5px;">'+user.firstname+' '+user.lastname+'</h4>\
 <p style="margin-top: -10px;">'+user.email+'</p>\
    <button class="btn btn-inverse" onclick="document.getElementById(\'userinfo\').style.display=\'none\';Retina.WidgetInstances.login['+index+'].perform_logout();">logout</button>\
-'+(widget.myDataEnabled ? '<a href="'+widget.myDataLink+'" target=_blank class="btn" style="float: left;">myData</a>' : '')+'\
+'+(widget.myDataEnabled ? '<a href="'+widget.myDataLink+'" class="btn" style="float: left;">myData</a>' : '')+'\
 </div>';
 	} else {
-	    html ='\
-<div style="float: right; margin-right: 20px; margin-top: 7px; color: gray;">\
-   <button class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="document.getElementById(\'loginModalDisable\').style.display=\'none\';jQuery(\'#loginModal\').modal(\'show\');document.getElementById(\'login\').focus();">\
+	    html ='<div style="float: right; margin-right: 20px; margin-top: 7px; color: gray;" class="btn-group">';
+	    if (widget.helpEnabled) {
+		if (widget.helpMenu) {
+		    html += '<button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown" href="#">?</button><ul class="dropdown-menu">';
+		    for (var i=0; i<widget.helpMenu.length; i++) {
+			html += '<li><a href="'+widget.helpMenu[i].url+'" target=_blank>'+widget.helpMenu[i].title+'</a></li>';
+		    }
+		    html += '</ul>'
+		} else {
+		    html += '<a href="'+widget.helpLink+'" target=_blank class="btn btn-inverse" style="border-radius: 0px 3px 3px 0px;">?</a>';
+		}
+	    }
+	    html += '<button class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="document.getElementById(\'loginModalDisable\').style.display=\'none\';jQuery(\'#loginModal\').modal(\'show\');document.getElementById(\'login\').focus();">\
       Login\
    </button>\
-' + (widget.registerEnabled ? '<a href="'+widget.registerLink+'" target=_blank class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;">\
+' + (widget.registerEnabled ? '<button onclick="window.open(\''+widget.registerLink+'\')" target=_blank class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;">\
       Register\
-</a>' : '') +(widget.helpEnabled ? '<a href="'+widget.helpLink+'" target=_blank class="btn btn-inverse" style="border-radius: 0px 3px 3px 0px;">?</a>' : "")+'</div>';
+</button>' : '');
+	    
+	    html += '</div>';
 	}
 	
 	return html;

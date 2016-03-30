@@ -260,11 +260,11 @@
 	return object;
     };
     
-    Retina.keys = function (object) {
-	if (object !== Object(object)) throw new TypeError('Invalid object');
+    Retina.keys = function (object, nofunctions) {
+	if (object !== Object(object)) return [];//throw new TypeError('Invalid object');
 	var keys = [];
 	for (var key in object) {
-	    if (object.hasOwnProperty(key)) {
+	    if (object.hasOwnProperty(key) && (! nofunctions || typeof object[key] !== "function")) {
 		keys[keys.length] = key;
 	    }
 	}
@@ -520,7 +520,7 @@
     };
 
     Retina.dateString = function (date) {
-	var d = date || new Date,
+	var d = (date && typeof date.match != 'function') ? date : new Date(date);
 	dformat = [d.getFullYear(),
 		   (d.getMonth()+1).padLeft(),
 		   d.getDate().padLeft()].join('-') +' ' +
