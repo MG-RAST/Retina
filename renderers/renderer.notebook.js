@@ -41,17 +41,15 @@
 	    for (var i=0; i<renderer.settings.flow.length; i++) {
 		try {
 		    var item = renderer.settings.flow[i];
-		    var edit = "";
+		    var edit = " style='clear: both;'";
 		    if (renderer.settings.editMode) {
-			edit = " onclick='Retina.RendererInstances.notebook["+this.index+"].editFlowItem("+i+");' style='cursor: pointer;";
+			edit = " onclick='Retina.RendererInstances.notebook["+this.index+"].editFlowItem("+i+");' style='cursor: pointer;"+(item.hasOwnProperty('width') ? "" : " clear: both;")+"'";
 		    }
 		    var width = "";
-		    var clear = "; clear: both;'";
 		    if (item.hasOwnProperty('width')) {
 			width = " "+item.width;
-			clear = "'";
+			edit = "";
 		    }
-		    edit += clear;
 		    
 		    // this is an image
 		    if (item.type == 'Image') {
@@ -143,12 +141,15 @@
 		    }
 		    // this is plain text
 		    else if (item.type == "Text") {
-			var variables = item.text.match(/\$\$[^\$]+\$\$/);
 			var text = renderer.parseVariables(item.text);
 			var toc = "";
+			var tocLink = "";
+			if (item.tocLink) {
+			    tocLink = renderer.parseVariables(item.tocLink);
+			}
 			if (item.tocName) {
 			    toc = "<a name='"+item.tocName+"' style='padding-top: 60px;'></a>";
-			    tocList.push("<a href='#"+item.tocName+"'>"+(item.tocTitle || item.tocName)+"</a>");
+			    tocList.push("<a href='"+(item.tocLink ? tocLink : "#"+item.tocName)+"'>"+(item.tocTitle || item.tocName)+"</a>");
 			}
 			html.push(toc+"<div id='flowItem"+i+"' class='notebook"+item.style+width+"'"+edit+">"+text+"</div>");
 		    } else {
