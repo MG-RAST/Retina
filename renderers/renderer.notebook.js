@@ -8,12 +8,12 @@
 	    title: "Notebook",
             author: "Tobias Paczian",
             version: "1.0",
-            requires: [],
+            requires: [ 'jsoneditor.min.js' ],
             defaults: {
 		dataLoaded: false,
 		flows: {},
 		flow: [],
-		images: {},
+		images: [],
 		dataContainer: {},
 		graphicItems: [],
 		trash: [],
@@ -38,27 +38,28 @@
 		    renderer.listSHOCKFlows();
 		}
 	    }
+	    var widthOn = false;
 	    for (var i=0; i<renderer.settings.flow.length; i++) {
 		try {
 		    var item = renderer.settings.flow[i];
-		    var edit = " style='clear: both;'";
+		    if (item.hasOwnProperty('width')) {
+			widthOn = true;
+		    } else if (widthOn) {
+			widthOn = false;
+			html.push("<div style='clear: both;'></div>");
+		    }
+		    var edit = item.hasOwnProperty('width') ? "" : " style='clear: both;'";
 		    if (renderer.settings.editMode) {
 			edit = " onclick='Retina.RendererInstances.notebook["+this.index+"].editFlowItem("+i+");' style='cursor: pointer;"+(item.hasOwnProperty('width') ? "" : " clear: both;")+"'";
-		    }
-		    var width = "";
-		    if (item.hasOwnProperty('width')) {
-			width = " "+item.width;
-			edit = "";
-		    }
-		    
+		    }		    
 		    // this is an image
 		    if (item.type == 'Image') {
-			html.push("<div id='flowItem"+i+"' class='notebookImage'"+edit+">"+renderer.settings.images[item.reference]+"</div>");
+			html.push("<div id='flowItem"+i+"' class='notebookImage"+(item.width ? " "+item.width : "")+"'"+edit+">"+item.reference+"</div>");
 		    }
 		    // this is table data
 		    else if (item.type == 'Table') {
 			
-			html.push("<div id='flowItem"+i+"' class='notebook"+item.type+width+"'"+edit+">");
+			html.push("<div id='flowItem"+i+"' class='notebook"+item.type+""+(item.width ? " "+item.width : "")+"'"+edit+">");
 			html.push("<table class='table "+item.style+"'>");
 			if (item.hasOwnProperty('header')) {
 			    html.push("<tr><th>"+item.header.join("</th><th>")+"</th></tr>");
@@ -85,6 +86,9 @@
 				var k = Retina.keys(value).sort();
 				var d = [];
 				for (var h=0; h<k.length; h++) {
+				    if (typeof value[k[h]] == 'function') {
+					continue;
+				    }
 				    d.push([ "<b>"+k[h]+"</b>", value[k[h]] ]);
 				}
 				item.data = d;
@@ -119,7 +123,7 @@
 			}
 			provenance += "</div>";
 
-			html.push("<div id='flowItem"+i+"' class='notebook"+item.type+"'"+edit+">"+provenance+"<div id='flowGraphic"+i+"' style='margin-left: auto; margin-right: auto; width: "+item.width+"px;'></div></div>");
+			html.push("<div id='flowItem"+i+"' class='notebook"+item.type+""+(item.width ? " "+item.width : "")+"'"+edit+">"+provenance+"<div id='flowGraphic"+i+"' style='margin-left: auto; margin-right: auto; width: "+item.width+"px;'></div></div>");
 			if (typeof item.data == "string") {
 			    item.data = renderer.parseVariables(item.data);
 			} else {
@@ -149,15 +153,15 @@
 			}
 			if (item.tocName) {
 			    toc = "<a name='"+item.tocName+"' style='padding-top: 60px;'></a>";
-			    tocList.push("<a href='"+(item.tocLink ? tocLink : "#"+item.tocName)+"'>"+(item.tocTitle || item.tocName)+"</a>");
+			    tocList.push("<a href='"+(item.tocLink ? tocLink : "#"+item.tocName)+"'>"+(item.tocIcon ? '<img src="Retina/images/'+item.tocIcon+'" style="width: 16px; margin-right: 5px;">' : "")+(item.tocTitle || item.tocName)+"</a>");
 			}
-			html.push(toc+"<div id='flowItem"+i+"' class='notebook"+item.style+width+"'"+edit+">"+text+"</div>");
+			html.push(toc+"<div id='flowItem"+i+"' class='notebook"+item.style+""+(item.width ? " "+item.width : "")+"'"+edit+">"+text+"</div>");
 		    } else {
 			console.log('unknown type: '+item.type);
 		    }
 		} catch (error) {
 		    if (item.hasOwnProperty("error")) {
-			html.push("<div id='flowItem"+i+"' class='alert notebookParagraph"+width+"'"+edit+">"+item.error+"</div>");
+			html.push("<div id='flowItem"+i+"' class='alert notebookParagraph"+(item.width ? " "+item.width : "")+"'"+edit+">"+item.error+"</div>");
 		    } else {
 			console.log("Error rendering flow item "+i+": "+error);
 			console.log(item);
@@ -181,6 +185,20 @@
   </div>\
 </div>');
 
+	    // modal for object browser
+	    html.push( '\
+<div id="objectBrowserModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="objectBrowserModalLabel" aria-hidden="true">\
+  <div class="modal-header">\
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>\
+    <h3 id="objectBrowserModalLabel">Object Browser</h3>\
+  </div>\
+  <div class="modal-body" id="objectBrowserModalBody">\
+  </div>\
+  <div class="modal-footer">\
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>\
+  </div>\
+</div>');
+	    
 	    html = html.join("");
 
 	    if (renderer.settings.showTOC) {
@@ -259,14 +277,16 @@
 	controller: function () {
 	    var renderer = this;
 
-	    var html = "<div style='padding: 10px;'>";
+	    var html = [ "<div style='padding: 10px;'>" ];
 
-	    html += "\
+	    // top select
+	    html.push("\
 <div class='input-append'><select id='availableFlows'></select><input type='button' class='btn' onclick='Retina.RendererInstances.notebook[1].showFlow();' value='show'></div>\
 <div class='input-append'><input type='text' id='flowNameField'>\
-<div class='btn-group'><button class='btn' title='save' onclick='Retina.RendererInstances.notebook[1].storeSHOCKFlow();' style='border-radius: 0;'><img src='Retina/images/disk.png' style='width: 16px;'></button><button class='btn' title='new' onclick='Retina.RendererInstances.notebook[1].settings.currentFlow=null;'><i class='icon-star-empty'></i></button><button class='btn btn-danger' title='delete' onclick='Retina.RendererInstances.notebook[1].deleteSHOCKFlow();'><i class='icon-trash'></i></button></div></div><hr style='margin-bottom: 10px; margin-top: 2px;'>";
+<div class='btn-group'><button class='btn' title='save' onclick='Retina.RendererInstances.notebook[1].storeSHOCKFlow();' style='border-radius: 0;'><img src='Retina/images/disk.png' style='width: 16px;'></button><button class='btn' title='new' onclick='Retina.RendererInstances.notebook[1].settings.currentFlow=null;'><i class='icon-star-empty'></i></button><button class='btn btn-danger' title='delete' onclick='Retina.RendererInstances.notebook[1].deleteSHOCKFlow();'><i class='icon-trash'></i></button></div></div><hr style='margin-bottom: 10px; margin-top: 2px;'>");
 
-	    html += '\
+	    // button bar
+	    html.push('\
 <div style="margin-bottom: 10px;">\
   <div class="btn-group">\
     <button type="button" class="btn btn-small" onclick="Retina.RendererInstances.notebook['+renderer.index+'].deleteFlowItem();"><i class="icon-trash"></i></button>\
@@ -280,59 +300,78 @@
     <button type="button" class="btn btn-small" onclick="Retina.RendererInstances.notebook['+renderer.index+'].showFlowEdit(\'Table\');"><i class="icon-th"></i></button>\
     <button type="button" class="btn btn-small" onclick="Retina.RendererInstances.notebook['+renderer.index+'].showFlowEdit(\'Trash\');"><i class="icon-refresh"></i></button>\
   </div>\
-</div>';
+  <div class="btn-group">\
+    <button type="button" class="btn btn-small" onclick="Retina.RendererInstances.notebook['+renderer.index+'].showObjectBrowser();"><i class="icon-search"></i></button>\
+  </div>\
+  <div style="margin-top: 3px;">\
+    <span style="margin-right: 10px; position: relative; bottom: 2px;">width</span><select id="flowItemWidth" style="width: 80px;"><option>100%</option><option>span1</option><option>span2</option><option>span3</option><option>span4</option><option>span5</option><option>span6</option><option>span7</option><option>span8</option><option>span9</option><option>span10</option><option>span11</option></select>\
+  </div>\
+</div>');
 
 	    // text editor
-	    html += "<div id='flowEditText'><h4>Text</h4>";
-	    html += "<select id='typeField'><option>Title</option><option>Subtitle</option><option>Header</option><option>Introduction</option><option>Paragraph</option></select><textarea id='textField' style='width: 335px; height: 300px;'></textarea><br><button class='btn' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"text\");'>add</button><button class='btn pull-right' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"text\", true);'>update</button>";
-	    html += "</div>";
+	    html.push("<div id='flowEditText'><h4>Text</h4>");
+	    html.push("<select id='typeField'><option>Title</option><option>Subtitle</option><option>Header</option><option>Introduction</option><option>Paragraph</option></select><textarea id='textField' style='width: 335px; height: 300px;'></textarea><br><button class='btn' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"text\");'>add</button><button class='btn pull-right' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"text\", true);'>update</button>");
+	    html.push("</div>");
 
 	    // image editor
-	    html += "<div id='flowEditImage' style='display: none;'><h4>Image</h4>";
-	    html += "<div class='input-append'><select id='imageField'>";
-	    var images = Retina.keys(renderer.settings.images);
-	    for (var i=0; i<images.length; i++) {
-		html += "<option>"+images[i]+"</option>";
+	    html.push("<div id='flowEditImage' style='display: none;'><h4>Image</h4>");
+	    html.push("<select id='imageField'>");
+	    for (var i=0; i<renderer.settings.images.length; i++) {
+		html.push("<option value='<img src=\""+renderer.settings.images[i].url+"\">'>"+renderer.settings.images[i].name+"</option>");
 	    }
-	    html += "</select><button class='btn' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"image\");'>add</button></div></div>";
+	    html.push("</select><div style='clear: both; margin-bottom: 25px;'></div><button class='btn' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"image\");'>add</button><button class='btn pull-right' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"image\", true);'>update</button></div>");
 
 	    // graphics editor
-	    html += "<div id='flowEditGraphic' style='display: none;'><h4>Graphic</h4><table>";
-	    html += "<tr><td>type</td><td><select id='graphicTypeField'>";
-	    html += "<option>pieChart</option>";
-	    html += "<option>donutChart</option>";
-	    html += "<option>lineChart</option>";
-	    html += "<option>areaChart</option>";
-	    html += "<option>barChart</option>";
-	    html += "<option>stackedBarchart</option>";
-	    html += "</select></td></tr>";
-	    html += "<tr><td>data</td><td><textarea id='dataField' style='height: 250px;'></textarea></td></tr>";
-	    html += "<tr><td>graph width</td><td><input type='text' id='graphWidthField' value='300'></td></tr>";
-	    html += "<tr><td>show legend</td><td><input type='checkbox' id='showLegendField' checked></td></tr>";
-	    html += "<tr><td>legend width</td><td><input type='text' id='legendWidthField' value='400'></td></tr>";
-	    html += "<tr><td>sorted</td><td><input type='checkbox' id='sortedField'></td></tr>";
-	    html += "<tr><td>show values on label</td><td><input type='checkbox' id='showValuesOnLabelField' checked></td></tr>";
-	    html += "<tr><td>height</td><td><input type='text' id='heightField' value='400'></td></tr>";
-	    html += "<tr><td>log scale X</td><td><input type='checkbox' id='logScaleXField'></td></tr>";
-	    html += "<tr><td>log scale Y</td><td><input type='checkbox' id='logScaleYField'></td></tr>";
-	    html += "</table><button class='btn' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"graphic\");'>add</button></div>";
+	    html.push("<div id='flowEditGraphic' style='display: none;'><h4>Graphic</h4><table>");
+	    html.push("<tr><td>type</td><td><select id='graphicTypeField'>");
+	    html.push("<option>pieChart</option>");
+	    html.push("<option>donutChart</option>");
+	    html.push("<option>lineChart</option>");
+	    html.push("<option>areaChart</option>");
+	    html.push("<option>barChart</option>");
+	    html.push("<option>stackedBarchart</option>");
+	    html.push("</select></td></tr>");
+	    html.push("<tr><td>data</td><td><textarea id='dataField' style='height: 250px;'></textarea></td></tr>");
+	    html.push("<tr><td>graph width</td><td><input type='text' id='graphWidthField' value='300'></td></tr>");
+	    html.push("<tr><td>show legend</td><td><input type='checkbox' id='showLegendField' checked></td></tr>");
+	    html.push("<tr><td>legend width</td><td><input type='text' id='legendWidthField' value='400'></td></tr>");
+	    html.push("<tr><td>sorted</td><td><input type='checkbox' id='sortedField'></td></tr>");
+	    html.push("<tr><td>show values on label</td><td><input type='checkbox' id='showValuesOnLabelField' checked></td></tr>");
+	    html.push("<tr><td>height</td><td><input type='text' id='heightField' value='400'></td></tr>");
+	    html.push("<tr><td>log scale X</td><td><input type='checkbox' id='logScaleXField'></td></tr>");
+	    html.push("<tr><td>log scale Y</td><td><input type='checkbox' id='logScaleYField'></td></tr>");
+	    html.push("</table><button class='btn' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"graphic\");'>add</button><button class='btn pull-right' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"graphic\", true);'>update</button></div>");
 
 	    // table
-	    html += "<div id='flowEditTable' style='display: none;'><h4>Table</h4>";
-	    html += "<table><tr><td style='vertical-align: top; padding-right: 15px;'>data</td><td><textarea id='tableDataField' style='height: 250px; width: 290px;'></textarea></td></tr></table>";
-	    html += "<button class='btn' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"table\");'>add</button>";
-	    html += "</div>";
+	    html.push("<div id='flowEditTable' style='display: none;'><h4>Table</h4>");
+	    html.push("<table><tr><td style='vertical-align: top; padding-right: 15px;'>data</td><td><textarea id='tableDataField' style='height: 250px; width: 290px;'></textarea></td></tr></table>");
+	    html.push("<div style='margin-bottom: 10px;'>");
+	    html.push("<input type='checkbox' id='tableCondensed'><span style='margin-left: 5px; margin-right: 10px; position: relative; top: 2px;'>condensed</span>");
+	    html.push("<input type='checkbox' id='tableHover'><span style='margin-left: 5px; margin-right: 10px; position: relative; top: 2px;'>hover</span>");
+	    html.push("<input type='checkbox' id='tableBordered'><span style='margin-left: 5px; margin-right: 10px; position: relative; top: 2px;'>bordered</span>");
+	    html.push("<input type='checkbox' id='tableStriped'><span style='margin-left: 5px; position: relative; top: 2px;'>striped</span>");
+	    html.push("</div>");
+	    html.push("<button class='btn' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"table\");'>add</button><button class='btn pull-right' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"table\", true);'>update</button>");
+	    html.push("</div>");
 
 	    // trash
-	    html += "<div id='flowEditTrash' style='display: none;'><h4>Restore</h4>";
-	    html += "<div class='input-append'><select id='trashField'>";
-	    html += "</select><button class='btn' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"trash\");'>add</button></div>";
-	    html += "</div>";
+	    html.push("<div id='flowEditTrash' style='display: none;'><h4>Restore</h4>");
+	    html.push("<select id='trashField'>");
+	    html.push("</select><div style='clear: both; margin-bottom: 25px;'></div><button class='btn' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"trash\");'>add</button><button class='btn pull-right' onclick='Retina.RendererInstances.notebook["+this.index+"].addFlowItem(\"trash\", true);'>update</button>");
+	    html.push("</div>");
 
 
-	    html += "</div>";
+	    html.push("</div>");
 
-	    return html;
+	    return html.join("");
+	},
+	showObjectBrowser: function () {
+	    var renderer = this;
+
+	    var bdiv = document.getElementById('objectBrowserModalBody');
+	    bdiv.innerHTML = "";
+	    var jsonEditor = new JSONEditor(bdiv, { mode: 'view'}, renderer.settings.dataContainer);
+	    jQuery('#objectBrowserModal').modal({});
 	},
 	showProvenance: function (index) {
 	    var renderer = this;
@@ -425,7 +464,7 @@
 	},
 	addFlowItem: function (which, update) {
 	    var renderer = this;
-	    
+
 	    var item = {};
 	    if (which == 'text') {
 		item = {type: "Text", style: document.getElementById('typeField').options[document.getElementById('typeField').selectedIndex].value, text: document.getElementById('textField').value};
@@ -437,9 +476,26 @@
 	    } else if (which == 'graphic') {
 		item = {type: 'Graphic', graphicType: document.getElementById('graphicTypeField').options[document.getElementById('graphicTypeField').selectedIndex].value, data: eval(document.getElementById('dataField').value), height: parseInt(document.getElementById('heightField').value), settings: { legendWidth: parseInt(document.getElementById('legendWidthField').value), graphWidth: parseInt(document.getElementById('graphWidthField').value), sorted: document.getElementById('sortedField').checked, showValuesOnLabel: document.getElementById('showValuesOnLabelField').checked, showLegend: document.getElementById('showLegendField').checked, logScaleX: document.getElementById('logScaleXField').checked, logScaleY: document.getElementById('logScaleYField').checked } };
 	    } else if (which == "table") {
-		item = {type: "Table", data: document.getElementById('tableDataField').value};
+		var data = [];
+		try {
+		    data = JSON.parse(document.getElementById('tableDataField').value);
+		} catch (error) {
+		    alert(error);
+		    return;
+		}
+		var style = [];
+		if (document.getElementById('tableCondensed').checked) { style.push('table-condensed'); }
+		if (document.getElementById('tableHover').checked) { style.push('table-hover'); }
+		if (document.getElementById('tableStriped').checked) { style.push('table-striped'); }
+		if (document.getElementById('tableBordered').checked) { style.push('table-bordered'); }
+		item = {type: "Table", style: style.join(" "), data: data};
 	    }
 
+	    var wsel = document.getElementById('flowItemWidth').selectedIndex;
+	    if (wsel > 0) {
+		item.width = "span"+wsel;
+	    }
+	    
 	    if (update) {
 		renderer.settings.flow[renderer.settings.currentIndex] = item;
 	    } else {
@@ -450,7 +506,7 @@
 	},
 	editFlowItem: function (which) {
 	    var renderer = this;
-
+	    
 	    var item = renderer.settings.flow[which];
 
 	    if (renderer.settings.currentIndex !== null) {
@@ -478,7 +534,11 @@
 		    }
 		}		
 	    } else if (item.type == 'Table') {
-		document.getElementById('tableDataField').value = item.data;
+		document.getElementById('tableDataField').value = JSON.stringify(item.data, null, 2);
+		if (item.style.match(/bordered/)) { jQuery('#tableBordered').prop('checked', true); } else { jQuery('#tableBordered').prop('checked', false); }
+		if (item.style.match(/striped/)) { jQuery('#tableStriped').prop('checked', true); } else { jQuery('#tableStriped').prop('checked', false); }
+		if (item.style.match(/condensed/)) { jQuery('#tableCondensed').prop('checked', true); } else { jQuery('#tableCondensed').prop('checked', false); }
+		if (item.style.match(/hover/)) { jQuery('#tableHover').prop('checked', true); } else { jQuery('#tableHover').prop('checked', false); }
 	    } else if (item.type == 'Graphic') {
 		var sel = document.getElementById('graphicTypeField');
 		for (var i=0; i<sel.options.length; i++) {
@@ -492,6 +552,13 @@
 		document.getElementById('legendWidthField').value = item.settings.legendWidth;
 		document.getElementById('heightField').value = item.height;
 		item.settings.showLegend ? document.getElementById('showLegendField').setAttribute("checked", "checked") : document.getElementById('showLegendField').removeAttribute("checked");
+	    }
+
+	    if (item.hasOwnProperty('width')) {
+		var ind = item.width.match(/(\d+)/);
+		document.getElementById('flowItemWidth').selectedIndex = ind[0];
+	    } else {
+		document.getElementById('flowItemWidth').selectedIndex = 0;
 	    }
 	},
 	deleteFlowItem: function () {
