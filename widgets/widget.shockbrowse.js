@@ -52,6 +52,7 @@
   customMultiPreview - optionally provided custom function for preview of multiple file selection, receives the list of selected files, must return the HTML to be displayed in the preview section
   autoDecompress - automatically decompress compressed files after upload without asking the user, default is false
   autoUnarchive - automatically unpack archives after uploading without asking the user, default is false
+  hasExpiration - set expiration time for uploads, default is off (empty string). in format of \d+[MHD] where M = minute, H = hour, D = day
   deleteOriginalArchive - automatically delete the original archive after it has been unpacked successfully, default is true
 
   uploadRestrictions - array of objects with the attributes 'expression' which is a regular expression to match a filename and 'text' which will be displayed as an error alert to the user. Filenames that match will not be able to be uploaded. Default is an empty array.
@@ -129,6 +130,7 @@
     widget.uploadPaused = false;
     widget.chunkComplete = false;
     widget.autoDecompress = false;
+    widget.hasExpiration = "";
     widget.calculateMD5 = false;
     widget.MD5chunksize = 1024 * 1024 * 10; // 10 MB
     widget.fileDoneAttributes = {};
@@ -1285,7 +1287,7 @@
 
     widget.aclDetail = function(data, node) {
 	var html = "<table style='font-size: 13px; width: 100%;'>";
-	html += "<tr><td style='padding-right: 20px;'><b>owner</b></td><td>"+(data.data.owner.match(/\|/) ? data.data.owner.split("|")[0] : data.data.owner)+"</td><td style='text-align: right;'><button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].addAcl({node:\""+node+"\",acl:\"owner\"});'>change owner</button></td></tr>";
+	html += "<tr><td style='padding-right: 20px;'><b>owner</b></td><td>"+(data.data.owner.match(/\|/) ? data.data.owner.split("|")[0] : data.data.owner)+"</td><td style='text-align: right;'><button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].addAcl({node:\""+node+"\",acl:\"owner\"});'>change owner</button><button class='btn btn-mini' onclick='Retina.WidgetInstances.shockbrowse[1].addAcl({node:\""+node+"\",acl:\"public_read\"});'>make public</button></td></tr>";
 	var rights = ["read","write","delete"];
 	for (var i=0; i<rights.length; i++) {
 	    html += "<tr><td style='padding-right: 20px; vertical-align: top;'><b>"+rights[i]+"</b></td><td><table style='width: 100%;'>";
@@ -1299,6 +1301,10 @@
 	}
 	html += "</table>";
 
+	if (data.data.hasOwnProperty('public') && data.data['public'].read) {
+	    html += "<div class='alert alert-info' style='margin-top: 10px;'>This node is publicly readable<button class='btn btn-mini pull-right btn-danger' onclick='Retina.WidgetInstances.shockbrowse[1].removeAcl({node:\""+node+"\",acl:\"public_read\"});'>remove public read</button></div>";
+	}
+
 	html += "<br><br><div style='text-align: center;'><button class='btn btn-mini btn-danger' onclick='if(confirm(\"really delete this node?\")){Retina.WidgetInstances.shockbrowse[1].removeNode({node:\""+node+"\"});}'>delete node</button></div>";
 	
 	return html;
@@ -1307,7 +1313,7 @@
     widget.removeAcl = function(params) {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 	
-	var url = widget.shockBase + "/node/" + params.node + "/acl/"+params.acl+"?users="+params.uuid;
+	var url = widget.shockBase + "/node/" + params.node + "/acl/"+params.acl+(params.uuid ? "?users="+params.uuid : "");
 	jQuery.ajax({ url: url,
 		      success: function(data) {
 			  var widget = Retina.WidgetInstances.shockbrowse[1];
@@ -1361,28 +1367,35 @@
     widget.addAcl = function(params) {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
-	var uuid = params.uuid || prompt("Enter user id or uuid", "");
-	if (uuid) {
-	    var url = widget.shockBase + "/node/" + params.node + "/acl/"+params.acl+"?users="+uuid;
-	    var promise = jQuery.Deferred();
-	    jQuery.ajax({ url: url,
-			  promise: promise,
-			  success: function(data) {
-			      var widget = Retina.WidgetInstances.shockbrowse[1];
-			      widget.showDetails(null, true);
-			      this.promise.resolve();
-			  },
-			  error: function(jqXHR, error) {
-			      var widget = Retina.WidgetInstances.shockbrowse[1];
-			      widget.showDetails(null, true);
-			      this.promise.resolve();
-			  },
-			  crossDomain: true,
-			  headers: widget.authHeader,
-			  type: "PUT"
-			});
-	    return promise;
+	var url = widget.shockBase + "/node/" + params.node + "/acl/"+params.acl;
+	var promise = jQuery.Deferred();
+	
+	if (params.acl != "public_read") {
+	    var uuid = params.uuid || prompt("Enter user id or uuid", "");
+	    if (uuid) {
+		url += "?users="+uuid;
+	    } else {
+		return;
+	    }
 	}
+	
+	jQuery.ajax({ url: url,
+		      promise: promise,
+		      success: function(data) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  widget.showDetails(null, true);
+			  this.promise.resolve();
+		      },
+		      error: function(jqXHR, error) {
+			  var widget = Retina.WidgetInstances.shockbrowse[1];
+			  widget.showDetails(null, true);
+			  this.promise.resolve();
+		      },
+		      crossDomain: true,
+		      headers: widget.authHeader,
+		      type: "PUT"
+		    });
+	return promise;
     };
 
     widget.unpackArchive = function(params) {
@@ -1662,6 +1675,11 @@
 	    filename = filename.replace(/\.gz$/, "");
 	    filename = filename.replace(/\.bz2$/, "");
 	}
+	// add expiration if requested
+	if (widget.hasExpiration && (widget.hasExpiration != "")) {
+	    form.append('expiration', widget.hasExpiration);
+    }
+    
 	form.append('file_name', filename);
 	jQuery.ajax(widget.uploadURL, {
 	    contentType: false,
