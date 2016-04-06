@@ -21,7 +21,10 @@
 		currentIndex: null,
 		currentFlow: null,
 		shockBase: RetinaConfig.shock_url,
-		flowsLoaded: false
+		flowsLoaded: false,
+		canCSV: { "areaGraph": true,
+			  "pieChart": true,
+			  "barChart": true }
 	    }
 	},
 	exampleData: function () {
@@ -60,6 +63,11 @@
 		    else if (item.type == 'Table') {
 			
 			html.push("<div id='flowItem"+i+"' class='notebook"+item.type+""+(item.width ? " "+item.width : "")+"'"+edit+">");
+
+			if (! item.noDownload) {
+			    html.push('<div style="text-align: right;"><button class="btn btn-mini" style="position: absolute; margin-top: -30px; margin-left: -30px;" onclick="Retina.RendererInstances.notebook['+this.index+'].downloadCSV('+i+');" title="download table"><img src="Retina/images/cloud-download.png" style="width: 16px;"></button></div>');
+			}
+			
 			html.push("<table class='table "+item.style+"'>");
 			if (item.hasOwnProperty('header')) {
 			    html.push("<tr><th>"+item.header.join("</th><th>")+"</th></tr>");
@@ -112,18 +120,27 @@
 			item.index = i;
 			item.width = item.width || 800;
 			item.height = item.height || 400;
-			var provenance = "<div class='btn-group pull-right'>";
+			var provenance = [ "<div class='btn-group pull-right'>" ];
 			if (item.hasOwnProperty("provenance")) {
-			    provenance += "<button title='show provenance information' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].showProvenance("+i+");'><i class='icon-info-sign'></i></button>";
+			    provenance.push("<button title='show provenance information' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].showProvenance("+i+");'><i class='icon-info-sign'></i></button>");
 			}
 			if (! item.noDownload) {
-			    provenance += "<button title='download data' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadData("+gindex+");'><img src='Retina/images/file-css.png' style='width: 16px;'></button>";
-			    provenance += "<button title='download as SVG' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadSVG("+i+");'><img src='Retina/images/file-xml.png' style='width: 16px;'></button>";
-			    provenance += "<button title='download as PNG' class='btn btn-mini' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadPNG("+i+");'><img src='Retina/images/image.png' style='width: 16px;'></button>";
-			}
-			provenance += "</div>";
+			    provenance.push('<button title="download" class="btn btn-mini dropdown-toggle" role="button" data-toggle="dropdown" data-target="#" href="/page.html"><img src="Retina/images/cloud-download.png" style="width: 16px; margin-right: 3px;"><b class="caret"></b></button><ul class="dropdown-menu" role="menu">');
 
-			html.push("<div id='flowItem"+i+"' class='notebook"+item.type+""+(item.width ? " "+item.width : "")+"'"+edit+">"+provenance+"<div id='flowGraphic"+i+"' style='margin-left: auto; margin-right: auto; width: "+item.width+"px;'></div></div>");
+			    // check if the data of this graphic is a 2D matrix we can parse
+			    if (renderer.settings.canCSV[item.graphicType]) {
+				provenance.push("<li role='presentation'><a href='#' role='menuitem' class='noclick' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadCSV("+gindex+", true); return false;'>download CSV</a></li>");
+			    }
+			    provenance.push("<li role='presentation'><a href='#' role='menuitem' class='noclick' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadData("+gindex+"); return false;'>download JSON data</a></li>");
+			    provenance.push("<li role='presentation'><a href='#' role='menuitem' class='noclick' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadSVG("+i+"); return false;'>download as SVG</a></li>");
+			    provenance.push("<li role='presentation'><a href='#' role='menuitem' class='noclick' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadPNG("+i+"); return false;'>download as PNG</a></li>");
+			    
+			    provenance.push('</ul>');
+			    
+			}
+			provenance.push("</div>");
+
+			html.push("<div id='flowItem"+i+"' class='notebook"+item.type+""+(item.width ? " "+item.width : "")+"'"+edit+">"+provenance.join("")+"<div id='flowGraphic"+i+"' style='margin-left: auto; margin-right: auto; width: "+item.width+"px;'></div></div>");
 			if (typeof item.data == "string") {
 			    item.data = renderer.parseVariables(item.data);
 			} else {
@@ -395,7 +412,6 @@
 	},
 	downloadSVG: function (index) {
 	    var renderer = this;
-
 	    var data = document.getElementById('flowGraphic'+index).firstChild.innerHTML;
 	    stm.saveAs(data, "graphic.svg");
 	},
@@ -423,6 +439,26 @@
 		    document.body.removeChild(document.getElementById('svgExportDiv'));
 		    source.removeAttribute('id');
 		});
+	},
+	downloadCSV: function (index, isObject) {
+	    var renderer = this;
+
+	    var data = isObject ? renderer.settings.graphicItems[index].settings.data : renderer.settings.flow[index].data;
+	    var csv = [];
+	    if (isObject) {
+		for (var i=0; i<data.length; i++) {
+		    if (data[i].hasOwnProperty('label') && (data[i].hasOwnProperty('value') || data[i].hasOwnProperty('values'))) {
+			csv.push( [ data[i].label ].concat(data[i].value || data[i].values) );
+		    }
+		}
+		data = Retina.transpose(csv);
+		csv = [];
+	    }
+	    
+	    for (var i=0; i< data.length; i++) {
+		csv.push(Retina.stripHTML(data[i].join("\t")));
+	    }
+	    stm.saveAs(csv.join("\n"), "data.csv");
 	},
 	downloadData: function (index) {
 	    var renderer = this;
