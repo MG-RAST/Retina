@@ -359,6 +359,47 @@
 	return a - b;
     }
 
+
+    // parse an XML document
+    if (typeof window.DOMParser != "undefined") {
+	Retina.parseXML = function(xmlStr) {
+            return ( new window.DOMParser() ).parseFromString(xmlStr, "text/xml");
+	};
+    } else if (typeof window.ActiveXObject != "undefined" && new window.ActiveXObject("Microsoft.XMLDOM")) {
+	Retina.parseXML = function(xmlStr) {
+            var xmlDoc = new window.ActiveXObject("Microsoft.XMLDOM");
+            xmlDoc.async = "false";
+            xmlDoc.loadXML(xmlStr);
+            return xmlDoc;
+	};
+    } else {
+	throw new Error("No XML parser found");
+    }
+    
+    // strip html from a string
+    Retina.htmlFilter = new RegExp("<.+?>", "ig");
+    Retina.stripHTML = function(s) {
+	return s.replace(Retina.htmlFilter, "");
+    }
+
+    // transpose a 2D matrix
+    Retina.transpose = function (array) {
+	var newArray = [],
+	    origArrayLength = array.length,
+	    arrayLength = array[0].length,
+	    i;
+	for(i = 0; i < arrayLength; i++){
+	    newArray.push([]);
+	};
+	
+	for(i = 0; i < origArrayLength; i++){
+	    for(var j = 0; j < arrayLength; j++){
+		newArray[j].push(array[i][j]);
+	    };
+	};
+	return newArray;
+    }
+
     /* create an image from an svg  */
     Retina.svg2png = function (source, target, width, height) {
 	var promise = jQuery.Deferred();
