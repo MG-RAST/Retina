@@ -304,6 +304,7 @@
 											  lastname: d.lastname || "",
 											  email: d.email || "",
 											  login: d[widget.authResources[widget.authResources.default].loginField || "login"],
+											  tos: d.hasOwnProperty('tos') ? d.tos : 0,
 											  id: d.id || null },
 										"token": d[widget.authResources[widget.authResources.default].tokenField || "token"] }), { expires: 7 });
 			      if (widget.callback && typeof(widget.callback) == 'function') {
