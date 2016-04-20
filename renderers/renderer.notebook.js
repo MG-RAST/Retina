@@ -104,10 +104,14 @@
 			}
 			
 			for (var h=0; h<item.data.length; h++) {
-			    for (var j=0; j<item.data[h].length; j++) {
-				item.data[h][j] = renderer.parseVariables(item.data[h][j]);
+			    if (typeof item.data[h] == "object") {
+				for (var j=0; j<item.data[h].length; j++) {
+				    item.data[h][j] = renderer.parseVariables(item.data[h][j]);
+				}
+				html.push("<tr><td>"+item.data[h].join("</td><td>")+"</td></tr>");
+			    } else {
+				html.push("</table><div class='notebookHeader'>"+item.data[h]+"</div><table class='table "+item.style+"'>");
 			    }
-			    html.push("<tr><td>"+item.data[h].join("</td><td>")+"</td></tr>");
 			}
 			html.push("</table>");
 			html.push("</div>");
@@ -265,6 +269,8 @@
 		    // try to navigate through the dataContainer object
 		    try {
 			for (var j=1; j<splits.length; j++) {
+
+			    // check if we have an array index
 			    value = value[splits[j]];
 			}
 		    } catch (error) {
@@ -456,7 +462,11 @@
 	    }
 	    
 	    for (var i=0; i< data.length; i++) {
-		csv.push(Retina.stripHTML(data[i].join("\t")));
+		if (typeof data[i].join == "function") {
+		    csv.push(Retina.stripHTML(data[i].join("\t")));
+		} else {
+		    csv.push(Retina.stripHTML(data[i]));
+		}
 	    }
 	    stm.saveAs(csv.join("\n"), "data.csv");
 	},

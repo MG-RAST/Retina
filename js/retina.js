@@ -620,6 +620,64 @@
 	return size + " " + magnitude;
     };
 
+    Number.prototype.timestring = function(precision, longform) {
+	var num = this;
+	precision = precision || 0;
+	var timestring = "";
+	if (num > 999) {
+	    if (precision < 1) {
+		timestring = " "+(num % 1000)+(longform ? " milliseconds" : "ms");
+	    }
+	    num = (num / 1000).toFixed();
+	} else if (num > 0) {
+	    timestring = num+(longform ? " milliseconds" : "ms");
+	    num = 0;
+	}
+	if (num > 59) {
+	    if (precision < 2) {
+		timestring = " "+(num % 60)+(longform ? " seconds" : "s") + timestring;
+	    }
+	    num = (num / 60).toFixed();
+	} else if (num > 0) {
+	    timestring = num + (longform ? " seconds" : "s") + timestring;
+	    num = 0;
+	}
+	if (num > 59) {
+	    if (precision < 3) {
+		timestring = " "+(num % 60)+(longform ? " minutes" : "m") + timestring;
+	    }
+	    num = (num / 60).toFixed();
+	} else if (num > 0) {
+	    timestring = num + (longform ? " minutes" : "m") + timestring;
+	    num = 0;
+	}
+	if (num > 23) {
+	    if (precision < 4) {
+		timestring = " "+(num % 24)+(longform ? " hours" : "h") + timestring;
+	    }
+	    num = (num / 24).toFixed();
+	} else if (num > 0) {
+	    timestring = num + (longform ? " hours" : "h") + timestring;
+	    num = 0;
+	}
+	if (num > 364) {
+	    if (precision < 5) {
+		timestring = " "+(num % 60)+(longform ? " days" : "d") + timestring;
+	    }
+	    num = (num / 365).toFixed();
+	    timestring = num + (longform ? " years" : "y") + timestring;
+	} else if (num > 0) {
+	    timestring = num + (longform ? " days" : "d") + timestring;
+	    num = 0;
+	}
+
+	if (timestring.length == 0) {
+	    timestring = "0ms";
+	}
+
+	return timestring;
+    };
+
     Number.prototype.baseSize = function() {
 	var size = this;
 	var magnitude = "bp";
