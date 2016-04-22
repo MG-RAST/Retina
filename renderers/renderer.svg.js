@@ -96,7 +96,7 @@
 		data.push({ label: d[i].label, value: displayVal, angle: val, format: { stroke: renderer.settings.graphLineColor, fill: renderer.settings.colors[i], value: d[i].value, title: title } });
 	    }
 	    
-	    renderer.graphic = renderer.svg.donutchart({ center: center, shiftX: renderer.settings.shiftX, rims: [ data ] });
+	    renderer.graphic = renderer.svg.donutchart({ center: center, shiftX: renderer.settings.shiftX+10, rims: [ data ] });
 	    renderer.checkLegend();
 	    renderer.checkEvents();
 	},
@@ -140,7 +140,7 @@
 	    }
 	    data = data.reverse();
 	    
-	    renderer.graphic = renderer.svg.donutchart({ center: center, shiftX: renderer.settings.shiftX, rims: data });
+	    renderer.graphic = renderer.svg.donutchart({ center: center, shiftX: renderer.settings.shiftX + 10, rims: data });
 	    renderer.checkEvents();
 	},
 	barChart: function(params) {
@@ -189,6 +189,12 @@
 		}
 		labels.push(l);
 	    }
+	    if (renderer.settings.labelAxisTitle) {
+		renderer.svg.text(shift + ((width - shift) / 2), renderer.settings.height - 15, renderer.settings.labelAxisTitle.text, jQuery.extend({ "text-anchor": "middle" }, renderer.settings.labelAxisTitle.settings || {}));
+	    }
+	    if (renderer.settings.valueAxisTitle) {
+		renderer.svg.text(0, (renderer.settings.height - renderer.settings.labelAxisWidth) / 2, renderer.settings.valueAxisTitle.text, jQuery.extend({"text-anchor": "middle", "transform": "rotate(-90, 15, "+((renderer.settings.height - renderer.settings.labelAxisWidth) / 2)+")"}, renderer.settings.valueAxisTitle.settings || {}));
+	    }
 	    renderer.settings.barWidth = (width - ((data.length + 1) * (renderer.settings.barSpace || 2))) / data.length;
 	    renderer.settings.legendLabels = labels;
 	    renderer.graphic = renderer.svg.barchart({ width: renderer.settings.barWidth, bars: data, shift: shift + renderer.settings.barSpace, space: renderer.settings.barSpace, base: base });
@@ -204,62 +210,7 @@
 	    renderer.checkSettings(params);
 
 	    var d = renderer.settings.data;
-	    var sums = [];
-	    for (var i=0; i<d.length; i++) {
-		for (var h=0; h<d[i].values.length; h++) {
-		    if (i==0) {
-			sums[h] = 0;
-		    }
-		    sums[h] += data[i].values[h];
-		}
-	    }
-	    var max = 0;
-	    for (var i=0; i<sums.length; i++) {
-		if (sums[i] > max) {
-		    max = sums[i];
-		}
-	    }
 
-	    var scale = Retina.niceScale({ min: 0, max: max});
-	    var shift = renderer.settings.valueAxisWidth;
-	    var base = renderer.settings.labelAxisWidth;
-	    var height = renderer.settings.height - shift - renderer.settings.graphTopMargin;
-	    var width = renderer.settings.graphWidth;
-	    var factor = height / max;
-	    var labels = [];
-	    var data = [];
-	    for (var i=0; i<d.length; i++) {
-		labels.push(d[i].label);
-		for (var h=0; h<d[i].values.length; h++) {
-		    if (i==0) {
-			data[h] = [];
-		    }
-		    var title = "";
-		    if (renderer.settings.showTitles) {
-			if (renderer.settings.showTitlesValueOnly) {
-			    title = d[i].values[h];
-			} else {
-			    title = d[i].labels[h] + ": " + d[i].values[h];
-			}
-		    }
-		    data[h].push({ height: d[i].values[h] * factor, format: { fill: renderer.settings.colors[i], value: d[i].values[h], title: title } });
-		}
-	    }
-	    renderer.settings.legendLabels = labels;
-	    var width = labels.length * (renderer.settings.barWidth + renderer.settings.barSpace);
-	    renderer.graphic = renderer.svg.barchart({ width: renderer.settings.barWidth, bars: data, shift: shift + renderer.settings.barSpace, space: renderer.settings.barSpace, base: base });
-	    renderer.svg.axis({ shift: base, base: shift, length: height, min: 0, max: scale.max, direction: "vertical" });
-	    renderer.svg.axis({ shift: shift, base: base, length: width, spaceMajor: renderer.settings.barWidth + renderer.settings.barSpace, labels: labels, direction: "horizontal", numMinor: 0, space: renderer.settings.barSpace, labelRotation: 30, tickShift: renderer.settings.barWidth / 2 + renderer.settings.barSpace });
-	    
-	    renderer.checkLegend();
-	    renderer.checkEvents();
-	},
-	areaGraph: function(params) {
-	    var renderer = this;
-
-	    renderer.checkSettings(params);
-
-	    var d = renderer.settings.data;
 	    var sums = [];
 	    for (var i=0; i<d.length; i++) {
 		for (var h=0; h<d[i].values.length; h++) {
@@ -284,6 +235,74 @@
 	    var factor = height / max;
 	    var labels = [];
 	    var data = [];
+	    var axisLabels = [];
+	    
+	    for (var i=0; i<d.length; i++) {
+		labels.push(d[i].label);
+		for (var h=0; h<d[i].values.length; h++) {
+		    if (i==0) {
+			data[h] = [];
+		    }
+		    var title = "";
+		    if (renderer.settings.showTitles) {
+			if (renderer.settings.showTitlesValueOnly) {
+			    title = d[i].values[h].formatString();
+			} else {
+			    title = d[i].labels[h] + ": " + d[i].values[h].formatString();
+			}
+			if (i==0) {
+			    axisLabels.push(d[i].hasOwnProperty('labels') ? d[i].labels[h] : "");
+			}
+		    }
+		    data[h].push({ height: d[i].values[h] * factor, format: { fill: renderer.settings.colors[i], value: d[i].values[h], title: title } });
+		}
+	    }
+
+	    if (renderer.settings.labelAxisTitle) {
+		renderer.svg.text(shift + ((width - shift) / 2), renderer.settings.height - 15, renderer.settings.labelAxisTitle.text, jQuery.extend({ "text-anchor": "middle" }, renderer.settings.labelAxisTitle.settings || {}));
+	    }
+	    if (renderer.settings.valueAxisTitle) {
+		renderer.svg.text(0, (renderer.settings.height - renderer.settings.labelAxisWidth) / 2, renderer.settings.valueAxisTitle.text, jQuery.extend({"text-anchor": "middle", "transform": "rotate(-90, 15, "+((renderer.settings.height - renderer.settings.labelAxisWidth) / 2)+")"}, renderer.settings.valueAxisTitle.settings || {}));
+	    }
+	    renderer.settings.legendLabels = labels;
+	    var width = axisLabels.length * (renderer.settings.barWidth + renderer.settings.barSpace);
+	    renderer.graphic = renderer.svg.barchart({ width: renderer.settings.barWidth, bars: data, shift: shift + renderer.settings.barSpace, space: renderer.settings.barSpace, base: base });
+	    renderer.svg.axis({ shift: base, base: shift, length: height, min: 0, max: scale.max, direction: "vertical" });
+	    renderer.svg.axis({ shift: shift, base: base, length: width, spaceMajor: renderer.settings.barWidth + renderer.settings.barSpace, labels: axisLabels, direction: "horizontal", numMinor: 0, space: renderer.settings.barSpace, labelRotation: 30, tickShift: renderer.settings.barWidth / 2 + renderer.settings.barSpace });
+	    
+	    renderer.checkLegend();
+	    //renderer.checkEvents();
+	},
+	areaGraph: function(params) {
+	    var renderer = this;
+
+	    renderer.checkSettings(params);
+
+	    var d = renderer.settings.data;
+	    var sums = [];
+	    for (var i=0; i<d.length; i++) {
+		for (var h=0; h<d[i].values.length; h++) {
+		    if (i==0) {
+			sums[h] = 0;
+		    }
+		    sums[h] += d[i].values[h];
+		}
+ - 15	    }
+	    var max = 0;
+	    for (var i=0; i<sums.length; i++) {
+		if (sums[i] > max) {
+		    max = sums[i];
+		}
+	    }
+
+	    var scale = Retina.niceScale({ min: 0, max: max});
+	    var shift = renderer.settings.valueAxisWidth;
+	    var base = renderer.settings.labelAxisWidth;
+	    var height = renderer.settings.height - shift - renderer.settings.graphTopMargin;
+	    var width = renderer.settings.graphWidth;
+	    var factor = height / max;
+	    var labels = [];
+	    var data = [];
 	    var colors = renderer.settings.colors || GooglePalette(renderer.settings.data.length);
 	    for (var i=0; i<d.length; i++) {
 		labels.push(d[i].label);
@@ -291,6 +310,12 @@
 		for (var h=0; h<d[i].values.length; h++) {
 		    data[i].values.push(d[i].values[h] * factor);
 		}
+	    }
+	    if (renderer.settings.labelAxisTitle) {
+		renderer.svg.text(shift + ((width - shift) / 2), renderer.settings.height - 15, renderer.settings.labelAxisTitle.text, jQuery.extend({ "text-anchor": "middle" }, renderer.settings.labelAxisTitle.settings || {}));
+	    }
+	    if (renderer.settings.valueAxisTitle) {
+		renderer.svg.text(0, (renderer.settings.height - renderer.settings.labelAxisWidth) / 2, renderer.settings.valueAxisTitle.text, jQuery.extend({"text-anchor": "middle", "transform": "rotate(-90, 15, "+((renderer.settings.height - renderer.settings.labelAxisWidth) / 2)+")"}, renderer.settings.valueAxisTitle.settings || {}));
 	    }
 	    renderer.settings.legendLabels = labels;
 	    var space = renderer.settings.graphWidth / data[0].values.length;
@@ -350,6 +375,9 @@
 		    }
 		}
 	    }
+	    if (renderer.settings.hasOwnProperty('maxY')) {
+		maxY = renderer.settings.maxY;
+	    }
 
 	    var scaleX = Retina.niceScale({ min: renderer.settings.minValIsZeroX ? minX : 0, max: maxX});
 	    var scaleY = Retina.niceScale({ min: renderer.settings.minValIsZeroY ? minY : 0, max: maxY});
@@ -375,6 +403,12 @@
 		    labels.push(d[i].label);
 		}
 		renderer.svg.linechart({ group: renderer.graphic, points: d[i].values, shift: shift, base: base, format: { stroke: d[i].color || renderer.settings.colors[i], strokeWidth: renderer.settings.strokeWidth || 1 } });
+	    }
+	    if (renderer.settings.labelAxisTitle) {
+		renderer.svg.text(shift + ((width - shift) / 2), renderer.settings.height - 15, renderer.settings.labelAxisTitle.text, jQuery.extend({ "text-anchor": "middle" }, renderer.settings.labelAxisTitle.settings || {}));
+	    }
+	    if (renderer.settings.valueAxisTitle) {
+		renderer.svg.text(0, (renderer.settings.height - renderer.settings.labelAxisWidth) / 2, renderer.settings.valueAxisTitle.text, jQuery.extend({"text-anchor": "middle", "transform": "rotate(-90, 15, "+((renderer.settings.height - renderer.settings.labelAxisWidth) / 2)+")"}, renderer.settings.valueAxisTitle.settings || {}));
 	    }
 	    renderer.settings.legendLabels = labels;
 	    renderer.svg.axis({ shift: base, base: shift, length: height, min: renderer.settings.minValIsZeroY ? minY : 0, max: scaleY.max, direction: "vertical", spaceMajor: renderer.settings.logScaleY ? height / Math.ceil(maxY) : null, isLog: renderer.settings.logScaleY, labelRotation: renderer.settings.labelRotationY ? renderer.settings.labelRotationY : 0 });
