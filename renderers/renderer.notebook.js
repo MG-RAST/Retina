@@ -236,14 +236,19 @@
 		    r = null;
 		} catch (error) {
 		    if (item.hasOwnProperty("error")) {
-			document.getElementById('flowGraphic'+item.index).style = "";
-			document.getElementById('flowGraphic'+item.index).innerHTML = "<div id='flowItem"+item.index+"' class='alert notebookParagraph"+width+"'"+edit+">"+item.error+"</div>";
+			var graphicItem = document.getElementById('flowGraphic'+item.index);
+			graphicItem.style = "";
+			graphicItem.innerHTML = "<div id='flowItem"+item.index+"' class='alert notebookParagraph'>"+item.error+"</div>";
+			if (graphicItem.previousSibling) {
+			    graphicItem.previousSibling.style.display = "none";
+			}
 		    } else {
 			console.log("Error rendering flow item "+item.index+": "+error);
 			console.log(item);
 		    }
 		}
 	    }
+	    
 	    Retina.RendererInstances.svg = [Retina.RendererInstances.svg[0]];
 
 	    return renderer;
