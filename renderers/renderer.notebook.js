@@ -110,7 +110,7 @@
 				}
 				html.push("<tr><td>"+item.data[h].join("</td><td>")+"</td></tr>");
 			    } else {
-				html.push("</table><div class='notebookHeader'>"+item.data[h]+"</div><table class='table "+item.style+"'>");
+				html.push("</table><div class='notebookSubheader'>"+item.data[h]+"</div><table class='table "+item.style+"'>");
 			    }
 			}
 			html.push("</table>");

@@ -1541,15 +1541,17 @@ svg:svg {\
 		    this.text(g, lx, ly, params.isLog ? (text == "0" ? "0" : "10^"+text) : text, f);
 		}
 		if (numMajor != i) {
-		    for (var h=0; h<numMinor; h++) {
-			if (direction == 'horizontal') {
-			    x1m += spaceMinor;
-			    x2m += spaceMinor;
-			} else {
-			    y1m -= spaceMinor;
-			    y2m -= spaceMinor;
+		    if (! params.isLog) {
+			for (var h=0; h<numMinor; h++) {
+			    if (direction == 'horizontal') {
+				x1m += spaceMinor;
+				x2m += spaceMinor;
+			    } else {
+				y1m -= spaceMinor;
+				y2m -= spaceMinor;
+			    }
+			    this.line(g, x1m, y1m, x2m, y2m, lineFormat);
 			}
-			this.line(g, x1m, y1m, x2m, y2m, lineFormat);
 		    }
 		}
 		if (direction == 'horizontal') {
@@ -1898,7 +1900,7 @@ svg:svg {\
 	    
 	    var startAngleRad = Math.PI*startAngle/180;
 	    var endAngleRad = Math.PI*endAngle/180;
-	    
+
 	    var x1inner = parseInt(shiftX + center + r2*Math.cos(startAngleRad));
 	    var y1inner = parseInt(shiftY + center + r2*Math.sin(startAngleRad));
 	    
