@@ -45,6 +45,9 @@
 	    for (var i=0; i<renderer.settings.flow.length; i++) {
 		try {
 		    var item = renderer.settings.flow[i];
+		    if (renderer.settings.errors && renderer.settings.errors[i]) {
+			throw "item error";
+		    }
 		    if (item.hasOwnProperty('width')) {
 			widthOn = true;
 		    } else if (widthOn) {
