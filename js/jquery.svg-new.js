@@ -1642,7 +1642,7 @@ svg:svg {\
 		    this.rect(g, x, y - box.uq, width, box.uq - box.lq, 0, 0, f);
 
 		    // median
-		    this.line(g, x, y - box.median, x + width, y - box.median, { strokeWidth: format.strokeWidth, stroke: f.stroke });
+		    this.line(g, x, y - box.median, x + width, y - box.median, { strokeWidth: f.strokeWidth, stroke: f.stroke });
 		    
 		    // top whisker
 		    this.line(g, x + (width / 2), y - box.uq, x + (width / 2), y - box.max, { strokeWidth: f.strokeWidth, stroke: f.stroke, "stroke-dasharray": "2,2" });
@@ -1723,11 +1723,18 @@ svg:svg {\
 		for (var h=0; h<subbars.length; h++) {
 		    var bar = subbars[h];
 		    var f = jQuery.extend({}, format, bar.format == null ? {} : bar.format);
+		    var bg;
+		    if (f.hasOwnProperty('title')) {
+			bg = this.group(sgs[i]);
+			this.title(bg, f.title);
+		    } else {
+			bg = sgs[i];
+		    }
 		    if (direction == "vertical") {
-			this.rect(sgs[i], x, y1 - bar.height, width, bar.height, 0, 0, f);
+			this.rect(bg, x, y1 - bar.height, width, bar.height, 0, 0, f);
 			y1 -= bar.height;
 		    } else {
-			this.rect(sgs[i], x1, y, bar.height, width, 0, 0, f);
+			this.rect(bg, x1, y, bar.height, width, 0, 0, f);
 			x1 += bar.height;
 		    }   
 		}
@@ -1917,8 +1924,16 @@ svg:svg {\
 	    r2 = parseInt(r2);
 	    
 	    var path = "M"+x1inner+","+y1inner+"  L"+x1outer+","+y1outer+"  A"+r1+","+r1+" 0 "+largeArc+",1 "+x2outer+","+y2outer+" L"+x2inner+","+y2inner+"  A"+r2+","+r2+" 0 "+largeArc+",0 "+x1inner+","+y1inner;
+
+	    var g;
+	    if (format && format.hasOwnProperty('title')) {
+		g = this.group(group);
+		this.title(g, format.title);
+	    } else {
+		g = group;
+	    }
 	    
-	    return this.path(group, path, format);
+	    return this.path(g, path, format);
 	},
 	donutchart: function(params) {
 	    var group = params.group || null;

@@ -93,7 +93,7 @@
 			title = d[i].label + ": " + displayVal;
 		    }
 		}
-		data.push({ label: d[i].label, value: displayVal, angle: val, format: { stroke: renderer.settings.graphLineColor, fill: renderer.settings.colors[i], value: d[i].value, title: title } });
+		data.push({ label: d[i].label, value: displayVal, angle: val, format: { stroke: renderer.settings.graphLineColor, fill: renderer.settings.colors[i], value: d[i].value, onclick: d[i].hasOwnProperty('click') ? d[i].click : null } });
 	    }
 	    
 	    renderer.graphic = renderer.svg.donutchart({ center: center, shiftX: renderer.settings.shiftX+10, rims: [ data ] });
@@ -133,7 +133,7 @@
 			    title = d[i].data[h].label + ": " + displayVal;
 			}
 		    }
-		    rim.push({ label: d[i].data[h].label, value: displayVal, angle: val, format: { stroke: renderer.settings.graphLineColor, fill: renderer.settings.colors[c], value: d[i].data[h].value, title: title } });
+		    rim.push({ label: d[i].data[h].label, value: displayVal, angle: val, format: { stroke: renderer.settings.graphLineColor, fill: renderer.settings.colors[c], value: d[i].data[h].value, title: title, onclick: d[i].hasOwnProperty('click') ? d[i].click : null } });
 		    c++;
 		}
 		data.push(rim);
@@ -182,7 +182,7 @@
 		if (renderer.settings.logScale) {
 		    val = Retina.log10(d[i].value);
 		}
-		data.push({ height: val * factor, format: { fill: renderer.settings.hasOwnProperty('color') ? renderer.settings.color : renderer.settings.colors[i], value: d[i].value, title: title } });
+		data.push({ height: val * factor, format: { fill: renderer.settings.hasOwnProperty('color') ? renderer.settings.color : renderer.settings.colors[i], value: d[i].value, title: title, onclick: d[i].hasOwnProperty('click') ? d[i].click : null } });
 		var l = d[i].label;
 		if (renderer.settings.showValuesOnLabel) {
 		    l += " - " + d[i].value;
@@ -254,7 +254,7 @@
 			    axisLabels.push(d[i].hasOwnProperty('labels') ? d[i].labels[h] : "");
 			}
 		    }
-		    data[h].push({ height: d[i].values[h] * factor, format: { fill: renderer.settings.colors[i], value: d[i].values[h], title: title } });
+		    data[h].push({ height: d[i].values[h] * factor, format: { fill: renderer.settings.colors[i], value: d[i].values[h], title: title, onclick: d[i].hasOwnProperty('clicks') ? d[i].clicks[h] : null } });
 		}
 	    }
 
@@ -271,7 +271,7 @@
 	    renderer.svg.axis({ shift: shift, base: base, length: width, spaceMajor: renderer.settings.barWidth + renderer.settings.barSpace, labels: axisLabels, direction: "horizontal", numMinor: 0, space: renderer.settings.barSpace, labelRotation: 30, tickShift: renderer.settings.barWidth / 2 + renderer.settings.barSpace });
 	    
 	    renderer.checkLegend();
-	    //renderer.checkEvents();
+	    renderer.checkEvents();
 	},
 	areaGraph: function(params) {
 	    var renderer = this;
@@ -306,7 +306,7 @@
 	    var colors = renderer.settings.colors || GooglePalette(renderer.settings.data.length);
 	    for (var i=0; i<d.length; i++) {
 		labels.push(d[i].label);
-		data[i] = { values: [], format: { fill: colors[i], stroke: "white" } };
+		data[i] = { values: [], format: { fill: colors[i], stroke: "white", onclick: d[i].hasOwnProperty('click') ? d[i].click : null } };
 		for (var h=0; h<d[i].values.length; h++) {
 		    data[i].values.push(d[i].values[h] * factor);
 		}
