@@ -326,7 +326,7 @@
 	   @param  text      (string) the text of the title
 	   @param  settings  (object) additional settings for the title (optional)
 	   @return  (element) the new title node */
-	title: function(parent, text, settings) {
+	doctitle: function(parent, text, settings) {
 	    var args = this._args(arguments, ['text']);
 	    var node = this._makeNode(args.parent, 'title', args.settings || {});
 	    node.appendChild(this._svg.ownerDocument.createTextNode(args.text));
@@ -1443,8 +1443,8 @@ svg:svg {\
 	    var group = params.group || null;
 	    var top = params.top == null ? 0 : params.top;
 	    var left = params.left == null ? 0 : params.left;
-	    var labels = params.labels;
-	    var colors = params.colors;
+	    var labels = params.labels || params.data;
+	    var colors = params.colors || GooglePalette();
 	    var format = { fontSize: 12, fontWeight: "normal", fontFamily: "Helvetica" };
 	    if (params.format !== null) {
 		jQuery.extend(format, params.format);
@@ -1452,7 +1452,7 @@ svg:svg {\
 	    var fontSize = parseInt(format.fontSize);
 	    var labelSpacing = params.labelSpacing == null ? 10 : params.labelSpacing;
 	    
-	    var g = this.group(group);
+	    var g = this.group(group, params.id, params.groupSettings);
 	    for (var i=0; i<labels.length; i++) {
 		this.rect(g, left, top, fontSize, fontSize, { stroke: "white", strokeWidth: 0, fill: colors[i] });
 		this.text(g, left + fontSize + fontSize, top + fontSize - 2, labels[i], format);
@@ -1475,7 +1475,7 @@ svg:svg {\
 	    var numMinor = params.numMinor == null ? 4 : params.numMinor;
 	    var spaceMinor = spaceMajor / (numMinor + 1);
 	    var minorTickLength = params.minorTickLength == null ? 5 : params.minorTickLength;
-	    var majorTickLength = params.majorTickLength == null ? 10 : params.majorTickLenght;
+	    var majorTickLength = params.majorTickLength == null ? 10 : params.majorTickLength;
 	    var tickShift = params.tickShift == null ? 0 : params.tickShift;
 
 	    var min = params.min == null ? 0 : params.min; // minimum value of the scale
@@ -1490,27 +1490,29 @@ svg:svg {\
 		jQuery.extend(labelFormat, params.labelFormat);
 	    }
 
-	    var showLabels = params.showLabels == null ? true : false;
-	    var labels = params.labels; // array of labels if the labels should not be the value
+	    var showLabels = params.showLabels == null ? true : params.showLabels;
+	    var labels = params.labels || params.data; // array of labels if the labels should not be the value
 	    var labelPosition = params.labelPosition == null ? "left-bottom" : params.labelPosition;
 	    var labelRotation = params.labelRotation == null ? null : params.labelRotation; // degrees the labels should be rotated
 	    var labelOrigin = params.labelOrigin == null ? true : params.labelOrigin;
 
 	    // create group
-	    var g = this.group(group);
+	    var g = this.group(group, params.id, params.groupSettings);
 	    
 	    // create baseline
 	    var x1 = direction == "horizontal" ? shift : base;
 	    var y1 = direction == "horizontal" ? base : shift;
 	    var x2 = direction == "horizontal" ? shift + length : base;
 	    var y2 = direction == "horizontal" ? base : shift - length;
-	    this.line(g, x1, y1, x2, y2, lineFormat);
+	    if (! params.noLine) {
+		this.line(g, x1, y1, x2, y2, lineFormat);
+	    }
 	    
 	    // create ticks
-	    x1 = direction == "horizontal" ? shift + tickShift : base;
-	    y1 = direction == "horizontal" ? base : shift - tickShift;
-	    x2 = direction == "horizontal" ? shift + tickShift : (labelPosition == "left-bottom" ? base - majorTickLength : base + majorTickLength);
-	    y2 = direction == "horizontal" ? (labelPosition == "left-bottom" ? base + majorTickLength : base - majorTickLength) : shift - tickShift;
+	    x1 = direction == "horizontal" ? shift : base + tickShift;
+	    y1 = direction == "horizontal" ? base - tickShift : shift;
+	    x2 = direction == "horizontal" ? shift : (labelPosition == "left-bottom" ? base - majorTickLength + tickShift : base + majorTickLength - tickShift);
+	    y2 = direction == "horizontal" ? (labelPosition == "left-bottom" ? base + majorTickLength - tickShift : base - majorTickLength + tickShift) : shift;
 	    var x1m = direction == "horizontal" ? shift : base;
 	    var y1m = direction == "horizontal" ? base : shift;
 	    var x2m = direction == "horizontal" ? shift : (labelPosition == "left-bottom" ? base - minorTickLength : base + minorTickLength);
@@ -1528,7 +1530,9 @@ svg:svg {\
 		    continue;
 		}
 
-		this.line(g, x1, y1, x2, y2, lineFormat);
+		if (! params.noLine) {
+		    this.line(g, x1, y1, x2, y2, lineFormat);
+		}
 		if (showLabels) {
 		    var text = labelVal.formatString();
 		    if (labels && labels.length) {
@@ -1550,7 +1554,9 @@ svg:svg {\
 				y1m -= spaceMinor;
 				y2m -= spaceMinor;
 			    }
-			    this.line(g, x1m, y1m, x2m, y2m, lineFormat);
+			    if (! params.noLine) {
+				this.line(g, x1m, y1m, x2m, y2m, lineFormat);
+			    }
 			}
 		    }
 		}
@@ -1594,7 +1600,7 @@ svg:svg {\
 	    var x2 = direction == "horizontal" ? shift + width : x1;
 	    var y2 = direction == "horizontal" ? y1 : y1 - height;
 
-	    var g = this.group(group);
+	    var g = this.group(group, params.id, params.groupSettings);
 
 	    for (var i=0; i<=numLines; i++) {
 		this.line(g, x1, y1, x2, y2, format);
@@ -1619,14 +1625,14 @@ svg:svg {\
 	    var width = params.width == null ? 10 : params.width;
 	    var space = params.space == null ? 5 : params.space;
 	    var radius = params.radius == null ? width / 6 : params.radius;
-	    var boxes = params.boxes || [];
+	    var boxes = params.boxes || params.data || [];
 	    var format = { fill: "white", stroke: "black", strokeWidth: 1 };
 	    if (params.format != null) {
 		jQuery.extend(format, params.format);
 	    }
 
 	    // create group
-	    var g = this.group(group);
+	    var g = this.group(group, params.id, params.groupSettings);
 
 	    // initialize coords
 	    var x = direction == "vertical" ? shift : base;
@@ -1697,14 +1703,14 @@ svg:svg {\
 	    var base = params.base == null ? (direction == "vertical" ? height : 0) : (direction == "vertical" ? height - params.base : params.base);
 	    var width = params.width == null ? 10 : params.width;
 	    var space = params.space == null ? 5 : params.space;
-	    var bars = params.bars || [];
+	    var bars = params.bars || params.data || [];
 	    var format = { fill: "white", stroke: "black", strokeWidth: 1 };
 	    if (params.format != null) {
 		jQuery.extend(format, params.format);
 	    }
 
 	    // create group
-	    var g = this.group(group);
+	    var g = this.group(group, params.id, params.groupSettings);
 	    var sgs = [];
 
 	    // initialize coords
@@ -1754,7 +1760,7 @@ svg:svg {\
 	    var base = params.base == null ? height : height - params.base;
 	    var space = params.space == null ? 5 : params.space;
 	    var radius = params.radius;
-	    var points = params.points || [];
+	    var points = params.points || params.data || [];
 	    var group = params.group || null;
 	    var format = { fill: "white", stroke: "black", strokeWidth: 1 };
 	    if (params.format != null) {
@@ -1762,7 +1768,7 @@ svg:svg {\
 	    }
 
 	    // create group
-	    var g = this.group(group);
+	    var g = this.group(group, params.id, params.groupSettings);
 
 	    // initialize coords
 	    var x = shift;
@@ -1809,14 +1815,14 @@ svg:svg {\
 	    var height = params.height == null ? this._height() : params.height;
 	    var base = params.base == null ? height : height - params.base;
 	    var space = params.space == null ? 5 : params.space;
-	    var areas = params.areas || [];
+	    var areas = params.areas || params.data || [];
 	    var format = { fill: "white", stroke: "black", strokeWidth: 1 };
 	    if (params.format != null) {
 		jQuery.extend(format, params.format);
 	    }
 
 	    // create group
-	    var g = this.group(group);
+	    var g = this.group(group, params.id, params.groupSettings);
 
 	    // initialize coords
 	    var x = shift;
@@ -1858,14 +1864,14 @@ svg:svg {\
 	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
 	    var shiftY = params.shiftY == null ? height : height - params.shiftY;
 	    var radius = params.radius == null ? 2 : params.radius;
-	    var dots = params.dots || [];
+	    var dots = params.dots || params.data || [];
 	    var format = { fill: "white", stroke: "black", strokeWidth: 1 };
 	    if (params.format != null) {
 		jQuery.extend(format, params.format);
 	    }
 
 	    // create group
-	    var g = this.group(group);
+	    var g = this.group(group, params.id, params.groupSettings);
 
 	    // draw the dots
 	    for (var i=0; i<dots.length; i++) {
@@ -1873,7 +1879,7 @@ svg:svg {\
 		var f = {};
 		jQuery.extend(f, format, dot.format || {});
 		var r = dot.radius == null ? radius : dot.radius;
-		svg.circle(g, dot.x + shiftX, shiftY - dot.y, r, f);
+		this.circle(g, dot.x + shiftX, shiftY - dot.y, r, f);
 	    }
 
 	    return g;
@@ -1940,14 +1946,14 @@ svg:svg {\
 	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
 	    var shiftY = params.shiftY == null ? 0 : params.shiftY;
 	    var center = params.center;
-	    var rims = params.rims || [];
+	    var rims = params.rims || params.data || [];
 	    var width = params.width == null ? parseInt(center / rims.length) : params.width;
 	    var inner = params.inner == null ? center - width : params.inner;
 	    var outer = center;
 	    var startAngle = params.startAngle == null ? 0 : params.startAngle;
 	    var format = params.format == null ? {} : params.format;
 	    
-	    var g = this.group(group);
+	    var g = this.group(group, params.id, params.groupSettings);
 	    for (var i=0; i<rims.length; i++) {
 		var start = startAngle;
 		for (var h=0; h<rims[i].length; h++) {
@@ -1962,6 +1968,98 @@ svg:svg {\
 	    }
 	    
 	    return g;
+	},
+	title: function (params) {
+	    var group = params.group || null;
+	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
+	    var shiftY = params.shiftY == null ? 0 : params.shiftY;
+	    var format = params.format == null ? {} : params.format;
+	    var text = params.data == null ? "Title" : params.data;
+
+	    if (params.rotation !== null) {
+		format.transform = "rotate(-"+params.rotation+", "+shiftX+", "+shiftY+")";
+	    }
+	    
+	    var g = this.group(group, params.id, params.groupSettings);
+
+	    this.text(g, shiftX, shiftY, text, format);
+	    
+	    return g;
+	},
+
+	dendogram: function (params) {
+	    var group = params.group || null;
+	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
+	    var shiftY = params.shiftY == null ? 0 : params.shiftY;
+	    var format = params.format == null ? {} : params.format;
+	    var height = params.height == null ? 100 : params.height;
+	    var width = params.width == null ? 10 : params.width;
+	    var direction = params.direction || "ltr";
+	    var data = params.data || { "depth": 1 };
+
+	    format = jQuery.extend({}, { fill:"none", stroke: "black" }, format);
+
+	    var g = this.group(group, params.id, params.groupSettings);
+	    
+	    var interval = parseInt(height / data.length);
+	    var path = "";
+	    if (direction == "ltr") {
+		shiftX++;
+		for (var i=0;i<data.length;i++) {
+		    var curr_shift = 0 + shiftY;
+		    for (var h=0;h<data[i].length;h++) {
+			var cluster = data[i][h];
+			path += "M"+shiftX+","+parseInt(curr_shift + ((width * cluster.a) / 2))+"l-"+parseInt(interval)+",0";
+			if (cluster.hasOwnProperty('b')) {
+			    path += "l0,"+parseInt((width * (cluster.a / 2)) + (width * (cluster.b / 2)))+"l"+parseInt(interval)+",0";
+			}
+			curr_shift += cluster.b ? (cluster.a + cluster.b) * width : cluster.a * width;
+		    }
+		    shiftX -= interval;
+		}
+	    } else if (direction == "ttb") {
+		for (var i=0;i<data.length;i++) {
+		    var curr_shift = 0 + shiftX;
+		    for (var h=0;h<data[i].length;h++) {
+			var cluster = data[i][h];
+			path += "M"+parseInt(curr_shift + ((width * cluster.a) / 2))+","+shiftY+"l0,-"+parseInt(interval);
+			if (cluster.hasOwnProperty('b')) {
+			    path += "l"+parseInt((width * (cluster.a / 2)) + (width * (cluster.b / 2)))+",0l0,"+parseInt(interval);
+			}
+			curr_shift += cluster.b ? (cluster.a + cluster.b) * width : cluster.a * width;
+		    }
+		    shiftY -= interval;
+		}
+	    } else if (direction == "rtl") {
+		shiftX++;
+		for (var i=0;i<data.length;i++) {
+		    var curr_shift = 0 + shiftY;
+		    for (var h=0;h<data[i].length;h++) {
+			var cluster = data[i][h];
+			path += "M"+shiftX+","+parseInt(curr_shift + ((width * cluster.a) / 2))+"l"+parseInt(interval)+",0";
+			if (cluster.hasOwnProperty('b')) {
+			    path += "l0,"+parseInt((width * (cluster.a / 2)) + (width * (cluster.b / 2)))+"l-"+parseInt(interval)+",0";
+			}
+			curr_shift += cluster.b ? (cluster.a + cluster.b) * width : cluster.a * width;
+		    }
+		    shiftX += interval;
+		}
+	    } else if (direction == "btt") {
+		for (var i=0;i<data.length;i++) {
+		    var curr_shift = 0 + shiftX;
+		    for (var h=0;h<data[i].length;h++) {
+			var cluster = data[i][h];
+			path += "M"+parseInt(curr_shift + ((width * cluster.a) / 2))+","+shiftY+"l0,"+parseInt(interval);
+			if (cluster.hasOwnProperty('b')) {
+			    path += "l"+parseInt((width * (cluster.a / 2)) + (width * (cluster.b / 2)))+",0l0,-"+parseInt(interval);
+			}
+			curr_shift += cluster.b ? (cluster.a + cluster.b) * width : cluster.a * width;
+		    }
+		    shiftY += interval;
+		}
+	    }
+	    
+	    return this.path(g, path, format);
 	}
     });
     
