@@ -69,7 +69,7 @@
 	}
 
 	html += "</div>";
-	cDiv.innerHTML = html;
+	cDiv.innerHTML = widget.params.noControl ? "" : html;
 
 	widget.params.target.innerHTML = "";
 	widget.params.target.appendChild(widget.controlDiv);
