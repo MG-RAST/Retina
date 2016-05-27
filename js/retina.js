@@ -14,8 +14,8 @@
     */
     Retina.init = function (params) {
 	Retina.dataServiceURI    = params.dataServiceURI     || "";
-	Retina.renderer_resource = params.renderer_resources || "Retina/renderers";
-	Retina.widget_resource   = params.widget_resources   || "widgets";
+	Retina.renderer_resource = params.renderer_resource || "Retina/renderers";
+	Retina.widget_resource   = params.widget_resource   || "widgets";
 	Retina.library_resource  = params.library_resource   || "Retina/js";
     };
     
@@ -90,6 +90,8 @@
 		if (textStatus === 'parsererror') {
 		    console.log(errorThrown);
 		    Retina.parserError(script_url);
+		} else {
+		    console.log(jqXHR);
 		}
 	    });
 	}
@@ -163,6 +165,8 @@
 		if (textStatus === 'parsererror') {
 		    console.log(errorThrown);
 		    Retina.parserError(script_url);
+		} else {
+		    console.log(jqXHR);
 		}
 	    });
 	    jQuery.ajaxSetup({async:true});
@@ -785,4 +789,314 @@
 	return Math.min.apply(null, this);
     };
 
+    // matrix function
+    Retina.transposeMatrix = function (matrix) {
+	var mnew = [];
+	for (var i=0;i<matrix.length; i++) {
+	    for (var h=0;h<matrix[i].length;h++) {
+		if (! mnew[h]) {
+		    mnew[h] = [];
+		}
+		mnew[h][i] = matrix[i][h];
+	    }
+	}
+	
+	return mnew;
+    };
+
+    Retina.standardizeMatrix = function (matrix) {
+	// calculate the mean of each column
+	var sums = [];
+	for (var i=0; i<matrix.lenght; i++) {
+	    sums[i] = 0;
+	    for (var h=0; h<matrix[i].length; h++) {
+		sums[i] += matrix[i][h];
+	    }
+	}
+	var means = [];
+	for (var i=0; i<sums.length; i++) {
+	    means[i] = sums[i] / matrix[i].length;
+	}
+
+	// calculate the standard deviation
+	sums = [];
+	for (var i=0; i<matrix.length; i++) {
+	    sums[i] = 0;
+	    for (var h=0; h<matrix[i].length; h++) {
+		sums[i] += Math.pow(matrix[i][h] - means[i], 2);
+	    }
+	}
+	var devs = [];
+	for (var i=0; i<sums.length; i++) {
+	    devs[i] = sums[i] / matrix[i].length;
+	}
+	
+	// calculate the standards
+	for (var i=0; i<matrix.lenght; i++) {
+	    for (var h=0; h<matrix[i].length; h++) {
+		matrix[i][h] = (matrix[i][h] - means[i]) / devs[i];
+	    }
+	}
+
+	return matrix;
+    };
+
+    Retina.normalizeMatrix = function (matrix) {
+	// first calculate the total for each column
+	var sums = [];
+	for (var i=0; i<matrix.length; i++) {
+
+	    sums[i] = 0;
+	    for (var h=0; h<matrix[i].length; h++) {
+		sums[i] += matrix[i][h];
+	    }
+	}
+
+	// calculate the maximum of the totals
+	var max = 0;
+	for (var i=0; i<sums.length; i++) {
+	    if (max < sums[i]) {
+		max = sums[i];
+	    }
+	}
+
+	// calculate the weight factors for each column
+	var factors = [];
+	for (var i=0; i<sums.length; i++) {
+	    factors[i] = max / sums[i];
+	}
+
+	// apply the weight factors to the cells
+	for (var i=0; i<matrix.length; i++) {
+	    for (var h=0; h<matrix[i].length; h++) {
+		matrix[i][h] = parseInt(matrix[i][h] * factors[i]);
+	    }
+	}
+
+	return matrix;
+    };
+
+    Retina.scaleMatrix = function (matrix) {
+	var maxes = [];
+	
+	for (var i=0; i<matrix[0].length; i++) {
+	    maxes.push(0);
+	}
+	for (var i=0;i<matrix.length;i++) {
+	    for (var h=0; h<matrix[i].length; h++) {
+		if (maxes[h]<matrix[i][h]) {
+		    maxes[h] = matrix[i][h];
+		}
+	    }
+	}
+	for (var i=0;i<matrix.length;i++) {
+	    for (var h=0; h<matrix[i].length; h++) {
+		matrix[i][h] = matrix[i][h] / maxes[h];
+	    }
+	}
+	
+	return matrix;
+    };
+
+    Retina.distance = function (data) {
+	var distances = {};
+	for (var i=0;i<data.length;i++) {
+	    distances[i] = {};
+	}
+	for (var i=0;i<data.length;i++) {
+	    for (var h=0;h<data.length;h++) {
+	    	if (i>=h) {
+	    	    continue;
+	    	}
+	    	var dist = 0;
+	    	for (var j=0;j<data[i].data[0].length;j++) {
+	    	    dist += Math.pow(data[i].data[0][j] - data[h].data[0][j], 2);
+	    	}
+	    	distances[i][h] = Math.pow(dist, 0.5);
+	    }
+	}	    
+	return distances;
+    };
+
+    Retina.cluster = function (data) {
+	var num_avail = data.length;
+	var avail = {};
+	var clusters = [];
+	for (var i=0;i<data.length;i++) {
+	    clusters.push( { points: [ i ], data: [ data[i] ], basepoints: [ i ], level: [ 0 ] } );
+	    avail[i] = true;
+	}
+	
+	// get the initial distances between all nodes
+	var distances = Retina.distance(clusters);
+	
+	// calculate clusters
+	var min;
+	var coords;
+	while (num_avail > 1) {
+	    var found = false;
+	    for (var i in distances) {
+	    	if (distances.hasOwnProperty(i)) {
+	    	    for (var h in distances[i]) {
+	    		if (distances[i].hasOwnProperty(h) && avail[i] && avail[h]) {
+	    		    min = distances[i][h];
+	    		    coords = [ i, h ];
+			    found = true;
+	    		    break;
+	    		}
+	    	    }
+		    if (found) {
+	    		break;
+		    }
+	    	}
+	    }
+	    for (var i in distances) {
+	    	if (distances.hasOwnProperty(i)) {
+	    	    for (var h in distances[i]) {
+	    		if (distances[i].hasOwnProperty(h)) {
+	    		    if (avail[i] && avail[h] && distances[i][h]<min) {
+	    			coords = [ i, h ];
+				min  = distances[i][h];
+	    		    }
+	    		}
+	    	    }
+	    	}
+	    }
+	    avail[coords[0]] = false;
+	    avail[coords[1]] = false;
+	    num_avail--;
+	    avail[clusters.length] = true;
+	    
+	    var sumpa = 0;
+	    var sumpb = 0
+	    for (var h=0;h<2;h++) {
+		for (var i=0;i<clusters[coords[h]].data.length;i++) {
+		    if (h==0) {
+			sumpa += clusters[coords[h]].data[i];
+		    } else {
+			sumpb += clusters[coords[h]].data[i];
+		    }
+	    	}
+	    }
+	    var pdata = [];
+	    var bpoints = [];
+	    for (var h=0;h<2;h++) {
+		var j = h;
+		if (sumpa > sumpb) {
+		    if (h==0) { j = 1; } else { j = 0; }
+		}
+		for (var i=0;i<clusters[coords[j]].data.length;i++) {
+	    	    pdata.push(clusters[coords[j]].data[i]);
+	    	}
+		for (var i=0;i<clusters[coords[j]].basepoints.length;i++) {
+		    bpoints.push(clusters[coords[j]].basepoints[i]);
+		}
+	    }
+	    var coord_a = coords[0];
+	    var coord_b = coords[1];
+	    if (sumpa > sumpb) {
+		var triangle = coord_a;
+		coord_a = coord_b;
+		coord_b = triangle;
+	    }
+	    coord_a = parseInt(coord_a);
+	    coord_b = parseInt(coord_b);
+	    
+	    clusters.push({ points: [ coord_a, coord_b ], data: pdata, basepoints: bpoints, level: [ clusters[coord_a].level.max() + 1, clusters[coord_b].level.max() + 1 ] });
+	    
+	    var row_a = [];
+	    for (var h=0;h<2;h++) {
+	    	for (var i=0;i<clusters[coords[h]].data.length;i++) {
+	    	    for (var j=0; j<clusters[coords[h]].data[i].length; j++) {
+	    		if (h==0 && i==0) {
+	    		    row_a[j] = 0;
+	    		}
+	    		row_a[j] += clusters[coords[h]].data[i][j];
+	    	    }
+	    	}
+	    }
+	    for (var i=0; i<row_a.length; i++) {
+	    	row_a[i] = row_a[i] / (clusters[coord_a].data.length + clusters[coord_b].data.length);
+	    }
+	    var index = clusters.length - 1;
+	    distances[index] = {};
+	    for (var h=0; h<index; h++) {
+	    	var row_b = [];
+	    	for (var i=0;i<clusters[h].data.length;i++) {
+	    	    for (var j=0; j<clusters[h].data[i].length; j++) {
+	    		if (i==0) {
+	    		    row_b[j] = 0;
+	    		}
+	    		row_b[j] += clusters[h].data[i][j];
+	    	    }
+	    	}
+	    	for (var i=0; i<row_b.length; i++) {
+	    	    row_b[i] = row_b[i] / clusters[h].data.length;
+	    	}
+	    	var dist = 0;
+	    	for (var i=0;i<row_a.length;i++) {
+	    	    dist += Math.pow(row_a[i] - row_b[i], 2);
+	    	}
+	    	distances[h][index] = Math.pow(dist, 0.5);
+	    }
+	}
+	
+	// record the row order after clustering
+	var rowindex = [];
+	var cind = clusters.length - 1;
+	for (var i=0;i<clusters[cind].basepoints.length; i++) {
+	    rowindex.push(clusters[cind].basepoints[i] + 1);
+	}
+	
+	// record the reverse row order for lookup
+	var roworder = {};
+	for (var i=0;i<rowindex.length;i++) {
+	    roworder[rowindex[i]] = i;
+	}
+	
+	// get the depth
+	var depth = 0;
+	for (var i=0; i<clusters.length; i++) {
+	    if (clusters[i].level[0] && clusters[i].level[0] > depth) {
+		depth = clusters[i].level[0];
+	    }
+	    if (clusters[i].level[1] && clusters[i].level[1] > depth) {
+		depth = clusters[i].level[1];
+	    }
+	}
+	
+	// format the cluster data for visualization
+	var clusterdata = { "depth": depth };
+	for (var i=0;i<clusterdata.depth;i++) {
+	    clusterdata[i] = [];
+	}
+	for (var i=data.length; i<clusters.length; i++) {
+	    
+	    // get the level this cluster is at
+	    var level = clusters[i].level.max() - 1;
+	    
+	    clusterdata[level].push({a: clusters[clusters[i].points[0]].data.length, b:clusters[clusters[i].points[1]].data.length, amin: roworder[clusters[clusters[i].points[0]].basepoints.min() + 1] });
+	    
+	    // draw single lines until we reach the next root
+	    if (clusters[i].level[0] != clusters[i].level[1]) {
+		var n = 0;
+		if (clusters[i].level[1] < clusters[i].level[0]) {
+		    n = 1;
+		}
+		for (var h=0;h<Math.abs(clusters[i].level[0] - clusters[i].level[1]);h++) {
+		    clusterdata[level - (h+1)].push({ a: clusters[clusters[i].points[n]].data.length, amin: roworder[clusters[clusters[i].points[n]].basepoints.min() + 1] });
+		}
+	    }
+	}
+	
+	// sort the clusterdata
+	for (var i in clusterdata) {
+	    if (clusterdata.hasOwnProperty(i) && ! isNaN(i)) {
+	    	clusterdata[i].sort(Retina.propSort('amin'));
+	    }
+	}
+		
+	return [clusterdata, rowindex];
+    };
+    
 }).call(this);

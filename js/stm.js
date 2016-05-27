@@ -311,6 +311,64 @@
 	delete stm.DataStore[type];
     };
 
+    stm.readHardStorage = function (dbName) {
+	dbName = dbName || 'stm';
+	var promise = jQuery.Deferred();
+	var idb = indexedDB.open(dbName);
+	idb.onerror = function (event) {
+	    console.log(event);
+	    promise.resolve();
+	};
+	idb.onsuccess = function (event) {
+	    var db = event.target.result;
+	    if (db.objectStoreNames.length == 0) {
+		promise.resolve();
+		return;
+	    }
+	    var trans = db.transaction(db.objectStoreNames,"readonly");
+	    trans.oncomplete = function () {
+		promise.resolve();
+	    };
+	    for (var i=0; i<db.objectStoreNames.length; i++) {
+		var name = db.objectStoreNames[i];
+		if (! stm.DataStore.hasOwnProperty(name)) {
+		    stm.DataStore[name] = {};
+		}
+		var req = trans.objectStore(name).openCursor();
+		req.name = name;
+		req.onsuccess = function (event) {
+		    var n = this.name;
+		    var cursor = event.target.result;
+		    if (cursor) {
+			var id = cursor.value._stm_id;
+			delete cursor.value._stm_id;
+			stm.DataStore[n][id] = cursor.value;
+			cursor.continue();
+		    }
+		}
+	    }
+	};
+	return promise;
+    };
+
+    stm.clearHardStorage = function (dbName) {
+	var promise = jQuery.Deferred();
+	dbName = dbName || 'stm';
+	var req = indexedDB.deleteDatabase(dbName);
+	req.onsuccess = function () {
+	    console.log("Deleted database successfully");
+	    promise.resolve();
+	};
+	req.onerror = function () {
+	    console.log("Couldn't delete database");
+	    promise.resolve();
+	};
+	req.onblocked = function () {
+	    console.log("Couldn't delete database due to the operation being blocked");
+	    promise.resolve();
+	};
+    };
+
     stm.updateHardStorage = function (dbName, attributes, version, p) {
 	var promise = p || jQuery.Deferred();
 	dbName = dbName || 'stm';
