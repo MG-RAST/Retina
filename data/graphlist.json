@@ -1,1 +1,578 @@
-{"barchart1":{"name":"barchart1","width":800,"height":500,"items":[{"type":"axis","name":"item0","parameters":{"direction":"vertical","labelPosition":"left-bottom","labelRotation":0,"shift":50,"base":50,"length":400,"min":0,"max":10,"spaceMajor":40,"numMinor":5,"tickShift":0,"majorTickLength":10,"minorTickLength":5,"lineFormat":{"stroke":"black","strokeWidth":1},"labelFormat":{"fontFamily":"Helvetica","fontWeight":100,"fontSize":12},"showLabels":true,"labelOrigin":true,"isLog":false,"noLine":false,"labels":[],"id":"item0","groupSettings":{"onclick":"Retina.WidgetInstances.graph[1].selectItem('item0');","style":"cursor: pointer;"}}},{"type":"axis","name":"item1","parameters":{"direction":"horizontal","labelPosition":"left-bottom","labelRotation":0,"shift":50,"base":50,"length":600,"min":0,"max":20,"spaceMajor":35,"numMinor":0,"tickShift":0,"majorTickLength":10,"minorTickLength":5,"lineFormat":{"stroke":"black","strokeWidth":1},"labelFormat":{"fontFamily":"Helvetica","fontWeight":100,"fontSize":12},"showLabels":false,"labelOrigin":true,"isLog":false,"noLine":false,"labels":[],"id":"item1","groupSettings":{"onclick":"Retina.WidgetInstances.graph[1].selectItem('item1');","style":"cursor: pointer;"}}},{"type":"grid","name":"item2","parameters":{"direction":"vertical","topMargin":50,"height":400,"width":600,"shift":50,"base":50,"space":50,"format":{"stroke":"gray","strokeWidth":1,"stroke-dasharray":"2,2"},"id":"item2","groupSettings":{"onclick":"Retina.WidgetInstances.graph[1].selectItem('item2');","style":"cursor: pointer;"}}},{"type":"grid","name":"item3","parameters":{"direction":"horizontal","topMargin":50,"height":400,"width":600,"shift":50,"base":50,"space":50,"format":{"stroke":"gray","strokeWidth":1,"stroke-dasharray":"2,2"},"id":"item3","groupSettings":{"onclick":"Retina.WidgetInstances.graph[1].selectItem('item3');","style":"cursor: pointer;"}}},{"type":"legend","name":"item4","parameters":{"top":150,"left":690,"colors":["#3366cc","#dc3912","#ff9900","#109618","#990099","#0099c6","#dd4477","#66aa00","#b82e2e","#316395","#994499","#22aa99","#aaaa11","#6633cc","#e67300","#8b0707","#651067","#329262","#5574a6","#3b3eac","#b77322","#16d620","#b91383","#f4359e","#9c5935","#a9c413","#2a778d","#668d1c","#bea413","#0c5922","#743411"],"format":{"fontSize":12,"fontFamily":"arial","fontWeight":"normal"},"data":["Label A","Label B","Label C","Label D","Label E","Label F"],"id":"item4","groupSettings":{"onclick":"Retina.WidgetInstances.graph[1].selectItem('item4');","style":"cursor: pointer;"}}},{"type":"barchart","name":"item5","parameters":{"direction":"vertical","height":500,"width":25,"shift":60,"base":50,"space":10,"format":{"fill":"white","stroke":"black","strokeWidth":1},"data":[[{"height":40,"title":"Label A","format":{"fill":"#3366cc"}},{"height":50,"title":"Label B","format":{"fill":"#dc3912"}},{"height":60,"title":"Label C","format":{"fill":"#ff9900"}},{"height":70,"title":"Label D","format":{"fill":"#109618"}},{"height":80,"title":"Label E","format":{"fill":"#990099"}},{"height":90,"title":"Label F","format":{"fill":"#0099c6"}}],[{"height":90,"title":"Label A","format":{"fill":"#3366cc"}},{"height":80,"title":"Label B","format":{"fill":"#dc3912"}},{"height":70,"title":"Label C","format":{"fill":"#ff9900"}},{"height":60,"title":"Label D","format":{"fill":"#109618"}},{"height":50,"title":"Label E","format":{"fill":"#990099"}},{"height":40,"title":"Label F","format":{"fill":"#0099c6"}}],[{"height":40,"title":"Label A","format":{"fill":"#3366cc"}},{"height":50,"title":"Label B","format":{"fill":"#dc3912"}},{"height":60,"title":"Label C","format":{"fill":"#ff9900"}},{"height":70,"title":"Label D","format":{"fill":"#109618"}},{"height":80,"title":"Label E","format":{"fill":"#990099"}},{"height":90,"title":"Label F","format":{"fill":"#0099c6"}}],[{"height":90,"title":"Label A","format":{"fill":"#3366cc"}},{"height":80,"title":"Label B","format":{"fill":"#dc3912"}},{"height":70,"title":"Label C","format":{"fill":"#ff9900"}},{"height":60,"title":"Label D","format":{"fill":"#109618"}},{"height":50,"title":"Label E","format":{"fill":"#990099"}},{"height":40,"title":"Label F","format":{"fill":"#0099c6"}}],[{"height":40,"title":"Label A","format":{"fill":"#3366cc"}},{"height":50,"title":"Label B","format":{"fill":"#dc3912"}},{"height":60,"title":"Label C","format":{"fill":"#ff9900"}},{"height":70,"title":"Label D","format":{"fill":"#109618"}},{"height":80,"title":"Label E","format":{"fill":"#990099"}},{"height":90,"title":"Label F","format":{"fill":"#0099c6"}}],[{"height":90,"title":"Label A","format":{"fill":"#3366cc"}},{"height":80,"title":"Label B","format":{"fill":"#dc3912"}},{"height":70,"title":"Label C","format":{"fill":"#ff9900"}},{"height":60,"title":"Label D","format":{"fill":"#109618"}},{"height":50,"title":"Label E","format":{"fill":"#990099"}},{"height":40,"title":"Label F","format":{"fill":"#0099c6"}}],[{"height":40,"title":"Label A","format":{"fill":"#3366cc"}},{"height":50,"title":"Label B","format":{"fill":"#dc3912"}},{"height":60,"title":"Label C","format":{"fill":"#ff9900"}},{"height":70,"title":"Label D","format":{"fill":"#109618"}},{"height":80,"title":"Label E","format":{"fill":"#990099"}},{"height":90,"title":"Label F","format":{"fill":"#0099c6"}}],[{"height":90,"title":"Label A","format":{"fill":"#3366cc"}},{"height":80,"title":"Label B","format":{"fill":"#dc3912"}},{"height":70,"title":"Label C","format":{"fill":"#ff9900"}},{"height":60,"title":"Label D","format":{"fill":"#109618"}},{"height":50,"title":"Label E","format":{"fill":"#990099"}},{"height":40,"title":"Label F","format":{"fill":"#0099c6"}}],[{"height":40,"title":"Label A","format":{"fill":"#3366cc"}},{"height":50,"title":"Label B","format":{"fill":"#dc3912"}},{"height":60,"title":"Label C","format":{"fill":"#ff9900"}},{"height":70,"title":"Label D","format":{"fill":"#109618"}},{"height":80,"title":"Label E","format":{"fill":"#990099"}},{"height":90,"title":"Label F","format":{"fill":"#0099c6"}}],[{"height":90,"title":"Label A","format":{"fill":"#3366cc"}},{"height":80,"title":"Label B","format":{"fill":"#dc3912"}},{"height":70,"title":"Label C","format":{"fill":"#ff9900"}},{"height":60,"title":"Label D","format":{"fill":"#109618"}},{"height":50,"title":"Label E","format":{"fill":"#990099"}},{"height":40,"title":"Label F","format":{"fill":"#0099c6"}}],[{"height":40,"title":"Label A","format":{"fill":"#3366cc"}},{"height":50,"title":"Label B","format":{"fill":"#dc3912"}},{"height":60,"title":"Label C","format":{"fill":"#ff9900"}},{"height":70,"title":"Label D","format":{"fill":"#109618"}},{"height":80,"title":"Label E","format":{"fill":"#990099"}},{"height":90,"title":"Label F","format":{"fill":"#0099c6"}}]],"id":"item5","groupSettings":{"onclick":"Retina.WidgetInstances.graph[1].selectItem('item5');","style":"cursor: pointer;"}}}]}}
+{
+   "donutchart1" : {
+      "width" : 800,
+      "items" : [
+         {
+            "data" : "matrix2donut",
+            "name" : "item0",
+            "parameters" : {
+               "center" : 200,
+               "shiftX" : 100,
+               "width" : 25,
+               "id" : "item0",
+               "shiftY" : 50
+            },
+            "type" : "donutchart"
+         }
+      ],
+      "name" : "donutchart1",
+      "height" : 500
+   },
+   "barchart1" : {
+      "width" : 800,
+      "items" : [
+         {
+            "data" : "matrix2stackedvalueaxis",
+            "name" : "value_axis",
+            "type" : "axis",
+            "parameters" : {
+               "max" : 10,
+               "base" : 50,
+               "length" : 400,
+               "min" : 0,
+               "numMinor" : 5,
+               "labels" : [],
+               "minorTickLength" : 5,
+               "noLine" : false,
+               "labelOrigin" : true,
+               "isLog" : false,
+               "labelPosition" : "left-bottom",
+               "lineFormat" : {
+                  "stroke" : "black",
+                  "strokeWidth" : 1
+               },
+               "tickShift" : 0,
+               "id" : "item0",
+               "labelRotation" : 0,
+               "shift" : 50,
+               "labelFormat" : {
+                  "fontSize" : 12,
+                  "fontFamily" : "Helvetica",
+                  "fontWeight" : 100
+               },
+               "spaceMajor" : 40,
+               "direction" : "vertical",
+               "showLabels" : true,
+               "majorTickLength" : 10
+            }
+         },
+         {
+            "type" : "axis",
+            "parameters" : {
+               "max" : 20,
+               "base" : 50,
+               "length" : 600,
+               "min" : 0,
+               "numMinor" : 0,
+               "labels" : [],
+               "minorTickLength" : 5,
+               "noLine" : false,
+               "labelOrigin" : true,
+               "isLog" : false,
+               "labelPosition" : "left-bottom",
+               "lineFormat" : {
+                  "stroke" : "black",
+                  "strokeWidth" : 1
+               },
+               "tickShift" : 0,
+               "id" : "item1",
+               "labelRotation" : 30,
+               "shift" : 50,
+               "spaceMajor" : 35,
+               "labelFormat" : {
+                  "fontFamily" : "Helvetica",
+                  "fontWeight" : 100,
+                  "fontSize" : 12
+               },
+               "showLabels" : true,
+               "direction" : "horizontal",
+               "majorTickLength" : 10
+            },
+            "data" : "matrix2labelaxis",
+            "name" : "label_axis"
+         },
+         {
+            "parameters" : {
+               "id" : "item3",
+               "format" : {
+                  "stroke-dasharray" : "2,2",
+                  "stroke" : "gray",
+                  "strokeWidth" : 1
+               },
+               "base" : 50,
+               "width" : 600,
+               "direction" : "horizontal",
+               "height" : 400,
+               "shift" : 50,
+               "space" : 50
+            },
+            "type" : "grid",
+            "name" : "grid"
+         },
+         {
+            "data" : "matrix2rowlegend",
+            "name" : "legend",
+            "type" : "legend",
+            "parameters" : {
+               "colors" : [
+                  "#3366cc",
+                  "#dc3912",
+                  "#ff9900",
+                  "#109618",
+                  "#990099",
+                  "#0099c6",
+                  "#dd4477",
+                  "#66aa00",
+                  "#b82e2e",
+                  "#316395",
+                  "#994499",
+                  "#22aa99",
+                  "#aaaa11",
+                  "#6633cc",
+                  "#e67300",
+                  "#8b0707",
+                  "#651067",
+                  "#329262",
+                  "#5574a6",
+                  "#3b3eac",
+                  "#b77322",
+                  "#16d620",
+                  "#b91383",
+                  "#f4359e",
+                  "#9c5935",
+                  "#a9c413",
+                  "#2a778d",
+                  "#668d1c",
+                  "#bea413",
+                  "#0c5922",
+                  "#743411"
+               ],
+               "left" : 690,
+               "id" : "item4",
+               "top" : 150,
+               "data" : [],
+               "format" : {
+                  "fontSize" : 12,
+                  "fontFamily" : "arial",
+                  "fontWeight" : "normal"
+               }
+            }
+         },
+         {
+            "name" : "chart",
+            "data" : "matrix2stackedbars",
+            "type" : "barchart",
+            "parameters" : {
+               "base" : 50,
+               "id" : "item5",
+               "format" : {
+                  "fill" : "white",
+                  "strokeWidth" : 1,
+                  "stroke" : "black"
+               },
+               "height" : 400,
+               "shift" : 60,
+               "space" : 10,
+               "direction" : "vertical",
+               "data" : [],
+               "width" : 25
+            }
+         }
+      ],
+      "connections" : {
+         "0" : {
+             "base" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 1,
+                        "attribute" : "shift"
+                     },
+                     {
+                        "index" : 2,
+                        "attribute" : "shift"
+                     },
+                     {
+                        "index" : 4,
+                        "attribute" : "shift"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+             ],
+	     "shift" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 1,
+                        "attribute" : "base"
+                     },
+                     {
+                        "index" : 2,
+                        "attribute" : "base"
+                     },
+                     {
+                        "index" : 4,
+                        "attribute" : "base"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+	     ],
+	     "length" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 2,
+                        "attribute" : "height"
+                     },
+                     {
+                        "index" : 4,
+                        "attribute" : "height"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+	     ]
+         },
+	  "1" : {
+             "shift" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 0,
+                        "attribute" : "base"
+                     },
+                     {
+                        "index" : 2,
+                        "attribute" : "shift"
+                     },
+                     {
+                        "index" : 4,
+                        "attribute" : "shift"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+             ],
+	     "base" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 0,
+                        "attribute" : "shift"
+                     },
+                     {
+                        "index" : 2,
+                        "attribute" : "base"
+                     },
+                     {
+                        "index" : 4,
+                        "attribute" : "base"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+	     ],
+	     "length" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 2,
+                        "attribute" : "width"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+	     ]
+          },
+	  "2" : {
+             "shift" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 1,
+                        "attribute" : "shift"
+                     },
+                     {
+                        "index" : 0,
+                        "attribute" : "base"
+                     },
+                     {
+                        "index" : 4,
+                        "attribute" : "shift"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+             ],
+	     "base" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 1,
+                        "attribute" : "base"
+                     },
+                     {
+                        "index" : 0,
+                        "attribute" : "shift"
+                     },
+                     {
+                        "index" : 4,
+                        "attribute" : "base"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+	     ],
+	     "height" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 0,
+                        "attribute" : "length"
+                     },
+                     {
+                        "index" : 4,
+                        "attribute" : "height"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+	     ],
+	     "width" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 1,
+                        "attribute" : "length"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+	     ]
+          },
+	  "4" : {
+             "shift" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 1,
+                        "attribute" : "shift"
+                     },
+                     {
+                        "index" : 2,
+                        "attribute" : "shift"
+                     },
+                     {
+                        "index" : 0,
+                        "attribute" : "base"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+             ],
+	     "base" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 1,
+                        "attribute" : "base"
+                     },
+                     {
+                        "index" : 2,
+                        "attribute" : "base"
+                     },
+                     {
+                        "index" : 0,
+                        "attribute" : "shift"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+	     ],
+	     "height" : [
+               {
+                  "items" : [
+                     {
+                        "index" : 2,
+                        "attribute" : "height"
+                     },
+                     {
+                        "index" : 0,
+                        "attribute" : "length"
+                     }
+                  ],
+                  "type" : "pinned"
+               }
+	     ]
+         }
+      },
+      "name" : "barchart1",
+      "height" : 500
+   },
+   "areachart1" : {
+      "width" : 800,
+      "items" : [
+         {
+            "type" : "axis",
+            "parameters" : {
+               "labelPosition" : "left-bottom",
+               "isLog" : false,
+               "noLine" : false,
+               "labelOrigin" : true,
+               "lineFormat" : {
+                  "strokeWidth" : 1,
+                  "stroke" : "black"
+               },
+               "min" : 0,
+               "base" : 50,
+               "length" : 400,
+               "max" : 10,
+               "minorTickLength" : 5,
+               "labels" : [],
+               "numMinor" : 5,
+               "shift" : 50,
+               "majorTickLength" : 10,
+               "showLabels" : true,
+               "spaceMajor" : 40,
+               "direction" : "vertical",
+               "labelFormat" : {
+                  "fontSize" : 12,
+                  "fontWeight" : 100,
+                  "fontFamily" : "Helvetica"
+               },
+               "tickShift" : 0,
+               "labelRotation" : 0,
+               "id" : "item0"
+            },
+            "data" : "matrix2stackedvalueaxis",
+            "name" : "item0"
+         },
+         {
+            "parameters" : {
+               "shift" : 50,
+               "spaceMajor" : 35,
+               "showLabels" : true,
+               "labelFormat" : {
+                  "fontWeight" : 100,
+                  "fontFamily" : "Helvetica",
+                  "fontSize" : 12
+               },
+               "direction" : "horizontal",
+               "majorTickLength" : 10,
+               "tickShift" : 0,
+               "id" : "item1",
+               "labelRotation" : 30,
+               "labelOrigin" : true,
+               "noLine" : false,
+               "labelPosition" : "left-bottom",
+               "isLog" : false,
+               "lineFormat" : {
+                  "stroke" : "black",
+                  "strokeWidth" : 1
+               },
+               "length" : 600,
+               "base" : 50,
+               "max" : 20,
+               "min" : 0,
+               "numMinor" : 0,
+               "labels" : [],
+               "minorTickLength" : 5
+            },
+            "type" : "axis",
+            "name" : "item1",
+            "data" : "matrix2labelaxis"
+         },
+         {
+            "type" : "grid",
+            "parameters" : {
+               "format" : {
+                  "stroke-dasharray" : "2,2",
+                  "strokeWidth" : 1,
+                  "stroke" : "gray"
+               },
+               "id" : "item3",
+               "base" : 50,
+               "width" : 600,
+               "direction" : "horizontal",
+               "shift" : 50,
+               "height" : 400,
+               "space" : 50
+            },
+            "name" : "item3"
+         },
+         {
+            "name" : "item4",
+            "data" : "matrix2rowlegend",
+            "parameters" : {
+               "format" : {
+                  "fontFamily" : "arial",
+                  "fontWeight" : "normal",
+                  "fontSize" : 12
+               },
+               "id" : "item4",
+               "data" : [],
+               "top" : 150,
+               "left" : 690,
+               "colors" : [
+                  "#3366cc",
+                  "#dc3912",
+                  "#ff9900",
+                  "#109618",
+                  "#990099",
+                  "#0099c6",
+                  "#dd4477",
+                  "#66aa00",
+                  "#b82e2e",
+                  "#316395",
+                  "#994499",
+                  "#22aa99",
+                  "#aaaa11",
+                  "#6633cc",
+                  "#e67300",
+                  "#8b0707",
+                  "#651067",
+                  "#329262",
+                  "#5574a6",
+                  "#3b3eac",
+                  "#b77322",
+                  "#16d620",
+                  "#b91383",
+                  "#f4359e",
+                  "#9c5935",
+                  "#a9c413",
+                  "#2a778d",
+                  "#668d1c",
+                  "#bea413",
+                  "#0c5922",
+                  "#743411"
+               ]
+            },
+            "type" : "legend"
+         },
+         {
+            "name" : "item5",
+            "data" : "matrix2area",
+            "parameters" : {
+               "format" : {
+                  "fill" : "white",
+                  "strokeWidth" : 1,
+                  "stroke" : "black"
+               },
+               "id" : "item5",
+               "base" : 50,
+               "direction" : "vertical",
+               "data" : [],
+               "width" : 25,
+               "space" : 150,
+               "shift" : 60,
+               "height" : 400
+            },
+            "type" : "areachart"
+         }
+      ],
+      "name" : "areachart1",
+      "height" : 500
+   }
+}

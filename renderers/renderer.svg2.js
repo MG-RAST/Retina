@@ -19,7 +19,6 @@
 		'width': 600,
 		'height': 500,
 		'items': [ ],
-		'connections': [],
 		'data': null
 	    }
 	},
@@ -27,9 +26,9 @@
 	    return [];
         },
 	
-	render: function () {
+	render: function (refresh) {
 	    var renderer = this;
-	    
+
 	    // get the target div
 	    var target = renderer.settings.target;
 	    var index = renderer.index;
@@ -37,14 +36,184 @@
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
 	    renderer.svg = jQuery('#SVGdiv'+index).svg().svg('get');
 
+	    // set data to default
+	    if (! renderer.settings.data || refresh) {
+		renderer.settings.data = jQuery.extend({}, renderer.inputs.matrix);
+	    }
+	    
+	    renderer.settings.data = renderer.prepareData(renderer.settings.data);
+
 	    for (var i=0; i<renderer.settings.items.length; i++) {
 		var type = renderer.settings.items[i].type;
-		renderer.svg[type](jQuery.extend({}, renderer[type], renderer.settings.items[i].parameters));
+		
+		var params = renderer.settings.items[i].parameters;
+		if (renderer.settings.items[i].hasOwnProperty('data')) {
+		    jQuery.extend(params, renderer[renderer.settings.items[i].data].call(null, params, renderer.settings.data));
+		}
+
+		renderer.svg[type](jQuery.extend({}, renderer[type], params));
 	    }
 	    
 	    return renderer;
 	},
-	
+
+	/* 
+	   input data conversion methods
+	 */
+	matrix2valueaxis: function (params, data) {
+	    var retval = { "min": data.min, "max": data.max, "spaceMajor": 0 };
+
+	    var scale = Retina.niceScale({ "min": data.min, "max": data.max });
+	    
+	    retval.spaceMajor = params.length / scale.max * scale.space;
+	    
+	    return retval;
+	},
+
+	matrix2stackedvalueaxis: function (params, data) {
+	    var retval = { "min": data.min, "max": data.sumMax, "spaceMajor": 0 };
+
+	    var scale = Retina.niceScale({ "min": data.min, "max": data.sumMax });
+
+	    retval.spaceMajor = params.length / scale.max * scale.space;
+
+	    return retval;
+	},
+
+	matrix2labelaxis: function (params, data) {
+	    var retval = { "labels": data.cols, "spaceMajor": 0 };
+
+	    retval.spaceMajor = params.spaceMajor ? params.spaceMajor : Math.floor(params.length / data.cols.length);
+	    
+	    return retval;
+	},
+
+	matrix2rowlegend: function (params, data) {
+	    var retval = { "data": data.rows };
+
+	    return retval;
+	},
+
+	matrix2columnlegend: function (params, data) {
+	    var retval = { "data": data.cols };
+
+	    return retval;
+	},
+
+	matrix2bars: function (params, data) {
+	    var retval = { "data": [] };
+
+	    var factor = params.height / data.sumMax;
+	    
+	    for (var i=0; i<data.data.length; i++) {
+		retval.data.push([]);
+		retval.data[i].push({ "height": data.data[i][0] * factor, "format": { "fill": data.colors[i], "title": data.cols[i] +" - " + data.data[i][0] } });
+	    }
+
+	    return retval;
+	},
+
+	matrix2stackedbars: function (params, data) {
+	    var retval = { "data": [] };
+
+	    var factor = params.height / data.sumMax;
+	    
+	    for (var i=0; i<data.data.length; i++) {
+		retval.data.push([]);
+		for (var h=0; h<data.data[i].length; h++) {
+		    retval.data[i].push({ "height": data.data[i][h] * factor, "format": { "fill": data.colors[h], "title": data.cols[i] +" - " + data.rows[h] +" - " + data.data[i][h] } });
+		}
+	    }
+
+	    return retval;
+	},
+
+	matrix2donut: function (params, data) {
+	    var retval = { "data": [] };
+
+	    for (var i=0; i<data.cols.length; i++) {
+		retval.data[i] = [];
+		for (var h=0; h<data.data[i].length; h++) {
+		    retval.data[i].push({ "angle": 360 / data.totals[i] * data.data[i][h], "format": { "fill": data.colors[h], "title": data.cols[i] +" - " + data.rows[h] +" - " + data.data[i][h].formatString(0) + " ("+(data.data[i][h] / data.totals[i] * 100).formatString(2)+"%)", "stroke": "white" } });
+		}
+	    }
+	    
+	    return retval;
+	},
+
+	matrix2area: function (params, data) {
+	    var retval = { "data": [] };
+
+	    var factor = params.height / data.sumMax;
+
+	    for (var i=0; i<data.dataTransposed.length; i++) {
+		retval.data.push({ "values": [], "format": { "fill": data.colors[i] } });
+	    }
+	    for (var i=0; i<data.dataTransposed.length; i++) {
+		for (var h=0; h<data.dataTransposed[i].length; h++) {
+		    retval.data[i].values.push(data.dataTransposed[i][h] * factor);
+		}
+	    }
+	    
+	    return retval;
+	},
+
+	/*
+	  data preparation for input data conversion
+	 */
+	prepareData: function (data) {
+	    
+	    // check if we have data
+	    if (! data) {
+		return;
+	    }
+	    
+	    // check if we have already done this
+	    if (data.hasOwnProperty('max')) {
+		return data;
+	    }
+	    
+	    /// transpose the matrix
+	    var d = Retina.transposeMatrix(data.data);
+	    
+	    // get the overall max, sumMax and totals of the matrix
+	    var maxes = [];
+	    var mins = [];
+	    var sumMaxes = [];
+	    for (var i=0; i<d.length; i++) {
+		maxes.push(Math.max.apply(null, d[i]));
+		mins.push(Math.min.apply(null, data[i]));
+		sumMaxes[i] = 0;
+		for (var h=0; h<d[i].length; h++) {
+		    sumMaxes[i] += d[i][h];
+		}
+	    }
+	    var max = Math.max.apply(null, maxes);
+	    var sumMax = Math.max.apply(null, sumMaxes);
+	    var min = Math.min.apply(null, mins);
+	    if (min > 0) {
+		min = 0;
+	    }
+
+	    // get a nice scale
+	    var scale = Retina.niceScale({ "min": min, "max": max });
+	    var sumScale = Retina.niceScale({ "min": min, "max": sumMax });
+
+	    // assign the newly calculated data
+	    data.min = scale.min;
+	    data.max = scale.max;
+	    data.sumMax = sumScale.max;
+	    data.totals = sumMaxes;
+	    data.colors = GooglePalette();
+	    data.dataTransposed = data.data;
+	    data.data = d;
+	    
+	    return data;
+	},
+
+	/*
+	  graphic items attribute functions
+	 */
 	axis: function () {
 	    return [ { "name": 'direction', "default": 'vertical', "description": "the orientation of the baseline of the axis, either horizontal or vertical", "valueType": "select", "options": [ "vertical", "horizontal" ] },
 		     { "name": 'labelPosition', "default": 'left-bottom', "description": "where in relation to the base line the labels should be rendered", "valueType": "select", "options": [ "left-bottom", "right-top" ] },
@@ -65,7 +234,7 @@
 		     { "name": 'labelOrigin', "default": true, "description": "turns display of the label at the origin point on or off", "valueType": "boolean" },
 		     { "name": 'isLog', "default": false, "description": "shows log or linear values as the axis labels", "valueType": "boolean" },
 		     { "name": 'noLine', "default": false, "description": "hides the lines", "valueType": "boolean" },
-		     { "name": 'labels', "default": [], "description": "a list of labels to be used instead of the values", "valueType": "list" }
+		     { "name": 'data', "default": "matrix2valueaxis", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "value axis", "value": "matrix2valueaxis" }, { "name": "label axis", "value": "matrix2labelaxis" }, { "name": "stacked value axis", "value": "matrix2stackedvalueaxis" } ] }
 		   ];
 	},
 	
@@ -74,13 +243,12 @@
 		     { "name": 'left', "default": 500, "description": "the left position of the legend", "valueType": "int" },
 		     { "name": 'colors', "default": GooglePalette(), "description": "the list of colors of the legend", "valueType": "list" },
 		     { "name": 'format', "default": { "fontSize": 12, "fontFamily": "arial", "fontWeight": "normal" }, "description": "the font format of the legend labels", "valueType": "font" },
-		     { "name": 'data', "default": this.demodata.labels, "description": "the list of labels of the legend", "valueType": "list" }
+		     { "name": 'data', "default": "matrix2rowlegend", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "column legend", "value": "matrix2columnlegend" }, { "name": "row legend", "value": "matrix2rowlegend" } ] }
 		   ];
 	},
 	
 	grid: function () {
 	    return [ { "name": 'direction', "default": 'vertical', "description": "the orientation of the lines of the grid", "valueType": "select", "options": [ "vertical", "horizontal" ] },
-		     { "name": 'topMargin', "default": 50, "description": "the top margin of the grid", "valueType": "int" },
 		     { "name": 'height', "default": 400, "description": "the height of the grid", "valueType": "int" },
 		     { "name": 'width', "default": 400, "description": "the width of the grid", "valueType": "int" },
 		     { "name": 'shift', "default": 50, "description": "the offset from the left for horizontal, the offset from the top for vertical grids", "valueType": "int" },
@@ -111,7 +279,7 @@
 		     { "name": 'base', "default": 50, "description": "the offset from the bottom for horizontal, the offset from the left for vertical charts", "valueType": "int" },
 		     { "name": 'space', "default": 10, "description": "the spacing between two bars", "valueType": "int" },
 		     { "name": 'format', "default": { 'fill': "white", 'stroke': "black", 'strokeWidth': 1 }, "description": "the line format", "valueType": "line" },
-		     { "name": 'data', "default": renderer.demodata.stackedBar, "description": "the data", "valueType": "data" }
+		     { "name": 'data', "default": "matrix2stackedbars", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "barchart", "value": "matrix2bars" }, { "name": "stacked barchart", "value": "matrix2stackedbars" } ] }
 		   ];
 	},
 	
@@ -122,7 +290,7 @@
 		     { "name": 'base', "default": 50, "description": "the offset from the bottom for horizontal, the offset from the left for vertical charts", "valueType": "int" },
 		     { "name": 'space', "default": 50, "description": "the spacing between two data points", "valueType": "int" },
 		     { "name": 'format', "default": { 'fill': "white", 'stroke': "blue", 'strokeWidth': 1 }, "description": "the format of the circles and lines", "valueType": "line" },
-		     { "name": 'data', "default": renderer.demodata.linechart, "description": "the data", "valueType": "data" }
+		     { "name": 'data', "default": "matrix2lines", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "linechart", "value": "matrix2lines" } ] }
 		   ];
 	},
 	
@@ -132,7 +300,7 @@
 		     { "name": 'shift', "default": 50, "description": "the offset from the left for horizontal, the offset from the top for vertical charts", "valueType": "int" },
 		     { "name": 'base', "default": 50, "description": "the offset from the bottom for horizontal, the offset from the left for vertical charts", "valueType": "int" },
 		     { "name": 'format', "default": { 'fill': "blue", 'stroke': "white" }, "description": "the format of the areas", "valueType": "area" },
-		     { "name": 'data', "default": renderer.demodata.areachart, "description": "the data", "valueType": "data" }
+		     { "name": 'data', "default": "matrix2area", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "areachart", "value": "matrix2area" } ] }
 		   ];
 	},
 	
@@ -142,7 +310,7 @@
 		     { "name": 'shiftX', "default": 50, "description": "the offset from the left", "valueType": "int" },
 		     { "name": 'shiftY', "default": 50, "description": "the offset from the bottom", "valueType": "int" },
 		     { "name": 'format', "default": { fill: "white", stroke: "black", strokeWidth: 1 }, "description": "the format of the circles", "valueType": "area" },
-		     { "name": 'data', "default": renderer.demodata.plot, "description": "the data", "valueType": "data" }
+		     { "name": 'data', "default": "matrix2plot", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "plot", "value": "matrix2plot" } ] }
 		   ];
 	},
 	
@@ -152,7 +320,7 @@
 		     { "name": 'center', "default": 200, "description": "the radius of the full circle", "valueType": "int" },
 		     { "name": 'width', "default": 50, "description": "the width of each rim", "valueType": "int" },
 		     { "name": 'startAngle', "default": 0, "description": "the degree position to start the first slice", "valueType": "int" },
-		     { "name": 'data', "default": renderer.demodata.donutchart, "description": "the data", "valueType": "data" }
+		     { "name": 'data', "default": "matrix2donut", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "donutchart", "value": "matrix2donut" } ] }
 		   ];
 	},
 
@@ -164,7 +332,8 @@
 		     { "name": 'width', "default": 30, "description": "the width of each box", "valueType": "int" },
 		     { "name": 'radius', "default": 2, "description": "the radius of the outliers", "valueType": "int" },
 		     { "name": 'format', "default": { 'fill': "white", 'stroke': "black" }, "description": "the format of the boxes", "valueType": "area" },
-		     { "name": 'data', "default": renderer.demodata.boxplot, "description": "the data", "valueType": "data" } ];
+		     { "name": 'data', "default": "matrix2boxplot", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "boxplot", "value": "matrix2boxplot" } ] }
+		   ];
 	},
 
 	dendogram: function () {
@@ -174,126 +343,21 @@
 		     { "name": 'height', "default": 30, "description": "the height of the dendrogram", "valueType": "int" },
 		     { "name": 'width', "default": 10, "description": "the width of the leafs", "valueType": "int" },
 		     { "name": 'format', "default": { 'stroke': "black", "stroke-width": 1 }, "description": "the format of the lines", "valueType": "line" },
-		     { "name": 'data', "default": renderer.demodata.dendogram, "description": "the data", "valueType": "data" } ];
+		     { "name": 'data', "default": "matrix2dendogram", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "row dendogram", "value": "matrix2rowdendogram" }, { "name": "column dendogram", "value": "matrix2coldendogram" } ] }
+		   ];
 
 
 	    var direction = params.direction || "ltr";
 	    var data = params.data || { "depth": 1 };
 	    
 	},
-	
-	demodata: {
-	    'labels': [ "Label A", "Label B", "Label C", "Label D", "Label E", "Label F" ],
-	    "boxplot": [ { "uq": 300, "lq": 150, "median": 225, "min": 100, "max": 325, "outliers": [ 370, 390, 75, 50 ] },
-			 { "uq": 300, "lq": 150, "median": 225, "min": 100, "max": 325, "outliers": [ 370, 390, 75, 50 ] },
-			 { "uq": 300, "lq": 150, "median": 225, "min": 100, "max": 325, "outliers": [ 370, 390, 75, 50 ] },
-			 { "uq": 300, "lq": 150, "median": 225, "min": 100, "max": 325, "outliers": [ 370, 390, 75, 50 ] },
-			 { "uq": 300, "lq": 150, "median": 225, "min": 100, "max": 325, "outliers": [ 370, 390, 75, 50 ] }
-		       ],
-	    "dendogram": [ [ { a: 1 }, { a: 1, b: 1 }, { a: 1 } ],
-			   [ { a: 1, b: 2 }, { a: 1 } ],
-			   [ { a: 3, b: 1 } ]
-			 ],
-	    "linechart": [ { "y": 0 },
-			   { "y": 100 },
-			   { "y": 50 },
-			   { "y": 75 },
-			   { "y": 250 },
-			   { "y": 210 },
-			   { "y": 99 },
-			   { "y": 20 },
-			   { "y": 275 } ],
-	    "plot": [ { "x": 20, "y": 20 },
-		      { "x": 30, "y": 200 },
-		      { "x": 140, "y": 130 },
-		      { "x": 50, "y": 310 },
-		      { "x": 160, "y": 160 },
-		      { "x": 70, "y": 99 },
-		      { "x": 200, "y": 105 },
-		      { "x": 390, "y": 240 },
-		      { "x": 270, "y": 20, "radius": 3, "format": { "fill": "blue" } }
-		    ],
-	    "donutchart": [
-		[ { "angle": 30, "format": { "fill": "blue" } },
-		  { "angle": 40, "format": { "fill": "red" } },
-		  { "angle": 50, "format": { "fill": "green" } },
-		  { "angle": 60, "format": { "fill": "orange" } },
-		  { "angle": 70, "format": { "fill": "purple" } },
-		  { "angle": 110, "format": { "fill": "magenta" } }
-		]
-			  ],
-	    "areachart": [ { "values": [ 40, 70, 30, 60, 50, 60, 70 ], "format": { 'fill': "blue" } },
-			   { "values": [ 50, 40, 60, 50, 50, 60, 70 ], "format": { 'fill': "red" } },
-			   { "values": [ 60, 50, 40, 30, 50, 60, 70 ], "format": { 'fill': "green" } },
-			   { "values": [ 70, 60, 50, 70, 50, 60, 70 ], "format": { 'fill': "orange" } }
-			 ],
-	    "stackedBar": [
-		[ { "height": 40, "title": "Label A", "format": { "fill": "#3366cc" }},
-		  { "height": 50, "title": "Label B", "format": { "fill": "#dc3912" }},
-		  { "height": 60, "title": "Label C", "format": { "fill": "#ff9900" }},
-		  { "height": 70, "title": "Label D", "format": { "fill": "#109618" }},
-		  { "height": 80, "title": "Label E", "format": { "fill": "#990099" }},
-		  { "height": 90, "title": "Label F", "format": { "fill": "#0099c6" }} ],
-		[ { "height": 90, "title": "Label A", "format": { "fill": "#3366cc" }},
-		  { "height": 80, "title": "Label B", "format": { "fill": "#dc3912" }},
-		  { "height": 70, "title": "Label C", "format": { "fill": "#ff9900" }},
-		  { "height": 60, "title": "Label D", "format": { "fill": "#109618" }},
-		  { "height": 50, "title": "Label E", "format": { "fill": "#990099" }},
-		  { "height": 40, "title": "Label F", "format": { "fill": "#0099c6" }} ],
-		[ { "height": 40, "title": "Label A", "format": { "fill": "#3366cc" }},
-		  { "height": 50, "title": "Label B", "format": { "fill": "#dc3912" }},
-		  { "height": 60, "title": "Label C", "format": { "fill": "#ff9900" }},
-		  { "height": 70, "title": "Label D", "format": { "fill": "#109618" }},
-		  { "height": 80, "title": "Label E", "format": { "fill": "#990099" }},
-		  { "height": 90, "title": "Label F", "format": { "fill": "#0099c6" }} ],
-		[ { "height": 90, "title": "Label A", "format": { "fill": "#3366cc" }},
-		  { "height": 80, "title": "Label B", "format": { "fill": "#dc3912" }},
-		  { "height": 70, "title": "Label C", "format": { "fill": "#ff9900" }},
-		  { "height": 60, "title": "Label D", "format": { "fill": "#109618" }},
-		  { "height": 50, "title": "Label E", "format": { "fill": "#990099" }},
-		  { "height": 40, "title": "Label F", "format": { "fill": "#0099c6" }} ],
-		[ { "height": 40, "title": "Label A", "format": { "fill": "#3366cc" }},
-		  { "height": 50, "title": "Label B", "format": { "fill": "#dc3912" }},
-		  { "height": 60, "title": "Label C", "format": { "fill": "#ff9900" }},
-		  { "height": 70, "title": "Label D", "format": { "fill": "#109618" }},
-		  { "height": 80, "title": "Label E", "format": { "fill": "#990099" }},
-		  { "height": 90, "title": "Label F", "format": { "fill": "#0099c6" }} ],
-		[ { "height": 90, "title": "Label A", "format": { "fill": "#3366cc" }},
-		  { "height": 80, "title": "Label B", "format": { "fill": "#dc3912" }},
-		  { "height": 70, "title": "Label C", "format": { "fill": "#ff9900" }},
-		  { "height": 60, "title": "Label D", "format": { "fill": "#109618" }},
-		  { "height": 50, "title": "Label E", "format": { "fill": "#990099" }},
-		  { "height": 40, "title": "Label F", "format": { "fill": "#0099c6" }} ],
-		[ { "height": 40, "title": "Label A", "format": { "fill": "#3366cc" }},
-		  { "height": 50, "title": "Label B", "format": { "fill": "#dc3912" }},
-		  { "height": 60, "title": "Label C", "format": { "fill": "#ff9900" }},
-		  { "height": 70, "title": "Label D", "format": { "fill": "#109618" }},
-		  { "height": 80, "title": "Label E", "format": { "fill": "#990099" }},
-		  { "height": 90, "title": "Label F", "format": { "fill": "#0099c6" }} ],
-		[ { "height": 90, "title": "Label A", "format": { "fill": "#3366cc" }},
-		  { "height": 80, "title": "Label B", "format": { "fill": "#dc3912" }},
-		  { "height": 70, "title": "Label C", "format": { "fill": "#ff9900" }},
-		  { "height": 60, "title": "Label D", "format": { "fill": "#109618" }},
-		  { "height": 50, "title": "Label E", "format": { "fill": "#990099" }},
-		  { "height": 40, "title": "Label F", "format": { "fill": "#0099c6" }} ],
-		[ { "height": 40, "title": "Label A", "format": { "fill": "#3366cc" }},
-		  { "height": 50, "title": "Label B", "format": { "fill": "#dc3912" }},
-		  { "height": 60, "title": "Label C", "format": { "fill": "#ff9900" }},
-		  { "height": 70, "title": "Label D", "format": { "fill": "#109618" }},
-		  { "height": 80, "title": "Label E", "format": { "fill": "#990099" }},
-		  { "height": 90, "title": "Label F", "format": { "fill": "#0099c6" }} ],
-		[ { "height": 90, "title": "Label A", "format": { "fill": "#3366cc" }},
-		  { "height": 80, "title": "Label B", "format": { "fill": "#dc3912" }},
-		  { "height": 70, "title": "Label C", "format": { "fill": "#ff9900" }},
-		  { "height": 60, "title": "Label D", "format": { "fill": "#109618" }},
-		  { "height": 50, "title": "Label E", "format": { "fill": "#990099" }},
-		  { "height": 40, "title": "Label F", "format": { "fill": "#0099c6" }} ],
-		[ { "height": 40, "title": "Label A", "format": { "fill": "#3366cc" }},
-		  { "height": 50, "title": "Label B", "format": { "fill": "#dc3912" }},
-		  { "height": 60, "title": "Label C", "format": { "fill": "#ff9900" }},
-		  { "height": 70, "title": "Label D", "format": { "fill": "#109618" }},
-		  { "height": 80, "title": "Label E", "format": { "fill": "#990099" }},
-		  { "height": 90, "title": "Label F", "format": { "fill": "#0099c6" }} ]
-	    ] }	
+
+	/*
+	  input test data
+	 */
+	inputs: {
+	    "matrix": {"data":[[753,532],[47929,39321],[6450,4219],[730,902]],"rows":["Archaea","Bacteria","Eukaryota","Viruses"],"cols":["Metagenome A","Metagenome B"]}
+	}
+
     });
 }).call(this);
