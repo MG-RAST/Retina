@@ -24,9 +24,17 @@
 	widget.target = widget.target || params.target;
 
 	if (! widget.hasOwnProperty('graphList')) {
-	    widget.target.innerHTML = "<div style='width: 100%; text-align: center; margin-top: 100px;'><img src='images/waiting.gif'></div>";
+	    widget.target.innerHTML = "<div style='width: 100%; text-align: center; margin-top: 100px;'>loading graphlist... <img src='images/waiting.gif' style='width: 24px;'></div>";
 	    jQuery.getJSON("data/graphlist.json", function (data) {
 		var widget = Retina.WidgetInstances.graph[1];
+		// add onclick events
+		for (var i in data) {
+		    if (data.hasOwnProperty(i)) {
+			for (var h=0; h<data[i].items.length; h++) {
+			    data[i].items[h].parameters.groupSettings = { "onclick": "Retina.WidgetInstances.graph[1].selectItem('"+data[i].items[h].name+"');", "style": "cursor: pointer;" };
+			}
+		    }
+		}
 		widget.graphList = data;
 		widget.display();
 	    });
@@ -58,7 +66,7 @@
 
 	html.push('<div class="form-horizontal">');
 
-	html.push('<legend>load graph<button class="btn btn-small pull-right btn-success" onclick="Retina.WidgetInstances.graph[1].selectGraph(); return false;" style="position: relative; top: 7px;"><i class="icon icon-ok"></i></button><button style="position: relative; top: 7px; margin-right: 5px;" class="btn btn-small pull-right btn-danger" onclick="Retina.WidgetInstances.graph[1].deleteGraph(); return false;"><i class="icon icon-trash"></i></button><button style="position: relative; top: 7px; margin-right: 5px;" class="btn btn-small pull-right" onclick="Retina.WidgetInstances.graph[1].selectGraph(\'new\'); return false;"><i class="icon icon-star-empty"></i></button><button style="position: relative; top: 7px; margin-right: 5px;" class="btn btn-small pull-right" onclick="stm.saveAs(JSON.stringify(Retina.WidgetInstances.graph[1].graphList), \'graphlist.json\'); return false;"><i class="icon icon-download-alt"></i></button></legend>\
+	html.push('<legend>load graph<button class="btn btn-small pull-right btn-success" onclick="Retina.WidgetInstances.graph[1].selectGraph(); return false;" style="position: relative; top: 7px;"><i class="icon icon-ok"></i></button><button style="position: relative; top: 7px; margin-right: 5px;" class="btn btn-small pull-right btn-danger" onclick="Retina.WidgetInstances.graph[1].deleteGraph(); return false;"><i class="icon icon-trash"></i></button><button style="position: relative; top: 7px; margin-right: 5px;" class="btn btn-small pull-right" onclick="Retina.WidgetInstances.graph[1].selectGraph(\'new\'); return false;"><i class="icon icon-star-empty"></i></button><button style="position: relative; top: 7px; margin-right: 5px;" class="btn btn-small pull-right" onclick="Retina.WidgetInstances.graph[1].saveCurrentGraph();"><i class="icon icon-download-alt"></i></button></legend>\
 <select id="graphList" style="width: 100px; float: left;" onchange="Retina.WidgetInstances.graph[1].selectGraph();"><option>new</option></select><div style="clear: both;"></div>');
 	
 	html.push('<legend>global<button class="btn btn-success btn-small pull-right" style="position: relative; top: 7px;" onclick="Retina.WidgetInstances.graph[1].applyGlobalProperties(); return false;"><i class="icon icon-ok"></i></button></legend>\
@@ -73,9 +81,25 @@
 	for (var i=0; i<types.length; i++) {
 	    html.push('<option>'+types[i]+'</option>');
 	}
-	html.push('</select><input type="text" id="itemName" placeholder="name" style="width: 150px; float: left;" value="item0"><div id="itemParams"></div></div>');
+	html.push('</select><input type="text" id="itemName" placeholder="name" style="width: 150px; float: left; margin-bottom: 10px;" value="item0"><div id="itemParams"></div></div>');
 
 	document.getElementById("controls").innerHTML = html.join("");
+    };
+
+    widget.saveCurrentGraph = function () {
+	var widget = this;
+
+	var exportData = {};
+	jQuery.extend(exportData, widget.graphList[widget.currentGraph]);
+	for (var i=0; i<exportData.items.length; i++) {
+	    var item = exportData.items[i];
+	    if (item.parameters.hasOwnProperty('groupSettings')) {
+		item.parameters.groupSettings = {};
+	    }
+	    item.parameters.data = [];
+	}
+
+	stm.saveAs(JSON.stringify(exportData, null, 2), widget.currentGraph + ".json");
     };
 
     widget.applyGlobalProperties = function () {
@@ -91,8 +115,10 @@
 	    delete widget.graphList[widget.currentGraph];
 	    widget.currentGraph = name;
 	}
+
+	widget.graph.settings.data = widget.inputMatrix;
 	
-	widget.graph.render();
+	widget.graph.render(true);
     };
 
     widget.deleteGraph = function () {
@@ -143,12 +169,14 @@
 		return;
 	    }
 	    widget.graph.settings.items = graph.items;
+	    widget.graph.settings.connections = graph.connections;
 	    document.getElementById('globalWidth').value = graph.width;
 	    document.getElementById('globalHeight').value = graph.height;
 	    document.getElementById('globalName').value = graph.name;
 	    widget.updateItemList();
 	    widget.currentGraph = graph.name;
 	    widget.applyGlobalProperties();
+	    widget.selectItem(graph.items[0].name);
 	}
     };
 
@@ -172,7 +200,7 @@
 	    if (widget.graph.settings.items[i].name == name) {
 		widget.graph.settings.items.splice(i, 1);
 		widget.updateItemList();
-		widget.graph.render();
+		widget.graph.render(true);
 		break;
 	    }
 	}
@@ -215,12 +243,13 @@
 		    break;
 		}
 	    }
-	    widget.showItemParams(item.parameters);
+	    
+	    widget.showItemParams(item.parameters, item.data);
 	}
 	
     };
 
-    widget.showItemParams = function (params) {
+    widget.showItemParams = function (params, data) {
 	var widget = this;
 	
 	params = params || {};
@@ -249,8 +278,16 @@
 		    html.push('<option'+sel+'>'+attributes[i].options[h]+'</option>');
 		}
 		html.push('</select>');
-	    } else {
-
+	    } else if (attributes[i].valueType == "data") {
+		html.push('<select id="attribute_'+attributes[i].name+'">');
+		for (var h=0; h<attributes[i].options.length; h++) {
+		    var sel = "";
+		    if (data && attributes[i].options[h].value == data) {
+			sel = ' selected=selected';
+		    }
+		    html.push('<option'+sel+' value="'+attributes[i].options[h].value+'">'+attributes[i].options[h].name+'</option>');
+		}
+		html.push('</select>');
 	    }
 	    
 	    html.push('</div><span class="help-block" style="text-align: right">'+attributes[i].description+'</span></div>');
@@ -272,15 +309,58 @@
     widget.editItem = function () {
 	var widget = this;
 
+	// get type, params, data, connections, name and attributes
+	var connections = widget.graph.settings.connections || {};
 	var type = document.getElementById('itemType').options[document.getElementById('itemType').selectedIndex].value;
 	var params = {};
+	var data = null;
 	var attributes = widget.graph[type]();
+	var found = null;
+	var name = document.getElementById('itemName').value ? document.getElementById('itemName').value : "item"+widget.graph.settings.items.length;
+
+	// get the graph item if it is not a new one
+	var g = null;
+	var ind = null;
+	for (var i=0; i<widget.graph.settings.items.length; i++) {	    
+	    if (widget.graph.settings.items[i].name == name) {
+		ind = i+"";
+		found = i + 1;
+		g = widget.graph.settings.items[i];
+		jQuery.extend(params, g.parameters);
+	    }
+	}
+
+	// iterate over the attributes and assign them
 	for (var i=0; i<attributes.length; i++) {
 	    var field = document.getElementById('attribute_'+attributes[i].name);
 	    if (field) {
 		if (attributes[i].valueType == "text") {
 		    params[attributes[i].name] = field.value;
 		} else if (attributes[i].valueType == "int") {
+
+		    // if there is a connection for this attribute and the attribute has changed, respect the connection
+		    if (connections.hasOwnProperty(ind) && connections[ind].hasOwnProperty(attributes[i].name) && params[attributes[i].name] != parseInt(field.value)) {
+			
+			// get the connection array for this attribute
+			var c = connections[ind][attributes[i].name];
+
+			// iterate over the connection items of this connection array
+			for (var h=0; h<c.length; h++) {
+
+			    // check the type of the connection
+			    if (c[h].type == 'pinned') {
+
+				// calculate the difference between the original and new value of the attribute
+				var diff = parseInt(parseInt(field.value - params[attributes[i].name]));
+				
+				// iterate over the affected items and adjust them
+				for (var j=0; j<c[h].items.length; j++) {
+				    var item = widget.graph.settings.items[c[h].items[j].index];
+				    item.parameters[c[h].items[j].attribute] = item.parameters[c[h].items[j].attribute] + diff;
+				}
+			    }
+			}
+		    }
 		    params[attributes[i].name] = parseInt(field.value);
 		} else if (attributes[i].valueType == "boolean") {
 		    if (field.checked) {
@@ -290,28 +370,38 @@
 		    }
 		} else if (attributes[i].valueType == "select") {
 		    params[attributes[i].name] = field.options[field.selectedIndex].value;
+		} else if (attributes[i].valueType == "data") {
+		    data = field.options[field.selectedIndex].value;
 		}
 	    } else {
 		params[attributes[i].name] = attributes[i]['default'];
 	    }
 	}
-	var found = null;
-	var name = document.getElementById('itemName').value ? document.getElementById('itemName').value : "item"+widget.graph.settings.items.length;
-	
+
+	// set id and onclick events for the editor
 	params.id = name;
 	params.groupSettings = { "onclick": "Retina.WidgetInstances.graph[1].selectItem('"+name+"');", "style": "cursor: pointer;" };
-	    
-	for (var i=0; i<widget.graph.settings.items.length; i++) {	    
-	    if (widget.graph.settings.items[i].name == name) {
-		found = i + 1;
-		widget.graph.settings.items[i].parameters = params;
+
+	// set the parameters and data if this is an existing item
+	if (g) {
+	    g.parameters = params;
+	    if (data) {
+		g.data = data;
 	    }
 	}
+
+	// this is a new item
 	if (found == null) {
-	    widget.graph.settings.items.push({ "type": document.getElementById('itemType').options[document.getElementById('itemType').selectedIndex].value, "name": name, "parameters": params });
+	    var item = { "type": document.getElementById('itemType').options[document.getElementById('itemType').selectedIndex].value, "name": name, "parameters": params };
+	    if (data) {
+		item.data = data;
+	    }
+	    widget.graph.settings.items.push(item);
 	    found = widget.graph.settings.items.length;
 	}
-	widget.graph.render();
+
+	// render the graph, update the item list and select the appropriate item
+	widget.graph.render(true);
 	widget.updateItemList();
 	document.getElementById('itemList').selectedIndex = found;
     };

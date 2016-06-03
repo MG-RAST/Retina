@@ -255,8 +255,6 @@
 
 	drawDendogram: function (svg, index, rotation) {
 	    renderer = Retina.RendererInstances.heatmap[index];
-
-	    //return;
 	    
 	    var height = rotation ? renderer.settings.tree_width : renderer.settings.tree_height;
 	    var data = rotation ? renderer.settings.data.rowcluster : renderer.settings.data.colcluster;
