@@ -1090,13 +1090,14 @@
 	}
 	
 	// sort the clusterdata
+	var clusterdataout = [];
 	for (var i in clusterdata) {
 	    if (clusterdata.hasOwnProperty(i) && ! isNaN(i)) {
-	    	clusterdata[i].sort(Retina.propSort('amin'));
+	    	clusterdataout.push(clusterdata[i].sort(Retina.propSort('amin')));
 	    }
 	}
 		
-	return [clusterdata, rowindex];
+	return [clusterdataout, rowindex];
     };
     
 }).call(this);

@@ -1478,6 +1478,7 @@ svg:svg {\
 	    var minorTickLength = params.minorTickLength == null ? 5 : params.minorTickLength;
 	    var majorTickLength = params.majorTickLength == null ? 10 : params.majorTickLength;
 	    var tickShift = params.tickShift == null ? 0 : params.tickShift;
+	    var tickBase = params.tickBase == null ? 0 : params.tickBase;
 
 	    var min = params.min == null ? 0 : params.min; // minimum value of the scale
 	    var max = params.max == null ? 100 : params.max; // maximum value of the scale
@@ -1497,12 +1498,6 @@ svg:svg {\
 	    var labelRotation = params.labelRotation == null ? null : params.labelRotation; // degrees the labels should be rotated
 	    var labelOrigin = params.labelOrigin == null ? true : params.labelOrigin;
 
-	    // if there are textual labels, the ticks must shift 1/2 spaceMajor
-	    var labelShift = 0;
-	    if (labels && labels.length) {
-		labelShift = (spaceMajor / 2) + 5;
-	    }
-
 	    // create group
 	    var g = this.group(group, params.id, params.groupSettings);
 	    
@@ -1514,12 +1509,15 @@ svg:svg {\
 	    if (! params.noLine) {
 		this.line(g, x1, y1, x2, y2, lineFormat);
 	    }
+
+	    console.log(tickBase);
+	    console.log(tickShift);
 	    
 	    // create ticks
-	    x1 = direction == "horizontal" ? shift + labelShift : base + tickShift;
-	    y1 = direction == "horizontal" ? base - tickShift : shift - labelShift;
-	    x2 = direction == "horizontal" ? shift + labelShift : (labelPosition == "left-bottom" ? base - majorTickLength + tickShift : base + majorTickLength - tickShift);
-	    y2 = direction == "horizontal" ? (labelPosition == "left-bottom" ? base + majorTickLength - tickShift : base - majorTickLength + tickShift) : shift - labelShift;
+	    x1 = direction == "horizontal" ? shift + tickShift : base + tickBase;
+	    y1 = direction == "horizontal" ? base - tickBase : shift - tickShift;
+	    x2 = direction == "horizontal" ? shift + tickShift : (labelPosition == "left-bottom" ? base - majorTickLength + tickBase : base + majorTickLength - tickBase);
+	    y2 = direction == "horizontal" ? (labelPosition == "left-bottom" ? base + majorTickLength - tickBase : base - majorTickLength + tickBase) : shift - tickShift;
 	    var x1m = direction == "horizontal" ? shift : base;
 	    var y1m = direction == "horizontal" ? base : shift;
 	    var x2m = direction == "horizontal" ? shift : (labelPosition == "left-bottom" ? base - minorTickLength : base + minorTickLength);
@@ -2001,7 +1999,7 @@ svg:svg {\
 	    var height = params.height == null ? 100 : params.height;
 	    var width = params.width == null ? 10 : params.width;
 	    var direction = params.direction || "ltr";
-	    var data = params.data || { "depth": 1 };
+	    var data = params.data || [];
 
 	    format = jQuery.extend({}, { fill:"none", stroke: "black" }, format);
 
@@ -2064,7 +2062,7 @@ svg:svg {\
 		    shiftY += interval;
 		}
 	    }
-	    
+
 	    return this.path(g, path, format);
 	}
     });
