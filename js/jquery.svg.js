@@ -2804,14 +2804,18 @@
 	    this._chart = graph._wrapper.group(graph._chartCont, {class_: 'chart'});
 	    this._drawColumns(graph, numSer, numVal, barWidth, barGap, dims, xScale, yScale);
 	    graph._drawTitle();
-	    graph._wrapper.text(graph._chartCont, 0, 0, jQuery.svg.graphing.region.percentageText,
+	    graph._wrapper.text(graph._chartCont, 0, 0, graph._chartOptions.unnormalized ? graph.yAxis._title : jQuery.svg.graphing.region.percentageText,
 				jQuery.extend({textAnchor: 'middle', transform: 'translate(' +
 					       (dims[graph.X] - graph.yAxis._titleOffset) + ',' +
 					       (dims[graph.Y] + dims[graph.H] / 2) + ') rotate(-90)'}, graph.yAxis._titleFormat || {}));
 	    var pAxis = jQuery.extend({}, graph._getPercentageAxis());
 	    jQuery.extend(pAxis._labelFormat, graph.yAxis._labelFormat || {});
-	    graph._drawAxis(pAxis, 'yAxis', dims[graph.X], dims[graph.Y],
-			    dims[graph.X], dims[graph.Y] + dims[graph.H]);
+	    if (graph._chartOptions.unnormalized) {
+		graph._drawAxes(true);
+	    } else {
+		graph._drawAxis(pAxis, 'yAxis', dims[graph.X], dims[graph.Y],
+				dims[graph.X], dims[graph.Y] + dims[graph.H]);
+	    }
 	    this._drawXAxis(graph, numVal, barWidth, barGap, dims, xScale);
 	    graph._drawLegend();
 	},
@@ -2831,12 +2835,16 @@
 							   series._settings || {}));
 		for (var i = 0; i < series._values.length; i++) {
 		    accum[i] += series._values[i];
-		    var r = graph._wrapper.rect(g,
-						dims[graph.X] + xScale * (barGap + i * (barWidth + barGap)),
-						dims[graph.Y] + yScale * (totals[i] - accum[i]) / totals[i],
-						xScale * barWidth, yScale * series._values[i] / totals[i]);
+		    var r = graph._chartOptions.unnormalized ? graph._wrapper.rect(g,
+										   dims[graph.X] + xScale * (barGap + i * (barWidth + barGap)),
+										   dims[graph.Y] + yScale * (totals.max() - accum[i]) / totals.max(),
+										   xScale * barWidth, yScale * series._values[i] / totals.max()) : graph._wrapper.rect(g,
+		     																		       dims[graph.X] + xScale * (barGap + i * (barWidth + barGap)),
+		     																		       dims[graph.Y] + yScale * (totals[i] - accum[i]) / totals[i],
+		     																		       xScale * barWidth, yScale * series._values[i] / totals[i]);
+
 		    graph._showStatus(r, series._name,
-				      roundNumber(series._values[i] / totals[i] * 100, 2));
+				      roundNumber(series._values[i] / totals.max() * 100, 2));
 		}
 	    }
 	},
@@ -2846,12 +2854,13 @@
 	    var axis = graph.xAxis;
 	    if (axis._title) {
 		graph._wrapper.text(graph._chartCont, dims[graph.X] + dims[graph.W] / 2,
-				    dims[graph.Y] + dims[graph.H] + axis._titleOffset,
+				    parseInt(graph._chartCont.attributes[3].value),
 				    axis._title, jQuery.extend({textAnchor: 'middle'}, axis._titleFormat || {}));
 	    }
 	    var gl = graph._wrapper.group(graph._chartCont, jQuery.extend({class_: 'xAxis'}, axis._lineFormat));
+	    var labelTextAnchor = axis.labelRotation ? "end" : "middle";
 	    var gt = graph._wrapper.group(graph._chartCont, jQuery.extend({class_: 'xAxisLabels',
-									   textAnchor: 'middle'}, axis._labelFormat));
+									   textAnchor: labelTextAnchor}, axis._labelFormat));
 	    graph._wrapper.line(gl, dims[graph.X], dims[graph.Y] + dims[graph.H],
 				dims[graph.X] + dims[graph.W], dims[graph.Y] + dims[graph.H]);
 	    if (axis._ticks.major) {
@@ -2864,7 +2873,7 @@
 		for (var i = 0; i < numVal; i++) {
 		    var x = dims[graph.X] + xScale * (barGap / 2 + (i + 0.5) * (barWidth + barGap));
 		    graph._wrapper.text(gt, x, dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size,
-					(axis._labels ? axis._labels[i] : '' + i));
+					(axis._labels ? axis._labels[i] : '' + i), (axis.labelRotation ? { transform: "rotate("+axis.labelRotation+", "+x+", "+(dims[graph.Y] + dims[graph.H] + 2 * axis._ticks.size)+")"} : null));
 		}
 	    }
 	}
