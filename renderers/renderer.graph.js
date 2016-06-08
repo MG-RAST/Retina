@@ -379,7 +379,7 @@
 		    break;
 		};
 	    }
-	    var chartOptions = { barWidth: renderer.settings.barWidth || 20 };
+	    var chartOptions = { barWidth: renderer.settings.barWidth || 20, unnormalized: renderer.settings.unnormalized };
 	    	    
 	    svg.graph.status(Retina.RendererInstances.graph[renderer.index].hover);
 
