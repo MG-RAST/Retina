@@ -575,11 +575,6 @@
 	    	}
 	    }
 	    
-	    if (data.length < 20) {
-		window.clustersx = clusters;
-		window.clusterdatax = clusterdata;
-	    }
-
 	    return [clusterdata, rowindex];
 	}
     });
