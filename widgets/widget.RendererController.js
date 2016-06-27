@@ -56,7 +56,7 @@
 		try {
 		    html += widget["inputRender"+opt.type](opt);
 		} catch (error) {
-		    console.log(opt.type);
+		    //console.log(opt.type);
 		}
 		html += "</td><td style='padding-left: 10px; text-align: left; vertical-align: middle;'>"+opt.description+"</td></tr>";
 	    }

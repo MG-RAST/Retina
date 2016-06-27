@@ -100,14 +100,27 @@
 	    return retval;
 	},
 
-	matrix2bars: function (params, data) {
+	matrix2barsrow: function (params, data) {
+	    var retval = { "data": [] };
+
+	    var factor = params.height / data.sumMax;
+	    
+	    for (var i=0; i<data.data[0].length; i++) {
+		retval.data.push([]);
+		retval.data[i].push({ "height": data.data[0][i] * factor, "format": { "fill": data.colors[0], "title": data.rows[i] +" - " + data.data[0][i] } });
+	    }
+
+	    return retval;
+	},
+
+	matrix2barscolumn: function (params, data) {
 	    var retval = { "data": [] };
 
 	    var factor = params.height / data.sumMax;
 	    
 	    for (var i=0; i<data.data.length; i++) {
 		retval.data.push([]);
-		retval.data[i].push({ "height": data.data[i][0] * factor, "format": { "fill": data.colors[i], "title": data.cols[i] +" - " + data.data[i][0] } });
+		retval.data[i].push({ "height": data.data[i][0] * factor, "format": { "fill": data.colors[0], "title": data.cols[i] +" - " + data.data[i][0] } });
 	    }
 
 	    return retval;
@@ -141,6 +154,16 @@
 	    return retval;
 	},
 
+	matrix2pie: function (params, data) {
+	    var retval = { "data": [ [ ] ] };
+
+	    for (var h=0; h<data.data[0].length; h++) {
+		retval.data[0].push({ "angle": 360 / data.totals[0] * data.data[0][h], "format": { "fill": data.colors[h], "title": data.cols[0] +" - " + data.rows[h] +" - " + data.data[0][h].formatString(0) + " ("+(data.data[0][h] / data.totals[0] * 100).formatString(2)+"%)", "stroke": "white" } });
+	    }
+	    
+	    return retval;
+	},
+
 	matrix2area: function (params, data) {
 	    var retval = { "data": [] };
 
@@ -154,6 +177,22 @@
 		    retval.data[i].values.push(data.dataTransposed[i][h] * factor);
 		}
 	    }
+	    
+	    return retval;
+	},
+
+	matrix2rowdendogram: function (params, data) {
+	    var retval = {};
+
+	    retval["data"] = Retina.cluster(Retina.normalizeMatrix(Retina.transposeMatrix(data.data)))[0];
+	    
+	    return retval;
+	},
+
+	matrix2columndendogram: function (params, data) {
+	    var retval = {};
+
+	    retval["data"] = Retina.cluster(Retina.normalizeMatrix(data.data))[0];
 	    
 	    return retval;
 	},
@@ -225,7 +264,8 @@
 		     { "name": 'max', "default": 10, "description": "the maximum value of the scale", "valueType": "int" },
 		     { "name": 'spaceMajor', "default": 40, "description": "the spacing between two major ticks", "valueType": "int" },
 		     { "name": 'numMinor', "default": 5, "description": "the number of minor ticks between two major ticks", "valueType": "int" },
-		     { "name": 'tickShift', "default": 0, "description": "the number of pixels the ticks overlap the axis to the inside of the graph", "valueType": "int" },
+		     { "name": 'tickShift', "default": 0, "description": "the number of pixels the ticks start to the right of the origin", "valueType": "int" },
+		     { "name": 'tickBase', "default": 0, "description": "the number of pixels the ticks overlap the axis to the inside of the graph", "valueType": "int" },
 		     { "name": 'majorTickLength', "default": 10, "description": "the length of the major ticks", "valueType": "int" },
 		     { "name": 'minorTickLength', "default": 5, "description": "the length of the minor ticks", "valueType": "int" },
 		     { "name": 'lineFormat', "default": { 'stroke': 'black', 'strokeWidth': 1 }, "description": "the attributes (color, width) of the base line of the axis", "valueType": "line" },
@@ -268,7 +308,14 @@
 	},
 	    
 	dendogram: function () {
-	    return [];
+	    return [ { "name": 'direction', "default": 'ltr', "description": "the orientation of the bars", "valueType": "select", "options": [ "ltr", "rtl", "ttb", "btt" ] },
+		     { "name": 'height', "default": 500, "description": "the height of the dendogram", "valueType": "int" },
+		     { "name": 'width', "default": 25, "description": "the width of each cell", "valueType": "int" },
+		     { "name": 'shiftX', "default": 50, "description": "the offset from the left", "valueType": "int" },
+		     { "name": 'shiftY', "default": 20, "description": "the offset from top", "valueType": "int" },
+		     { "name": 'format', "default": { 'stroke': "black" }, "description": "the line format", "valueType": "line" },
+		     { "name": 'data', "default": "matrix2rowdendogram", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "row dendogram", "value": "matrix2rowdendogram" }, { "name": "column dendogram", "value": "matrix2columndendogram" } ] }
+		   ];
 	},
 	
 	barchart: function () {
@@ -279,7 +326,7 @@
 		     { "name": 'base', "default": 50, "description": "the offset from the bottom for horizontal, the offset from the left for vertical charts", "valueType": "int" },
 		     { "name": 'space', "default": 10, "description": "the spacing between two bars", "valueType": "int" },
 		     { "name": 'format', "default": { 'fill': "white", 'stroke': "black", 'strokeWidth': 1 }, "description": "the line format", "valueType": "line" },
-		     { "name": 'data', "default": "matrix2stackedbars", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "barchart", "value": "matrix2bars" }, { "name": "stacked barchart", "value": "matrix2stackedbars" } ] }
+		     { "name": 'data', "default": "matrix2stackedbars", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "column barchart", "value": "matrix2barscolumn" }, { "name": "row barchart", "value": "matrix2barsrow" }, { "name": "stacked barchart", "value": "matrix2stackedbars" } ] }
 		   ];
 	},
 	
@@ -320,7 +367,7 @@
 		     { "name": 'center', "default": 200, "description": "the radius of the full circle", "valueType": "int" },
 		     { "name": 'width', "default": 50, "description": "the width of each rim", "valueType": "int" },
 		     { "name": 'startAngle', "default": 0, "description": "the degree position to start the first slice", "valueType": "int" },
-		     { "name": 'data', "default": "matrix2donut", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "donutchart", "value": "matrix2donut" } ] }
+		     { "name": 'data', "default": "matrix2donut", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "donutchart", "value": "matrix2donut" }, { "name": "piechart", "value": "matrix2pie" } ] }
 		   ];
 	},
 
@@ -343,7 +390,7 @@
 		     { "name": 'height', "default": 30, "description": "the height of the dendrogram", "valueType": "int" },
 		     { "name": 'width', "default": 10, "description": "the width of the leafs", "valueType": "int" },
 		     { "name": 'format', "default": { 'stroke': "black", "stroke-width": 1 }, "description": "the format of the lines", "valueType": "line" },
-		     { "name": 'data', "default": "matrix2dendogram", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "row dendogram", "value": "matrix2rowdendogram" }, { "name": "column dendogram", "value": "matrix2coldendogram" } ] }
+		     { "name": 'data', "default": "matrix2dendogram", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "row dendogram", "value": "matrix2rowdendogram" }, { "name": "column dendogram", "value": "matrix2columndendogram" } ] }
 		   ];
 
 
