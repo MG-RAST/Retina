@@ -1509,9 +1509,6 @@ svg:svg {\
 	    if (! params.noLine) {
 		this.line(g, x1, y1, x2, y2, lineFormat);
 	    }
-
-	    console.log(tickBase);
-	    console.log(tickShift);
 	    
 	    // create ticks
 	    x1 = direction == "horizontal" ? shift + tickShift : base + tickBase;
