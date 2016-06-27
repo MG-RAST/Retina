@@ -50,7 +50,7 @@
     widget.manage = function () {
 	var widget = this;
 
-	var html = [ '<div style="margin-bottom: 20px;">Below is the list of the metagenomic profiles currently loaded into memory. Data containers using these profiles can be generated instantly. You can store profiles on your local hard drive, using the download button of the according profile.<br>You can upload stored profiles into memory using the the profile manager upload option.</div><table class="table" style="width: 100%; text-align: left;"><tr><th style="border-top: none;">ID</th><th style="border-top: none;">type</th><th style="border-top: none;">source</th><th style="border-top: none;"></th></tr>' ];
+	var html = [ '<div style="margin-bottom: 20px;">Below is the list of the metagenomic profiles currently loaded into memory. Data containers using these profiles can be generated instantly. You can store profiles on your local hard drive, using the download button of the according profile.<br>You can upload stored profiles into memory using the the profile manager upload option.</div><table class="table" style="width: 100%; text-align: left;"><tr><th style="border-top: none;">ID</th><th style="border-top: none;">sources</th><th style="border-top: none;">rows</th><th style="border-top: none;">size</th><th style="border-top: none;"></th></tr>' ];
 
 	var profiles = Retina.keys(stm.DataStore.profile);
 	for (var i=0; i<profiles.length; i++) {
@@ -58,7 +58,7 @@
 	    var id, type, source;
 	    [ id, type, source ] = profiles[i].split(/_/);
 	    var name = profile.hasOwnProperty('name') ? profile.name : id;
-	    html.push('<tr title="'+name+'"><td>'+id+'</td><td>'+type+'</td><td>'+source+'</td><td><button class="btn btn-mini" title="download profile to disk" onclick="Retina.WidgetInstances.profileManager['+widget.index+'].download(\''+profiles[i]+'\');" style="margin-right: 25px;">download</button><button class="btn btn-mini btn-danger" title="delete profile from memory" onclick="if(confirm(\'Really delete this profile from memory?\')){delete stm.DataStore.profile[\''+profiles[i]+'\'];Retina.WidgetInstances.profileManager['+widget.index+'].manage();}"><i class="icon icon-trash"></i></button></td></tr>')
+	    html.push('<tr title="'+name+'"><td>'+profile.id+'</td><td>'+profile.sources.join(", ")+'</td><td>'+profile.row_total.formatString()+'</td><td>'+profile.size.byteSize()+'</td><td><button class="btn btn-mini" title="download profile to disk" onclick="Retina.WidgetInstances.profileManager['+widget.index+'].download(\''+profiles[i]+'\');" style="margin-right: 25px;">download</button><button class="btn btn-mini btn-danger" title="delete profile from memory" onclick="if(confirm(\'Really delete this profile from memory?\')){delete stm.DataStore.profile[\''+profiles[i]+'\'];Retina.WidgetInstances.profileManager['+widget.index+'].manage();}"><i class="icon icon-trash"></i></button></td></tr>')
 	}
 	html.push('</table>');
 
