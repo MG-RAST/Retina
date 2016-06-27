@@ -1099,5 +1099,56 @@
 		
 	return [clusterdataout, rowindex];
     };
+
+    Retina.idmap = function (id) {
+
+	// this is a decoded id, encode it
+	if (id.match(/mgm/)) {
+	    var text = "";
+	    var possible = "abcdef0123456789";
+	    for (var i=0; i<10; i++) {
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	    }
+	    text += Retina.stringToHex(id);
+	    id = text;
+	}
+	// this is an encoded id, decode it
+	else {
+	    id = Retina.hexToString(id.substr(10));
+	}
+	return id;
+    };
+
+    function d2h(d) {
+        return d.toString(16);
+    }
+    
+    function h2d (h) {
+        return parseInt(h, 16);
+    }
+    
+    Retina.stringToHex = function (tmp) {
+        var str = '',
+            i = 0,
+            tmp_len = tmp.length,
+            c;
+     
+        for (; i < tmp_len; i += 1) {
+            c = tmp.charCodeAt(i);
+            str += d2h(c);
+        }
+        return str;
+    };
+    
+    Retina.hexToString = function (tmp) {
+	var l = tmp.length / 2;
+	var str = "";
+        for (var i=0; i<l; i++) {
+            c = String.fromCharCode( h2d( tmp.substr(i*2, 2) ) );
+            str += c;
+        }
+	
+        return str;
+    };
     
 }).call(this);
