@@ -62,7 +62,7 @@
 	
 	var html = [];
 
-	var types = [ 'axis', 'grid', 'title', 'legend', 'dendogram', 'barchart', 'linechart', 'areachart', 'plot', 'donutchart', 'boxplot' ];
+	var types = [ 'axis', 'grid', 'title', 'legend', 'dendogram', 'barchart', 'linechart', 'areachart', 'plot', 'donutchart', 'boxplot', 'heatmap', 'colorscale' ];
 
 	html.push('<div class="form-horizontal">');
 
