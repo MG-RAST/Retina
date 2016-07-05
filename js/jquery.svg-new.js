@@ -1970,6 +1970,103 @@ svg:svg {\
 	    
 	    return g;
 	},
+	heatmap: function(params) {
+	    var group = params.group || null;
+	    var data = params.data;
+	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
+	    var shiftY = params.shiftY == null ? 0 : params.shiftY;
+	    var boxwidth = params.boxwidth == null ? 10 : params.boxwidth;
+	    var boxheight = params.boxheight == null ? params.boxwidth : params.boxheight;
+	    var format = params.format == null ? {} : params.format;
+	    var colorscale = params.colorscale || "green2red";
+	    
+	    var g = this.group(group, params.id, params.groupSettings);
+	    for (var i=0; i<data.cells.length; i++) {
+
+		for (var h=0; h<data.cells[i].length; h++) {
+
+		    // calculate box margins
+		    var x = h * boxwidth + shiftX;
+		    var y = i * boxheight + shiftY;
+
+		    // calculate box color
+		    var color = "black";
+		    var adjusted_value = (data.cells[data.rowindex[i]-1][data.colindex[h]-1] * 2) - 1;
+		    var cval = parseInt(255 * Math.abs(adjusted_value));
+		    if (colorscale == 'green2red') {
+			if (adjusted_value < 0) {
+			    color = "rgb("+cval+",0,0)";
+			} else {
+			    color = "rgb(0,"+cval+",0)";
+			}
+		    } else {
+			if (adjusted_value < 0) {
+			    color = "rgb(0,0,"+cval+")";
+			} else {
+			    color = "rgb("+cval+","+cval+",0)";
+			}
+		    }
+		    format.fill = color;
+
+		    // draw the box
+		    this.rect(null, x, y, boxwidth, boxheight, 0, 0, format);
+		    
+		}
+		
+	    }
+	    
+	    return g;
+	},
+	colorscale: function(params) {
+	    var group = params.group || null;
+	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
+	    var shiftY = params.shiftY == null ? 0 : params.shiftY;
+	    var min = params.min == null ? -1 : params.min;
+	    var max = params.max == null ? 1 : params.max;
+	    var steps = params.steps == null ? 20 : params.steps;
+	    var boxwidth = params.boxwidth == null ? 10 : params.boxwidth;
+	    var boxheight = params.boxheight == null ? params.boxwidth : params.boxheight;
+	    var format = params.format == null ? {} : params.format;
+	    var textformat = jQuery.extend(true, {}, format);
+	    textformat.stroke = "black";
+	    textformat['stroke-width'] = 0;
+	    textformat['text-anchor'] = "middle";
+	    var colorscale = params.colorscale || "green2red";
+	    var step = Math.abs(max - min) / steps;
+	    
+	    var g = this.group(group, params.id, params.groupSettings);
+	    for (var i=0; i<steps + 1; i++) {
+
+		var x = i * boxwidth + shiftX;
+		var y = boxheight + shiftY + 5;
+		
+		// draw box
+		var color = "black";
+		var adjusted_value = (min + (i * step)).toFixed(1);
+		var cval = parseInt(255 * Math.abs(adjusted_value));
+		if (colorscale == 'green2red') {
+		    if (adjusted_value < 0) {
+			color = "rgb("+cval+",0,0)";
+		    } else {
+			color = "rgb(0,"+cval+",0)";
+		    }
+		} else {
+		    if (adjusted_value < 0) {
+			color = "rgb(0,0,"+cval+")";
+		    } else {
+			color = "rgb("+cval+","+cval+",0)";
+		    }
+		}
+		format.fill = color;
+		this.rect(null, x, shiftY, boxwidth, boxheight, 0, 0, format);
+
+		// draw text
+		var t = this.text(g, x + (boxwidth / 2), y, adjusted_value+'', textformat);
+		t.setAttribute('y', y + t.getBBox().height);
+	    }
+	    
+	    return g;
+	},
 	title: function (params) {
 	    var group = params.group || null;
 	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
@@ -2059,7 +2156,7 @@ svg:svg {\
 		    shiftY += interval;
 		}
 	    }
-
+	    
 	    return this.path(g, path, format);
 	}
     });

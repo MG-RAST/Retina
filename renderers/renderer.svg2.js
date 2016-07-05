@@ -80,10 +80,49 @@
 	    return retval;
 	},
 
-	matrix2labelaxis: function (params, data) {
+	matrix2collabelaxis: function (params, data) {
 	    var retval = { "labels": data.cols, "spaceMajor": 0 };
 
 	    retval.spaceMajor = params.spaceMajor ? params.spaceMajor : Math.floor(params.length / data.cols.length);
+	    
+	    return retval;
+	},
+
+	matrix2rowlabelaxis: function (params, data) {
+	    var retval = { "labels": data.rows, "spaceMajor": 0 };
+	    
+	    retval.spaceMajor = params.spaceMajor ? params.spaceMajor : Math.floor(params.length / data.rows.length);
+	    
+	    return retval;
+	},
+
+	matrix2heatmaprowaxis: function (params, data) {
+	    var retval = { "spaceMajor": 0 };
+
+	    var labels = [];
+	    var ind = Retina.cluster(Retina.normalizeMatrix(Retina.transposeMatrix(data.data)))[1];
+	    for (var i=0; i<data.rows.length; i++) {
+		labels.push(data.rows[ind[i] - 1]);
+	    }
+
+	    retval.labels = labels;
+	    retval.spaceMajor = params.spaceMajor ? params.spaceMajor : Math.floor(params.length / data.rows.length);
+	    
+	    return retval;
+	},
+
+	matrix2heatmapcolaxis: function (params, data) {
+	    var retval = { "spaceMajor": 0 };
+	    
+	    var labels = [];
+	    var ind = Retina.cluster(Retina.normalizeMatrix(data.data))[1];
+	    console.log(ind);
+	    for (var i=0; i<data.cols.length; i++) {
+		labels.push(data.cols[ind[i] - 1]);
+	    }
+
+	    retval.labels = labels;
+	    retval.spaceMajor = params.spaceMajor ? params.spaceMajor : Math.floor(params.length / data.rows.length);
 	    
 	    return retval;
 	},
@@ -184,7 +223,7 @@
 	matrix2rowdendogram: function (params, data) {
 	    var retval = {};
 
-	    retval["data"] = Retina.cluster(Retina.normalizeMatrix(Retina.transposeMatrix(data.data)))[0];
+	    retval["data"] = Retina.cluster(Retina.scaleMatrix(Retina.normalizeMatrix(Retina.transposeMatrix(data.data))))[0];
 	    
 	    return retval;
 	},
@@ -192,7 +231,18 @@
 	matrix2columndendogram: function (params, data) {
 	    var retval = {};
 
-	    retval["data"] = Retina.cluster(Retina.normalizeMatrix(data.data))[0];
+	    retval["data"] = Retina.cluster(Retina.scaleMatrix(Retina.normalizeMatrix(data.data)))[0];
+	    
+	    return retval;
+	},
+
+	matrix2heatmap: function (params, data) {
+	    var retval = { "data": { "cells": [], "rowindex": [], "colindex": [] } };
+
+	    var norm = Retina.scaleMatrix(Retina.normalizeMatrix(data.data));
+	    retval.data.colindex = Retina.cluster(norm)[1];
+	    retval.data.rowindex = Retina.cluster(Retina.transposeMatrix(norm))[1];
+	    retval.data.cells = Retina.transposeMatrix(norm);
 	    
 	    return retval;
 	},
@@ -274,7 +324,7 @@
 		     { "name": 'labelOrigin', "default": true, "description": "turns display of the label at the origin point on or off", "valueType": "boolean" },
 		     { "name": 'isLog', "default": false, "description": "shows log or linear values as the axis labels", "valueType": "boolean" },
 		     { "name": 'noLine', "default": false, "description": "hides the lines", "valueType": "boolean" },
-		     { "name": 'data', "default": "matrix2valueaxis", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "value axis", "value": "matrix2valueaxis" }, { "name": "label axis", "value": "matrix2labelaxis" }, { "name": "stacked value axis", "value": "matrix2stackedvalueaxis" } ] }
+		     { "name": 'data', "default": "matrix2valueaxis", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "value axis", "value": "matrix2valueaxis" }, { "name": "column label axis", "value": "matrix2collabelaxis" }, { "name": "row label axis", "value": "matrix2rowlabelaxis" }, { "name": "heatmap column label axis", "value": "matrix2heatmapcolaxis" }, { "name": "heatmap row label axis", "value": "matrix2heatmaprowaxis" }, { "name": "stacked value axis", "value": "matrix2stackedvalueaxis" } ] }
 		   ];
 	},
 	
@@ -391,12 +441,28 @@
 		     { "name": 'width', "default": 10, "description": "the width of the leafs", "valueType": "int" },
 		     { "name": 'format', "default": { 'stroke': "black", "stroke-width": 1 }, "description": "the format of the lines", "valueType": "line" },
 		     { "name": 'data', "default": "matrix2dendogram", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "row dendogram", "value": "matrix2rowdendogram" }, { "name": "column dendogram", "value": "matrix2columndendogram" } ] }
-		   ];
+		   ];	    
+	},
 
+	heatmap: function () {
+	    return [ { "name": 'shiftX', "default": 50, "description": "the offset from the left", "valueType": "int" },
+		     { "name": 'shiftY', "default": 50, "description": "the offset from the top", "valueType": "int" },
+		     { "name": 'boxheight', "default": 20, "description": "the height of the dendrogram", "valueType": "int" },
+		     { "name": 'boxwidth', "default": 20, "description": "the width of the leafs", "valueType": "int" },
+		     { "name": 'format', "default": { 'stroke': "black", "stroke-width": 1 }, "description": "the format of the lines", "valueType": "line" },
+		     { "name": 'colorscale', "default": "green2red", "description": "color scale", "valueType": "select", "options": [ "green2red", "blue2yellow" ] },
+		     { "name": 'data', "default": "matrix2heatmap", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "heatmap", "value": "matrix2heatmap" }] }
+		   ];	    
+	},
 
-	    var direction = params.direction || "ltr";
-	    var data = params.data || { "depth": 1 };
-	    
+	colorscale: function () {
+	    return [ { "name": 'shiftX', "default": 50, "description": "the offset from the left", "valueType": "int" },
+		     { "name": 'shiftY', "default": 50, "description": "the offset from the top", "valueType": "int" },
+		     { "name": 'boxheight', "default": 20, "description": "the height of the dendrogram", "valueType": "int" },
+		     { "name": 'boxwidth', "default": 25, "description": "the width of the leafs", "valueType": "int" },
+		     { "name": 'format', "default": { 'stroke': "gray", "fontSize": 10, "fontFamily": "arial", "fontWeight": "normal" }, "description": "the format of the lines and text", "valueType": "line" },
+		     { "name": 'colorscale', "default": "green2red", "description": "color scale", "valueType": "select", "options": [ "green2red", "blue2yellow" ] }
+		   ];	    
 	},
 
 	/*
