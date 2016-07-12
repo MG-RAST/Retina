@@ -127,24 +127,7 @@
 		'asynch_column_mapping': null,
 		'show_export': false,
 		'strip_html': true
-	    },
-	  options: [
-	      { general:
-		[
-		    { name: 'editable', type: 'bool', description: "can cell data be edited?",
-		      title: "editable" },
-		    { name: 'filter_autodetect', type: 'bool', description: "should all columns have an auto detected filter?",
-		      title: "filter autodetection" },
-		]
-	      },
-	      { layout:
-		[
-		    { name: 'width', type: 'int', description: "width of the plot in pixel", title: "width" },
-		    { name: 'height', type: 'int', description: "height of the plot in pixel", title: "height" },
-		    { name: 'rows_per_page', type: 'int', description: "number of rows diplayed per page", title: "rows per page" },
-		]
-	      }
-	  ]
+	    }
       },
 	exampleData: function () {
 	    return {
