@@ -25,8 +25,12 @@
 	    Retina.load_renderer(widget.params.type, true);
 	}
 
-	widget.d = { data: Retina.RendererInstances[widget.params.type][0].exampleData() };
-	widget.d = jQuery.extend(true, widget.d, Retina.RendererInstances[widget.params.type][0].settings, widget.params.settings);
+	if (! widget.params.settings.data) {
+	    widget.params.target.innerHTML = "- no data -";
+	    return widget;
+	}
+	
+	widget.d = jQuery.extend(true, {}, widget.params.settings);
 
 	var cDiv = widget.controlDiv = document.createElement('div');
 	widget.displayDiv = document.createElement('div');
@@ -36,9 +40,9 @@
 
 	var html = '<div class="accordion" id="RendererController_accordion'+index+'" style="width: '+widget.params.width+'px; margin-bottom: 20px;">';
 
-	for (var i=0; i<widget.renderer.about.options.length; i++) {
-	    var groupname = Retina.keys(widget.renderer.about.options[i])[0];
-	    var group = widget.renderer.about.options[i][groupname];
+	for (var i=0; i<widget.params.controls.length; i++) {
+	    var groupname = Retina.keys(widget.params.controls[i])[0];
+	    var group = widget.params.controls[i][groupname];
 
 	    html += '\
 <div class="accordion-group">\
@@ -73,14 +77,6 @@
 
 	widget.params.target.innerHTML = "";
 	widget.params.target.appendChild(widget.controlDiv);
-
-	if (widget.params.breadcrumbs) {
-	    var bc = document.createElement('div');
-	    bc.setAttribute('id', widget.params.breadcrumbs);
-	    bc.setAttribute('style', "margin-bottom: 20px;");
-	    widget.params.target.appendChild(bc);
-	}
-
 	widget.params.target.appendChild(widget.displayDiv);
 
 	widget.render(index);
@@ -112,27 +108,28 @@
 
     // input render functions
     widget.inputRendercolor = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=this.value;Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();' id='RendererControllerInput_"+opt.index+"_"+opt.name+"'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=this.value;Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
     };
 
     widget.inputRenderfloat = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=parseFloat(this.value);Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();' id='RendererControllerInput_"+opt.index+"_"+opt.name+"'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=parseFloat(this.value);Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
     };
 
     widget.inputRendertext = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=this.value;Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();' id='RendererControllerInput_"+opt.index+"_"+opt.name+"'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=this.value;Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
     };
     
     widget.inputRenderfontsize = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=this.value;Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();' id='RendererControllerInput_"+opt.index+"_"+opt.name+"'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=this.value;Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
     };
     
     widget.inputRenderint = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=parseInt(this.value);Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();' id='RendererControllerInput_"+opt.index+"_"+opt.name+"'>";
+	var val = eval( "Retina.WidgetInstances.RendererController[opt.index].renderer.settings."+opt.name );
+	return "<input type='text' style='margin-bottom: 0px;' value='"+val+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=parseInt(this.value);Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
     };
 
     widget.inputRenderbool = function (opt) {
-	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=(this.selectedIndex==0 ? true : false);Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();' id='RendererControllerInput_"+opt.index+"_"+opt.name+"'>";
+	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=(this.selectedIndex==0 ? true : false);Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
 
 	html += "<option"+(opt.defaultTrue ? " selected=selected" : "")+">yes</option><option"+(opt.defaultTrue ? "" : " selected=selected")+">no</option>";
 
@@ -141,7 +138,7 @@
     };
 
     widget.inputRenderselect = function (opt) {
-	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=this.options[this.selectedIndex].value;Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();' id='RendererControllerInput_"+opt.index+"_"+opt.name+"'>";
+	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=this.options[this.selectedIndex].value;Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
 
 	for (var i=0; i<opt.options.length; i++) {
 	    var selected = "";
