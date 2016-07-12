@@ -303,6 +303,7 @@
 	var url = Retina.dataURI(path);
 	jQuery.ajax({
 	    url: url,
+	    contentType: 'application/json',
 	    dataType: 'json',
 	    data: [],
 	    success: callback,
@@ -896,6 +897,41 @@
 	}
 	
 	return matrix;
+    };
+
+    Retina.heatMatrix = function (matrix) {
+	var sums = [];
+	var means = [];
+	var mins = [];
+	var maxes = [];
+
+	for (var i=0; i<matrix.length; i++) {
+	    sums[i] = 0;
+	    mins[i] = matrix[i][0];
+	    maxes[i] = matrix[i][0];
+	    for (var h=0; h<matrix[i].length; h++) {
+		if (matrix[i][h] > maxes[i]) {
+		    maxes[i] = matrix[i][h];
+		}
+		if (matrix[i][h] < mins[i]) {
+		    mins[i] = matrix[i][h];
+		}
+		sums[i] += matrix[i][h];
+	    }
+	}
+	for (var i=0; i<sums.length; i++) {
+	    means.push(sums[i] / matrix[i].length);
+	}
+	var retval = [];
+	for (var i=0; i<matrix.length; i++) {
+	    retval[i] = [];
+	    for (var h=0; h<matrix[i].length; h++) {
+		var val = matrix[i][h] < means[i] ? 0 - (matrix[i][h] / (means[i] - mins[i])) : matrix[i][h] / (maxes[i] - means[i]);
+		retval[i].push(val);
+	    }
+	}
+
+	return retval;
     };
 
     Retina.distance = function (data) {
