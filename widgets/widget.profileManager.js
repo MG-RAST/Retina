@@ -62,6 +62,8 @@
 	}
 	html.push('</table>');
 
+	html.push('<button class="btn btn-mini" onclick="this.setAttribute(\'disabled\',\'disabled\');stm.dump(false, \'analysis.session\', \'profile\').then(function(){alert(\'session stored\');jQuery(\'#profileModal\').modal(\'hide\');});">download all profiles</button>');
+
 	if (profiles.length == 0) {
 	    html = ['<div class="alert alert-info" style="margin-top: 250px; width: 350px; margin-left: auto; margin-right: auto;">You currently do not have any profiles in memory.</div>'];
 	}
