@@ -326,6 +326,65 @@
 	    renderer.checkLegend();
 	    renderer.checkEvents();
 	},
+	deviationPlot: function (params) {
+	    var renderer = this;
+
+	    jQuery.extend(true, renderer.settings, params.data);
+
+	    renderer.settings.width = 400;
+	    renderer.settings.height = 80;
+
+	    var colors = { 'darkblue': '#8caad8',
+			   'mediumblue': '#a8bfe2',
+			   'lightblue': '#d9e3f2',
+			   'border': '#789cd2',
+			   'mean': '#3f72bf',
+			   'mark': '#ff0000' };
+	    
+	    var padding = parseInt(renderer.settings.height / 4);
+	    var factor = renderer.settings.width / (renderer.settings.max - renderer.settings.min);
+	    
+	    // main rectangle
+	    renderer.svg.rect(1, padding, renderer.settings.width - 2, renderer.settings.height - (padding * 2), 0, 0, {fill: colors['lightblue'], stroke: colors['darkblue'], strokeWidth: 2});
+	    
+	    // 2 std dv
+	    renderer.svg.rect(((renderer.settings.mean - (2 * renderer.settings.stdv)) - renderer.settings.min) * factor, padding, 4 * renderer.settings.stdv * factor, renderer.settings.height - (padding * 2), 0, 0, {fill: colors['mediumblue'], stroke: colors['border'], strokeWidth: 2});
+	    
+	    // std dv
+	    renderer.svg.rect(((renderer.settings.mean - renderer.settings.stdv) - renderer.settings.min) * factor, padding, 2 * renderer.settings.stdv * factor, renderer.settings.height - (padding * 2), 0, 0, {fill: colors['darkblue'], stroke: colors['border'], strokeWidth: 2});
+	    
+	    // mean
+	    renderer.svg.line((renderer.settings.mean - renderer.settings.min) * factor, padding, (renderer.settings.mean - renderer.settings.min) * factor, renderer.settings.height - padding, { strokeWidth: 2, strokeDashArray: "6,2", stroke: colors['mean'] }); 
+	    
+	    // mark
+	    renderer.svg.line((renderer.settings.val - renderer.settings.min) * factor, padding, (renderer.settings.val - renderer.settings.min) * factor, renderer.settings.height - padding, { stroke: colors['mark'], strokeWidth: 2, title: renderer.settings.val });
+	    renderer.svg.circle((renderer.settings.val - renderer.settings.min) * factor, padding - 6, 3, { stroke: colors['mark'], fill: colors['mark'], title: renderer.settings.val });
+	    
+	    // 2 σ -
+	    renderer.svg.text(((renderer.settings.mean - (2 * renderer.settings.stdv)) - renderer.settings.min) * factor, padding - 5, "2σ", { fontSize: '10px', textAnchor: 'middle' });
+	    
+	    // σ -
+	    renderer.svg.text(((renderer.settings.mean - renderer.settings.stdv) - renderer.settings.min) * factor, padding - 5, "σ", { fontSize: '10px', textAnchor: 'middle' });
+	    
+	    // μ
+	    renderer.svg.text((renderer.settings.mean - renderer.settings.min) * factor, padding - 5, "μ", { fontSize: '10px', textAnchor: 'middle' });
+	    
+	    // σ +
+	    renderer.svg.text(((renderer.settings.mean + renderer.settings.stdv) - renderer.settings.min) * factor, padding - 5, "σ", { fontSize: '10px', textAnchor: 'middle' });
+	    
+	    // 2 σ +
+	    renderer.svg.text(((renderer.settings.mean + (2 * renderer.settings.stdv)) - renderer.settings.min) * factor, padding - 5, "2σ", { fontSize: '10px', textAnchor: 'middle' });
+	    
+	    // min
+	    renderer.svg.text(0, renderer.settings.height - padding + 12, renderer.settings.min.formatString(2), { fontSize: '10px' });
+	    
+	    // max
+	    renderer.svg.text(renderer.settings.width, renderer.settings.height - padding + 12, renderer.settings.max.formatString(2), { fontSize: '10px', textAnchor: 'end' });
+	    
+	    // mean
+	    renderer.svg.text((renderer.settings.mean - renderer.settings.min) * factor, renderer.settings.height - padding + 12, renderer.settings.mean.formatString(2), { fontSize: '10px', textAnchor: 'middle' });
+	    
+	},
 	lineChart: function(params) {
 	    var renderer = this;
 
@@ -457,6 +516,7 @@
 		// connect legend and graphic
 		if (renderer.legend) {
 		    for (var i=0; i<renderer.graphic.childNodes.length; i++) {
+			if (! renderer.legend.childNodes[i*2+1]) { continue; };
 			renderer.legend.childNodes[i*2+1].style.cursor = "default";
 			var context = { renderer: renderer,
 					graphic: renderer.graphic.childNodes[i],
