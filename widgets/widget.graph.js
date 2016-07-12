@@ -54,7 +54,6 @@
 	document.getElementById('graph').style.width = widget.graph.settings.width + "px";
 	document.getElementById('globalWidth').value = widget.graph.settings.width;
 	document.getElementById('globalHeight').value = widget.graph.settings.height;
-	widget.applyGlobalProperties();
     };
 
     widget.controls = function () {
@@ -62,7 +61,7 @@
 	
 	var html = [];
 
-	var types = [ 'axis', 'grid', 'title', 'legend', 'dendogram', 'barchart', 'linechart', 'areachart', 'plot', 'donutchart', 'boxplot', 'heatmap', 'colorscale' ];
+	var types = [ 'axis', 'grid', 'title', 'legend', 'dendogram', 'barchart', 'linechart', 'areachart', 'plot', 'donutchart', 'boxplot', 'heatmap', 'colorscale', 'deviationplot' ];
 
 	html.push('<div class="form-horizontal">');
 
@@ -337,30 +336,6 @@
 		if (attributes[i].valueType == "text") {
 		    params[attributes[i].name] = field.value;
 		} else if (attributes[i].valueType == "int") {
-
-		    // if there is a connection for this attribute and the attribute has changed, respect the connection
-		    if (connections.hasOwnProperty(ind) && connections[ind].hasOwnProperty(attributes[i].name) && params[attributes[i].name] != parseInt(field.value)) {
-			
-			// get the connection array for this attribute
-			var c = connections[ind][attributes[i].name];
-
-			// iterate over the connection items of this connection array
-			for (var h=0; h<c.length; h++) {
-
-			    // check the type of the connection
-			    if (c[h].type == 'pinned') {
-
-				// calculate the difference between the original and new value of the attribute
-				var diff = parseInt(parseInt(field.value - params[attributes[i].name]));
-				
-				// iterate over the affected items and adjust them
-				for (var j=0; j<c[h].items.length; j++) {
-				    var item = widget.graph.settings.items[c[h].items[j].index];
-				    item.parameters[c[h].items[j].attribute] = item.parameters[c[h].items[j].attribute] + diff;
-				}
-			    }
-			}
-		    }
 		    params[attributes[i].name] = parseInt(field.value);
 		} else if (attributes[i].valueType == "boolean") {
 		    if (field.checked) {
@@ -372,6 +347,36 @@
 		    params[attributes[i].name] = field.options[field.selectedIndex].value;
 		} else if (attributes[i].valueType == "data") {
 		    data = field.options[field.selectedIndex].value;
+		}
+
+		// if there is a connection for this attribute and the attribute has changed, respect the connection
+		if (connections.hasOwnProperty(ind) && connections[ind].hasOwnProperty(attributes[i].name)) {
+		    
+		    // get the connection array for this attribute
+		    var c = connections[ind][attributes[i].name];
+		    
+		    // iterate over the connection items of this connection array
+		    for (var h=0; h<c.length; h++) {
+			
+			// check the type of the connection
+			if (c[h].type == 'pinned') {
+			    
+			    // calculate the difference between the original and new value of the attribute
+			    var diff = parseInt(parseInt(field.value - params[attributes[i].name]));
+			    
+			    // iterate over the affected items and adjust them
+			    for (var j=0; j<c[h].items.length; j++) {
+				var item = widget.graph.settings.items[c[h].items[j].index];
+				item.parameters[c[h].items[j].attribute] = item.parameters[c[h].items[j].attribute] + diff;
+			    }
+			}
+			else if (c[h].type == 'equal') {
+			    // iterate over the affected items and adjust them
+			    for (var j=0; j<c[h].items.length; j++) {
+				widget.graph.settings.items[c[h].items[j].index].parameters[c[h].items[j].attribute] = params[attributes[i].name];
+			    }
+			}
+		    }
 		}
 	    } else {
 		params[attributes[i].name] = attributes[i]['default'];
