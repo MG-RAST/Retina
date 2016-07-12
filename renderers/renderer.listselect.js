@@ -177,15 +177,15 @@
 	    filter_input.setAttribute('placeholder', 'Enter filter');
 	    filter_input.setAttribute('value', renderer.settings.filter_value);
 	    filter_input.addEventListener('keyup', function (event) {
+		Retina.RendererInstances.listselect[index].settings.filter_value = filter_input.value;
 		if (event.keyCode == 13) {
 		    Retina.RendererInstances.listselect[index].addBreadcrumb(index);
 		    return;
 		}
-		Retina.RendererInstances.listselect[index].settings.filter_value = filter_input.value;
 		if (Retina.RendererInstances.listselect[index].settings.synchronous) {
 		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
 		} else {
-		    if (filter_input.value.length >= Retina.RendererInstances.listselect[index].settings.asynch_filter_min_length) {
+		    if (filter_input.value.length >= Retina.RendererInstances.listselect[index].settings.asynch_filter_min_length || event.keyCode == 8) {
 			Retina.RendererInstances.listselect[index].typing = new Date().getTime();
 			window.setTimeout("Retina.RendererInstances.listselect["+index+"].check_threshold("+index+")", Retina.RendererInstances.listselect[index].settings.asynch_keystroke_threshold);
 		    }
@@ -317,14 +317,8 @@
 		    submit_button.addEventListener('click', function () {
 			var selection_result = [];
 			if (renderer.settings.return_object) {
-			    for (var x=0; x<result_list.options.length; x++) {
-			        for (var y=0; y<renderer.settings.data.length; y++) {
-                                    if (result_list.options[x].value == renderer.settings.data[y][renderer.settings.value]) {
-					selection_result.push(renderer.settings.data[y]);
-					break;
-                                    }
-				}
-		            }
+
+			    selection_result = renderer.settings.selection_data;
 			} else {
 			    for (var x=0; x<result_list.options.length; x++) {
 				selection_result.push(result_list.options[x].value);

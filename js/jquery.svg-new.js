@@ -1465,12 +1465,39 @@ svg:svg {\
 
 	axis: function(params) {
 	    var group = params.group || null;
+	    var orientation = params.orientation == null ? "bottom" : params.orientation;
 	    var direction = params.direction == null ? "horizontal" : params.direction;
-	    var height = params.height == null ? this._height() : params.height;
-	    var length = params.length; // length of the axis
-	    var shift = params.shift == null ? (direction == "horizontal" ? 0 : height) : (direction == "horizontal" ? params.shift : height - params.shift);
-	    var base = params.base == null ? (direction == "horizontal" ? height : 0) : (direction == "horizontal" ? height - params.base : params.base);
-
+	    var height = this._height();
+	    var length = params.length;
+	    
+	    var shift = params.shift;
+	    if (shift == null) {
+		if (direction == "horizontal" || orientation == "top") {
+		    shift = 0;
+		}
+		else {
+		    shift = height;
+		}
+	    } else {
+		if (direction == "vertical" && orientation == "bottom") {
+		    shift = height - shift;
+		}
+	    }
+	    
+	    var base = params.base;
+	    if (base == null) {
+		if (direction == "horizontal" || orientation == "top") {
+		    base = height;
+		}
+		else {
+		    base = 0;
+		}
+	    } else {
+		if (direction == "horizontal" && orientation == "bottom") {
+		    base = height - base;
+		}
+	    }
+	    
 	    var spaceMajor = params.spaceMajor == null ? parseInt(length / 10) : params.spaceMajor;
 	    var numMajor = parseInt(length / spaceMajor);
 	    var numMinor = params.numMinor == null ? 4 : params.numMinor;
@@ -1505,7 +1532,7 @@ svg:svg {\
 	    var x1 = direction == "horizontal" ? shift : base;
 	    var y1 = direction == "horizontal" ? base : shift;
 	    var x2 = direction == "horizontal" ? shift + length : base;
-	    var y2 = direction == "horizontal" ? base : shift - length;
+	    var y2 = direction == "horizontal" ? base : (orientation == "bottom" ? shift - length : shift + length);
 	    if (! params.noLine) {
 		this.line(g, x1, y1, x2, y2, lineFormat);
 	    }
@@ -1553,8 +1580,13 @@ svg:svg {\
 				x1m += spaceMinor;
 				x2m += spaceMinor;
 			    } else {
-				y1m -= spaceMinor;
-				y2m -= spaceMinor;
+				if (orientation == "bottom") {
+				    y1m -= spaceMinor;
+				    y2m -= spaceMinor;
+				} else {
+				    y1m += spaceMinor;
+				    y2m += spaceMinor;
+				}
 			    }
 			    if (! params.noLine) {
 				this.line(g, x1m, y1m, x2m, y2m, lineFormat);
@@ -1566,8 +1598,13 @@ svg:svg {\
 		    x1 += spaceMajor;
 		    x2 += spaceMajor;
 		} else {
-		    y1 -= spaceMajor;
-		    y2 -= spaceMajor;
+		    if (orientation == "bottom") {
+			y1 -= spaceMajor;
+			y2 -= spaceMajor;
+		    } else {
+			y1 += spaceMajor;
+			y2 += spaceMajor;
+		    }
 		}
 		if (direction == 'horizontal') {
 		    x1m = x1;
@@ -1757,57 +1794,76 @@ svg:svg {\
 
 	linechart: function(params) {
 	    var shift = params.shift == null ? 0 : params.shift;
-	    var height = params.height == null ? this._height() : params.height;
+	    var height = this._height();
 	    var base = params.base == null ? height : height - params.base;
 	    var space = params.space == null ? 5 : params.space;
 	    var radius = params.radius;
-	    var points = params.points || params.data || [];
+	    var groups = params.groups || params.data || [];
 	    var group = params.group || null;
+	    var colors = GooglePalette();
 	    var format = { fill: "white", stroke: "black", strokeWidth: 1 };
 	    if (params.format != null) {
 		jQuery.extend(format, params.format);
 	    }
 
 	    // create group
-	    var g = this.group(group, params.id, params.groupSettings);
-
-	    // initialize coords
-	    var x = shift;
-	    var y = base;
-
-	    // iterate over the points array
-	    var lastX = null;
-	    var lastY = null;
-	    for (var i=0; i<points.length; i++) {
-		var point = points[i];
-		var f = jQuery.extend({}, format, point.format == null ? {} : point.format);
-		var y1 = y - point.y;
-		var x1 = x;
-		if (point.hasOwnProperty('x')) {
-		    x1 = x + point.x;
+	    var mg = this.group(group, params.id, params.groupSettings);
+	    
+	    // iterate over the groups
+	    for (var h=0; h<groups.length; h++) {
+		var g = this.group(mg);
+		this.doctitle(g, groups[h].name);
+		points = groups[h].points;
+		format.stroke = colors[h];
+		if (groups[h].hasOwnProperty('format')) {
+		    format = jQuery.extend(format, groups[h].format);
 		}
-		if (i>0) {
-		    this.line(g, lastX, lastY, x1, y1, { stroke: f.stroke, strokeWidth: f.strokeWidth });
-		    var r = points[i - 1].radius == null ? radius : points[i - 1].radius;
-		    if (r) {
-			f = jQuery.extend({}, format, points[i - 1].format == null ? {} : points[i - 1].format);
-			this.circle(g, lastX, lastY, r, f); 
+		if (groups[h].hasOwnProperty('radius')) {
+		    radius = groups[h].radius;
+		}
+	    
+		// initialize coords
+		var x = shift;
+		var y = base;
+		
+		// iterate over the points array
+		var lastX = null;
+		var lastY = null;
+		for (var i=0; i<points.length; i++) {
+		    var point = points[i];
+		    var f = jQuery.extend({}, format, point.format == null ? {} : point.format);
+		    var y1 = y - point.y;
+		    var x1 = x;
+		    if (point.hasOwnProperty('x')) {
+			x1 = x + point.x;
+		    }
+		    if (i>0) {
+			this.line(g, lastX, lastY, x1, y1, { stroke: f.stroke, strokeWidth: f.strokeWidth });
+			var r = points[i - 1].radius == null ? radius : points[i - 1].radius;
+			if (r) {
+			    var pg = this.group(g);
+			    f = jQuery.extend({}, format, points[i - 1].format == null ? {} : points[i - 1].format);
+			    this.circle(pg, lastX, lastY, r, f);
+			    if (point.hasOwnProperty('value')) {
+				this.doctitle(pg, point.value);
+			    }
+			}
+		    }
+		    lastX = x1;
+		    lastY = y1;
+		    if (! point.hasOwnProperty('x')) {
+			x += space;
 		    }
 		}
-		lastX = x1;
-		lastY = y1;
-		if (! point.hasOwnProperty('x')) {
-		    x += space;
+		var point = points[points.length - 1];
+		var f = jQuery.extend({}, format, point.format == null ? {} : point.format);
+		var r = point.radius == null ? radius : point.radius;
+		if (r) {
+		    this.circle(g, lastX, lastY, r, f); 
 		}
 	    }
-	    var point = points[points.length - 1];
-	    var f = jQuery.extend({}, format, point.format == null ? {} : point.format);
-	    var r = point.radius == null ? radius : point.radius;
-	    if (r) {
-		this.circle(g, lastX, lastY, r, f); 
-	    }
-
-	    return g;
+	    
+	    return mg;
 	},
 
 	areachart: function(params) {
@@ -1975,6 +2031,7 @@ svg:svg {\
 	    var data = params.data;
 	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
 	    var shiftY = params.shiftY == null ? 0 : params.shiftY;
+	    var height = this._height();
 	    var boxwidth = params.boxwidth == null ? 10 : params.boxwidth;
 	    var boxheight = params.boxheight == null ? params.boxwidth : params.boxheight;
 	    var format = params.format == null ? {} : params.format;
@@ -1992,24 +2049,25 @@ svg:svg {\
 		    // calculate box color
 		    var color = "black";
 		    var adjusted_value = (data.cells[data.rowindex[i]-1][data.colindex[h]-1] * 2) - 1;
-		    var cval = parseInt(255 * Math.abs(adjusted_value));
+		    var cval = 255 - parseInt(255 * Math.abs(adjusted_value));
 		    if (colorscale == 'green2red') {
 			if (adjusted_value < 0) {
-			    color = "rgb("+cval+",0,0)";
+			    color = "rgb(255,"+cval+","+cval+")";
 			} else {
-			    color = "rgb(0,"+cval+",0)";
+			    color = "rgb("+cval+",255,"+cval+")";
 			}
 		    } else {
 			if (adjusted_value < 0) {
-			    color = "rgb(0,0,"+cval+")";
+			    color = "rgb("+cval+","+cval+",255)";
 			} else {
-			    color = "rgb("+cval+","+cval+",0)";
+			    color = "rgb("+cval+",255,"+cval+")";
 			}
 		    }
+		    format.stroke = "gray";
 		    format.fill = color;
 
 		    // draw the box
-		    this.rect(null, x, y, boxwidth, boxheight, 0, 0, format);
+		    this.rect(g, x, y, boxwidth, boxheight, 0, 0, format);
 		    
 		}
 		
@@ -2029,6 +2087,7 @@ svg:svg {\
 	    var format = params.format == null ? {} : params.format;
 	    var textformat = jQuery.extend(true, {}, format);
 	    textformat.stroke = "black";
+	    textformat.fill = "black";
 	    textformat['stroke-width'] = 0;
 	    textformat['text-anchor'] = "middle";
 	    var colorscale = params.colorscale || "green2red";
@@ -2043,22 +2102,22 @@ svg:svg {\
 		// draw box
 		var color = "black";
 		var adjusted_value = (min + (i * step)).toFixed(1);
-		var cval = parseInt(255 * Math.abs(adjusted_value));
+		var cval = 255 - parseInt(255 * Math.abs(adjusted_value));
 		if (colorscale == 'green2red') {
-		    if (adjusted_value < 0) {
-			color = "rgb("+cval+",0,0)";
+			if (adjusted_value < 0) {
+			    color = "rgb(255,"+cval+","+cval+")";
+			} else {
+			    color = "rgb("+cval+",255,"+cval+")";
+			}
 		    } else {
-			color = "rgb(0,"+cval+",0)";
+			if (adjusted_value < 0) {
+			    color = "rgb("+cval+","+cval+",255)";
+			} else {
+			    color = "rgb("+cval+",255,"+cval+")";
+			}
 		    }
-		} else {
-		    if (adjusted_value < 0) {
-			color = "rgb(0,0,"+cval+")";
-		    } else {
-			color = "rgb("+cval+","+cval+",0)";
-		    }
-		}
 		format.fill = color;
-		this.rect(null, x, shiftY, boxwidth, boxheight, 0, 0, format);
+		this.rect(g, x, shiftY, boxwidth, boxheight, 0, 0, format);
 
 		// draw text
 		var t = this.text(g, x + (boxwidth / 2), y, adjusted_value+'', textformat);
@@ -2085,6 +2144,74 @@ svg:svg {\
 	    return g;
 	},
 
+	deviationplot: function (params) {
+	    var group = params.group || null;
+	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
+	    var shiftY = params.shiftY == null ? 0 : params.shiftY;
+	    var format = params.format == null ? {} : params.format;
+	    var height = params.height == null ? 80 : params.height;
+	    var width = params.width == null ? 400 : params.width;
+	    var data = params.data || {};
+
+	    var colors = { 'darkblue': '#8caad8',
+			   'mediumblue': '#a8bfe2',
+			   'lightblue': '#d9e3f2',
+			   'border': '#789cd2',
+			   'mean': '#3f72bf',
+			   'mark': '#ff0000' };
+	    
+	    format = jQuery.extend({}, { fill:"none", stroke: "black" }, format);
+
+	    var g = this.group(group, params.id, params.groupSettings);
+
+	    var padding = parseInt(height / 4);
+	    var factor = width / (data.max - data.min);
+	    
+	    // main rectangle
+	    this.rect(g, shiftX + 1, shiftY + padding, width - 2, height - (padding * 2), 0, 0, {fill: colors['lightblue'], stroke: colors['darkblue'], strokeWidth: 2});
+	    
+	    // 2 std dv
+	    this.rect(g, shiftX + ((data.mean - (2 * data.stdv)) - data.min) * factor, shiftY + padding, 4 * data.stdv * factor, height - (padding * 2), 0, 0, {fill: colors['mediumblue'], stroke: colors['border'], strokeWidth: 2});
+	    
+	    // std dv
+	    this.rect(g, shiftX + ((data.mean - data.stdv) - data.min) * factor, shiftY + padding, 2 * data.stdv * factor, height - (padding * 2), 0, 0, {fill: colors['darkblue'], stroke: colors['border'], strokeWidth: 2});
+	    
+	    // mean
+	    this.line(g, shiftX + (data.mean - data.min) * factor, shiftY + padding, shiftX + (data.mean - data.min) * factor, shiftY + height - padding, { strokeWidth: 2, strokeDashArray: "6,2", stroke: colors['mean'] }); 
+	    
+	    // mark
+	    var mark = this.group(g);
+	    this.line(mark, shiftX + (data.val - data.min) * factor, shiftY + padding, shiftX + (data.val - data.min) * factor, shiftY + height - padding, { stroke: colors['mark'], strokeWidth: 2 });
+	    this.circle(mark, shiftX + (data.val - data.min) * factor, shiftY + padding - 6, 3, { stroke: colors['mark'], fill: colors['mark'] });
+	    this.doctitle(mark, data.val);
+	    
+	    // 2 σ -
+	    this.text(g, shiftX + ((data.mean - (2 * data.stdv)) - data.min) * factor, shiftY + padding - 5, "2σ", { fontSize: '10px', textAnchor: 'middle' });
+	    
+	    // σ -
+	    this.text(g, shiftX + ((data.mean - data.stdv) - data.min) * factor, shiftY + padding - 5, "σ", { fontSize: '10px', textAnchor: 'middle' });
+	    
+	    // μ
+	    this.text(g, shiftX + (data.mean - data.min) * factor, shiftY + padding - 5, "μ", { fontSize: '10px', textAnchor: 'middle' });
+	    
+	    // σ +
+	    this.text(g, shiftX + ((data.mean + data.stdv) - data.min) * factor, shiftY + padding - 5, "σ", { fontSize: '10px', textAnchor: 'middle' });
+	    
+	    // 2 σ +
+	    this.text(g, shiftX + ((data.mean + (2 * data.stdv)) - data.min) * factor, shiftY + padding - 5, "2σ", { fontSize: '10px', textAnchor: 'middle' });
+	    
+	    // min
+	    this.text(g, shiftX + 0, shiftY + height - padding + 12, data.min.formatString(2), { fontSize: '10px' });
+	    
+	    // max
+	    this.text(shiftX + width, shiftY + height - padding + 12, data.max.formatString(2), { fontSize: '10px', textAnchor: 'end' });
+	    
+	    // mean
+	    this.text(shiftX + (data.mean - data.min) * factor, shiftY + height - padding + 12, data.mean.formatString(2), { fontSize: '10px', textAnchor: 'middle' });
+
+	    return g;
+	},
+
 	dendogram: function (params) {
 	    var group = params.group || null;
 	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
@@ -2102,9 +2229,9 @@ svg:svg {\
 	    var interval = parseInt(height / data.length);
 	    var path = "";
 	    if (direction == "ltr") {
-		shiftX++;
+		shiftX += height + 1;
 		for (var i=0;i<data.length;i++) {
-		    var curr_shift = 0 + shiftY;
+		    var curr_shift = shiftY + height + (interval / 2) + 1;
 		    for (var h=0;h<data[i].length;h++) {
 			var cluster = data[i][h];
 			path += "M"+shiftX+","+parseInt(curr_shift + ((width * cluster.a) / 2))+"l-"+parseInt(interval)+",0";
@@ -2129,9 +2256,9 @@ svg:svg {\
 		    shiftY -= interval;
 		}
 	    } else if (direction == "rtl") {
-		shiftX++;
+		shiftX += 1;
 		for (var i=0;i<data.length;i++) {
-		    var curr_shift = 0 + shiftY;
+		    var curr_shift = shiftY + height + (interval / 2) + 1;
 		    for (var h=0;h<data[i].length;h++) {
 			var cluster = data[i][h];
 			path += "M"+shiftX+","+parseInt(curr_shift + ((width * cluster.a) / 2))+"l"+parseInt(interval)+",0";

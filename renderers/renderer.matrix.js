@@ -91,7 +91,7 @@
 	},
 	exampleData: function () {
 	    return { rows: ['metagenome a', 'metagenome b', 'metagenome c'],
-		     columns: ['function 1', 'function 2', 'function 3', 'function 4', 'function 5', 'function 6', 'function 7', 'function 8', 'function 9', 'function 10' ],
+		     cols: ['function 1', 'function 2', 'function 3', 'function 4', 'function 5', 'function 6', 'function 7', 'function 8', 'function 9', 'function 10' ],
 		     data: [ [1,2,3,4,5,4,3,2,1,0],
 			     [5,4,3,2,1,0,1,2,3,4],
 			     [0,1,0,4,0,7,0,3,0,2] ] };
@@ -135,7 +135,7 @@
 	    
 	    var header = document.createElement('tr');
 	    header.appendChild(document.createElement('th'));
-	    for (var i=0;i<data.columns.length;i++) {
+	    for (var i=0;i<data.cols.length;i++) {
 		header.appendChild(renderer.colHeaderCell(index,i));
 	    }
 	    table.appendChild(header);
@@ -185,7 +185,7 @@
 		div.addEventListener('click', function() {
 		    var renderer = Retina.RendererInstances.matrix[this.getAttribute('index')];
 		    var data = renderer.settings.orientation == 'transposed' ? renderer.settings.transposedData : renderer.settings.data;
-		    renderer.settings.callback.call(null, { rendererIndex: this.getAttribute('index'), rowIndex: this.getAttribute('row'), colIndex: this.getAttribute('col'), cellValue: data.data[this.getAttribute('row')][this.getAttribute('col')], relativeCellValue: renderer.settings.relativeValues[this.getAttribute('row')][this.getAttribute('col')], colName: data.columns[this.getAttribute('col')], rowName: data.rows[this.getAttribute('row')], cell: this.parentNode, circle: this });
+		    renderer.settings.callback.call(null, { rendererIndex: this.getAttribute('index'), rowIndex: this.getAttribute('row'), colIndex: this.getAttribute('col'), cellValue: data.data[this.getAttribute('row')][this.getAttribute('col')], relativeCellValue: renderer.settings.relativeValues[this.getAttribute('row')][this.getAttribute('col')], colName: data.cols[this.getAttribute('col')], rowName: data.rows[this.getAttribute('row')], cell: this.parentNode, circle: this });
 		});
 	    }
 	    cell.appendChild(div);
@@ -217,14 +217,14 @@
 	    var cell = document.createElement('th');
 	    cell.setAttribute('style', 'cursor: pointer; text-align: left; font-weight: normal; vertical-align: bottom; height: '+renderer.settings.colHeaderHeight+'px;'+(renderer.settings.colFontSize ? "font-size: "+renderer.settings.colFontSize+";" : ""));
 	    var div = document.createElement('div');
-	    div.innerHTML = data.columns[col];
+	    div.innerHTML = data.cols[col];
 	    div.setAttribute('style', 'width: '+renderer.settings.circleSize+'px; overflow: visible; white-space: nowrap; transform: rotate(-45deg); position: relative; left: '+(parseInt(renderer.settings.circleSize / 2) - 5)+'px; bottom: 10px;');
 	    if (typeof renderer.settings.callback == 'function') {
 		div.setAttribute('index', index);
 		div.setAttribute('col', col);
 		div.addEventListener('click', function() {
 		    var renderer = Retina.RendererInstances.matrix[this.getAttribute('index')];
-		    renderer.settings.callback.call(null, { rendererIndex: this.getAttribute('index'), rowIndex: null, colIndex: this.getAttribute('col'), cellValue: data.columns[this.getAttribute('col')], relativeCellValue: null, colName: data.columns[this.getAttribute('col')], rowName: null, cell: this, circle: null });
+		    renderer.settings.callback.call(null, { rendererIndex: this.getAttribute('index'), rowIndex: null, colIndex: this.getAttribute('col'), cellValue: data.cols[this.getAttribute('col')], relativeCellValue: null, colName: data.cols[this.getAttribute('col')], rowName: null, cell: this, circle: null });
 		});
 	    }
 	    cell.appendChild(div);
@@ -233,8 +233,8 @@
 	},
 	
 	transposeMatrix: function (matrix) {
-	    var mnew = { rows: matrix.columns,
-			 columns: matrix.rows,
+	    var mnew = { rows: matrix.cols,
+			 cols: matrix.rows,
 			 data: [] };
 	    for (var i=0;i<matrix.data.length; i++) {
 		for (var h=0;h<matrix.data[i].length;h++) {
