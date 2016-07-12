@@ -317,17 +317,17 @@
 	var idb = indexedDB.open(dbName);
 	idb.onerror = function (event) {
 	    console.log(event);
-	    promise.resolve();
+	    promise.resolve('error');
 	};
 	idb.onsuccess = function (event) {
 	    var db = event.target.result;
 	    if (db.objectStoreNames.length == 0) {
-		promise.resolve();
+		promise.resolve('error');
 		return;
 	    }
 	    var trans = db.transaction(db.objectStoreNames,"readonly");
 	    trans.oncomplete = function () {
-		promise.resolve();
+		promise.resolve('success');
 	    };
 	    for (var i=0; i<db.objectStoreNames.length; i++) {
 		var name = db.objectStoreNames[i];
@@ -347,6 +347,26 @@
 		    }
 		}
 	    }
+	};
+	return promise;
+    };
+
+    stm.existsHardStorage = function (dbName) {
+	var promise = jQuery.Deferred();
+	dbName = dbName || 'stm';
+	var dbExists = true;
+	var request = window.indexedDB.open(dbName);
+	request.onupgradeneeded = function (e){
+            if(request.result.version===1){
+		dbExists = false;
+		window.indexedDB.deleteDatabase(dbName);
+		promise.resolve(dbExists);
+            }
+	};
+	request.onsuccess = function(e) {
+            if(dbExists){
+		promise.resolve(dbExists);
+            }
 	};
 	return promise;
     };
@@ -425,7 +445,7 @@
     };
 
     // session dumping
-    stm.dump = function (useDB, dbName) {
+    stm.dump = function (useDB, dbName, key) {
 	if (useDB) {
 	    var promise = jQuery.Deferred();
 	    dbName = dbName || 'stm';
@@ -459,7 +479,12 @@
 			for (var h in stm.DataStore[type]) {
 			    if (stm.DataStore[type].hasOwnProperty(h)) {
 				stm.DataStore[type][h]._stm_id = h;
-				store.add(stm.DataStore[type][h]);
+				try {
+				    store.add(stm.DataStore[type][h]);
+				} catch (error) {
+				    console.log("type: "+type+" index: "+h);
+				    console.log(error);
+				}
 			    }
 			}
 		    }
@@ -470,6 +495,7 @@
 	    var dstring = "{";
 	    for (var i in stm.DataStore) {
 		if (stm.DataStore.hasOwnProperty(i)) {
+		    if (key !== null && key !== i) { continue; }
 		    dstring += '"'+i+'":{';
 		    var hasOne = false;
 		    for (var h in stm.DataStore[i]) {
@@ -487,7 +513,7 @@
 	    }
 	    dstring = dstring.slice(0,-1);
 	    dstring += "}";
-	    stm.saveAs(dstring,"session.dump");
+	    stm.saveAs(dstring,dbName || "session.dump");
 	}
     };
 
