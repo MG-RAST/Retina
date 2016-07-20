@@ -11,7 +11,7 @@
     stm.init = function (params) {
 
 	// global variables
-	stm.DataStore = [];
+	stm.DataStore = params.data ? params.data :[];
 	stm.DataRepositories = params.DataRepositories || [];
 	stm.CallbackList = [];
 	stm.DataRepositoryDefault = params.DataRepositoryDefault || null;
