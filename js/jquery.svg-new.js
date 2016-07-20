@@ -655,7 +655,7 @@
 	    var args = this._args(arguments, ['x', 'y', 'width', 'height', 'rx', 'ry'], ['rx']);
 	    return this._makeNode(args.parent, 'rect', jQuery.extend(
 		{x: args.x, y: args.y, width: args.width, height: args.height},
-		(args.rx ? {rx: args.rx, ry: args.ry} : {}), args.settings || {}));
+		(args.rx ? {rx: args.rx, ry: args.ry} : {}), args.settings || settings || {}));
 	},
 	
 	/* Draw a circle.
