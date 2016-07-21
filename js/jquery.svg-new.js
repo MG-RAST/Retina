@@ -2061,7 +2061,7 @@ svg:svg {\
 			if (adjusted_value < 0) {
 			    color = "rgb("+cval+","+cval+",255)";
 			} else {
-			    color = "rgb("+cval+",255,"+cval+")";
+			    color = "rgb(255,255,"+cval+")";
 			}
 		    }
 		    format.stroke = "gray";
@@ -2114,7 +2114,7 @@ svg:svg {\
 			if (adjusted_value < 0) {
 			    color = "rgb("+cval+","+cval+",255)";
 			} else {
-			    color = "rgb("+cval+",255,"+cval+")";
+			    color = "rgb(255,255,"+cval+")";
 			}
 		    }
 		format.fill = color;

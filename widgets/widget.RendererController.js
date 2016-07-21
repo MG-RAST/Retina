@@ -79,57 +79,47 @@
 	widget.params.target.appendChild(widget.controlDiv);
 	widget.params.target.appendChild(widget.displayDiv);
 
-	widget.render(index);
-
-	return widget;
-    };
-
-    widget.data = function (index, data) {
-	var widget = Retina.WidgetInstances.RendererController[index];
-
-	if (data) {
-	    if (! widget.d) {
-		widget.d = jQuery.extend(true, {}, Retina.RendererInstances[widget.params.type][0].settings, widget.params.settings);
-	    }
-	    widget.d.data = data;
-	    widget.renderer.settings.data = data;
-	}
-
-	return widget.d.data;
-    };
-
-    widget.render = function (index) {
-	var widget = Retina.WidgetInstances.RendererController[index];
-
 	widget.renderer.render();
 
 	return widget;
     };
 
+    widget.updateRendererAttribute = function(name, value) {
+	var widget = this;
+
+	if (typeof widget.renderer.updateAttribute == "function") {
+	    widget.renderer.updateAttribute(name, value);
+	} else {
+	    widget.renderer.settings[name] = value;
+	}
+
+	widget.renderer.render();
+    };
+    
     // input render functions
     widget.inputRendercolor = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=this.value;Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\",this.value);'>";
     };
 
     widget.inputRenderfloat = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=parseFloat(this.value);Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", parseFloat(this.value));'>";
     };
 
     widget.inputRendertext = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=this.value;Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", this.value)'>";
     };
     
     widget.inputRenderfontsize = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=this.value;Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", this.value);'>";
     };
     
     widget.inputRenderint = function (opt) {
-	var val = eval( "Retina.WidgetInstances.RendererController[opt.index].renderer.settings."+opt.name );
-	return "<input type='text' style='margin-bottom: 0px;' value='"+val+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=parseInt(this.value);Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
+	var val = eval( "Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name );
+	return "<input type='text' style='margin-bottom: 0px;' value='"+val+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", parseInt(this.value));'>";
     };
 
     widget.inputRenderbool = function (opt) {
-	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=(this.selectedIndex==0 ? true : false);Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
+	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", (this.selectedIndex==0 ? true : false));'>";
 
 	html += "<option"+(opt.defaultTrue ? " selected=selected" : "")+">yes</option><option"+(opt.defaultTrue ? "" : " selected=selected")+">no</option>";
 
@@ -138,7 +128,7 @@
     };
 
     widget.inputRenderselect = function (opt) {
-	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name+"=this.options[this.selectedIndex].value;Retina.WidgetInstances.RendererController["+opt.index+"].renderer.render();'>";
+	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", this.options[this.selectedIndex].value);'>";
 
 	for (var i=0; i<opt.options.length; i++) {
 	    var selected = "";

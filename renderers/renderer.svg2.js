@@ -36,6 +36,20 @@
 	    target.innerHTML = "<div id='SVGdiv"+index+"'></div>";
 	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
 	    renderer.svg = jQuery('#SVGdiv'+index).svg().svg('get');
+
+	    // check if we need to make adjustments to the parameters based on input data
+	    if (renderer.settings.dataAdjustments) {
+		for (var i=0; i< renderer.settings.dataAdjustments.length; i++) {
+		    var adjust = renderer.settings.dataAdjustments[i];
+
+		    // calculate the attribute value based on the data
+		    var sum = 0;
+		    for (var h=0; h<adjust.sourceItemAttributes.length; h++) {
+			sum += renderer.settings.items[adjust.sourceItem].parameters[adjust.sourceItemAttributes[h]];
+		    }
+		    renderer.updateAttribute(adjust.targetItem+adjust.targetItemAttribute, renderer.settings.data[adjust.dataAttribute] * sum);
+		}
+	    }
 	    
 	    // iterate over the items
 	    for (var i=0; i<renderer.settings.items.length; i++) {
@@ -59,6 +73,66 @@
 	    }
 	    
 	    return renderer;
+	},
+
+	updateAttribute: function (name, value) {
+	    var renderer = this;
+	    
+	    var ind;
+	    if (name.match(/^items\[/)) {
+		var ret = name.match(/^items\[(\d+)\]\.parameters\.(.+)/);
+		ind = ret[1];
+		name = ret[2];
+	    } else if (name.match(/^\d/)) {
+		ind = parseInt(name.match(/^\d+/)[0]);
+		name = name.match(/\D+/)[0];
+	    } else {
+		renderer.settings[name] = value;
+		return;
+	    }
+	    
+	    var diff = renderer.settings.items[ind].parameters[name];
+	    renderer.settings.items[ind].parameters[name] = value;
+	    diff = renderer.settings.items[ind].parameters[name] - diff;
+	    
+	    // perform connection changes
+	    if (renderer.settings.connections && renderer.settings.connections.hasOwnProperty(ind) && renderer.settings.connections[ind].hasOwnProperty(name)) {
+		
+		// get the connection array for this attribute
+		var c = renderer.settings.connections[ind][name];
+		
+		// iterate over the connection items of this connection array
+		for (var h=0; h<c.length; h++) {
+		    
+		    // check the type of the connection
+		    if (c[h].type == 'pinned') {
+			
+			// iterate over the affected items and adjust them
+			for (var j=0; j<c[h].items.length; j++) {
+			    var item = renderer.settings.items[c[h].items[j].index];
+			    item.parameters[c[h].items[j].attribute] = item.parameters[c[h].items[j].attribute] + diff;
+			}
+		    }
+		    else if (c[h].type == 'equal') {
+			// iterate over the affected items and adjust them
+			for (var j=0; j<c[h].items.length; j++) {
+			    renderer.settings.items[c[h].items[j].index].parameters[c[h].items[j].attribute] = renderer.settings.items[ind].parameters[name];
+			}
+		    }
+		    else if (c[h].type == 'share') {			
+			// iterate over the affected items and add the values
+			var sum = 0;
+			for (var j=0; j<c[h].items.length; j++) {
+			    sum += renderer.settings.items[c[h].items[j].index].parameters[c[h].items[j].attribute];
+			}
+			sum = sum / c[h].items.length;
+			for (var j=0; j<c[h].items.length; j++) {
+			    var item = renderer.settings.items[c[h].items[j].index];
+			    item.parameters[c[h].items[j].attribute] = item.parameters[c[h].items[j].attribute] + sum;
+			}
+		    }
+		}
+	    }
 	},
 
 	/* 
@@ -96,6 +170,42 @@
 	    retval.max = scale.max;
 	    retval.min = scale.min;
 	    
+	    return retval;
+	},
+
+	matrix2stackedvaluegrid: function (params, data) {
+	    var retval = {};
+	    
+	    var scale = Retina.niceScale({ "min": data.min, "max": data.sumMax });
+
+	    retval.space = (params.direction == "horizontal" ? params.height : params.width) / scale.max * scale.space;
+	    
+	    return retval;
+	},
+	
+	matrix2valuegrid: function (params, data) {
+	    var retval = {};
+
+	    var min, max;
+	    if (data.hasOwnProperty('min')) {
+		min = data.min;
+		max = data.max;
+	    } else if (params.direction == "horizontal") {
+		if (data.hasOwnProperty("minY")) {
+		    min = data.minY;
+		} else {
+		    min = 0;
+		}
+		max = data.maxY;
+	    } else {
+		min = data.minX;
+		max = data.maxX;
+	    }
+
+	    var scale = Retina.niceScale({ "min": min, "max": max });
+
+	    retval.space = (params.direction == "horizontal" ? params.height : params.width) / scale.max * scale.space;
+
 	    return retval;
 	},
 
@@ -471,7 +581,8 @@
 		     { "name": 'base', "default": 50, "description": "the offset from the bottom for horizontal, the offset from the left for vertical grids", "valueType": "int" },
 		     { "name": 'space', "default": 50, "description": "the spacing between two lines of the grid", "valueType": "int" },
 		     { "name": 'format', "default": { stroke: "gray", strokeWidth: 1, "stroke-dasharray": "2,2" }, "description": "the line format", "valueType": "line" },
-		     { "name": 'inputType', "default": 'matrix', "description": "type of input data", "valueType": "select", "options": [ "matrix" ] }
+		     { "name": 'inputType', "default": 'matrix', "description": "type of input data", "valueType": "select", "options": [ "matrix" ] },
+		     { "name": 'data', "default": "matrix2stackedvaluegrid", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "stacked value grid", "value": "matrix2stackedvaluegrid" }, { "name": "value grid", "value": "matrix2valuegrid" } ] }
 		   ];
 	},
 	
