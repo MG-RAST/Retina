@@ -70,6 +70,15 @@
 		    jQuery.extend(true, params, renderer[renderer.settings.items[i].data].call(null, params, jQuery.extend(true, {}, renderer.settings.data)));
 		}
 		renderer.svg[type](jQuery.extend({}, renderer[type], params));
+
+		// check for click events
+		if (typeof renderer.settings.callback == "function") {
+		    if (params.click) {
+			var context = { renderer: renderer };
+			document.getElementById(params.id).addEventListener('click', renderer.settings.callback.bind(context), false);
+			document.getElementById(params.id).style.cursor = "pointer";
+		    }
+		}
 	    }
 	    
 	    return renderer;

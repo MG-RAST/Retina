@@ -23,7 +23,7 @@
   <ul class='dropdown-menu pull-right' role='menu' aria-labelledby='dropdownMenu'>\
     <li class='disabled'><a tabindex='-1' href='#' style='color: black; font-weight: bold;'>Profile Management</a></li>\
     <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.profileManager["+index+"].manage();' title='manage profiles'><img style='height: 16px; position: relative; right: 5px; bottom: 2px;' src='Retina/images/download.png'>manage</a></li>\
-    <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.profileManager["+index+"].upload("+index+");' title='upload profile from file'><img style='height: 16px; position: relative; right: 5px; bottom: 2px;' src='Retina/images/upload.png'>upload</a></li>\
+    <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.profileManager["+index+"].upload("+index+");' title='load profile from file'><img style='height: 16px; position: relative; right: 5px; bottom: 2px;' src='Retina/images/upload.png'>load from disk</a></li>\
   </ul>\
 </div>\
 <input type='file' id='profileUploadButton' style='display: none;'>\
@@ -50,7 +50,7 @@
     widget.manage = function () {
 	var widget = this;
 
-	var html = [ '<div style="margin-bottom: 20px;">Below is the list of the metagenomic profiles currently loaded into memory. Data containers using these profiles can be generated instantly. You can store profiles on your local hard drive, using the download button of the according profile.<br>You can upload stored profiles into memory using the the profile manager upload option.</div><table class="table" style="width: 100%; text-align: left;"><tr><th style="border-top: none;">ID</th><th style="border-top: none;">sources</th><th style="border-top: none;">rows</th><th style="border-top: none;">size</th><th style="border-top: none;"></th></tr>' ];
+	var html = [ '<div style="margin-bottom: 20px;">Below is the list of the metagenomic profiles currently loaded into memory. Data containers using these profiles can be generated instantly. You can store profiles on your local hard drive, using the download button of the according profile.<br>You can load stored profiles into memory using the the profile manager <i>load from disk</i> option.</div><table class="table" style="width: 100%; text-align: left;"><tr><th style="border-top: none;">ID</th><th style="border-top: none;">sources</th><th style="border-top: none;">rows</th><th style="border-top: none;">size</th><th style="border-top: none;"></th></tr>' ];
 
 	var profiles = Retina.keys(stm.DataStore.profile);
 	for (var i=0; i<profiles.length; i++) {
@@ -62,7 +62,7 @@
 	}
 	html.push('</table>');
 
-	html.push('<button class="btn btn-mini" onclick="this.setAttribute(\'disabled\',\'disabled\');stm.dump(false, \'analysis.session\', \'profile\').then(function(){alert(\'session stored\');jQuery(\'#profileModal\').modal(\'hide\');});">download all profiles</button>');
+	html.push('<button class="btn btn-mini" onclick="this.setAttribute(\'disabled\',\'disabled\');stm.dump(false, \'all_profiles.json\', \'profile\').then(function(){alert(\'session stored\');jQuery(\'#profileModal\').modal(\'hide\');});">download all profiles</button>');
 
 	if (profiles.length == 0) {
 	    html = ['<div class="alert alert-info" style="margin-top: 250px; width: 350px; margin-left: auto; margin-right: auto;">You currently do not have any profiles in memory.</div>'];
