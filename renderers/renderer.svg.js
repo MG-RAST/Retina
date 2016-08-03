@@ -457,12 +457,15 @@
 	    }
 
 	    renderer.graphic = renderer.svg.group();
+	    var groups = [];
 	    for (var i=0; i<d.length; i++) {
 		if (renderer.settings.showLegend) {
 		    labels.push(d[i].label);
 		}
-		renderer.svg.linechart({ group: renderer.graphic, points: d[i].values, shift: shift, base: base, format: { stroke: d[i].color || renderer.settings.colors[i], strokeWidth: renderer.settings.strokeWidth || 1 } });
+		groups.push({ points: d[i].values, name: d[i].label, format: { stroke: d[i].color || renderer.settings.colors[i], strokeWidth: renderer.settings.strokeWidth || 1 } });
 	    }
+	    renderer.svg.linechart({ group: renderer.graphic, groups: groups, shift: shift, base: base });
+
 	    if (renderer.settings.labelAxisTitle) {
 		renderer.svg.text(shift + ((width - shift) / 2), renderer.settings.height - 15, renderer.settings.labelAxisTitle.text, jQuery.extend({ "text-anchor": "middle" }, renderer.settings.labelAxisTitle.settings || {}));
 	    }
