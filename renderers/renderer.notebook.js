@@ -57,9 +57,49 @@
 		    var edit = item.hasOwnProperty('width') ? "" : " style='clear: both;'";
 		    if (renderer.settings.editMode) {
 			edit = " onclick='Retina.RendererInstances.notebook["+this.index+"].editFlowItem("+i+");' style='cursor: pointer;"+(item.hasOwnProperty('width') ? "" : " clear: both;")+"'";
-		    }		    
+		    }
+
+		    // check tabview
+		    if (widget.tabview) {
+
+			// if this is not the first tab, close the last
+			if (widget.tabview.currentIndex > 0) {
+			    html.push('</div>');
+			}
+
+			// check if this is the last one
+			if (widget.tabview.currentIndex == widget.tabview.items.length) {
+			    html.push('</div>');
+			    delete widget.tabview;
+			}
+			// this is not the last one, print the opener
+			else {
+			    html.push('<div class="tab-pane active" id="tabview'+widget.tabview.index+"_"+widget.tabview.items[widget.tabview.currentIndex].id+'">');
+
+			    widget.tabview.currentIndex++;
+			}
+		    }
+		    
+		    // this is a tabview
+		    if (item.type == 'Tabview') {
+			if (! widget.hasOwnProperty("tabviews")) {
+			    widget.tabviews = [];
+			}
+			widget.tabviews.push('tabview'+i);
+			widget.tabview = { "currentIndex": 0, "items": item.items, "index": i };
+			html.push('<ul class="nav nav-tabs">');
+			var notSel = 1;
+			if (item.hasOwnProperty('tab') && item.tab == 1) {
+			    notSel = 0;
+			}
+			for (var h=0; h<item.items.length; h++) {
+			    html.push('<li'+(h==notSel ? ' class="active"' : '')+'><a href="#tabview'+i+"_"+item.items[h].id+'" data-toggle="tab"'+(h==(item.hasOwnProperty('tab') ? item.tab : 0) ? ' id="tabview'+i+'"' : '')+'>'+item.items[h].name+'</a></li>');
+			}
+			html.push('</ul><div class="tab-content" style="overflow: visible;">');
+		    }
+		    
 		    // this is an image
-		    if (item.type == 'Image') {
+		    else if (item.type == 'Image') {
 			html.push("<div id='flowItem"+i+"' class='notebookImage"+(item.width ? " "+item.width : "")+"'"+edit+">"+item.reference+"</div>");
 		    }
 		    // this is table data
@@ -249,6 +289,13 @@
 			console.log("Error rendering flow item "+item.index+": "+error);
 			console.log(item);
 		    }
+		}
+	    }
+
+	    // check for tabviews and activate them
+	    if (widget.hasOwnProperty('tabviews')) {
+		for (var i=0; i<widget.tabviews.length; i++) {
+		    document.getElementById(widget.tabviews[i]).click();
 		}
 	    }
 	    
