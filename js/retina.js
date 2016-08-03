@@ -1139,7 +1139,7 @@
     Retina.idmap = function (id) {
 
 	// this is a decoded id, encode it
-	if (id.match(/mgm/)) {
+	if (id.match(/mgm/) || id.match(/mgp/)) {
 	    var text = "";
 	    var possible = "abcdef0123456789";
 	    for (var i=0; i<10; i++) {
