@@ -1801,7 +1801,7 @@ svg:svg {\
 	    var radius = params.radius;
 	    var groups = params.groups || params.data || [];
 	    var group = params.group || null;
-	    var colors = GooglePalette();
+	    var colors = params.colors || GooglePalette();
 	    var format = { fill: "white", stroke: "black", strokeWidth: 1 };
 	    if (params.format != null) {
 		jQuery.extend(format, params.format);
@@ -1922,7 +1922,7 @@ svg:svg {\
 	    var shiftX = params.shiftX == null ? 0 : params.shiftX;
 	    var shiftY = params.shiftY == null ? this._height() : this._height() - params.shiftY;
 	    var radius = params.radius == null ? 2 : params.radius;
-	    var dots = params.dots || params.data || [];
+	    var groups = params.dots || params.data || [];
 	    var format = { fill: "white", stroke: "black", strokeWidth: 1 };
 	    if (params.format != null) {
 		jQuery.extend(format, params.format);
@@ -1931,15 +1931,24 @@ svg:svg {\
 	    // create group
 	    var g = this.group(group, params.id, params.groupSettings);
 
-	    // draw the dots
-	    for (var i=0; i<dots.length; i++) {
-		var dot = dots[i];
-		var f = {};
-		jQuery.extend(f, format, dot.format || {});
-		var r = dot.radius == null ? radius : dot.radius;
-		this.circle(g, dot.x + shiftX, shiftY - dot.y, r, f);
-	    }
+	    // iterate over the groups
+	    for (var h=0; h<groups.length; h++) {
+		var dots = groups[h].points;
+		var sg = this.group(g, params.id + "_" + groups[h].name, groups[h].settings || {});
 
+		// add a title
+		this.doctitle(sg, groups[h].name);
+		
+		// draw the dots
+		for (var i=0; i<dots.length; i++) {
+		    var dot = dots[i];
+		    var f = {};
+		    jQuery.extend(f, format, dot.format || {});
+		    var r = dot.radius == null ? radius : dot.radius;
+		    this.circle(sg, dot.x + shiftX, shiftY - dot.y, r, f);
+		}
+	    }
+	    
 	    return g;
 	},
 
