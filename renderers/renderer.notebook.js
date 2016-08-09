@@ -24,7 +24,8 @@
 		flowsLoaded: false,
 		canCSV: { "areaGraph": true,
 			  "pieChart": true,
-			  "barChart": true }
+			  "barChart": true,
+			  "lineChart": true }
 	    }
 	},
 	exampleData: function () {
@@ -104,16 +105,18 @@
 		    }
 		    // this is table data
 		    else if (item.type == 'Table') {
+
+			var newHtml = [];
 			
-			html.push("<div id='flowItem"+i+"' class='notebook"+item.type+""+(item.width ? " "+item.width : "")+"'"+edit+">");
+			newHtml.push("<div id='flowItem"+i+"' class='notebook"+item.type+""+(item.width ? " "+item.width : "")+"'"+edit+">");
 
 			if (! item.noDownload) {
-			    html.push('<div style="text-align: right;"><button class="btn btn-mini" style="position: absolute; margin-top: -30px; margin-left: -30px;" onclick="Retina.RendererInstances.notebook['+this.index+'].downloadCSV('+i+');" title="download table"><img src="Retina/images/cloud-download.png" style="width: 16px;"></button></div>');
+			    newHtml.push('<div style="text-align: right;"><button class="btn btn-mini" style="position: absolute; margin-top: -30px; margin-left: -30px;" onclick="Retina.RendererInstances.notebook['+this.index+'].downloadCSV('+i+');" title="download table"><img src="Retina/images/cloud-download.png" style="width: 16px;"></button></div>');
 			}
 			
-			html.push("<table class='table "+item.style+"'>");
+			newHtml.push("<table class='table "+item.style+"'>");
 			if (item.hasOwnProperty('header')) {
-			    html.push("<tr><th>"+item.header.join("</th><th>")+"</th></tr>");
+			    newHtml.push("<tr><th>"+item.header.join("</th><th>")+"</th></tr>");
 			}
 			
 			// resolve the data reference
@@ -151,13 +154,15 @@
 				for (var j=0; j<item.data[h].length; j++) {
 				    item.data[h][j] = renderer.parseVariables(item.data[h][j]);
 				}
-				html.push("<tr><td>"+item.data[h].join("</td><td>")+"</td></tr>");
+				newHtml.push("<tr><td>"+item.data[h].join("</td><td>")+"</td></tr>");
 			    } else {
-				html.push("</table><div class='notebookSubheader'>"+item.data[h]+"</div><table class='table "+item.style+"'>");
+				newHtml.push("</table><div class='notebookSubheader'>"+item.data[h]+"</div><table class='table "+item.style+"'>");
 			    }
 			}
-			html.push("</table>");
-			html.push("</div>");
+			newHtml.push("</table>");
+			newHtml.push("</div>");
+			
+			html.push(newHtml.join(''));
 		    }
 		    // this is an encoded graphic
 		    else if (item.type == 'Graphic') {
@@ -503,27 +508,43 @@
 	},
 	downloadCSV: function (index, isObject) {
 	    var renderer = this;
-
 	    var data = isObject ? renderer.settings.graphicItems[index].settings.data : renderer.settings.flow[index].data;
 	    var csv = [];
 	    if (isObject) {
 		for (var i=0; i<data.length; i++) {
-		    if (data[i].hasOwnProperty('label') && (data[i].hasOwnProperty('value') || data[i].hasOwnProperty('values'))) {
-			csv.push( [ data[i].label ].concat(data[i].value || data[i].values) );
+		    if (data[i].hasOwnProperty('label') && data[i].hasOwnProperty('value')) {
+			csv.push( [ data[i].label ].concat(data[i].value) );
+		    } else {
+			var row = [];
+			if (data[i].hasOwnProperty('label')) {
+			    row.push(data[i].label);
+			} else {
+			    row.push('value');
+			}
+			for (var h=0; h<data[i].values.length; h++) {
+			    row.push( data[i].values[h].y );
+			}
+			csv.push(row);
 		    }
 		}
 		data = Retina.transpose(csv);
 		csv = [];
 	    }
 	    
-	    for (var i=0; i< data.length; i++) {
+	    for (var i=0; i<data.length; i++) {
 		if (typeof data[i].join == "function") {
 		    csv.push(Retina.stripHTML(data[i].join("\t")));
 		} else {
 		    csv.push(Retina.stripHTML(data[i]));
 		}
 	    }
-	    stm.saveAs(csv.join("\n"), "data.csv");
+
+	    var fn = "data.csv";
+	    var item = isObject ? renderer.settings.graphicItems[index] : renderer.settings.flow[index];
+	    if (item.hasOwnProperty('provenance') && item.provenance.hasOwnProperty('filename')) {
+		fn = item.provenance.filename+".csv";
+	    }
+	    stm.saveAs(csv.join("\n"), renderer.settings.dataContainer.id + "_" + fn);
 	},
 	downloadData: function (index) {
 	    var renderer = this;

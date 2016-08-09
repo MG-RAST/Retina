@@ -452,7 +452,7 @@
 		    retval[i].points.push({ x: xfactor * data.data[i].points[h].x, y: yfactor * data.data[i].points[h].y, value: data.data[i].points[h].y });
 		}
 	    }
-	    
+
 	    return { data: retval };
 	},
 	
@@ -655,7 +655,8 @@
 	},
 	
 	plot: function () {
-	    return [ { "name": 'height', "default": 500, "description": "the height of the graph", "valueType": "int" },
+	    return [ { "name": 'height', "default": 400, "description": "the height of the plot", "valueType": "int" },
+		     { "name": 'width', "default": 400, "description": "the width of the plot", "valueType": "int" },
 		     { "name": 'radius', "default": 2, "description": "the radius of the data points", "valueType": "int" },
 		     { "name": 'shiftX', "default": 50, "description": "the offset from the left", "valueType": "int" },
 		     { "name": 'shiftY', "default": 50, "description": "the offset from the bottom", "valueType": "int" },

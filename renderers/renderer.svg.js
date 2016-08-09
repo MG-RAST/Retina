@@ -147,7 +147,7 @@
 	    var renderer = this;
 
 	    renderer.checkSettings(params);
-
+	    renderer.settings.spaceMajor = renderer.settings.spaceMajor || 1;
 	    var d = renderer.settings.data;
 	    var data = [];
 	    var max = 0;
@@ -189,6 +189,9 @@
 		}
 		labels.push(l);
 	    }
+	    if (renderer.settings.noLabels) {
+		labels = null;
+	    }
 	    if (renderer.settings.labelAxisTitle) {
 		renderer.svg.text(shift + ((width - shift) / 2), renderer.settings.height - 15, renderer.settings.labelAxisTitle.text, jQuery.extend({ "text-anchor": "middle" }, renderer.settings.labelAxisTitle.settings || {}));
 	    }
@@ -198,8 +201,8 @@
 	    renderer.settings.barWidth = (width - ((data.length + 1) * (renderer.settings.barSpace || 2))) / data.length;
 	    renderer.settings.legendLabels = labels;
 	    renderer.graphic = renderer.svg.barchart({ width: renderer.settings.barWidth, bars: data, shift: shift + renderer.settings.barSpace, space: renderer.settings.barSpace, base: base });
-	    renderer.svg.axis({ shift: base, base: shift, length: height, min: 0, max: scale.max, spaceMajor: renderer.settings.logScale ? height / Math.ceil(max) : null, direction: "vertical", isLog: true });
-	    renderer.svg.axis({ shift: shift, base: base, length: width, spaceMajor: renderer.settings.barWidth + renderer.settings.barSpace, labels: labels, direction: "horizontal", numMinor: 0, space: renderer.settings.barSpace, labelRotation: renderer.settings.labelRotation || 30, tickShift: renderer.settings.barWidth / 2 + renderer.settings.barSpace });
+	    renderer.svg.axis({ shift: base, base: shift, length: height, min: 0, max: scale.max, spaceMajor: renderer.settings.logScale ? height / Math.ceil(max) : null, direction: "vertical", isLog: renderer.settings.logScale });
+	    renderer.svg.axis({ shift: shift, base: base, length: width, spaceMajor: renderer.settings.spaceMajor * (renderer.settings.barWidth + renderer.settings.barSpace), labels: labels, direction: "horizontal", numMinor: 0, space: renderer.settings.barSpace, labelRotation: renderer.settings.labelRotation || 30, tickShift: renderer.settings.barWidth / 2 + renderer.settings.barSpace });
 	    
 	    renderer.checkLegend();
 	    renderer.checkEvents();
@@ -473,7 +476,7 @@
 		renderer.svg.text(0, (renderer.settings.height - renderer.settings.labelAxisWidth) / 2, renderer.settings.valueAxisTitle.text, jQuery.extend({"text-anchor": "middle", "transform": "rotate(-90, 15, "+((renderer.settings.height - renderer.settings.labelAxisWidth) / 2)+")"}, renderer.settings.valueAxisTitle.settings || {}));
 	    }
 	    renderer.settings.legendLabels = labels;
-	    renderer.svg.axis({ shift: base, base: shift, length: height, min: renderer.settings.minValIsZeroY ? minY : 0, max: scaleY.max, direction: "vertical", spaceMajor: renderer.settings.logScaleY ? height / Math.ceil(maxY) : null, isLog: renderer.settings.logScaleY, labelRotation: renderer.settings.labelRotationY ? renderer.settings.labelRotationY : 0 });
+	    renderer.svg.axis({ shift: base, base: shift, length: height, min: renderer.settings.minValIsZeroY ? minY : 0, max: scaleY.max, direction: "vertical", spaceMajor: renderer.settings.logScaleY ? height / Math.ceil(maxY) : null, isLog: renderer.settings.logScaleY, labelRotation: renderer.settings.labelRotationY ? renderer.settings.labelRotationY : 0, latinSuffix: renderer.settings.latinSuffix || null });
 	    renderer.svg.axis({ shift: shift, base: base, length: width, min: renderer.settings.minValIsZeroX ? minX : 0, max: scaleX.max, direction: "horizontal", spaceMajor: renderer.settings.logScaleX ? width / Math.ceil(maxX) : null, isLog: renderer.settings.logScaleX, labelRotation: renderer.settings.labelRotationX ? renderer.settings.labelRotationX : 0 });
 	    renderer.svg.grid({ shift: shift, base: base, width: width, height: height, topMargin: renderer.settings.graphTopMargin, space: renderer.settings.logScaleY ? height / Math.ceil(maxY) : null });
 	    renderer.svg.grid({ shift: shift, base: base, width: width, height: height, topMargin: renderer.settings.graphTopMargin, direction: "vertical", space: renderer.settings.logScaleX ? width / Math.ceil(maxX) : null });

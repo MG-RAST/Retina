@@ -1564,9 +1564,15 @@ svg:svg {\
 		    this.line(g, x1, y1, x2, y2, lineFormat);
 		}
 		if (showLabels) {
+		    var suff = { "k": 1000,
+				 "M": 1000000,
+				 "G": 1000000000,
+				 "T": 1000000000000 };
 		    var text = labelVal.formatString();
 		    if (labels && labels.length) {
 			text = labels[i];
+		    } else if (params.latinSuffix && suff[params.latinSuffix]) {
+			text = (labelVal / suff[params.latinSuffix]).formatString() + params.latinSuffix;
 		    }
 		    var lx = x1 + (direction == "horizontal" ? 0 : ((labelPosition == "left-bottom" ? -1 : 1) * (majorTickLength + 5)));
 		    var ly = y1 + parseInt(parseInt(labelFormat.fontSize) / (direction == "horizontal" ? (labelPosition == "left-bottom" ? 1 : -1) : 3)) + (direction == "horizontal" ? ((labelPosition == "left-bottom" ? 1 : -1) * majorTickLength) : 0);
