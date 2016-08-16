@@ -37,6 +37,7 @@
 	widget.d.target = widget.displayDiv;
 	widget.renderer = Retina.Renderer.create(widget.params.type, widget.d);
 	widget.params.width = widget.params.width || 800;
+	widget.dataUpdaters = [];
 
 	var html = '<div class="accordion" id="RendererController_accordion'+index+'" style="width: '+widget.params.width+'px; margin-bottom: 20px;">';
 
@@ -56,6 +57,9 @@
 	    for (var h=0; h<group.length; h++) {
 		var opt = group[h];
 		opt.index = index;
+		if (opt.isDataUpdater) {
+		    widget.dataUpdaters.push(opt);
+		}
 		html += "<tr><td style='text-align: right; vertical-align: middle;'>"+opt.title+"</td><td style='padding-left: 10px; text-align: left;'>";
 		try {
 		    html += widget["inputRender"+opt.type](opt);
@@ -84,13 +88,24 @@
 	return widget;
     };
 
-    widget.updateRendererAttribute = function(name, value) {
+    widget.updateRendererAttribute = function(name, value, isDataUpdater) {
 	var widget = this;
 
-	if (typeof widget.renderer.updateAttribute == "function") {
+	if (isDataUpdater && widget.params.hasOwnProperty('dataCallback')) {
+	    if (typeof widget.renderer.updateAttribute == "function") {
+		widget.renderer.updateAttribute(name, value);
+	    } else {
+		widget.renderer.settings[name] = value;
+	    }
+	    widget.params.dataCallback.call(widget, name, value);
+	} else if (typeof widget.renderer.updateAttribute == "function") {
 	    widget.renderer.updateAttribute(name, value);
 	} else {
 	    widget.renderer.settings[name] = value;
+	}
+
+	if (typeof widget.params.settingsCallback == "function") {
+	    widget.params.settingsCallback.call(widget, name, value);
 	}
 
 	widget.renderer.render();
@@ -98,28 +113,28 @@
     
     // input render functions
     widget.inputRendercolor = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\",this.value);'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || opt.value || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\",this.value, "+(opt.isDataUpdater ? true : false)+");'>";
     };
 
     widget.inputRenderfloat = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", parseFloat(this.value));'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || opt.value || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", parseFloat(this.value), "+(opt.isDataUpdater ? true : false)+");'>";
     };
 
     widget.inputRendertext = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", this.value)'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || opt.value || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", this.value, "+(opt.isDataUpdater ? true : false)+")'>";
     };
     
     widget.inputRenderfontsize = function (opt) {
-	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", this.value);'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(Retina.WidgetInstances.RendererController[opt.index].renderer.settings[opt.name] || opt.value || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", this.value, "+(opt.isDataUpdater ? true : false)+");'>";
     };
     
     widget.inputRenderint = function (opt) {
 	var val = eval( "Retina.WidgetInstances.RendererController["+opt.index+"].renderer.settings."+opt.name );
-	return "<input type='text' style='margin-bottom: 0px;' value='"+val+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", parseInt(this.value));'>";
+	return "<input type='text' style='margin-bottom: 0px;' value='"+(val || opt.value || "")+"' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", parseInt(this.value), "+(opt.isDataUpdater ? true : false)+");'>";
     };
 
     widget.inputRenderbool = function (opt) {
-	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", (this.selectedIndex==0 ? true : false));'>";
+	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", (this.selectedIndex==0 ? true : false), "+(opt.isDataUpdater ? true : false)+");'>";
 
 	html += "<option"+(opt.defaultTrue ? " selected=selected" : "")+">yes</option><option"+(opt.defaultTrue ? "" : " selected=selected")+">no</option>";
 
@@ -128,7 +143,7 @@
     };
 
     widget.inputRenderselect = function (opt) {
-	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", this.options[this.selectedIndex].value);'>";
+	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", this.options[this.selectedIndex].value, "+(opt.isDataUpdater ? true : false)+");'>";
 
 	for (var i=0; i<opt.options.length; i++) {
 	    var selected = "";
