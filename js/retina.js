@@ -387,24 +387,6 @@
 	return s.replace(Retina.htmlFilter, "");
     }
 
-    // transpose a 2D matrix
-    Retina.transpose = function (array) {
-	var newArray = [],
-	    origArrayLength = array.length,
-	    arrayLength = array[0].length,
-	    i;
-	for(i = 0; i < arrayLength; i++){
-	    newArray.push([]);
-	};
-	
-	for(i = 0; i < origArrayLength; i++){
-	    for(var j = 0; j < arrayLength; j++){
-		newArray[j].push(array[i][j]);
-	    };
-	};
-	return newArray;
-    }
-
     /* create an image from an svg  */
     Retina.svg2png = function (source, target, width, height) {
 	var promise = jQuery.Deferred();
@@ -790,8 +772,23 @@
 	return Math.min.apply(null, this);
     };
 
-    // matrix function
-    Retina.transposeMatrix = function (matrix) {
+    // matrix functions
+
+    /* do a PCA (MDS) given a distance matrix from Retina.distanceMatrix */
+    Retina.pca = function (D) {
+	var N = numeric.dim(D)[0];
+	var M = numeric.dim(D)[1];
+	var centerL = numeric.sub(numeric.identity(N) , numeric.div(numeric.rep([N,N], 1), N));
+	var centerR = numeric.sub(numeric.identity(M) , numeric.div(numeric.rep([M,M], 1), M));
+	var doublecentered = numeric.dot(numeric.dot(centerL, D), centerR);
+	var B = numeric.eig(doublecentered);
+	var weights = numeric.div(numeric.mul(B.lambda.x, B.lambda.x), numeric.norm2Squared(B.lambda.x));
+	var newcoords = Retina.scaleMatrix(numeric.dot(B.E.x, numeric.diag(numeric.sqrt(numeric.abs(B.lambda.x)))));
+
+	return { "coordinates": newcoords, "weights": weights };
+    };
+    
+    Retina.transpose = Retina.transposeMatrix = function (matrix) {
 	var mnew = [];
 	for (var i=0;i<matrix.length; i++) {
 	    for (var h=0;h<matrix[i].length;h++) {
@@ -803,6 +800,16 @@
 	}
 	
 	return mnew;
+    };
+
+    Retina.logMatrix = function (matrix) {
+	for (var i=0; i<matrix.length; i++) {
+	    for (var h=0; h<matrix[i].length; h++) {
+		matrix[i][h] = Retina.log10(matrix[i][h]);
+	    }
+	}
+
+	return matrix;
     };
 
     Retina.standardizeMatrix = function (matrix) {
@@ -879,20 +886,26 @@
 
     Retina.scaleMatrix = function (matrix) {
 	var maxes = [];
+	var mins = [];
 	
 	for (var i=0; i<matrix[0].length; i++) {
 	    maxes.push(0);
+	    mins.push(0);
 	}
+	
 	for (var i=0;i<matrix.length;i++) {
 	    for (var h=0; h<matrix[i].length; h++) {
 		if (maxes[h]<matrix[i][h]) {
 		    maxes[h] = matrix[i][h];
 		}
+		if (mins[h]>matrix[i][h]) {
+		    mins[h] = matrix[i][h];
+		}
 	    }
 	}
 	for (var i=0;i<matrix.length;i++) {
 	    for (var h=0; h<matrix[i].length; h++) {
-		matrix[i][h] = matrix[i][h] / maxes[h];
+		matrix[i][h] = (Math.abs(mins[h]) + matrix[i][h]) / (maxes[h] + Math.abs(mins[h]));
 	    }
 	}
 	
@@ -934,7 +947,43 @@
 	return retval;
     };
 
-    Retina.distance = function (data) {
+    /* calculate a distance matrix given a matrix and an optional measure */
+    Retina.distanceMatrix = function (data, measure) {
+	var distances = [];
+	measure = measure || 'euclidean';
+	for (var i=0; i<data.length; i++) {
+	    distances.push([]);
+	}
+	for (var i=0; i<data.length; i++) {
+	    for (var h=0; h<data.length; h++) {
+		if (i == h) {
+		    distances[i][h] = 0;
+		}
+		if (i>=h) {
+		    continue;
+		}
+		var distance = 0;
+		for (var j=0; j<data[i].length; j++) {
+		    distance += Math.pow(data[i][j] - data[h][j], 2);
+		}
+		distances[i][h] = distance;
+		distances[h][i] = distance;
+	    }
+	}
+
+	return distances;
+    };
+
+    Retina.copyMatrix = function (matrix) {
+	var ret = [];
+	for (var i=0; i<matrix.length; i++) {
+	    ret.push(matrix[i].slice());
+	}
+	return ret;
+    };
+
+    // heatmap / clustering
+    Retina.clusterDistance = function (data) {
 	var distances = {};
 	for (var i=0;i<data.length;i++) {
 	    distances[i] = {};
@@ -964,7 +1013,7 @@
 	}
 	
 	// get the initial distances between all nodes
-	var distances = Retina.distance(clusters);
+	var distances = Retina.clusterDistance(clusters);
 	
 	// calculate clusters
 	var min;
@@ -1136,6 +1185,8 @@
 	return [clusterdataout, rowindex];
     };
 
+    // END OF MATRIX FUNCTIONS
+    
     Retina.idmap = function (id) {
 
 	// this is a decoded id, encode it
