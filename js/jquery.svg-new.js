@@ -1568,11 +1568,12 @@ svg:svg {\
 				 "M": 1000000,
 				 "G": 1000000000,
 				 "T": 1000000000000 };
-		    var text = labelVal.formatString();
+		    var decimals = params.hasOwnProperty('decimals') ? params.decimals : (max <= 10 && ! params.isLog ? 2 : 0);
+		    var text = labelVal.formatString(decimals);
 		    if (labels && labels.length) {
 			text = labels[i];
 		    } else if (params.latinSuffix && suff[params.latinSuffix]) {
-			text = (labelVal / suff[params.latinSuffix]).formatString() + params.latinSuffix;
+			text = (labelVal / suff[params.latinSuffix]).formatString(decimals) + params.latinSuffix;
 		    }
 		    var lx = x1 + (direction == "horizontal" ? 0 : ((labelPosition == "left-bottom" ? -1 : 1) * (majorTickLength + 5)));
 		    var ly = y1 + parseInt(parseInt(labelFormat.fontSize) / (direction == "horizontal" ? (labelPosition == "left-bottom" ? 1 : -1) : 3)) + (direction == "horizontal" ? ((labelPosition == "left-bottom" ? 1 : -1) * majorTickLength) : 0);
@@ -1943,7 +1944,9 @@ svg:svg {\
 		var sg = this.group(g, params.id + "_" + groups[h].name, groups[h].settings || {});
 
 		// add a title
-		this.doctitle(sg, groups[h].name);
+		if (groups[h].hasOwnProperty('name')) {
+		    this.doctitle(sg, groups[h].name);
+		}
 		
 		// draw the dots
 		for (var i=0; i<dots.length; i++) {
@@ -1951,8 +1954,14 @@ svg:svg {\
 		    var f = {};
 		    jQuery.extend(f, format, dot.format || {});
 		    var r = dot.radius == null ? radius : dot.radius;
-		    this.circle(sg, dot.x + shiftX, shiftY - dot.y, r, f);
+		    var pg = sg;
+		    if (dot.hasOwnProperty('name')) {
+			pg = this.group(sg);
+			this.doctitle(pg, dot.name);
+		    }
+		    this.circle(pg, dot.x + shiftX, shiftY - dot.y, r, f);
 		}
+		
 	    }
 	    
 	    return g;

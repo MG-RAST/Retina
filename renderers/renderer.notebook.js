@@ -334,8 +334,8 @@
 			    value = value[splits[j]];
 			}
 		    } catch (error) {
-			alert('variable '+variables[h]+' could not be resolved');
-			continue;
+			value = ' - ';//alert('variable '+variables[h]+' could not be resolved');
+			//continue;
 		    }
 		    if (typeof value == "object") {
 			return value;

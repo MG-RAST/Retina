@@ -270,11 +270,12 @@
 	matrix2barsrow: function (params, data) {
 	    var retval = { "data": [] };
 
-	    var factor = params.height / data.sumMax;
-	    
-	    for (var i=0; i<data.data[0].length; i++) {
-		retval.data.push([]);
-		retval.data[i].push({ "height": data.data[0][i] * factor, "format": { "fill": data.colors[0], "title": data.rows[i] +" - " + data.data[0][i] } });
+	    var factor = params.height / data.max;
+
+	    for (var h=0; h<data.data[0].length; h++) {
+		for (var i=0; i<data.data.length; i++) {
+		    retval.data.push({ "height": data.data[i][h] * factor, "format": { "fill": data.colors[i], "title": data.cols[i] + " - " + data.rows[h] +" - " + data.data[i][h] } });
+		}
 	    }
 
 	    return retval;
@@ -283,7 +284,7 @@
 	matrix2barscolumn: function (params, data) {
 	    var retval = { "data": [] };
 
-	    var factor = params.height / data.sumMax;
+	    var factor = params.height / data.max;
 	    
 	    for (var i=0; i<data.data.length; i++) {
 		retval.data.push([]);
@@ -449,7 +450,10 @@
 	    for (var i=0; i<data.data.length; i++) {
 		retval.push({ "name": data.data[i].name, "points": [] });
 		for (var h=0; h<data.data[i].points.length; h++) {
-		    retval[i].points.push({ x: xfactor * data.data[i].points[h].x, y: yfactor * data.data[i].points[h].y, value: data.data[i].points[h].y });
+		    var p = jQuery.extend({}, data.data[i].points[h]);
+		    p.x = xfactor * p.x;
+		    p.y = yfactor * p.y;
+		    retval[i].points.push(p);
 		}
 	    }
 
@@ -460,7 +464,6 @@
 	  data preparation for input data conversion
 	 */
 	prepareData: function (data, inputType) {
-	    
 	    // check if we have data
 	    if (! data) {
 		return;
