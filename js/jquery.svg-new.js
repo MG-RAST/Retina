@@ -1547,7 +1547,12 @@ svg:svg {\
 	    var y1m = direction == "horizontal" ? base : shift;
 	    var x2m = direction == "horizontal" ? shift : (labelPosition == "left-bottom" ? base - minorTickLength : base + minorTickLength);
 	    var y2m = direction == "horizontal" ? (labelPosition == "left-bottom" ? base + minorTickLength : base - minorTickLength) : shift;
-	    	    
+
+	    if (params.isLog) {
+		numMajor = Math.ceil(Math.log10(max));
+		spaceMajor = length / numMajor;
+	    }
+	    
 	    for (var i=0; i<=numMajor; i++) {
 		// calculate the numerical label value
 		var labelVal = min + (i * ((max - min) / numMajor));
@@ -1579,7 +1584,7 @@ svg:svg {\
 		    var ly = y1 + parseInt(parseInt(labelFormat.fontSize) / (direction == "horizontal" ? (labelPosition == "left-bottom" ? 1 : -1) : 3)) + (direction == "horizontal" ? ((labelPosition == "left-bottom" ? 1 : -1) * majorTickLength) : 0);
 		    var f = { textAnchor: (direction == "horizontal" ? (labelRotation == null ? "middle" : "end") : (labelPosition == "left-bottom" ? "end" : "start")), transform: (labelRotation == null ? "" : "rotate(-"+labelRotation+","+lx+","+ly+")") };
 		    jQuery.extend(f, labelFormat);
-		    this.text(g, lx, ly, params.isLog ? (text == "0" ? "0" : "10^"+text) : text, f);
+		    this.text(g, lx, ly, params.isLog ? (text == "0" ? "0" : this.createText().string("10").span(i, { "dy": "-"+(parseInt(labelFormat.fontSize) / 2) })) : text, f);
 		}
 		if (numMajor != i) {
 		    if (! params.isLog) {
