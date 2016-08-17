@@ -147,6 +147,13 @@
 	/* 
 	   input data conversion methods
 	 */
+	matrix2valueaxislog: function (params, data) {
+	    var maxX = Math.pow(10, data.max);
+	    var max = Math.ceil(Math.log10(maxX));
+	    
+	    return { "spaceMajor": params.length / max, "min": 0, "max": maxX };
+	},
+
 	matrix2valueaxis: function (params, data) {
 	    var retval = { "min": data.min, "max": data.max, "spaceMajor": 0 };
 
@@ -180,6 +187,20 @@
 	    retval.min = scale.min;
 	    
 	    return retval;
+	},
+
+	matrix2valueXlog: function (params, data) {
+	    var maxX = Math.pow(10, data.maxX);
+	    var max = Math.ceil(Math.log10(maxX));
+	    
+	    return { "spaceMajor": params.length / max, "min": 0, "max": maxX };
+	},
+
+	matrix2valueYlog: function (params, data) {
+	    var maxY = Math.pow(10, data.maxY);
+	    var max = Math.ceil(Math.log10(maxY));
+	    
+	    return { "spaceMajor": params.length / max, "min": 0, "max": maxY };
 	},
 
 	matrix2stackedvaluegrid: function (params, data) {
@@ -571,7 +592,7 @@
 		     { "name": 'isLog', "default": false, "description": "shows log or linear values as the axis labels", "valueType": "boolean" },
 		     { "name": 'noLine', "default": false, "description": "hides the lines", "valueType": "boolean" },
 		     { "name": 'inputType', "default": 'matrix', "description": "type of input data", "valueType": "select", "options": [ "matrix", "plot" ] },
-		     { "name": 'data', "default": "matrix2valueaxis", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "value axis", "value": "matrix2valueaxis" }, { "name": "column label axis", "value": "matrix2collabelaxis" }, { "name": "row label axis", "value": "matrix2rowlabelaxis" }, { "name": "heatmap column label axis", "value": "matrix2heatmapcolaxis" }, { "name": "heatmap row label axis", "value": "matrix2heatmaprowaxis" }, { "name": "stacked value axis", "value": "matrix2stackedvalueaxis" }, { "name": "plot X-axis", "value": "matrix2valueX"}, { "name": "plot Y-axis", "value": "matrix2valueY" } ] }
+		     { "name": 'data', "default": "matrix2valueaxis", "description": "the data function for this item", "valueType": "data", "options": [ { "name": "value axis", "value": "matrix2valueaxis" }, { "name": "log value axis", "value": "matrix2valueaxislog" }, { "name": "column label axis", "value": "matrix2collabelaxis" }, { "name": "row label axis", "value": "matrix2rowlabelaxis" }, { "name": "heatmap column label axis", "value": "matrix2heatmapcolaxis" }, { "name": "heatmap row label axis", "value": "matrix2heatmaprowaxis" }, { "name": "stacked value axis", "value": "matrix2stackedvalueaxis" }, { "name": "plot X-axis", "value": "matrix2valueX"}, { "name": "plot Y-axis", "value": "matrix2valueY" }, { "name": "plot X-log-axis", "value": "matrix2valueXlog"}, { "name": "plot Y-log-axis", "value": "matrix2valueYlog" }  ] }
 		   ];
 	},
 	
