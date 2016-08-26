@@ -26,11 +26,17 @@
    filter (ARRAY of STRING)
       An ordered list of attribute names that are attributes of the objects passed in data that the selection list may be filtered by
 
+   keyMapping (HASH)
+      A hash where they keys are the filter display names and the value is the actual object attribute name
+
    filter_value (STRING)
       Initial value of the filter. Default is an empty string.
 
    filter_attribute (STRING)
       Initial attribute to be displayed and filtered by. Default is the first element in the filter list.
+
+   filterType (STRING)
+      One of 'prefix', 'infix', 'strict'. Default is infix
 
    no_filter (BOOLEAN)
       If set to true, hides the filter. Default is false.
@@ -107,6 +113,7 @@
 		'sort': false,
 		'multiple': false, 
 		'no_button': false,
+		'filter_type': 'infix',
 		'no_filter': false,
 		'extra_wide': false,
 		'synchronous': true,
@@ -124,7 +131,7 @@
 	render: function () {
 	    renderer = this;
 	    var index = renderer.index;
-
+	    
 	    if (renderer.settings.navigation_url) {
 		renderer.settings.navigation_callback = renderer.update_data;
 	    }
@@ -154,7 +161,7 @@
 		    event = event || window.event;
 		    if (event.target.scrollTop == event.target.scrollTopMax) {
 			Retina.RendererInstances.listselect[index].settings.scroll_position = event.target.scrollTop;
-			Retina.RendererInstances.listselect[index].settings.navigation_callback("more", index);
+			Retina.RendererInstances.listselect[index].settings.navigation_callback.call(Retina.RendererInstances.listselect[index], "more");
 		    }
 		});
 	    }
@@ -165,7 +172,7 @@
 		selection_list.setAttribute('multiple', '');
 	    }
 	    selection_list.setAttribute('size', renderer.settings.rows);
-	    renderer.redrawSelection(selection_list, index);
+	    renderer.redrawSelection(selection_list);
 
 	    // create a filter box
 	    var filter = document.createElement('div');
@@ -179,15 +186,15 @@
 	    filter_input.addEventListener('keyup', function (event) {
 		Retina.RendererInstances.listselect[index].settings.filter_value = filter_input.value;
 		if (event.keyCode == 13) {
-		    Retina.RendererInstances.listselect[index].addBreadcrumb(index);
+		    Retina.RendererInstances.listselect[index].addBreadcrumb();
 		    return;
 		}
 		if (Retina.RendererInstances.listselect[index].settings.synchronous) {
-		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
+		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list);
 		} else {
 		    if (filter_input.value.length >= Retina.RendererInstances.listselect[index].settings.asynch_filter_min_length || event.keyCode == 8) {
 			Retina.RendererInstances.listselect[index].typing = new Date().getTime();
-			window.setTimeout("Retina.RendererInstances.listselect["+index+"].check_threshold("+index+")", Retina.RendererInstances.listselect[index].settings.asynch_keystroke_threshold);
+			window.setTimeout("Retina.RendererInstances.listselect["+index+"].check_threshold()", Retina.RendererInstances.listselect[index].settings.asynch_keystroke_threshold);
 		    }
 		}
 	    });
@@ -214,16 +221,16 @@
 
 	    // create the filter breadcrumbs
 	    var filter_breadcrumbs = document.createElement('div');
-	    filter_breadcrumbs.setAttribute('style', 'font-size: 9px; position: relative; top: -5px;');
+	    filter_breadcrumbs.setAttribute('style', 'font-size: 9px; position: relative; top: -5px; clear: both;');
 	    for (var i=0;i<renderer.settings.filter_breadcrumbs.length;i++) {
 		var bc_button = document.createElement('button');
-		bc_button.setAttribute('class', "btn btn-mini");
+		bc_button.setAttribute('class', "btn btn-mini btn-primary");
 		bc_button.setAttribute('style', "margin-right: 3px;");
 		bc_button.setAttribute('title', "remove filter");
 		bc_button.setAttribute('name', i);
 		bc_button.innerHTML = renderer.settings.filter_breadcrumbs[i][0]+": "+renderer.settings.filter_breadcrumbs[i][1]+' <span style="font-size: 11px; color: gray;">x</span>';
 		bc_button.addEventListener('click', function (event) {
-		    Retina.RendererInstances.listselect[index].removeBreadcrumb(this, index);
+		    Retina.RendererInstances.listselect[index].removeBreadcrumb(this);
 		});
 		filter_breadcrumbs.appendChild(bc_button);
 	    }
@@ -237,7 +244,7 @@
 		result_list.setAttribute('size', renderer.settings.rows);
 		result_list.setAttribute('name', renderer.settings.select_name);
 		result_list.setAttribute('id', renderer.settings.select_id);
-		renderer.redrawResultlist(result_list, index);
+		renderer.redrawResultlist(result_list);
 		
 		// create the action buttons
 		var button_span = document.createElement('span');
@@ -258,8 +265,8 @@
 			    delete Retina.RendererInstances.listselect[index].settings.selection[result_list.options[x].value];			
 			}
 		    }
-		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list, index);
-		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
+		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list);
+		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list);
 		});
 		var button_right = document.createElement('a');
 		button_right.setAttribute('class', 'btn btn-small');
@@ -277,8 +284,8 @@
 			    }
 			}
 		    }
-		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list, index);
-		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
+		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list);
+		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list);
 		});
 		var button_x = document.createElement('a');
 		button_x.setAttribute('class', 'btn btn-small');
@@ -286,8 +293,8 @@
 		button_x.addEventListener('click', function () {
 		    Retina.RendererInstances.listselect[index].settings.selection = {};
 		    Retina.RendererInstances.listselect[index].settings.selection_data = [];
-		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list, index);
-		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list, index);
+		    Retina.RendererInstances.listselect[index].redrawResultlist(result_list);
+		    Retina.RendererInstances.listselect[index].redrawSelection(selection_list);
 		});
 		button_span.appendChild(button_left);
 		button_span.appendChild(button_x);
@@ -361,10 +368,34 @@
 		    });
 	        }
             }
+
+	    // build special filters
+	    var specialFilters = document.createElement('div');
+	    if (renderer.settings.specialFilters) {
+		specialFilters.setAttribute('style', 'position: relative; bottom: 8px;');
+		var fhtml = [];
+		for (var i=0; i<renderer.settings.specialFilters.length; i++) {
+		    var sf = renderer.settings.specialFilters[i];
+		    switch (sf.type) {
+		    case "radio":
+			fhtml.push('<div style="font-size: 11px; font-weight: bold; margin-left: 4px; margin-top: 3px; margin-bottom: 3px; margin-right: 5px; float: left;">'+sf.title+' <div class="btn-group" data-toggle="buttons-radio" style="margin-left: 5px;">');
+			for (var h=0; h<sf.options.length; h++) {
+			    var o = sf.options[h];
+			    fhtml.push('<button type="button" class="btn btn-mini'+(o.checked ? ' active' : '')+'" onclick="Retina.RendererInstances.listselect['+renderer.index+'].updateSpecialFilter('+i+', this, '+h+');">'+o.title+'</button>');
+			}
+			fhtml.push('</div></div>');
+			break;
+		    }
+		}
+		specialFilters.innerHTML = fhtml.join('');
+	    }
 	    
 	    // build the output
 	    if (! renderer.settings.no_filter) {
 		target.appendChild(filter);
+		if (renderer.settings.specialFilters) {
+		    target.appendChild(specialFilters);
+		}
 	    }
 	    target.appendChild(filter_breadcrumbs);
 	    target.appendChild(selection_list);
@@ -381,37 +412,59 @@
 	    filter_input.focus();
 	    filter_input.selectionStart = filter_input.value.length;
 	    filter_input.selectionEnd = filter_input.value.length;
+
+	    return renderer;
 	},
+
+	// update a special filter
+	updateSpecialFilter: function (index, item, option) {
+	    var renderer = this;
+
+	    var filter = renderer.settings.specialFilters[index];
+	    for (var i=0; i<filter.options.length; i++) {
+		filter.options[i].checked = false;
+	    }
+	    if (option != null) {
+		filter.options[option].checked = true;
+	    }
+
+	    renderer.update()
+	},
+	
 	// add a breadcrumb to the list
-	addBreadcrumb: function (index) {
-	    renderer = Retina.RendererInstances.listselect[index];
+	addBreadcrumb: function () {
+	    var renderer = this;
 	    if (renderer.settings.filter_value != "") {
 		renderer.settings.filter_breadcrumbs.push([renderer.settings.filter_attribute, renderer.settings.filter_value]);
 		renderer.settings.filter_value = "";
 		if (renderer.settings.synchronous) {
 		    renderer.render();
 		} else {
-		    renderer.update(index);
+		    renderer.update();
 		}
 	    }
 	},
 	// remove a breadcrumb from the list
-	removeBreadcrumb: function (button, index) {
-	    renderer = Retina.RendererInstances.listselect[index];
+	removeBreadcrumb: function (button) {
+	    var renderer = this;
 	    renderer.settings.filter_breadcrumbs.splice(button.name, 1);
 	    renderer.settings.filter_value = '';
 	    if (renderer.settings.synchronous) {
 		renderer.render();
 	    } else {
-		renderer.update(index);
+		renderer.update();
 	    }
 	},
 	// redraw the result list (right)
-	redrawResultlist: function (result_list, index) {  
-	    renderer = Retina.RendererInstances.listselect[index];
+	redrawResultlist: function (result_list) {  
+	    var renderer = this;
 	    var result_list_array = [];
 	    for (var i=0; i<renderer.settings.selection_data.length; i++) {
-		result_list_array.push( [ renderer.settings.selection_data[i][renderer.settings.value], '<option value="'+renderer.settings.selection_data[i][renderer.settings.value]+'" title="'+renderer.settings.selection_data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.selection_data[i][renderer.settings.filter_attribute]+'</option>'] );
+		var fa = renderer.settings.filter_attribute;
+		if (renderer.settings.hasOwnProperty('keyMapping') && renderer.settings.keyMapping.hasOwnProperty(fa)) {
+		    fa = renderer.settings.keyMapping[fa];
+		}
+		result_list_array.push( [ renderer.settings.selection_data[i][renderer.settings.value], '<option value="'+renderer.settings.selection_data[i][renderer.settings.value]+'" title="'+renderer.settings.selection_data[i][fa]+'">'+renderer.settings.selection_data[i][fa]+'</option>'] );
 	    }
 	    if (renderer.settings.sort) {
 		result_list_array.sort(renderer.listsort);
@@ -423,19 +476,32 @@
 	    result_list.innerHTML = result_list_string;
 	},
 	// redraw the selection list (left)
-	redrawSelection: function (selection_list, index) {
-	    renderer = Retina.RendererInstances.listselect[index];
+	redrawSelection: function (selection_list) {
+	    var renderer = this;
 
 	    // initialize the filter
 	    renderer.settings.filtered_data = renderer.settings.data;
 
-	    // apply all filter breadcrumbs
-	    for (var i=0; i<renderer.settings.filter_breadcrumbs.length; i++) {
-		renderer.settings.filtered_data = renderer.filter({ data: renderer.settings.filtered_data, value: renderer.settings.filter_breadcrumbs[i][1], type: renderer.settings.filter_type, attribute: renderer.settings.filter_breadcrumbs[i][0] }, index);
+
+	    // check if we need to filter
+	    if (! renderer.settings.navigation_callback) {
+		
+		// apply all filter breadcrumbs
+		for (var i=0; i<renderer.settings.filter_breadcrumbs.length; i++) {
+		    var fa = renderer.settings.filter_breadcrumbs[i][0];
+		    if (renderer.settings.hasOwnProperty('keyMapping') && renderer.settings.keyMapping.hasOwnProperty(fa)) {
+			fa = renderer.settings.keyMapping[fa];
+		    }
+		    renderer.settings.filtered_data = renderer.filter({ data: renderer.settings.filtered_data, value: renderer.settings.filter_breadcrumbs[i][1], type: renderer.settings.filter_type, attribute: fa });
+		}
+		
+		// filter the list with the current filter
+		var fa = renderer.settings.filter_attribute;
+		if (renderer.settings.hasOwnProperty('keyMapping') && renderer.settings.keyMapping.hasOwnProperty(fa)) {
+		    fa = renderer.settings.keyMapping[fa];
+		}
+		renderer.settings.filtered_data = renderer.filter({ data: renderer.settings.filtered_data, value: renderer.settings.filter_value, type: renderer.settings.filter_type, attribute: fa });
 	    }
-	    
-	    // filter the list with the current filter
-	    renderer.settings.filtered_data = renderer.filter({ data: renderer.settings.filtered_data, value: renderer.settings.filter_value, type: renderer.settings.filter_type, attribute: renderer.settings.filter_attribute }, index);
 	    
 	    // sort the list
 	    if (renderer.settings.sort) {
@@ -445,8 +511,12 @@
 	    // create the selection list
 	    var settings_string = "";
 	    for (var i=0; i<renderer.settings.filtered_data.length; i++) {
+		fa = renderer.settings.filter_attribute;
+		if (renderer.settings.hasOwnProperty('keyMapping') && renderer.settings.keyMapping.hasOwnProperty(fa)) {
+		    fa = renderer.settings.keyMapping[fa];
+		}
 		if (! renderer.settings.selection[renderer.settings.filtered_data[i][renderer.settings.value]]) {
-		    settings_string += '<option value="'+renderer.settings.filtered_data[i][renderer.settings.value]+'" title="'+renderer.settings.filtered_data[i][renderer.settings.filter_attribute]+'">'+renderer.settings.filtered_data[i][renderer.settings.filter_attribute]+'</option>';
+		    settings_string += '<option value="'+renderer.settings.filtered_data[i][renderer.settings.value]+'" title="'+renderer.settings.filtered_data[i][fa]+'">'+renderer.settings.filtered_data[i][fa]+'</option>';
 		}
 	    }
 	    selection_list.innerHTML = settings_string;
@@ -454,30 +524,57 @@
 	    return;
 	},
 
-	check_threshold: function(index) {
+	check_threshold: function() {
+	    var renderer = this;
 	    var threshold = new Date().getTime();
-	    if (Retina.RendererInstances.listselect[index].typing + Retina.RendererInstances.listselect[index].settings.asynch_keystroke_threshold < threshold) {
-		Retina.RendererInstances.listselect[index].update(index);
+	    if (renderer.typing + renderer.settings.asynch_keystroke_threshold < threshold) {
+		renderer.update();
 	    }		
 	},
 
-	update: function (index) {
-	    renderer = Retina.RendererInstances.listselect[index];
+	update: function () {
+	    renderer = this;
 	    var query = [];
+
+	    // check special filters
+	    if (renderer.settings.hasOwnProperty('specialFilters')) {
+		for (var i=0; i<renderer.settings.specialFilters.length; i++) {
+		    var sf = renderer.settings.specialFilters[i];
+		    switch (sf.type) {
+		    case "radio":
+			for (var h=0; h<sf.options.length; h++) {
+			    if (sf.options[h].checked) {
+				if (sf.options[h].value != 'all') {
+				    query.push( { "field": sf.attribute, "searchword": sf.options[h].value, "strict": true });
+				}
+				break;
+			    }
+			}
+			break;
+		    }
+		}
+	    }
+	    
+	    // check breadcrums
 	    for (var i=0; i<renderer.settings.filter_breadcrumbs.length; i++) {
-		query.push( { "field": renderer.settings.filter_breadcrumbs[i][0],
+		var f = renderer.settings.filter_breadcrumbs[i][0];
+		if (renderer.settings.hasOwnProperty('keyMapping') && renderer.settings.keyMapping.hasOwnProperty(f)) {
+		    f = renderer.settings.keyMapping[f];
+		}
+		query.push( { "field": f,
 			      "searchword": renderer.settings.filter_breadcrumbs[i][1] } );
 	    }
 	    if (renderer.settings.filter_value.length) {
 		query.push( { "field": renderer.settings.filter_attribute,
 			      "searchword": renderer.settings.filter_value } );
 	    }
-	    renderer.settings.navigation_callback( { "clear": true, "query": query }, index );
+
+	    renderer.settings.navigation_callback.call(renderer, { "clear": true, "query": query });
 	},
 
 	// filter the data according to all breadcrumbs and the current filter
-	filter: function(settings, index) {
-	    renderer = Retina.RendererInstances.listselect[index];
+	filter: function(settings) {
+	    var renderer = this;
 	    var results = [];
 	    for (var x=0;x<settings.data.length;x++) {
 		if (typeof(renderer.settings.selection[x]) == 'undefined') {
@@ -516,9 +613,10 @@
 		return 0;
 	    }
 	},
-	update_data: function (params, index) {
-	    renderer = Retina.RendererInstances.listselect[index];
-
+	update_data: function (params) {
+	    var renderer = this;
+	    var index = renderer.index;
+	    
 	    if (typeof params == 'string' && params == 'more') {
 		renderer.settings.offset = renderer.settings.data.length;
 		if (renderer.settings.total_count <= renderer.settings.asynch_limit) {
@@ -557,7 +655,7 @@
 	    var query = "";
 	    for (var i in renderer.settings.query) {
 	        if (renderer.settings.query.hasOwnProperty(i) && renderer.settings.query[i].searchword.length) {
-		    query +=  "&" + renderer.settings.query[i].field + '=*' + renderer.settings.query[i].searchword + '*';
+		    query +=  "&" + renderer.settings.query[i].field + '=' + (renderer.settings.filter_type == 'infix' && ! renderer.settings.query[i].strict ? '*' : '') + renderer.settings.query[i].searchword + ((renderer.settings.filter_type == 'infix' || renderer.settings.filter_type == 'prefix')  && ! renderer.settings.query[i].strict ? '*' : '');
 	        }
 	    }
 
@@ -566,7 +664,7 @@
         var headers = renderer.settings.hasOwnProperty('headers') ? renderer.settings.headers : (stm.Authentication ? {'AUTH': stm.Authentication} : {});
 	
 	    jQuery.ajax({ url: url, headers: headers, dataType: "json", success: function(data) {
-		renderer =  Retina.RendererInstances.listselect[index];
+		var renderer =  Retina.RendererInstances.listselect[index];
 		renderer.settings.total_count = data.total_count;
 		if (typeof params == 'string' && params == "more") {
 		    renderer.settings.data = renderer.settings.data.concat(data.data);
