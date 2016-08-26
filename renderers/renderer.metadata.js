@@ -63,7 +63,7 @@
 
 	    var wb = jQuery.extend(true, {}, renderer.excelWorkbook);
 	    var data = renderer.settings.data;
-	    	    
+
 	    // fill in the project sheet
 	    for (var i=0; i<wb.worksheets[1].maxCol; i++) {
 		if (data.data.hasOwnProperty(wb.worksheets[1].data[0][i].value)) {
@@ -112,15 +112,14 @@
 		    var sheet;
 		    if (lib.type == "metagenome") {
 			sheet = 3;
-		    } else if (lib.type == "transcriptome") {
+		    } else if (lib.type == "transcriptome" || lib.type == "metatranscriptome") {
 			sheet = 4;
 		    } else if (lib.type == "mimarks-survey") {
 			sheet = 5;
 		    }
 		    usedSheets[wb.worksheets[sheet].name] = true;
-
 		    wb.setCell(sheet, 0, libRows[lib.type], sample.name);
-
+		    
 		    var libMiscCol = 0;
 		    for (var j=1; j<wb.worksheets[sheet].maxCol; j++) {
 			if ((libMiscCol<1) && wb.worksheets[sheet].data[0][j].value.match(/^misc_param/)) {
@@ -130,7 +129,7 @@
 			    wb.setCell(sheet, j, libRows[lib.type], lib.data[wb.worksheets[sheet].data[0][j].value].value);
 			}
 		    }
-		    
+
 		    for (var j in lib.data) {
 			if (lib.data.hasOwnProperty(j) && j.match(/^misc_param_\d+/)) {
 			    wb.setCell(sheet, libMiscCol, 0, j);
@@ -140,9 +139,12 @@
 		    }
 		    libRows[lib.type]++;
 		}
-
+		
 		// fill the env-package
 		var ep = sample.envPackage;
+		if (! ep) {
+		    continue;
+		}
 		for (var i=0; i<wb.worksheets.length; i++) {
 		    if (wb.worksheets[i].name == "ep "+ep.type) {
 			if (! epMiscCol.hasOwnProperty(ep.type)) {
@@ -181,7 +183,7 @@
 	    	    i--;
 	    	}
 	    }
-	    
+
 	    xlsx(wb).then(function(data) {
 		var fn = Retina.RendererInstances.metadata[1].settings.filename;
 		stm.saveAs(data.base64, fn, true, "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,");
