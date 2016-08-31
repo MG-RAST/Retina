@@ -77,6 +77,11 @@
 	}
 
 	html += "</div>";
+
+	if (widget.params.showBreadcrumbs) {
+	    html += "<div>"+(widget.params.breadcrumbs || "")+"</div>";
+	}
+	
 	cDiv.innerHTML = widget.params.noControl ? "" : html;
 
 	widget.params.target.innerHTML = "";
