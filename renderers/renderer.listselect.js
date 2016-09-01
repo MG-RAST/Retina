@@ -35,7 +35,7 @@
    filter_attribute (STRING)
       Initial attribute to be displayed and filtered by. Default is the first element in the filter list.
 
-   filterType (STRING)
+   filter_type (STRING)
       One of 'prefix', 'infix', 'strict'. Default is infix
 
    no_filter (BOOLEAN)
@@ -97,7 +97,6 @@
 		'rows': 10,
 		'filter': [],
 		'filter_value': '',
-		'filter_type': 'substring',
 		'filter_attribute': null,
 		'filtered_data': [],
 		'selection_data': [],
@@ -155,7 +154,7 @@
 	    }
 
 	    // get the selection list
-	    var selection_list = document.createElement('select');
+	    var selection_list = renderer.selection_list = document.createElement('select');
 	    if (typeof renderer.settings.navigation_callback == "function") {
 		selection_list.addEventListener('scroll', function(event) {
 		    event = event || window.event;
@@ -239,7 +238,7 @@
 	    if (renderer.settings.multiple) {
 	    
 		// create the result list
-		var result_list = document.createElement('select');
+		var result_list = renderer.result_list = document.createElement('select');
 		result_list.setAttribute('multiple', '');
 		result_list.setAttribute('size', renderer.settings.rows);
 		result_list.setAttribute('name', renderer.settings.select_name);
