@@ -18,7 +18,7 @@
     widget.display = function (params) {
 	var widget = this;
 	var index = widget.index;
-
+	
 	widget.params = widget.params || params;
 
 	if (! Retina.RendererInstances.hasOwnProperty(widget.params.type)) {
@@ -95,7 +95,11 @@
 
     widget.updateRendererAttribute = function(name, value, isDataUpdater) {
 	var widget = this;
-
+	
+	if (typeof widget.params.settingsCallback == "function") {
+	    widget.params.settingsCallback.call(widget, name, value);
+	}
+	
 	if (isDataUpdater && widget.params.hasOwnProperty('dataCallback')) {
 	    if (typeof widget.renderer.updateAttribute == "function") {
 		widget.renderer.updateAttribute(name, value);
@@ -107,11 +111,7 @@
 	    widget.renderer.updateAttribute(name, value);
 	} else {
 	    widget.renderer.settings[name] = value;
-	}
-
-	if (typeof widget.params.settingsCallback == "function") {
-	    widget.params.settingsCallback.call(widget, name, value);
-	}
+	}	
 
 	widget.renderer.render();
     };
