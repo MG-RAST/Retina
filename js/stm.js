@@ -495,7 +495,7 @@
 	    var dstring = "{";
 	    for (var i in stm.DataStore) {
 		if (stm.DataStore.hasOwnProperty(i)) {
-		    if (key !== null && key !== i) { continue; }
+		    if (key !== null && key !== i && ! (typeof key == "object" && key[i])) { continue; }
 		    dstring += '"'+i+'":{';
 		    var hasOne = false;
 		    for (var h in stm.DataStore[i]) {
