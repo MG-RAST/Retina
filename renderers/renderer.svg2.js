@@ -66,7 +66,6 @@
 		    }
 		    
 		    renderer.settings.data = renderer.prepareData(renderer.settings.data, params.inputType);
-		    
 		    jQuery.extend(true, params, renderer[renderer.settings.items[i].data].call(null, params, jQuery.extend(true, {}, renderer.settings.data)));
 		}
 		renderer.svg[type](jQuery.extend({}, renderer[type], params));
