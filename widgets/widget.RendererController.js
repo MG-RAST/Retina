@@ -59,6 +59,7 @@
 		opt.index = index;
 		if (opt.isDataUpdater) {
 		    widget.dataUpdaters.push(opt);
+		    widget.renderer.settings[opt.name] = opt.hasOwnProperty('defaultTrue') ? opt.defaultTrue : opt.value;
 		}
 		html += "<tr><td style='text-align: right; vertical-align: middle;'>"+opt.title+"</td><td style='padding-left: 10px; text-align: left;'>";
 		try {
