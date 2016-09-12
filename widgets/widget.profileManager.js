@@ -76,7 +76,7 @@
     widget.download = function (id) {
 	var widget = this;
 
-	stm.saveAs('{"profile":{"'+id+'":'+JSON.stringify(stm.DataStore.profile[id])+'}}', id+".json");
+	stm.saveAs('"profile":{"'+id+'":'+JSON.stringify(stm.DataStore.profile[id])+'}}', id+".json");
     };
 
     widget.upload = function () {
@@ -86,12 +86,16 @@
     };
 
     widget.profileUpdatedInfo = function () {
+	var widget = Retina.WidgetInstances.profileManager[1];
 	var elem = document.createElement('div');
 	elem.setAttribute('class', "alert alert-info");
 	elem.setAttribute('style', "position: absolute; top: -50px; right: 8px; width: 150px; height: 22px; z-index: 10000;");
 	elem.innerHTML = '<b>profile loaded</b><br>';
 	document.body.appendChild(elem);
 	jQuery(elem).animate({top: "8px"},{duration: 800}).delay(3000).animate({top: "-50px"},{duration: 800, complete: function(){document.body.removeChild(elem);}});
+	if (typeof widget.callback == "function") {
+	    widget.callback.call();
+	}
     };
 
 })();
