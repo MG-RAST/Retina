@@ -99,12 +99,7 @@
 		    svg = document.createElementNS(this.svgNS, 'svg');
 		    svg.setAttribute('version', '1.1');
 		    svg.setAttribute('xmlns',"http://www.w3.org/2000/svg");
-		    if (container.clientWidth > 0) {
-			svg.setAttribute('width', container.clientWidth);
-		    }
-		    if (container.clientHeight > 0) {
-			svg.setAttribute('height', container.clientHeight);
-		    }
+		    svg.setAttribute('viewBox', '0 0 '+parseInt(container.clientWidth)+" "+parseInt(container.clientHeight));
 		    container.appendChild(svg);
 		}
 		this._afterLoad(container, svg, settings || {});
@@ -1580,8 +1575,8 @@ svg:svg {\
 		    } else if (params.latinSuffix && suff[params.latinSuffix]) {
 			text = (labelVal / suff[params.latinSuffix]).formatString(decimals) + params.latinSuffix;
 		    }
-		    var lx = x1 + (direction == "horizontal" ? 0 : ((labelPosition == "left-bottom" ? -1 : 1) * (majorTickLength + 5)));
-		    var ly = y1 + parseInt(parseInt(labelFormat.fontSize) / (direction == "horizontal" ? (labelPosition == "left-bottom" ? 1 : -1) : 3)) + (direction == "horizontal" ? ((labelPosition == "left-bottom" ? 1 : -1) * majorTickLength) : 0);
+		    var lx = x1 + (direction == "horizontal" ? (params.labelShift ? spaceMajor / 2 : 0) : ((labelPosition == "left-bottom" ? -1 : 1) * (majorTickLength + 5)));
+		    var ly = y1 + parseInt(parseInt(labelFormat.fontSize) / (direction == "horizontal" ? (labelPosition == "left-bottom" ? 1 : -1) : 3)) + (direction == "horizontal" ? ((labelPosition == "left-bottom" ? 1 : -1) * majorTickLength) : (params.labelShift ? spaceMajor / 2 : 0));
 		    var f = { textAnchor: (direction == "horizontal" ? (labelRotation == null ? "middle" : "end") : (labelPosition == "left-bottom" ? "end" : "start")), transform: (labelRotation == null ? "" : "rotate(-"+labelRotation+","+lx+","+ly+")") };
 		    jQuery.extend(f, labelFormat);
 		    this.text(g, lx, ly, params.isLog ? (text == "0" ? "0" : this.createText().string("10").span(i, { "dy": "-"+(parseInt(labelFormat.fontSize) / 2) })) : text, f);
