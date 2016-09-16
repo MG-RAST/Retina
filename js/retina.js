@@ -947,31 +947,105 @@
 	return retval;
     };
 
-    /* calculate a distance matrix given a matrix and an optional measure */
-    Retina.distanceMatrix = function (data, measure) {
-	var distances = [];
-	measure = measure || 'euclidean';
-	for (var i=0; i<data.length; i++) {
-	    distances.push([]);
-	}
-	for (var i=0; i<data.length; i++) {
-	    for (var h=0; h<data.length; h++) {
-		if (i == h) {
-		    distances[i][h] = 0;
-		}
-		if (i>=h) {
-		    continue;
-		}
-		var distance = 0;
-		for (var j=0; j<data[i].length; j++) {
-		    distance += Math.pow(data[i][j] - data[h][j], 2);
-		}
-		distances[i][h] = distance;
-		distances[h][i] = distance;
-	    }
+    Retina.average = function (vector) {
+	var sum = 0;
+	for (var i=0; i<vector.length; i++) {
+	    sum += vector[i];
 	}
 
-	return distances;
+	return sum / vector.length;
+    };
+    
+    Retina.mean = function (vector) {
+	var mean = 0;
+	for (var i=0; i<vector.length; i++) {
+            mean += vector[i];
+	}
+	
+	return mean / vector.length;
+    };
+
+    /* calculate a distance matrix given a matrix and an optional measure */
+    Retina.distanceMatrix = function (data, measure) {
+	var d = [];
+	measure = measure || 'euclidean';
+	for (var i=0; i<data.length; i++) {
+	    var row = [];
+	    for (var h=0; h<data.length; h++) {
+		row.push(0);
+	    }
+	    d.push(row);
+	}
+
+	var n = data.length;
+	for (var i=0; i<data.length; i++) {
+	    for (var h=i; h<data.length; h++) {
+		if (i == h) {
+		    d[i][h] = 0;
+		} else {
+		    var intermediate = [[],[]];
+		    for (var j=0; j<data[i].length; j++) {
+			intermediate[0].push(data[i][j]);
+			intermediate[1].push(data[h][j]);
+		    }
+		    switch (measure) {
+		    case "euclidean":
+			var dist = 0;
+			for (var j=0; j<data[i].length; j++) {
+			    dist += Math.pow(data[i][j] - data[h][j], 2);
+			}
+			d[i][h] = d[h][i] = Math.sqrt(dist);
+			
+			break;
+			
+		    case "manhattan":
+			var dist = 0;
+			for (var j=0; j<data[i].length; j++) {
+			    dist += Math.abs(data[i][j] - data[h][j]);
+			}
+			d[i][h] = d[h][i] = dist;
+			break;
+			
+		    case "maximum":
+			var dists = [];
+			for (var j=0; j<data[i].length; j++) {
+			    dists.push(Math.abs(data[i][j] - data[h][j]));
+			}
+			d[i][h] = d[h][i] = Math.max.apply(null, dists);
+
+			break;
+			
+		    case "braycurtis":
+			var s = [];
+			var sum_s = 0;
+			for (var j=0; j<intermediate.length; j++) {
+			    sum_s += intermediate[j][0] + intermediate[j][1];
+			    s.push(intermediate[j][0] + intermediate[j][1]);
+			}
+			
+		    	var s2 = 0;
+			for (var j=0; j<intermediate.length; j++) {
+			    s2 += Math.min.apply(null, intermediate[j]) / sum_s;
+			}
+			
+			d[i][h] = d[h][i] = 1 - 2 * s2;
+			
+		    	break;
+			
+		    case "minkowski":
+			var dist = 0;
+			for (var j=0; j<data[i].length; j++) {
+			    dist += Math.pow(Math.abs(data[i][j] - data[h][j]), 2);
+			}
+			d[i][h] = d[h][i] = Math.sqrt(dist);
+			
+			break;
+		    };
+		}
+	    }
+	}
+	
+	return d;
     };
 
     Retina.copyMatrix = function (matrix) {
@@ -1181,7 +1255,7 @@
 	    	clusterdataout.push(clusterdata[i].sort(Retina.propSort('amin')));
 	    }
 	}
-		
+
 	return [clusterdataout, rowindex];
     };
 
