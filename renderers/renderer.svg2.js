@@ -280,8 +280,21 @@
 	matrix2plotlegend: function (params, data) {
 	    var retval = { "data": [] };
 
-	    for (var i=0; i<data.data.length; i++) {
-		retval.data.push(data.data[i].name);
+	    var groups = {};
+	    var shapes = ['circle','square','triangle','udtriangle','rhombus'];
+	    for (var i=0; i<data.headers.length; i++) {
+		var x = data.headers[i][params.headerAttribute];
+		if (groups[x]) {
+		    continue;
+		}
+		groups[x] = true;
+		if (params.legendType == "color") {
+		    retval.data.push(x);
+		} else if (params.legendType == "shape") {
+		    retval.data.push({"shape": shapes[retval.data.length], "text": x});
+		} else {
+		    retval.data.push(x);
+		}
 	    }
 	    
 	    return retval;
@@ -467,10 +480,28 @@
 	    var xfactor = params.width / scaleX.max;
 	    var yfactor = params.height / scaleY.max;
 
+	    var colors = GooglePalette();
+	    var cgroups = {};
+	    var col = 0;
+	    var shapes = ['circle','square','triangle','udtriangle','rhombus'];
+	    var sgroups = {};
+	    var s = 0;
 	    for (var i=0; i<data.data.length; i++) {
 		retval.push({ "name": data.data[i].name, "points": [] });
 		for (var h=0; h<data.data[i].points.length; h++) {
-		    var p = jQuery.extend({}, data.data[i].points[h]);
+		    var ch = data.headers[h][params.colorAttribute];
+		    if (! cgroups.hasOwnProperty(ch)) {
+			cgroups[ch] = colors[col];
+			col++;
+		    }
+		    var sh = data.headers[h][params.shapeAttribute];
+		    if (! sgroups.hasOwnProperty(sh)) {
+			sgroups[sh] = shapes[s];
+			s++;
+		    }
+		    var p = jQuery.extend({"format": {}}, data.data[i].points[h]);
+		    p.shape = sgroups[sh];
+		    p.format.fill = cgroups[ch]; 
 		    p.x = xfactor * p.x;
 		    p.y = yfactor * p.y;
 		    retval[i].points.push(p);
