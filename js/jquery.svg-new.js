@@ -1459,6 +1459,55 @@ svg:svg {\
 	    return g;
 	},
 
+	shapelegend: function(params) {
+	    var group = params.group || null;
+	    var top = params.top == null ? 0 : params.top;
+	    var left = params.left == null ? 0 : params.left;
+	    var labels = params.labels || params.data;
+	    var colors = params.colors || GooglePalette();
+	    var format = { fontSize: 12, fontWeight: "normal", fontFamily: "Helvetica" };
+	    if (params.format !== null) {
+		jQuery.extend(format, params.format);
+	    }
+
+	    var fontSize = parseInt(format.fontSize);
+	    var labelSpacing = params.labelSpacing == null ? 10 : params.labelSpacing;
+	    var f = { stroke: "black", strokeWidth: 1, fill: "white" };
+	    var r = fontSize / 2;
+	    
+	    var g = this.group(group, params.id, params.groupSettings);
+	    for (var i=0; i<labels.length; i++) {
+		switch (labels[i].shape) {
+		case 'circle':
+		    this.circle(g, left + r, top + r, r, f);
+		    break;
+		case 'square':
+		    this.rect(g, left, top, r * 2, r * 2, f);
+		    break;
+		case 'triangle':
+		    this.polygon(g, [ [ left + r, top ],
+				       [ left, top + r + r ],
+				       [ left + r + r, top + r + r ] ], f);
+		    break;
+		case 'udtriangle':
+		    this.polygon(g, [ [ left + r, top + r + r ],
+				       [ left, top ],
+				       [ left + r + r, top ] ], f);
+		    break;
+		case 'rhombus':
+		    this.polygon(g, [ [ left + r, top ],
+				       [ left + r + r, top + r ],
+				       [ left + r, top + r + r ],
+				       [ left, top + r ] ], f);
+		    break;
+		}
+		this.text(g, left + fontSize + fontSize, top + fontSize - 2, labels[i].text, format);
+		top += fontSize + labelSpacing;
+	    }
+	    
+	    return g;
+	},
+
 	axis: function(params) {
 	    var group = params.group || null;
 	    var orientation = params.orientation == null ? "bottom" : params.orientation;
@@ -1951,6 +2000,7 @@ svg:svg {\
 		// draw the dots
 		for (var i=0; i<dots.length; i++) {
 		    var dot = dots[i];
+		    dot.shape = dot.shape || "circle";
 		    var f = {};
 		    jQuery.extend(f, format, dot.format || {});
 		    var r = dot.radius == null ? radius : dot.radius;
@@ -1959,7 +2009,31 @@ svg:svg {\
 			pg = this.group(sg);
 			this.doctitle(pg, dot.name);
 		    }
-		    this.circle(pg, dot.x + shiftX, shiftY - dot.y, r, f);
+		    switch (dot.shape) {
+		    case 'circle':
+			this.circle(pg, dot.x + shiftX, shiftY - dot.y, r, f);
+			break;
+		    case 'square':
+			this.rect(pg, dot.x + shiftX - r, shiftY - dot.y - r, r * 2, r * 2, f);
+			break;
+		    case 'triangle':
+			this.polygon(pg, [ [ dot.x + shiftX, shiftY - dot.y - r ],
+					   [ dot.x + shiftX - r, shiftY - dot.y + r ],
+					   [ dot.x + shiftX + r, shiftY - dot.y + r ] ], f);
+			break;
+		    case 'udtriangle':
+			this.polygon(pg, [ [ dot.x + shiftX, shiftY - dot.y + r ],
+					   [ dot.x + shiftX - r, shiftY - dot.y - r ],
+					   [ dot.x + shiftX + r, shiftY - dot.y - r ] ], f);
+			break;
+		    case 'rhombus':
+			this.polygon(pg, [ [ dot.x + shiftX, shiftY - dot.y - r ],
+					   [ dot.x + shiftX + r, shiftY - dot.y ],
+					   [ dot.x + shiftX, shiftY - dot.y + r ],
+					   [ dot.x + shiftX - r, shiftY - dot.y ] ], f);
+			break;
+		    }
+		    
 		}
 		
 	    }

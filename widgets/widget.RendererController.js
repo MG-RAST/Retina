@@ -39,7 +39,12 @@
 	widget.params.width = widget.params.width || 800;
 	widget.dataUpdaters = [];
 
-	var html = '<div class="accordion" id="RendererController_accordion'+index+'" style="width: '+widget.params.width+'px; margin-bottom: 20px;">';
+	var html = "";
+	if (widget.params.settings.hasOwnProperty('description')) {
+	    html += '<p>'+widget.params.settings.description+'</p>';
+	}
+	
+	html += '<div class="accordion" id="RendererController_accordion'+index+'" style="width: '+widget.params.width+'px; margin-bottom: 20px;">';
 
 	for (var i=0; i<widget.params.controls.length; i++) {
 	    var groupname = Retina.keys(widget.params.controls[i])[0];
@@ -50,7 +55,7 @@
   <div class="accordion-heading">\
     <a class="accordion-toggle" data-toggle="collapse" data-parent="#RendererController_accordion'+index+'" href="#RendererController_collapse_'+index+'_'+i+'">'+groupname+'</a>\
   </div>\
-  <div id="RendererController_collapse_'+index+'_'+i+'" class="accordion-body collapse">\
+<div id="RendererController_collapse_'+index+'_'+i+'" class="accordion-body'+(widget.params.settings.hasOwnProperty('extended') && widget.params.settings.extended[groupname] ? " in" : "")+' collapse">\
     <div class="accordion-inner">\
       <table>\
 ';
