@@ -438,7 +438,7 @@
 				}
 				selopts[tdata[h][header[i]]] = 1;
 			    }
-			    if (numopts <= renderer.settings.filter_autodetect_select_max) {
+			    if (numopts <= renderer.settings.filter_autodetect_select_max && renderer.settings.sorttype[i] == 'text') {
 				renderer.settings.filter[i].type = "select";
 			    }
 			}
