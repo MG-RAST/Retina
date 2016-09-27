@@ -34,6 +34,7 @@
 
 	var cDiv = widget.controlDiv = document.createElement('div');
 	widget.displayDiv = document.createElement('div');
+	widget.displayDiv.style.overflow = 'hidden';
 	widget.d.target = widget.displayDiv;
 	widget.renderer = Retina.Renderer.create(widget.params.type, widget.d);
 	widget.params.width = widget.params.width || 800;
@@ -64,7 +65,7 @@
 		opt.index = index;
 		if (opt.isDataUpdater) {
 		    widget.dataUpdaters.push(opt);
-		    widget.renderer.settings[opt.name] = opt.hasOwnProperty('defaultTrue') ? opt.defaultTrue : opt.value;
+		    widget.renderer.settings[opt.name] = opt.hasOwnProperty('defaultTrue') ? opt.defaultTrue : opt['default'];
 		}
 		html += "<tr><td style='text-align: right; vertical-align: middle;'>"+opt.title+"</td><td style='padding-left: 10px; text-align: left;'>";
 		try {
@@ -101,7 +102,7 @@
 
     widget.updateRendererAttribute = function(name, value, isDataUpdater) {
 	var widget = this;
-	
+
 	if (typeof widget.params.settingsCallback == "function") {
 	    widget.params.settingsCallback.call(widget, name, value);
 	}
