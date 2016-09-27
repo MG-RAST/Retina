@@ -206,7 +206,7 @@
 		for (var i=0;i<renderer.settings.data.data.length; i++) {
 		    tdata[tdata.length] = {};
 		    for (var h=0;h<renderer.settings.data.data[i].length;h++) {
-			tdata[tdata.length - 1][header[h]] = renderer.settings.data.data[i][h] || "";
+			tdata[tdata.length - 1][header[h]] = renderer.settings.data.data[i].hasOwnProperty(h) ? renderer.settings.data.data[i][h] : "";
 		    }
 		}
 		renderer.settings.tdata = tdata;
