@@ -55,7 +55,8 @@
 	    for (var i=0; i<renderer.settings.items.length; i++) {
 		var type = renderer.settings.items[i].type;
 		
-		var params = renderer.settings.items[i].parameters;		
+		var params = renderer.settings.items[i].parameters;
+		var d = jQuery.extend(true, {}, renderer.settings.data);
 		if (renderer.settings.items[i].hasOwnProperty('data') && params.inputType !== 'none') {
 		    if (! renderer.settings.data || refresh) {
 			if (typeof renderer.inputs[params.inputType].length == 'number') {
@@ -64,9 +65,9 @@
 			    renderer.settings.data = jQuery.extend({}, renderer.inputs[params.inputType]);
 			}
 		    }
-		    
-		    renderer.settings.data = renderer.prepareData(renderer.settings.data, params.inputType);
-		    jQuery.extend(true, params, renderer[renderer.settings.items[i].data].call(null, params, jQuery.extend(true, {}, renderer.settings.data)));
+
+		    renderer.settings.data = renderer.prepareData(d, params.inputType);
+		    jQuery.extend(true, params, renderer[renderer.settings.items[i].data].call(null, params, renderer.settings.data));
 		}
 		renderer.svg[type](jQuery.extend({}, renderer[type], params));
 
@@ -78,6 +79,7 @@
 			document.getElementById(params.id).style.cursor = "pointer";
 		    }
 		}
+		renderer.settings.data = d;
 	    }
 	    
 	    return renderer;
@@ -280,6 +282,13 @@
 	matrix2plotlegend: function (params, data) {
 	    var retval = { "data": [] };
 
+	    if (params.legendType == "column") {
+		for (var i=0; i<data.data.length; i++) {
+		    retval.data.push(data.data[i].name);
+		}
+		return retval;
+	    }
+	    
 	    var groups = {};
 	    var shapes = ['circle','square','triangle','udtriangle','rhombus'];
 	    for (var i=0; i<data.headers.length; i++) {
@@ -489,19 +498,23 @@
 	    for (var i=0; i<data.data.length; i++) {
 		retval.push({ "name": data.data[i].name, "points": [] });
 		for (var h=0; h<data.data[i].points.length; h++) {
-		    var ch = data.headers[h][params.colorAttribute];
-		    if (! cgroups.hasOwnProperty(ch)) {
-			cgroups[ch] = colors[col];
-			col++;
-		    }
-		    var sh = data.headers[h][params.shapeAttribute];
-		    if (! sgroups.hasOwnProperty(sh)) {
-			sgroups[sh] = shapes[s];
-			s++;
-		    }
 		    var p = jQuery.extend({"format": {}}, data.data[i].points[h]);
-		    p.shape = sgroups[sh];
-		    p.format.fill = cgroups[ch]; 
+		    if (params.hasOwnProperty('colorAttribute')) {
+			var ch = data.headers[h][params.colorAttribute];
+			if (! cgroups.hasOwnProperty(ch)) {
+			    cgroups[ch] = colors[col];
+			    col++;
+			}
+			p.format.fill = cgroups[ch];
+		    }
+		    if (params.hasOwnProperty('shapeAttribute')) {
+			var sh = data.headers[h][params.shapeAttribute];
+			if (! sgroups.hasOwnProperty(sh)) {
+			    sgroups[sh] = shapes[s];
+			    s++;
+			}
+			p.shape = sgroups[sh];
+		    }
 		    p.x = xfactor * p.x;
 		    p.y = yfactor * p.y;
 		    retval[i].points.push(p);
@@ -570,7 +583,6 @@
 	    }
 
 	    else if (inputType == 'plot') {
-		
 		// check if data is alreay prepared
 		if (data.hasOwnProperty('maxX')) {
 		    return data;
