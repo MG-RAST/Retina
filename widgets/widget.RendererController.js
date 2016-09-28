@@ -113,7 +113,7 @@
 	    } else {
 		widget.renderer.settings[name] = value;
 	    }
-	    widget.params.dataCallback.call(widget, name, value);
+	    widget.params.dataCallback(widget, name, value);
 	} else if (typeof widget.renderer.updateAttribute == "function") {
 	    widget.renderer.updateAttribute(name, value);
 	} else {
