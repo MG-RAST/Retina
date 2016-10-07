@@ -987,11 +987,11 @@
 		if (i == h) {
 		    d[i][h] = 0;
 		} else {
-		    var intermediate = [[],[]];
+		    var intermediate = []; // tested ok
 		    for (var j=0; j<data[i].length; j++) {
-			intermediate[0].push(data[i][j]);
-			intermediate[1].push(data[h][j]);
+			intermediate.push([ data[i][j], data[h][j] ]);
 		    }
+		    
 		    switch (measure) {
 		    case "euclidean": // tested ok
 			var dist = 0;
@@ -1011,7 +1011,7 @@
 
 			break;
 			
-		    case "manhattan":
+		    case "manhattan": // tested ok
 			var dist = 0;
 			for (var j=0; j<data[i].length; j++) {
 			    dist += Math.abs(data[i][j] - data[h][j]);
@@ -1019,29 +1019,25 @@
 			d[i][h] = d[h][i] = dist;
 			break;
 			
-		    case "braycurtis":
-			var s = [];
-			var sum_s = 0;
+		    case "braycurtis": // tested ok
+			var s1 = 0;
+			var s2 = 0;
 			for (var j=0; j<intermediate.length; j++) {
-			    sum_s += intermediate[j][0] + intermediate[j][1];
-			    s.push(intermediate[j][0] + intermediate[j][1]);
+			    s1 += intermediate[j].min();
+			    s2 += intermediate[j][0] + intermediate[j][1];
 			}
 			
-		    	var s2 = 0;
-			for (var j=0; j<intermediate.length; j++) {
-			    s2 += Math.min.apply(null, intermediate[j]) / sum_s;
-			}
-			
-			d[i][h] = d[h][i] = 1 - 2 * s2;
+			d[i][h] = d[h][i] = 1 - 2 * s1 / s2;
 			
 		    	break;
 			
-		    case "minkowski":
+		    case "minkowski": // there is no difference to euclidean?
 			var dist = 0;
+			var p = 0.5;
 			for (var j=0; j<data[i].length; j++) {
-			    dist += Math.pow(Math.abs(data[i][j] - data[h][j]), 2);
+			    dist += Math.pow(Math.abs(data[i][j] - data[h][j]), p);
 			}
-			d[i][h] = d[h][i] = Math.sqrt(dist);
+			d[i][h] = d[h][i] = Math.pow(dist, 1 / p);
 			
 			break;
 		    };
