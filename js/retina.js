@@ -175,11 +175,15 @@
 	return promise;
     };
 
-    Renderer.create = function (rend, settings) {
+    Renderer.create = function (rend, settings, replaceIndex) {
 	var renderer_instance = jQuery.extend(true, {}, Retina.RendererInstances[rend][0]);
-	renderer_instance.index = Retina.RendererInstances[rend].length;
+	if (replaceIndex == null) {
+	    renderer_instance.index = Retina.RendererInstances[rend].length;
+	} else {
+	    renderer_instance.index = replaceIndex;
+	}
 	jQuery.extend(true, renderer_instance.settings, settings);
-	Retina.RendererInstances[rend].push(renderer_instance);
+	Retina.RendererInstances[rend][renderer_instance.index] = renderer_instance;
 	return renderer_instance;
     };
     
@@ -989,7 +993,7 @@
 			intermediate[1].push(data[h][j]);
 		    }
 		    switch (measure) {
-		    case "euclidean":
+		    case "euclidean": // tested ok
 			var dist = 0;
 			for (var j=0; j<data[i].length; j++) {
 			    dist += Math.pow(data[i][j] - data[h][j], 2);
@@ -998,21 +1002,21 @@
 			
 			break;
 			
-		    case "manhattan":
-			var dist = 0;
-			for (var j=0; j<data[i].length; j++) {
-			    dist += Math.abs(data[i][j] - data[h][j]);
-			}
-			d[i][h] = d[h][i] = dist;
-			break;
-			
-		    case "maximum":
+		    case "maximum": // tested ok
 			var dists = [];
 			for (var j=0; j<data[i].length; j++) {
 			    dists.push(Math.abs(data[i][j] - data[h][j]));
 			}
 			d[i][h] = d[h][i] = Math.max.apply(null, dists);
 
+			break;
+			
+		    case "manhattan":
+			var dist = 0;
+			for (var j=0; j<data[i].length; j++) {
+			    dist += Math.abs(data[i][j] - data[h][j]);
+			}
+			d[i][h] = d[h][i] = dist;
 			break;
 			
 		    case "braycurtis":

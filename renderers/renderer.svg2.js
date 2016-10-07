@@ -39,7 +39,7 @@
 
 	    // check if we need to make adjustments to the parameters based on input data
 	    if (renderer.settings.dataAdjustments) {
-		for (var i=0; i< renderer.settings.dataAdjustments.length; i++) {
+		for (var i=0; i<renderer.settings.dataAdjustments.length; i++) {
 		    var adjust = renderer.settings.dataAdjustments[i];
 
 		    // calculate the attribute value based on the data
@@ -86,7 +86,7 @@
 	    return renderer;
 	},
 
-	updateAttribute: function (name, value) {
+	updateAttribute: function (name, value, callback) {
 	    var renderer = this;
 	    
 	    var ind;
@@ -122,12 +122,18 @@
 			for (var j=0; j<c[h].items.length; j++) {
 			    var item = renderer.settings.items[c[h].items[j].index];
 			    item.parameters[c[h].items[j].attribute] = item.parameters[c[h].items[j].attribute] + diff;
+			    if (callback) {
+				callback("items["+c[h].items[j].index+"].parameters."+c[h].items[j].attribute, item.parameters[c[h].items[j].attribute]);
+			    }
 			}
 		    }
 		    else if (c[h].type == 'equal') {
 			// iterate over the affected items and adjust them
 			for (var j=0; j<c[h].items.length; j++) {
 			    renderer.settings.items[c[h].items[j].index].parameters[c[h].items[j].attribute] = renderer.settings.items[ind].parameters[name];
+			    if (callback) {
+				callback("items["+c[h].items[j].index+"].parameters."+c[h].items[j].attribute, renderer.settings.items[c[h].items[j].index].parameters[c[h].items[j].attribute]);
+			    }
 			}
 		    }
 		    else if (c[h].type == 'share') {			
@@ -140,6 +146,9 @@
 			for (var j=0; j<c[h].items.length; j++) {
 			    var item = renderer.settings.items[c[h].items[j].index];
 			    item.parameters[c[h].items[j].attribute] = item.parameters[c[h].items[j].attribute] + sum;
+			    if (callback) {
+				callback("items["+c[h].items[j].index+"].parameters."+c[h].items[j].attribute, item.parameters[c[h].items[j].attribute]);
+			    }
 			}
 		    }
 		}
@@ -289,11 +298,13 @@
 		}
 		return retval;
 	    }
-	    
 	    var groups = {};
 	    var shapes = ['circle','square','triangle','udtriangle','rhombus'];
 	    for (var i=0; i<data.headers.length; i++) {
 		var x = data.headers[i][params.headerAttribute];
+		if (x == undefined) {
+		    x = "-";
+		}
 		if (groups[x]) {
 		    continue;
 		}
@@ -410,7 +421,7 @@
 
 	matrix2heatmap: function (params, data) {
 	    var retval = { "data": { "cells": [], "rowindex": [], "colindex": [] } };
-	    
+
 	    var norm = Retina.heatMatrix(Retina.normalizeMatrix(data.data));
 	    retval.data.colindex = Retina.cluster(norm)[1];
 	    retval.data.rowindex = Retina.cluster(Retina.transposeMatrix(norm))[1];

@@ -1501,7 +1501,7 @@ svg:svg {\
 				       [ left, top + r ] ], f);
 		    break;
 		}
-		this.text(g, left + fontSize + fontSize, top + fontSize - 2, labels[i].text, format);
+		this.text(g, left + fontSize + fontSize, top + fontSize - 2, labels[i].text || "-", format);
 		top += fontSize + labelSpacing;
 	    }
 	    

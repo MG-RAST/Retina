@@ -76,7 +76,7 @@
     widget.download = function (id) {
 	var widget = this;
 
-	stm.saveAs('"profile":{"'+id+'":'+JSON.stringify(stm.DataStore.profile[id])+'}}', id+".json");
+	stm.saveAs('{"profile":{"'+id+'":'+JSON.stringify(stm.DataStore.profile[id])+'}}', id+".json");
     };
 
     widget.upload = function () {

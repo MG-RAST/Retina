@@ -86,7 +86,7 @@
 	html += "</div>";
 
 	if (widget.params.showBreadcrumbs) {
-	    html += "<div>"+(widget.params.breadcrumbs || "")+"</div>";
+	    html += "<div id='RendererControllerBreadcrumbs'>"+(widget.params.breadcrumbs || "")+"</div>";
 	}
 	
 	cDiv.innerHTML = widget.params.noControl ? "" : html;
@@ -103,24 +103,30 @@
     widget.updateRendererAttribute = function(name, value, isDataUpdater) {
 	var widget = this;
 
+	widget.renderer.settings.data = widget.params.settings.data;
+
 	if (typeof widget.params.settingsCallback == "function") {
 	    widget.params.settingsCallback.call(widget, name, value);
 	}
 	
 	if (isDataUpdater && widget.params.hasOwnProperty('dataCallback')) {
 	    if (typeof widget.renderer.updateAttribute == "function") {
-		widget.renderer.updateAttribute(name, value);
+		widget.renderer.updateAttribute(name, value, widget.params.settingsCallback);
 	    } else {
 		widget.renderer.settings[name] = value;
 	    }
 	    widget.params.dataCallback(widget, name, value);
 	} else if (typeof widget.renderer.updateAttribute == "function") {
-	    widget.renderer.updateAttribute(name, value);
+	    widget.renderer.updateAttribute(name, value, widget.params.settingsCallback);
 	} else {
 	    widget.renderer.settings[name] = value;
-	}	
+	}
 
-	widget.renderer.render();
+	if (widget.params.hasOwnProperty('renderCallback') && typeof widget.params.renderCallback == 'function') {
+	    widget.params.renderCallback.call();
+	} else {
+	    widget.renderer.render();
+	}
     };
     
     // input render functions
@@ -157,13 +163,25 @@
     widget.inputRenderselect = function (opt) {
 	var html = "<select style='margin-bottom: 0px;' onchange='Retina.WidgetInstances.RendererController["+opt.index+"].updateRendererAttribute(\""+opt.name+"\", this.options[this.selectedIndex].value, "+(opt.isDataUpdater ? true : false)+");'>";
 
+	var hasGroups = false;
 	for (var i=0; i<opt.options.length; i++) {
 	    var selected = "";
 	    var o = opt.options[i];
-	    if (o.selected) {
-		selected = " selected=selected";
+	    if (o.isGroup) {
+		if (hasGroups) {
+		    html += "</optgroup>";
+		}
+		html += "<optgroup label='"+o.name+"'>";
+		hasGroups = true;
+	    } else {
+		if (o.selected) {
+		    selected = " selected=selected";
+		}
+		html += "<option"+selected+" value='"+o.value+"'>"+(o.label || o.value)+"</option>";
 	    }
-	    html += "<option"+selected+" value='"+o.value+"'>"+(o.label || o.value)+"</option>";
+	}
+	if (hasGroups) {
+	    html += "</optgroup>";
 	}
 
 	html += "</select>";
