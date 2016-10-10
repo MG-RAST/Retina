@@ -498,8 +498,10 @@
 	    var scaleY = Retina.niceScale({ "min": data.hasOwnProperty('minY') ? data.minY : 0, "max": data.maxY });
 	    var scaleX = Retina.niceScale({ "min": data.hasOwnProperty('minX') ? data.minX : 0, "max": data.maxX });
 	    
-	    var xfactor = params.width / scaleX.max;
-	    var yfactor = params.height / scaleY.max;
+	    var xfactor = params.width / (scaleX.max - scaleX.min);
+	    var yfactor = params.height / (scaleY.max - scaleY.min);
+	    var xZero = Math.abs(scaleX.min) * xfactor;
+	    var yZero = Math.abs(scaleY.min) * yfactor;
 
 	    var colors = GooglePalette();
 	    var cgroups = {};
@@ -527,8 +529,8 @@
 			}
 			p.shape = sgroups[sh];
 		    }
-		    p.x = xfactor * p.x;
-		    p.y = yfactor * p.y;
+		    p.x = xfactor * p.x + xZero;
+		    p.y = yfactor * p.y + yZero;
 		    retval[i].points.push(p);
 		}
 	    }
@@ -600,6 +602,8 @@
 		    return data;
 		}
 
+		var minX = data.data[0].points[0].x;
+		var minY = data.data[0].points[0].y;
 		var maxX = data.data[0].points[0].x;
 		var maxY = data.data[0].points[0].y;
 		for (var i=0; i<data.data.length; i++) {
@@ -611,10 +615,18 @@
 			if (p.y > maxY) {
 			    maxY = p.y;
 			}
+			if (p.x < minX) {
+			    minX = p.x;
+			}
+			if (p.y < minY) {
+			    minY = p.y;
+			}
 		    }
 		}
 		data.maxX = maxX;
 		data.maxY = maxY;
+		data.minX = minX;
+		data.minY = minY;
 	    }
 	    
 	    return data;
