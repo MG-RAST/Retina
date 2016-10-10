@@ -787,8 +787,8 @@
 	var doublecentered = numeric.dot(numeric.dot(centerL, D), centerR);
 	var B = numeric.eig(doublecentered);
 	var weights = numeric.div(numeric.mul(B.lambda.x, B.lambda.x), numeric.norm2Squared(B.lambda.x));
-	var newcoords = Retina.scaleMatrix(numeric.dot(B.E.x, numeric.diag(numeric.sqrt(numeric.abs(B.lambda.x)))));
-
+	var newcoords = numeric.dot(B.E.x, numeric.diag(numeric.sqrt(numeric.abs(B.lambda.x))));
+	
 	return { "coordinates": newcoords, "weights": weights };
     };
     
