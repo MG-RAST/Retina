@@ -26,7 +26,7 @@
     <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.profileManager["+index+"].upload("+index+");' title='load profile from file'><img style='height: 16px; position: relative; right: 5px; bottom: 2px;' src='Retina/images/upload.png'>load from disk</a></li>\
   </ul>\
 </div>\
-<input type='file' id='profileUploadButton' style='display: none;'>\
+<input type='file' id='profileUploadButton' multiple=multiple style='display: none;'>\
 ";
 
 	var modal = document.createElement('div');
