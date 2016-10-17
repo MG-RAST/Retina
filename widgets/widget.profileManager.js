@@ -44,7 +44,7 @@
 	document.body.appendChild(modal);
 	
 	widget.uploadButton = document.getElementById('profileUploadButton');
-	widget.uploadButton.addEventListener('change', function(e){stm.file_upload(e,widget.profileUpdatedInfo);});
+	widget.uploadButton.addEventListener('change', function(e){stm.file_upload(e,widget.profileUpdatedInfo,e);});
     };
     
     widget.manage = function () {
@@ -62,7 +62,8 @@
 	}
 	html.push('</table>');
 
-	html.push('<button class="btn btn-mini" onclick="this.setAttribute(\'disabled\',\'disabled\');stm.dump(false, \'all_profiles.json\', \'profile\').then(function(){alert(\'session stored\');jQuery(\'#profileModal\').modal(\'hide\');});">download all profiles</button>');
+	//html.push('<button class="btn btn-mini" onclick="this.setAttribute(\'disabled\',\'disabled\');stm.dump(false, \'all_profiles.json\', \'profile\').then(function(){alert(\'session stored\');jQuery(\'#profileModal\').modal(\'hide\');});">download all profiles</button>');
+	html.push('<button class="btn btn-mini" onclick="this.setAttribute(\'disabled\',\'disabled\');Retina.WidgetInstances.profileManager[1].downloadAll();alert(\'session stored\');this.removeAttribute(\'disabled\');jQuery(\'#profileModal\').modal(\'hide\');">download all profiles</button>');
 
 	if (profiles.length == 0) {
 	    html = ['<div class="alert alert-info" style="margin-top: 250px; width: 350px; margin-left: auto; margin-right: auto;">You currently do not have any profiles in memory.</div>'];
@@ -73,8 +74,31 @@
 	jQuery("#profileModal").modal('show');
     };
 
+    widget.downloadAll = function () {
+	var widget = this;
+
+	var profiles = Retina.keys(stm.DataStore.profile);
+	var anchors = [];
+	for (var i=0; i<profiles.length; i++) {
+	    var id = profiles[i];
+	    try {
+		anchors.push(stm.saveAs('{"profile":{"'+id+'":'+JSON.stringify(stm.DataStore.profile[id])+'}}', id+".json"), null, null, true);
+	    } catch (error) {
+		//console.log(error);
+	    }
+	}
+	for (var i=0; i<anchors.length; i++) {
+	    anchors[i].click();
+	}
+	for (var i=0; i<anchors.length; i++) {
+	    document.body.removeChild(anchors[i]);
+	}
+    };
+    
     widget.download = function (id) {
 	var widget = this;
+
+	console.log('stefan');
 
 	stm.saveAs('{"profile":{"'+id+'":'+JSON.stringify(stm.DataStore.profile[id])+'}}', id+".json");
     };
