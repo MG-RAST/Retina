@@ -518,7 +518,7 @@
     };
 
     // save as dialog
-    stm.saveAs = function (data, filename, raw, prefix) {
+    stm.saveAs = function (data, filename, raw, prefix, returnAnchor) {
 	if (! raw) {
 	    try {
 		data = window.btoa(data);
@@ -548,8 +548,12 @@
 	anchor.setAttribute('download', filename || "download.txt");
 	anchor.setAttribute('href', data);
 	document.body.appendChild(anchor);
-	anchor.click();
-	document.body.removeChild(anchor);
+	if (returnAnchor) {
+	    return anchor;
+	} else {
+	    anchor.click();
+	    document.body.removeChild(anchor);
+	}
     };
 
     /*
