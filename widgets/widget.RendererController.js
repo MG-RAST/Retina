@@ -41,8 +41,9 @@
 	widget.dataUpdaters = [];
 
 	var html = "";
-	if (widget.params.settings.hasOwnProperty('description')) {
-	    html += '<p>'+widget.params.settings.description+'</p>';
+
+	if (widget.params.settings.hasOwnProperty('title')) {
+	    html += '<p style="font-weight: 500; font-size: 20px;">'+widget.params.settings.title+(widget.params.settings.hasOwnProperty('description') ? ' <sup id="rcHelp">[?]</sup>' : '')+'</p>';
 	}
 	
 	html += '<div class="accordion" id="RendererController_accordion'+index+'" style="width: '+widget.params.width+'px; margin-bottom: 20px;">';
@@ -91,10 +92,15 @@
 	
 	cDiv.innerHTML = widget.params.noControl ? "" : html;
 
+
 	widget.params.target.innerHTML = "";
 	widget.params.target.appendChild(widget.controlDiv);
 	widget.params.target.appendChild(widget.displayDiv);
 
+	if (widget.params.settings.hasOwnProperty('description')) {
+	    jQuery("#rcHelp").popover( { "html": true, "trigger": "hover", "content": "<div style='font-weight: normal; font-size: 14px;'>"+widget.params.settings.description+"</div>", "placement": "bottom" });
+	}
+	
 	widget.renderer.render();
 
 	return widget;
