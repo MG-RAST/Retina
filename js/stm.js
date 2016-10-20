@@ -678,6 +678,7 @@
 			   this.prom.resolve();
 		       },
 		       error: function () {
+			   stm.user.preferences = {};
 			   this.prom.resolve();
 		       }
 		     } );
