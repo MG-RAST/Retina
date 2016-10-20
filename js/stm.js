@@ -675,6 +675,9 @@
 				   stm.user.preferences = JSON.parse(JSON.stringify(data.preferences[i].value).replace(/\|\|/g , "."));
 			       }
 			   }
+			   if (! stm.user.hasOwnProperty('preferences')) {
+			       stm.user.preferences = { "collections": {} };
+			   }
 			   this.prom.resolve();
 		       },
 		       error: function () {
