@@ -97,9 +97,11 @@
         }
 
         , showWidget: function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-
+	    if (e) {
+		e.stopPropagation();
+		e.preventDefault();
+	    }
+	    
             if (this.open) {
                 return;
             }
