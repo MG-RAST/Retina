@@ -1678,7 +1678,7 @@
 	// add expiration if requested
 	if (widget.hasExpiration && (widget.hasExpiration != "")) {
 	    form.append('expiration', widget.hasExpiration);
-    }
+	}
     
 	form.append('file_name', filename);
 	jQuery.ajax(widget.uploadURL, {
