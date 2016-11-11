@@ -366,9 +366,18 @@
 
     Retina.Numsort = function (a, b) {
 	return a - b;
-    }
+    };
 
-
+    Retina.sortDesc = function (a, b) {
+	if (a > b) {
+	    return -1;
+	} else if (b > a) {
+	    return 1;
+	} else {
+	    return 0;
+	}
+    };
+    
     // parse an XML document
     if (typeof window.DOMParser != "undefined") {
 	Retina.parseXML = function(xmlStr) {

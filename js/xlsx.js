@@ -1,4 +1,4 @@
-function xlsx(file) {
+function xlsx(file,outmode) {
     'use strict';
     
     var result, zip = new JSZip(), zipTime, processTime, s, f, i, j, k, l, t, w, sharedStrings, styles, index, data, val, style, borders, border, borderIndex, fonts, font, fontIndex,
@@ -135,7 +135,7 @@ function xlsx(file) {
 	    }
 
 	    jQuery.when.apply(this, wspromises).then(function() {
-		var i = ws.length - 1;
+		var i = ws.length;
 		while (i--) {
 		    var s = ws[ws.length - i - 1];
 		    var w = result.worksheets[i];
@@ -507,7 +507,7 @@ function xlsx(file) {
 	processTime = Date.now() - processTime;
 	zipTime = Date.now();
 	var promise = jQuery.Deferred();
-	zip.generateAsync({type:"base64"}).then(function (base64) {
+	zip.generateAsync({type: outmode || "base64"}).then(function (base64) {
 	    result = {
 		base64: base64, zipTime: Date.now() - zipTime, processTime: processTime,
 		href: function() { return 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' + this.base64; }

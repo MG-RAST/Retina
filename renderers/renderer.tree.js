@@ -34,6 +34,9 @@
   showTooltip (BOOLEAN)
       Turn the display of the tooltip on / off. Default is true.
 
+  buttonText (STRING)
+      Text of the go button. Default is "go".
+
   tooltipStyle (STRING)
       Can be either "popover" or "plain", depending on how intrusive the tooltip should be. Default is popover.
 
@@ -89,7 +92,8 @@
 		'showSynonymsInDescription': true,
 		'callback': null,
 		'showTooltip': true,
-		'tooltipStyle': "popover"
+		'tooltipStyle': "popover",
+		'buttonText': 'go'
 	    },
 	    options: [
 	      { general:
@@ -258,7 +262,7 @@
 		var sB = document.createElement('div');
 		sB.setAttribute('style', "float: left; margin-right: 5px;");
 		sB.className = "input-append";
-		sB.innerHTML = "<input type='text' index='"+index+"' style='width: 144px; height: 16px; font-size: 11.9px;' id='tree_search_input_"+index+"' autocomplete='off'><button type='button' class='btn btn-small' onclick='Retina.RendererInstances.tree["+index+"].goTo("+index+");'>go</button>";
+		sB.innerHTML = "<input type='text' index='"+index+"' style='width: 144px; height: 16px; font-size: 11.9px;' id='tree_search_input_"+index+"' autocomplete='off'><button type='button' class='btn btn-small' onclick='Retina.RendererInstances.tree["+index+"].goTo("+index+");'>"+renderer.settings.buttonText+"</button>";
 		renderer.settings.target.appendChild(sB);
 
 		// add a keypress listener
@@ -275,13 +279,13 @@
 	    }
 
 	    // set the border style of the outer div
-	    renderer.settings.target.setAttribute('style', renderer.settings.target.getAttribute('style')+"border: 1px solid #333333;"+(renderer.settings.width ? " width: "+renderer.settings.width+"px;" : "")+" overflow: auto; height: "+renderer.settings.height+"px; padding: 5px; border-radius: 3px;");
+	    renderer.settings.target.setAttribute('style', renderer.settings.target.getAttribute('style')+"border: 1px solid #333333;"+(renderer.settings.width ? " width: "+renderer.settings.width+"px;" : "")+" overflow: auto;"+(renderer.settings.height ?" height: "+renderer.settings.height+"px;" : "")+" padding: 5px; border-radius: 3px;");
 
 	    // create a space for the actual nodes
 	    renderer.settings.nodeSpace = document.createElement('div');
 	    var nodeSpaceHeight = "";
 	    if (renderer.settings.showSearchBar || renderer.settings.showCollapseAll || renderer.settings.showExpandAll) {
-		nodeSpaceHeight = " overflow: auto; height: "+(renderer.settings.height - 36) + "px;";
+		nodeSpaceHeight = " overflow: auto;"+(renderer.settings.height ?" height: "+(renderer.settings.height - 36)+"px;" : "");
 	    }
 	    renderer.settings.nodeSpace.setAttribute('style', "clear: both;"+nodeSpaceHeight);
 	    renderer.settings.target.appendChild(renderer.settings.nodeSpace);
@@ -466,15 +470,15 @@
 		node = renderer.settings.data.nodes[node.parentNode];
 		node.expanded = true;
 	    }
+	    
+	    // rerender the tree
+	    renderer.redraw(index);
 
 	    // check if someone wants to know about the selection
 	    if (typeof renderer.settings.callback == 'function') {
 		var node = renderer.settings.data.nodes[id];
 		renderer.settings.callback.call(null, node);
 	    }
-	    
-	    // rerender the tree
-	    renderer.redraw(index);
 	},
 
 	// if the node structure does not contain the parent references, create them here
