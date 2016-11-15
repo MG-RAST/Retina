@@ -78,7 +78,7 @@
 	    }
 	    if (renderer.settings.showPercent && renderer.settings.showValuesOnLabel) {
 		for (var i=0; i<labels.length; i++) {
-		    labels[i] = d[i].label + " - " + (100 / total * d[i].value).formatString(2) + "%";
+		    labels[i] = d[i].label + " - " + d[i].value.formatString() + " ("+ (100 / total * d[i].value).formatString(2) + "%)";
 		}
 	    }
 	    renderer.settings.legendLabels = labels;
@@ -404,36 +404,18 @@
 	    var minY = renderer.settings.logScale ? Retina.log10(d[0].values[0].y) : d[0].values[0].y;
 	    for (var i=0; i<d.length; i++) {
 		for (var h=0; h<d[i].values.length; h++) {
-		    if (renderer.settings.logScaleX) {
-			if (Retina.log10(d[i].values[h].x) > maxX) {
-			    maxX = Retina.log10(d[i].values[h].x);
-			}
-			if (Retina.log10(d[i].values[h].x) < minX) {
-			    minX = Retina.log10(d[i].values[h].x);
-			}
-		    } else {
-			if (d[i].values[h].x > maxX) {
-			    maxX = d[i].values[h].x;
-			}
-			if (d[i].values[h].x < minX) {
-			    minX = d[i].values[h].x;
-			}
+		    if (d[i].values[h].x > maxX) {
+			maxX = d[i].values[h].x;
 		    }
-		    if (renderer.settings.logScaleY) {
-			if (Retina.log10(d[i].values[h].y) > maxY) {
-			    maxY = Retina.log10(d[i].values[h].y);
-			}
-			if (Retina.log10(d[i].values[h].y) < minY) {
-			    minY = Retina.log10(d[i].values[h].y);
-			}
-		    } else {
-			if (d[i].values[h].y > maxY) {
-			    maxY = d[i].values[h].y;
-			}
-			
-			if (d[i].values[h].y < minY) {
-			    minY = d[i].values[h].y;
-			}
+		    if (d[i].values[h].x < minX) {
+			minX = d[i].values[h].x;
+		    }
+		    if (d[i].values[h].y > maxY) {
+			maxY = d[i].values[h].y;
+		    }
+		    
+		    if (d[i].values[h].y < minY) {
+			minY = d[i].values[h].y;
 		    }
 		}
 	    }
@@ -447,8 +429,8 @@
 	    var base = renderer.settings.labelAxisWidth;
 	    var height = renderer.settings.height - base - renderer.settings.graphTopMargin;
 	    var width = renderer.settings.graphWidth;
-	    var factorY = height / (maxY - (renderer.settings.minValIsZeroY ? minY : 0));
-	    var factorX = width / (maxX - (renderer.settings.minValIsZeroX ? minX : 0));
+	    var factorY = height / ((renderer.settings.logScaleY ? Retina.log10(maxY) : maxY) - (renderer.settings.minValIsZeroY ? (renderer.settings.logScaleY ? Retina.log10(minY) : minY) : 0));
+	    var factorX = width / ((renderer.settings.logScaleX ? Retina.log10(maxX) : maxX) - (renderer.settings.minValIsZeroX ? (renderer.settings.logScaleX ? Retina.log10(minX) : minX) : 0));
 	    var labels = [];
 	    var colors = renderer.settings.color ? [ renderer.settings.color ] : renderer.settings.colors || GooglePalette(d.length);
 
@@ -478,8 +460,8 @@
 	    renderer.settings.legendLabels = labels;
 	    renderer.svg.axis({ shift: base, base: shift, length: height, min: renderer.settings.minValIsZeroY ? minY : 0, max: scaleY.max, direction: "vertical", spaceMajor: renderer.settings.logScaleY ? height / Math.ceil(maxY) : null, isLog: renderer.settings.logScaleY, labelRotation: renderer.settings.labelRotationY ? renderer.settings.labelRotationY : 0, latinSuffix: renderer.settings.latinSuffix || null });
 	    renderer.svg.axis({ shift: shift, base: base, length: width, min: renderer.settings.minValIsZeroX ? minX : 0, max: scaleX.max, direction: "horizontal", spaceMajor: renderer.settings.logScaleX ? width / Math.ceil(maxX) : null, isLog: renderer.settings.logScaleX, labelRotation: renderer.settings.labelRotationX ? renderer.settings.labelRotationX : 0 });
-	    renderer.svg.grid({ shift: shift, base: base, width: width, height: height, topMargin: renderer.settings.graphTopMargin, space: renderer.settings.logScaleY ? height / Math.ceil(maxY) : null });
-	    renderer.svg.grid({ shift: shift, base: base, width: width, height: height, topMargin: renderer.settings.graphTopMargin, direction: "vertical", space: renderer.settings.logScaleX ? width / Math.ceil(maxX) : null });
+	    renderer.svg.grid({ shift: shift, base: base, width: width, height: height, topMargin: renderer.settings.graphTopMargin, space: renderer.settings.logScaleY ? height / Math.ceil(Retina.log10(maxY)) : null });
+	    renderer.svg.grid({ shift: shift, base: base, width: width, height: height, topMargin: renderer.settings.graphTopMargin, direction: "vertical", space: renderer.settings.logScaleX ? width / Math.ceil(Retina.log10(maxX)) : null });
 
 	    renderer.checkEvents();
 	    renderer.checkLegend();
