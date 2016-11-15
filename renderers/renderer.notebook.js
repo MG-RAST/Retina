@@ -280,7 +280,7 @@
 	    for (var i=0; i<renderer.settings.graphicItems.length; i++) {
 		var item = renderer.settings.graphicItems[i];
 		try {
-		    var r = Retina.Renderer.create('svg', {target: document.getElementById('flowGraphic'+item.index), width: item.width, height: item.height}).render()[item.graphicType](item.settings);
+		    var r = Retina.Renderer.create('svg', {target: document.getElementById('flowGraphic'+item.index), width: item.width, height: item.height}).render()[item.graphicType](jQuery.extend(true, {}, item.settings));
 		    r = null;
 		} catch (error) {
 		    if (item.hasOwnProperty("error")) {
@@ -511,18 +511,28 @@
 	    var data = isObject ? renderer.settings.graphicItems[index].settings.data : renderer.settings.flow[index].data;
 	    var csv = [];
 	    if (isObject) {
+		var xLabel = renderer.settings.graphicItems[index].settings.hasOwnProperty('labelAxisTitle') ? renderer.settings.graphicItems[index].settings.labelAxisTitle.text : "";
+		var yLabel = renderer.settings.graphicItems[index].settings.hasOwnProperty('valueAxisTitle') ? renderer.settings.graphicItems[index].settings.valueAxisTitle.text : "";
 		for (var i=0; i<data.length; i++) {
 		    if (data[i].hasOwnProperty('label') && data[i].hasOwnProperty('value')) {
 			csv.push( [ data[i].label ].concat(data[i].value) );
 		    } else {
 			var row = [];
+			if (i==0) {
+			    row.push(xLabel ? xLabel : "x");
+			    for (var h=0; h<data[i].values.length; h++) {
+				row.push( typeof data[i].values[h] == 'object' ? data[i].values[h].x : h);
+			    }
+                            csv.push(row);
+                            row = [];
+			}
 			if (data[i].hasOwnProperty('label')) {
-			    row.push(data[i].label);
+			    row.push((yLabel ? yLabel + " " : "") + data[i].label);
 			} else {
-			    row.push('value');
+			    row.push(yLabel ? yLabel : "value");
 			}
 			for (var h=0; h<data[i].values.length; h++) {
-			    row.push( data[i].values[h].y );
+			    row.push( typeof data[i].values[h] == 'object' ? data[i].values[h].y : data[i].values[h]);
 			}
 			csv.push(row);
 		    }
@@ -544,7 +554,7 @@
 	    if (item.hasOwnProperty('provenance') && item.provenance.hasOwnProperty('filename')) {
 		fn = item.provenance.filename+".csv";
 	    }
-	    stm.saveAs(csv.join("\n"), renderer.settings.dataContainer.id + "_" + fn);
+	    stm.saveAs(csv.join("\n"), renderer.settings.dataContainer.id + "_" + fn, false, 'data:text/plain;base64,');
 	},
 	downloadData: function (index) {
 	    var renderer = this;
