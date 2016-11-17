@@ -152,22 +152,16 @@
 	    var data = [];
 	    var max = 0;
 	    for (var i=0; i<d.length; i++) {
-		if (renderer.settings.logScale) {
-		     if (Retina.log10(d[i].value) > max) {
-		    	max = Retina.log10(d[i].value);
-		    }
-		} else {
-		    if (d[i].value > max) {
-			max = d[i].value;
-		    }
+		if (d[i].value > max) {
+		    max = d[i].value;
 		}
 	    }
-	    var scale = Retina.niceScale({ min: 0, max: max, ticks: renderer.settings.logScale ? Math.ceil(max) : 10 });
+	    var scale = Retina.niceScale({ min: 0, max: max });
 	    var shift = renderer.settings.valueAxisWidth;
 	    var base = renderer.settings.labelAxisWidth;
 	    var height = renderer.settings.height - renderer.settings.labelAxisWidth - renderer.settings.graphTopMargin;
 	    var width = renderer.settings.graphWidth;
-	    var factor = height / max;
+	    var factor = height / Retina.log10(max);
 	    var labels = [];
 	    for (var i=0; i<d.length; i++) {
 		var title = "";
