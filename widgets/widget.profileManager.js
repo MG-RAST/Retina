@@ -98,8 +98,6 @@
     widget.download = function (id) {
 	var widget = this;
 
-	console.log('stefan');
-
 	stm.saveAs('{"profile":{"'+id+'":'+JSON.stringify(stm.DataStore.profile[id])+'}}', id+".json");
     };
 
