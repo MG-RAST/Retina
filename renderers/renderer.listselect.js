@@ -84,6 +84,9 @@
 
    asynch_keystroke_threshold (INTEGER)
       The number of miliseconds in between keystrokes the navigation callback method will wait for new keystrokes before sending the full request. Default is 1000 (one second).
+
+   data_manipulation (FUNCTION)
+      function to manipulate asynch data after it was retrieved and before it was rendered. Gets the data passed as an argument.
 */
 (function () {
     var renderer = Retina.Renderer.extend({
@@ -119,6 +122,7 @@
 		'navigation_callback': null,
 		'navigation_url': null,
 		'asynch_limit': 100,
+		'data_manipulation': null,
 		'asynch_keystroke_threshold': 1000,
 		'asynch_filter_min_length': 3,
 		'return_object': false,
@@ -664,6 +668,9 @@
 	
 	    jQuery.ajax({ url: url, headers: headers, dataType: "json", success: function(data) {
 		var renderer =  Retina.RendererInstances.listselect[index];
+		if (typeof renderer.settings.data_manipulation == 'function') {
+		    data.data = renderer.settings.data_manipulation(data.data);
+		}
 		renderer.settings.total_count = data.total_count;
 		if (typeof params == 'string' && params == "more") {
 		    renderer.settings.data = renderer.settings.data.concat(data.data);

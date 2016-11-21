@@ -91,6 +91,9 @@
   strip_html (BOOLEAN)
       If true strips html from cells before exporting them, default is true
 
+   data_manipulation (FUNCTION)
+      function to manipulate asynch data after it was retrieved and before it was rendered. Gets the data passed as an argument.
+
 */
 (function () {
     var renderer = Retina.Renderer.extend({
