@@ -44,7 +44,6 @@
     top: 50px;\
     right: 10px;\
     width: 300px;\
-    height: 95px;\
     padding: 10px;\
     background-color: white;\
     color: black;\
@@ -81,6 +80,12 @@
 	var udata = jQuery.cookie(widget.cookiename);
 	if (udata) {
 	    udata = JSON.parse(udata);
+	    widget.user = udata.user;
+	    widget.user.token = udata.token;
+	    widget.sheep = udata.sheep;
+	    if (widget.sheep) {
+		udata.user.sheepmode = true;
+	    }
 	    if (udata.hasOwnProperty('user') && udata.user != null) {
 		if (stm.user && stm.user.login == udata.login) {
 		    udata.user = stm.user;
@@ -194,7 +199,7 @@
 	    html ='\
 <div style="float: right; margin-right: 20px; margin-top: 7px; color: gray;">\
    <button class="btn btn-inverse" style="border-radius: 3px 0px 0px 3px; margin-right: -4px;" onclick="if(document.getElementById(\'userinfo\').style.display==\'none\'){document.getElementById(\'userinfo\').style.display=\'\';}else{document.getElementById(\'userinfo\').style.display=\'none\';}">\
-      <i class="icon-user icon-white" style="margin-right: 5px;"></i>\
+      '+(user.sheepmode ? '<img src="Retina/images/sheep.png" style="width: 13px; margin-right: 5px;background-color: white;border-radius: 10px;padding: 2px;">' : '<i class="icon-user icon-white" style="margin-right: 5px;"></i>')+'\
       '+user.firstname+' '+user.lastname+'\
       <span class="caret" style="margin-left: 5px;"></span>\
 </button>';
@@ -214,8 +219,9 @@
    <img src="Retina/images/user.png">\
    <h4 style="margin-top: 5px;">'+user.firstname+' '+user.lastname+'</h4>\
 <p style="margin-top: -10px;">'+user.email+'</p>\
-   <button class="btn btn-inverse" onclick="document.getElementById(\'userinfo\').style.display=\'none\';Retina.WidgetInstances.login['+index+'].perform_logout();">logout</button>\
+   '+(user.sheepmode ? '<button class="btn btn-inverse" onclick="document.getElementById(\'userinfo\').style.display=\'none\';Retina.WidgetInstances.login['+index+'].bu();">B U</button>' : '<button class="btn btn-inverse" onclick="document.getElementById(\'userinfo\').style.display=\'none\';Retina.WidgetInstances.login['+index+'].perform_logout();">logout</button>')+'\
 '+(widget.myDataEnabled ? '<a href="'+widget.myDataLink+'" class="btn" style="float: left;">myData</a>' : '')+'\
+'+(user.admin ? '<div style="clear: both;"><button class="btn btn-mini" onclick="jQuery(\'#loginImpersonateForm\').toggle();" style="width: 100%; margin-top: 10px;"><img src="Retina/images/sheep.png" style="height: 16px;"></i></div><div style="display: none; padding-top: 10px;" id="loginImpersonateForm"><input type="text" placeholder="login"><input type="text" placeholder="email"><input type="text" placeholder="firstname"><input type="text" placeholder="lastname"><button class="btn" style="margin-bottom: 10px; margin-left: 10px;" onclick="Retina.WidgetInstances.login[1].findUser();">find</button><div id="loginImpersonateResult"></div></div></div>' : "")+'\
 </div>';
 	} else {
 	    html ='<div style="float: right; margin-right: 20px; margin-top: 7px; color: gray;" class="btn-group">';
@@ -241,6 +247,75 @@
 	}
 	
 	return html;
+    };
+
+    widget.bu = function () {
+	var widget = this;
+
+	jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "user": widget.sheep,
+										   "token": widget.sheep.token }), { expires: 7 });
+	window.location.reload();
+    };
+
+    widget.findUser = function () {
+	var widget = this;
+
+	var query = [];
+	var inputs = document.getElementById('loginImpersonateForm').childNodes;
+	var fields = [ 'login', 'email', 'firstname', 'lastname' ];
+	for (var i=0; i<fields.length; i++) {
+	    if (inputs[i].value.length) {
+		query.push(fields[i]+'=*'+inputs[i].value+'*');
+	    }
+	}
+	
+	jQuery.ajax({
+	    method: "GET",
+	    dataType: "json",
+	    headers: stm.authHeader,
+	    url: RetinaConfig.mgrast_api+'/user?verbosity=minimal&'+query.join("&"),
+	    success: function (data) {
+		var html = [];
+		for (var i=0; i<data.data.length; i++) {
+		    html.push('<button class="btn btn-mini" title="'+data.data[i].login+' - '+data.data[i].email+'" onclick="Retina.WidgetInstances.login[1].impersonate(\''+data.data[i].login+'\');">'+data.data[i].firstname+' '+data.data[i].lastname+'</button>');
+		}
+		document.getElementById('loginImpersonateResult').innerHTML = html.join('');
+	    }}).fail(function(xhr, error) {
+		alert('no user found');
+	    });
+	
+    };
+    
+    widget.impersonate = function (login) {
+	var widget = this;
+
+	jQuery.ajax({
+	    method: "GET",
+	    dataType: "json",
+	    headers: stm.authHeader,
+	    url: RetinaConfig.mgrast_api+'/user/impersonate/'+login,
+	    success: function (d) {
+		var widget = Retina.WidgetInstances.login[1];
+		jQuery.cookie(Retina.WidgetInstances.login[1].cookiename, JSON.stringify({ "user": { firstname: d.firstname,
+												     lastname: d.lastname,
+												     email: d.email,
+												     tos: d.tos,
+												     id: d.id,
+												     admin: d.admin,
+												     login: d.login },
+											   "sheep": { firstname: widget.user.firstname,
+												      lastname: widget.user.lastname,
+												      email: widget.user.email,
+												      tos: widget.user.tos,
+												      id: widget.user.id,
+												      admin: widget.user.admin,
+												      login: widget.user.login,
+												      token: widget.user.token },
+											   "token": d.token }), { expires: 7 });
+		window.location.reload();
+	    }}).fail(function(xhr, error) {
+		alert('impersonation failed');
+	    });
     };
 
     widget.perform_login = function () {
@@ -300,11 +375,15 @@
 			      document.getElementById('failure').innerHTML = "";
 			      jQuery('#loginModal').modal('hide');
 			      jQuery('#msgModal').modal('show');
+			      if (stm) {
+				  stm.user = jQuery.extend(true, {}, user);
+			      }
 			      jQuery.cookie(widget.cookiename, JSON.stringify({ "user": { firstname: d.firstname || d[widget.authResources[widget.authResources.default].loginField || "login"],
 											  lastname: d.lastname || "",
 											  email: d.email || "",
 											  login: d[widget.authResources[widget.authResources.default].loginField || "login"],
 											  tos: d.hasOwnProperty('tos') ? d.tos : 0,
+											  admin: d.admin,
 											  id: d.id || null },
 										"token": d[widget.authResources[widget.authResources.default].tokenField || "token"] }), { expires: 7 });
 			      if (widget.callback && typeof(widget.callback) == 'function') {
