@@ -2066,7 +2066,7 @@ svg:svg {\
 
 	    var r1 = outer;
 	    var r2 = inner;
-	    
+
 	    var startAngleRad = Math.PI*startAngle/180;
 	    var endAngleRad = Math.PI*endAngle/180;
 
@@ -2108,11 +2108,16 @@ svg:svg {\
 	    var outer = center;
 	    var startAngle = params.startAngle == null ? 0 : params.startAngle;
 	    var format = params.format == null ? {} : params.format;
-	    
+
 	    var g = this.group(group, params.id, params.groupSettings);
 	    for (var i=0; i<rims.length; i++) {
 		var start = startAngle;
 		for (var h=0; h<rims[i].length; h++) {
+		    if (rims[i][h].angle > 359.9) {
+			rims[i][h].angle = 359.9;
+		    } else if (rims[i][h].angle < 0.1) {
+			continue;
+		    }
 		    var end = start + rims[i][h].angle;
 		    var f = {};
 		    jQuery.extend(f, format, rims[i][h].format == null ? {} : rims[i][h].format);
@@ -2122,7 +2127,7 @@ svg:svg {\
 		outer = inner;
 		inner -= width;
 	    }
-	    
+
 	    return g;
 	},
 	heatmap: function(params) {
