@@ -81,7 +81,9 @@
 	if (udata) {
 	    udata = JSON.parse(udata);
 	    widget.user = udata.user;
-	    widget.user.token = udata.token;
+	    if (udata.hasOwnProperty('token') && udata.token != null) {
+		widget.user.token = udata.token;
+	    }
 	    widget.sheep = udata.sheep;
 	    if (widget.sheep) {
 		udata.user.sheepmode = true;
