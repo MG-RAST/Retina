@@ -674,8 +674,8 @@
 				if (a[header[sortcol]]==b[header[sortcol]]) return 0;
 				if (a[header[sortcol]]<b[header[sortcol]]) return -1;
 			    } else {
-				if (parseFloat(a[header[sortcol]].replace(/<(.|\n)*?>/g, ""))==parseFloat(b[header[sortcol]].replace(/<(.|\n)*?>/g, ""))) return 0;
-				if (parseFloat(a[header[sortcol]].replace(/<(.|\n)*?>/g, ""))<parseFloat(b[header[sortcol]].replace(/<(.|\n)*?>/g, ""))) return -1;
+				if (parseFloat(a[header[sortcol]].replace(/<(.|\n)*?>/g, "").replace(/,/g, ""))==parseFloat(b[header[sortcol]].replace(/<(.|\n)*?>/g, "").replace(/,/g, ""))) return 0;
+				if (parseFloat(a[header[sortcol]].replace(/<(.|\n)*?>/g, "").replace(/,/g, ""))<parseFloat(b[header[sortcol]].replace(/<(.|\n)*?>/g, "").replace(/,/g, ""))) return -1;
 			    }
 			    return 1;
 			    break;
