@@ -34,6 +34,9 @@
   showTooltip (BOOLEAN)
       Turn the display of the tooltip on / off. Default is true.
 
+  showGoButton (BOOLEAN)
+      Turn the display of the "go" button on / off. Default is true.
+
   buttonText (STRING)
       Text of the go button. Default is "go".
 
@@ -93,7 +96,8 @@
 		'callback': null,
 		'showTooltip': true,
 		'tooltipStyle': "popover",
-		'buttonText': 'go'
+		'buttonText': 'go',
+		'showGoButton': true
 	    },
 	    options: [
 	      { general:
@@ -262,7 +266,10 @@
 		var sB = document.createElement('div');
 		sB.setAttribute('style', "float: left; margin-right: 5px;");
 		sB.className = "input-append";
-		sB.innerHTML = "<input type='text' index='"+index+"' style='width: 144px; height: 16px; font-size: 11.9px;' id='tree_search_input_"+index+"' autocomplete='off'><button type='button' class='btn btn-small' onclick='Retina.RendererInstances.tree["+index+"].goTo("+index+");'>"+renderer.settings.buttonText+"</button>";
+		sB.innerHTML = "<input type='text' index='"+index+"' style='width: 144px; height: 16px; font-size: 11.9px;' id='tree_search_input_"+index+"' autocomplete='off'>";
+		if (renderer.settings.showGoButton) {
+		    sB.innerHTML += "<button type='button' class='btn btn-small' onclick='Retina.RendererInstances.tree["+index+"].goTo("+index+");'>"+renderer.settings.buttonText+"</button>";
+		}
 		renderer.settings.target.appendChild(sB);
 
 		// add a keypress listener
