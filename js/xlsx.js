@@ -127,24 +127,15 @@ function xlsx(file,outmode) {
 
 	    // Get worksheet info from "xl/worksheets/sheetX.xml"
 	    var i = result.worksheets.length;
-	    var tot = result.worksheets.length;
 	    var wspromises = [];
 	    var ws = [];
 	    while (i--) {
 		wspromises.push(jQuery.Deferred());
-		zip.file('xl/worksheets/sheet' + (i + 1) + '.xml').async("string").then(loadSheet.bind(null, i));
-		function loadSheet(index, content) {
-		    var w = content.split('<row ');
-		    ws[tot - index - 1] = w;
-		    wspromises[index].resolve();
-		};
+		zip.file('xl/worksheets/sheet' + (i + 1) + '.xml').async("string").then(function success(content) { var w = content.split('<row '); ws.push(w); wspromises[ws.length - 1].resolve(); });
 	    }
 
 	    jQuery.when.apply(this, wspromises).then(function() {
-		console.log(ws);
 		var i = ws.length;
-		console.log(ws);
-		console.log(result);
 		while (i--) {
 		    var s = ws[ws.length - i - 1];
 		    var w = result.worksheets[i];
