@@ -561,7 +561,7 @@
     };
 
     Retina.dateString = function (date) {
-	var d = (date && typeof date.match != 'function') ? date : new Date(date);
+	var d = (date && typeof date.match != 'function') ? date : new Date(date.replace(/t/, "T"));
 	dformat = [d.getFullYear(),
 		   (d.getMonth()+1).padLeft(),
 		   d.getDate().padLeft()].join('-') +' ' +
