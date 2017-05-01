@@ -467,7 +467,9 @@
 		if (renderer.settings.hasOwnProperty('keyMapping') && renderer.settings.keyMapping.hasOwnProperty(fa)) {
 		    fa = renderer.settings.keyMapping[fa];
 		}
-		result_list_array.push( [ renderer.settings.selection_data[i][renderer.settings.value], '<option value="'+renderer.settings.selection_data[i][renderer.settings.value]+'" title="'+renderer.settings.selection_data[i][fa]+'">'+renderer.settings.selection_data[i][fa]+'</option>'] );
+		var val = renderer.settings.selection_data[i][renderer.settings.value] || "";
+		var text = renderer.settings.selection_data[i][fa] || "-";
+		result_list_array.push( [ val, '<option value="'+val+'" title="'+text+'">'+text+'</option>'] );
 	    }
 	    if (renderer.settings.sort) {
 		result_list_array.sort(renderer.listsort);
@@ -519,7 +521,9 @@
 		    fa = renderer.settings.keyMapping[fa];
 		}
 		if (! renderer.settings.selection[renderer.settings.filtered_data[i][renderer.settings.value]]) {
-		    settings_string += '<option value="'+renderer.settings.filtered_data[i][renderer.settings.value]+'" title="'+renderer.settings.filtered_data[i][fa]+'">'+renderer.settings.filtered_data[i][fa]+'</option>';
+		    var val = renderer.settings.filtered_data[i][renderer.settings.value] || "";
+		    var text = renderer.settings.filtered_data[i][fa] || "-";
+		    settings_string += '<option value="'+val+'" title="'+text+'">'+text+'</option>';
 		}
 	    }
 	    selection_list.innerHTML = settings_string;
@@ -658,19 +662,20 @@
 	    var query = "";
 	    for (var i in renderer.settings.query) {
 	        if (renderer.settings.query.hasOwnProperty(i) && renderer.settings.query[i].searchword.length) {
-		    query +=  "&" + renderer.settings.query[i].field + '=' + (renderer.settings.filter_type == 'infix' && ! renderer.settings.query[i].strict ? '*' : '') + renderer.settings.query[i].searchword + ((renderer.settings.filter_type == 'infix' || renderer.settings.filter_type == 'prefix')  && ! renderer.settings.query[i].strict ? '*' : '');
+		    query += (query.length ? "&" : "") + renderer.settings.query[i].field + '=' + (renderer.settings.filter_type == 'infix' && ! renderer.settings.query[i].strict ? '*' : '') + renderer.settings.query[i].searchword + ((renderer.settings.filter_type == 'infix' || renderer.settings.filter_type == 'prefix')  && ! renderer.settings.query[i].strict ? '*' : '');
 	        }
 	    }
 
-	    var url = renderer.settings.navigation_url + query + "&limit=" + renderer.settings.asynch_limit + "&offset=" + (renderer.settings.offset || 0) + "&order=" +renderer.settings.asynch_filter_attribute;
+	    var url = renderer.settings.navigation_url + query + (query.length ? "&" : "") +"limit=" + renderer.settings.asynch_limit + "&offset=" + (renderer.settings.offset || 0) + "&order=" +renderer.settings.asynch_filter_attribute;
 
-        var headers = renderer.settings.hasOwnProperty('headers') ? renderer.settings.headers : (stm.Authentication ? {'AUTH': stm.Authentication} : {});
+            var headers = renderer.settings.hasOwnProperty('headers') ? renderer.settings.headers : (stm.Authentication ? {'AUTH': stm.Authentication} : {});
 	
 	    jQuery.ajax({ url: url, headers: headers, dataType: "json", success: function(data) {
 		var renderer =  Retina.RendererInstances.listselect[index];
 		if (typeof renderer.settings.data_manipulation == 'function') {
 		    data.data = renderer.settings.data_manipulation(data.data);
 		}
+		console.log(data);
 		renderer.settings.total_count = data.total_count;
 		if (typeof params == 'string' && params == "more") {
 		    renderer.settings.data = renderer.settings.data.concat(data.data);
