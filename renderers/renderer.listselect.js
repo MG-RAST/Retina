@@ -623,7 +623,7 @@
 	update_data: function (params) {
 	    var renderer = this;
 	    var index = renderer.index;
-	    
+
 	    if (typeof params == 'string' && params == 'more') {
 		renderer.settings.offset = renderer.settings.data.length;
 		if (renderer.settings.total_count <= renderer.settings.asynch_limit) {
@@ -660,8 +660,8 @@
 	    }
 
 	    var query = "";
-	    for (var i in renderer.settings.query) {
-	        if (renderer.settings.query.hasOwnProperty(i) && renderer.settings.query[i].searchword.length) {
+	    for (var i=0; i<renderer.settings.query.length; i++) {
+	        if (renderer.settings.query[i].searchword.length) {
 		    query += (query.length ? "&" : "") + renderer.settings.query[i].field + '=' + (renderer.settings.filter_type == 'infix' && ! renderer.settings.query[i].strict ? '*' : '') + renderer.settings.query[i].searchword + ((renderer.settings.filter_type == 'infix' || renderer.settings.filter_type == 'prefix')  && ! renderer.settings.query[i].strict ? '*' : '');
 	        }
 	    }
@@ -675,7 +675,6 @@
 		if (typeof renderer.settings.data_manipulation == 'function') {
 		    data.data = renderer.settings.data_manipulation(data.data);
 		}
-		console.log(data);
 		renderer.settings.total_count = data.total_count;
 		if (typeof params == 'string' && params == "more") {
 		    renderer.settings.data = renderer.settings.data.concat(data.data);
