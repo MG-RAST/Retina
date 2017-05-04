@@ -662,6 +662,9 @@
 	    var query = "";
 	    for (var i=0; i<renderer.settings.query.length; i++) {
 	        if (renderer.settings.query[i].searchword.length) {
+		    if (Retina.idmap(renderer.settings.query[i].searchword).match(/^mg[mp]\d+\.?\d?$/)) {
+			renderer.settings.query[i].searchword = Retina.idmap(renderer.settings.query[i].searchword);
+		    }
 		    query += (query.length ? "&" : "") + renderer.settings.query[i].field + '=' + (renderer.settings.filter_type == 'infix' && ! renderer.settings.query[i].strict ? '*' : '') + renderer.settings.query[i].searchword + ((renderer.settings.filter_type == 'infix' || renderer.settings.filter_type == 'prefix')  && ! renderer.settings.query[i].strict ? '*' : '');
 	        }
 	    }
