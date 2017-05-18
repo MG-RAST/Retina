@@ -201,11 +201,9 @@
 }\
 </style>";
 
-	    // check if the data structure has parent information in the nodes, otherwise add it
-	    if (! renderer.settings.data.nodes[renderer.settings.data.rootNode].childNodes[0].hasOwnProperty('parentNodes')) {
-		renderer.settings.data.nodes[renderer.settings.data.rootNode].id = renderer.settings.data.rootNode;
-		renderer.setParentNode(index, renderer.settings.data.nodes[renderer.settings.data.rootNode], null);
-	    }
+	    renderer.parsedNodes = {};
+	    renderer.settings.data.nodes[renderer.settings.data.rootNode].id = renderer.settings.data.rootNode;
+	    renderer.setParentNode(index, renderer.settings.data.nodes[renderer.settings.data.rootNode], null);
 
 	    // check if a collapse all button should be displayed
 	    if (renderer.settings.showCollapseAllButton) {
@@ -495,6 +493,13 @@
 	setParentNode: function (index, node, parent) {
 	    var renderer = Retina.RendererInstances.tree[index];
 
+	    if (renderer.parsedNodes.hasOwnProperty(parent)) {
+		console.log('recursive call: '+parent);
+		return;
+	    } else {
+		renderer.parsedNodes[parent] = true;
+	    }
+	    
 	    node.parentNode = parent;
 	    for (var i=0; i<node.childNodes.length; i++) {
 		renderer.settings.data.nodes[node.childNodes[i]].id = node.childNodes[i];
