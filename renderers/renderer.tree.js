@@ -203,6 +203,7 @@
 
 	    // check if the data structure has parent information in the nodes, otherwise add it
 	    if (! renderer.settings.data.nodes[renderer.settings.data.rootNode].childNodes[0].hasOwnProperty('parentNodes')) {
+		renderer.settings.data.nodes[renderer.settings.data.rootNode].id = renderer.settings.data.rootNode;
 		renderer.setParentNode(index, renderer.settings.data.nodes[renderer.settings.data.rootNode], null);
 	    }
 
@@ -417,8 +418,10 @@
 
 		// iterate over the child nodes and draw them with a recursive call to renderNode
 		for (var i=0; i<params.node.childNodes.length; i++) {
+		    var node = renderer.settings.data.nodes[params.node.childNodes[i]];
+		    node.id = params.node.childNodes[i];
 		    renderer.renderNode( { "index": index,
-					   "node": renderer.settings.data.nodes[params.node.childNodes[i]],
+					   "node": node,
 					   "indent": params.indent });
 		}
 	    }
@@ -494,6 +497,7 @@
 
 	    node.parentNode = parent;
 	    for (var i=0; i<node.childNodes.length; i++) {
+		renderer.settings.data.nodes[node.childNodes[i]].id = node.childNodes[i];
 		renderer.setParentNode(index, renderer.settings.data.nodes[node.childNodes[i]], node.id);
 	    }
 
