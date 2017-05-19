@@ -201,9 +201,11 @@
 }\
 </style>";
 
-	    renderer.parsedNodes = {};
-	    renderer.settings.data.nodes[renderer.settings.data.rootNode].id = renderer.settings.data.rootNode;
-	    renderer.setParentNode(index, renderer.settings.data.nodes[renderer.settings.data.rootNode], null);
+	    if (! renderer.hasOwnProperty('parsedNodes')) {
+		renderer.parsedNodes = {};
+		renderer.settings.data.nodes[renderer.settings.data.rootNode].id = renderer.settings.data.rootNode;
+		renderer.setParentNode(index, renderer.settings.data.nodes[renderer.settings.data.rootNode], null);
+	    }
 
 	    // check if a collapse all button should be displayed
 	    if (renderer.settings.showCollapseAllButton) {
@@ -493,11 +495,14 @@
 	setParentNode: function (index, node, parent) {
 	    var renderer = Retina.RendererInstances.tree[index];
 
-	    if (renderer.parsedNodes.hasOwnProperty(parent)) {
-		console.log('recursive call: '+parent);
-		return;
+	    if (node.description === null) {
+		node.description = node.label;
+	    }
+	    if (renderer.parsedNodes.hasOwnProperty(node.id)) {
+	    	console.log('recursive call: '+node.id+' - '+node.label);
+	    	return;
 	    } else {
-		renderer.parsedNodes[parent] = true;
+	    	renderer.parsedNodes[node.id] = true;
 	    }
 	    
 	    node.parentNode = parent;
