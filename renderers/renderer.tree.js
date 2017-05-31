@@ -97,7 +97,8 @@
 		'showTooltip': true,
 		'tooltipStyle': "popover",
 		'buttonText': 'go',
-		'showGoButton': true
+		'showGoButton': true,
+		'desc2label': {}
 	    },
 	    options: [
 	      { general:
@@ -181,6 +182,8 @@
 	    renderer = this;
 	    var index = this.index;
 
+	    jQuery(".popover").remove();
+
 	    // tree node styles
 	    renderer.settings.target.innerHTML = "<style>\
 .tree-node {\
@@ -251,6 +254,13 @@
 		    if (renderer.settings.data.nodes.hasOwnProperty(i)) {
 			typeAheadData.push(renderer.settings.data.nodes[i].label);
 			label2id[renderer.settings.data.nodes[i].label] = i;
+
+			if (renderer.settings.searchDescription) {
+			    typeAheadData.push(renderer.settings.data.nodes[i].description);
+			    label2id[renderer.settings.data.nodes[i].description] = i;
+			    renderer.settings.desc2label[renderer.settings.data.nodes[i].description] = renderer.settings.data.nodes[i].label;
+			}
+			
 			if (renderer.settings.data.nodes[i].hasOwnProperty('synonyms')) {
 			    for (var h=0; h<renderer.settings.data.nodes[i].synonyms.length; h++) {
 				typeAheadData.push(renderer.settings.data.nodes[i].synonyms[h]);
@@ -283,7 +293,7 @@
 		});
 
 		// add the typeahead to the input box
-		jQuery('#tree_search_input_'+index).typeahead({ source: typeAheadData });
+		jQuery('#tree_search_input_'+index).typeahead({ source: typeAheadData, updater: renderer.typeaheadUpdate });
 	    }
 
 	    // set the border style of the outer div
@@ -302,6 +312,18 @@
 	    renderer.redraw(index);
 
 	    return renderer;
+	},
+
+	typeaheadUpdate: function (item) {
+	    var input = this.$element[0];
+	    var id = input.getAttribute('id');
+	    id = id.substring(id.lastIndexOf('_') + 1);
+	    var renderer = Retina.RendererInstances.tree[id];
+	    if (renderer.settings.desc2label.hasOwnProperty(item)) {
+		item = renderer.settings.desc2label[item];
+	    }
+	    renderer.goTo(id, renderer.settings.data.label2id[item]);
+	    return item;
 	},
 
 	// draws the current state of the nodes
