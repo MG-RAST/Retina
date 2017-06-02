@@ -40,6 +40,12 @@
   buttonText (STRING)
       Text of the go button. Default is "go".
 
+  sortNodes (BOOLEAN)
+      Sort child nodes alphabetically. Default is false.
+
+  searchDescription (BOOLEAN)
+      Include the descriptions in the search. Default is false.
+
   tooltipStyle (STRING)
       Can be either "popover" or "plain", depending on how intrusive the tooltip should be. Default is popover.
 
@@ -251,6 +257,23 @@
 
 		// fill the typeahead array and the lookup hash
 		for (var i in renderer.settings.data.nodes) {
+
+		    // check if the child nodes should be sorted
+		    if (renderer.settings.sortNodes) {
+			if (renderer.settings.data.nodes[i].childNodes) {
+			    var cn = [];
+			    for (var h=0; h<renderer.settings.data.nodes[i].childNodes.length; h++) {
+				var n = renderer.settings.data.nodes[renderer.settings.data.nodes[i].childNodes[h]];
+				cn.push({ 'label': n.label, 'id': renderer.settings.data.nodes[i].childNodes[h] });
+			    }
+			    cn = cn.sort(Retina.propSort('label'));
+			    renderer.settings.data.nodes[i].childNodes = [];
+			    for (var h=0; h<cn.length; h++) {
+				renderer.settings.data.nodes[i].childNodes.push(cn[h].id);
+			    }
+			}
+		    }
+		    
 		    if (renderer.settings.data.nodes.hasOwnProperty(i)) {
 			typeAheadData.push(renderer.settings.data.nodes[i].label);
 			label2id[renderer.settings.data.nodes[i].label] = i;
@@ -309,7 +332,7 @@
 	    renderer.settings.target.appendChild(renderer.settings.nodeSpace);
 	    
 	    // call the node rendering function
-	    renderer.redraw(index);
+	    renderer.redraw();
 
 	    return renderer;
 	},
@@ -327,8 +350,8 @@
 	},
 
 	// draws the current state of the nodes
-	redraw: function (index) {
-	    var renderer = Retina.RendererInstances.tree[index];
+	redraw: function () {
+	    var renderer = this;
 
 	    // check if we are displaying the root node
 	    var currIndent = -1;
@@ -345,7 +368,7 @@
 	    renderer.settings.nodeSpace.innerHTML = "";
 
 	    // initiate the first call to the recursive renderNode function
-	    renderer.renderNode( { "index": index,
+	    renderer.renderNode( { "index": renderer.index,
 				   "node": renderer.settings.data.nodes[renderer.settings.data.rootNode],
 				   "indent": currIndent,
 				   "hide": hide } );
