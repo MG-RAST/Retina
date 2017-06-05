@@ -220,15 +220,20 @@
 	    if (renderer.settings.sort_autodetect) {
 		for (var i=0; i<header.length; i++) {
 		    if (!renderer.settings.sorttype[i]) {
-			if (! tdata[0] || typeof(tdata[0][header[i]].replace) != 'function') {
+			if (! tdata[0]) {
+			    console.log('table called with invalid first row');
+			    return;
+			}
+			if (typeof(tdata[0][header[i]].replace) != 'function') {
 			    renderer.settings.sorttype[i] = "number";
 			} else {
 			    var testval = tdata[0][header[i]].replace(/<(.|\n)*?>/g, "");
-			    if (isNaN(parseFloat(testval))) {
+			    if (isNaN(parseFloat(testval)) || ! testval.match(/^-?\d+\.?,?\d*$/)) {
 				renderer.settings.sorttype[i] = "string";
 			    } else {
 				renderer.settings.sorttype[i] = "number";
 			    }
+			    console.log(renderer.settings.sorttype[i]);
 			}
 		    }
 		}
