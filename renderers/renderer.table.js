@@ -229,7 +229,6 @@
 			    } else {
 				renderer.settings.sorttype[i] = "number";
 			    }
-			    console.log(renderer.settings.sorttype[i]);
 			}
 		    }
 		}
