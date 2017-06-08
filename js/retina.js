@@ -87,11 +87,15 @@
 		    promise.resolve();
 		});
 	    }, function(jqXHR, textStatus, errorThrown) {
-		if (textStatus === 'parsererror') {
-		    console.log(errorThrown);
-		    Retina.parserError(script_url);
+		if (Retina.hasOwnProperty('errorCallback') && typeof Retina.errorCallback == 'function') {
+		    Retina.errorCallback.call(jqXHR, textStatus, errorThrown);
 		} else {
-		    console.log(jqXHR);
+		    if (textStatus === 'parsererror') {
+			console.log(errorThrown);
+			Retina.parserError(script_url);
+		    } else {
+			console.log(jqXHR);
+		    }
 		}
 	    });
 	}
