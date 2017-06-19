@@ -1544,14 +1544,13 @@ svg:svg {\
 	    }
 	    
 	    var spaceMajor = params.spaceMajor == null ? parseInt(length / 10) : params.spaceMajor;
-	    var numMajor = parseInt(length / spaceMajor);
+	    var numMajor = Math.floor(length / spaceMajor + 0.5);
 	    var numMinor = params.numMinor == null ? 4 : params.numMinor;
 	    var spaceMinor = spaceMajor / (numMinor + 1);
 	    var minorTickLength = params.minorTickLength == null ? 5 : params.minorTickLength;
 	    var majorTickLength = params.majorTickLength == null ? 10 : params.majorTickLength;
 	    var tickShift = params.tickShift == null ? 0 : params.tickShift;
 	    var tickBase = params.tickBase == null ? 0 : params.tickBase;
-
 	    var min = params.min == null ? 0 : params.min; // minimum value of the scale
 	    var max = params.max == null ? 100 : params.max; // maximum value of the scale
 
