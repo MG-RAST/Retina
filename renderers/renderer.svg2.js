@@ -180,8 +180,8 @@
 	    var retval = { "min": data.hasOwnProperty('minX') ? data.minX : 0, "max": data.maxX, "spaceMajor": 0 };
 
 	    var scale = Retina.niceScale({ "min": data.hasOwnProperty('minX') ? data.minX : 0, "max": data.maxX });
-	    
-	    retval.spaceMajor = params.length / scale.max * scale.space;
+
+	    retval.space = retval.spaceMajor = (params.length || params.width) / (scale.max - scale.min) * scale.space;
 	    retval.max = scale.max;
 	    retval.min = scale.min;
 	    
@@ -193,7 +193,7 @@
 
 	    var scale = Retina.niceScale({ "min": data.hasOwnProperty('minY') ? data.minY : 0, "max": data.maxY });
 	    
-	    retval.spaceMajor = params.length / scale.max * scale.space;
+	    retval.space = retval.spaceMajor = (params.length || params.height) / (scale.max - scale.min) * scale.space;
 	    retval.max = scale.max;
 	    retval.min = scale.min;
 	    
@@ -219,7 +219,7 @@
 	    
 	    var scale = Retina.niceScale({ "min": data.min, "max": data.sumMax });
 
-	    retval.space = (params.direction == "horizontal" ? params.height : params.width) / scale.max * scale.space;
+	    retval.space = (params.direction == "horizontal" ? params.height : params.width) / (scale.max - scale.min) * scale.space;
 	    
 	    return retval;
 	},
@@ -245,7 +245,7 @@
 
 	    var scale = Retina.niceScale({ "min": min, "max": max });
 
-	    retval.space = (params.direction == "horizontal" ? params.height : params.width) / scale.max * scale.space;
+	    retval.space = (params.direction == "horizontal" ? params.height : params.width) / (scale.max - scale.min) * scale.space;
 
 	    return retval;
 	},
@@ -529,8 +529,8 @@
 			}
 			p.shape = sgroups[sh];
 		    }
-		    p.x = xfactor * p.x + xZero;
-		    p.y = yfactor * p.y + yZero;
+		    p.x = xfactor * p.x - xZero;
+		    p.y = yfactor * p.y - yZero;
 		    retval[i].points.push(p);
 		}
 	    }
