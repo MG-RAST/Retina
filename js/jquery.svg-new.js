@@ -2401,7 +2401,7 @@ svg:svg {\
     svg   = document.createElementNS(svgNS,'svg'),
     pt    = svg.createSVGPoint();
     
-    global.trackMarquee = function(forElement,onRelease,onDrag){
+    global.trackMarquee = function(forElement,caller,onRelease,onDrag){
 	forElement.addEventListener('mousedown',function(evt){
 	    var point0 = getLocalCoordinatesFromMouseEvent(forElement,evt);
 	    var marquee = document.createElementNS(svgNS,'rect');
@@ -2419,17 +2419,18 @@ svg:svg {\
 		document.documentElement.removeEventListener('mousemove',trackMouseMove,false);
 		document.documentElement.removeEventListener('mouseup',stopTrackingMove,false);
 		forElement.removeChild(marquee);
-		if (onRelease) callWithBBox(onRelease,marquee,forElement);
+		if (onRelease) callWithBBox(onRelease,marquee,forElement,caller);
 	    }
 	},false);
     };
     
-    function callWithBBox(func,rect,elem){
+    function callWithBBox(func,rect,elem,caller){
 	var x = rect.getAttribute('x')*1,
-        y = rect.getAttribute('y')*1,
-        w = rect.getAttribute('width')*1,
-        h = rect.getAttribute('height')*1;
-	func(jQuery("#"+elem.parentNode.id).svg('get').plot.pointsInBounds(x,y,x+w,y+h));
+            y = rect.getAttribute('y')*1,
+            w = rect.getAttribute('width')*1,
+            h = rect.getAttribute('height')*1;
+
+	func({ "x1": x, "y1": y, "x2": x+w, "y2": y+h },caller);
     }
     
     function updateMarquee(rect,p0,p1){
