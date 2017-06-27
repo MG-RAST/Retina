@@ -19,7 +19,8 @@
 		'width': 600,
 		'height': 500,
 		'items': [ ],
-		'data': null
+		'data': null,
+		'dragCallback': null
 	    },
 	    options: []
 	},
@@ -34,7 +35,7 @@
 	    var target = renderer.settings.target;
 	    var index = renderer.index;
 	    target.innerHTML = "<div id='SVGdiv"+index+"'></div>";
-	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;");
+	    target.firstChild.setAttribute('style', "width: "+ renderer.settings.width+"px; height: "+renderer.settings.height+"px;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;-o-user-select: none;user-select: none;");
 	    renderer.svg = jQuery('#SVGdiv'+index).svg().svg('get');
 
 	    // check if we need to make adjustments to the parameters based on input data
@@ -80,10 +81,57 @@
 			document.getElementById(params.id).style.cursor = "pointer";
 		    }
 		}
+		if (params.zoom) {
+		    renderer.zoomItem = jQuery.extend(true, {}, renderer.settings.items[i]);
+		    var scaleY = Retina.niceScale({ "min": d.minY, "max": d.maxY });
+		    var scaleX = Retina.niceScale({ "min": d.minX, "max": d.maxX });
+		    renderer.zoomItem.parameters.totX = scaleX.max - scaleX.min;
+		    renderer.zoomItem.parameters.minX = scaleX.min;
+		    renderer.zoomItem.parameters.totY = scaleY.max - scaleY.min;
+		    renderer.zoomItem.parameters.minY = scaleY.min;
+		}
+		
 		renderer.settings.data = d;
+	    }
+
+	    if (typeof renderer.settings.dragCallback == 'function') {
+		trackMarquee(document.getElementById('SVGdiv'+index).firstChild, renderer, renderer.dragCallback);
 	    }
 	    
 	    return renderer;
+	},
+
+	dragCallback: function (coords,renderer) {
+
+	    var p = renderer.zoomItem.parameters;
+
+	    coords.x1 -= p.shiftX;
+	    coords.y1 -= p.shiftY;
+	    coords.x2 -= p.shiftX;
+	    coords.y2 -= p.shiftY;
+
+	    if (coords.x1 < 0) { coords.x1 = 0; } else if (coords.x1 > p.width) { coords.x1 = p.width; }
+	    if (coords.y1 < 0) { coords.y1 = 0; } else if (coords.y1 > p.height) { coords.y1 = p.height; }
+	    if (coords.x2 < 0) { coords.x2 = 0; } else if (coords.x2 > p.width) { coords.x2 = p.width; }
+	    if (coords.y2 < 0) { coords.y2 = 0; } else if (coords.y2 > p.height) { coords.y2 = p.height; }
+
+	    coords.x1 = (coords.x1 / p.width * p.totX) + p.minX;
+	    coords.y1 = ((p.height - coords.y1) / p.height * p.totY) + p.minY;
+	    coords.x2 = (coords.x2 / p.width * p.totX) + p.minX;
+	    coords.y2 = ((p.height - coords.y2) / p.height * p.totY) + p.minY;
+
+	    if (coords.y2 < coords.y1) {
+		var x = coords.y2;
+		coords.y2 = coords.y1;
+		coords.y1 = x;
+	    }
+	    if (coords.x2 < coords.x1) {
+		var x = coords.x2;
+		coords.x2 = coords.x1;
+		coords.x1 = x;
+	    }
+	    
+	    renderer.settings.dragCallback(coords);
 	},
 
 	updateAttribute: function (name, value, callback) {
@@ -317,7 +365,7 @@
 		    retval.data.push(x);
 		}
 	    }
-	    
+
 	    return retval;
 	},
 
@@ -602,6 +650,15 @@
 		    return data;
 		}
 
+		if (! data.data[0].points.length) {
+		    data.maxX = 0;
+		    data.maxY = 0;
+		    data.minX = 0;
+		    data.minY = 0;
+
+		    return data;
+		}
+		
 		var minX = data.data[0].points[0].x;
 		var minY = data.data[0].points[0].y;
 		var maxX = data.data[0].points[0].x;
