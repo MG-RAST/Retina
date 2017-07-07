@@ -720,6 +720,30 @@
 	return size + " " + magnitude;
     };
 
+    Retina.reverseComplement = function (seq) {
+	var rc = [];
+	for (var i=0; i<seq.length; i++) {
+	    if (seq.charAt(i) == 'a') {
+		rc.push('t');
+	    } else if (seq.charAt(i) == 'A') {
+		rc.push('T');
+	    } else if (seq.charAt(i) == 't') {
+		rc.push('a');
+	    } else if (seq.charAt(i) == 'T') {
+		rc.push('A');
+	    } else if (seq.charAt(i) == 'c') {
+		rc.push('g');
+	    } else if (seq.charAt(i) == 'C') {
+		rc.push('G');
+	    } else if (seq.charAt(i) == 'g') {
+		rc.push('c');
+	    } else if (seq.charAt(i) == 'G') {
+		rc.push('C');
+	    }
+	}
+	return rc.reverse().join('');
+    }
+
     /* Round a number to a given number of decimal points. */
     Number.prototype.round = function(dec) {
 	var num = this;
