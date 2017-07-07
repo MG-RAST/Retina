@@ -14,7 +14,9 @@
   showFilter - boolean whether the filter section is visible, default is true
   showTitleBar - boolean whether the title bar is visible, default is true
   showResizer - boolean whether the rezise buttons and corner are visible, default is true
+  middleResize - boolean whether the middle bar should allow resizing, default is true
 
+  showToolBar - boolean whether to show the toolbar, default is true
   enableUpload - boolean whether upload is enabled, default is true
   enableDownload - boolean whether download is enabled, default is true
   enableCompressedDownload - boolean whether download as zip is enabled, default is true
@@ -43,6 +45,10 @@
   querymode - [ full | attributes ] determines which part of the node to search in, default is attributes
   keylist - array of hashes of items in the filter list. The form of the hash is { "name": "$filter_url_param", "value": "$label_in_filter_list" },
   blacklist - hash of file names pointing to true to not show up
+  dropdownFilters - array of string, list of the attributes to be shown as dropdown filters
+  disableCustomFilter - boolean, set to true to hide custom filter, default is false
+
+  folderFilters - array of objects of the following format: [ { attribute, title, dropdown }, { ... }, ... ]
 
   previewChunkSize - size in bytes that is loaded from the server for the preview of a file, default is 2 KB
   uploadChunkSize - size in bytes uploaded to the server per chunk, default is 10 MB
@@ -74,6 +80,8 @@
      type  - type of the column for formatting, supported values are date, size, file and string
      align - HTML align value of the column
      sortable - boolean whether this column may be sorted by clicking on the column header
+
+  enableDrag - boolean whether to allow dragging of file objects
 
   order - stringified object path to order the file list by, default is last_modified
   direction - string, either 'asc' or 'desc' representing ascending and descending sort order respectively, default is desc
@@ -148,7 +156,7 @@
     widget.title = "SHOCK Browser";
 
     // status bar text
-    widget.status = "<img src='Retina/images/waiting.gif' style='height: 15px;'> connecting to SHOCK server...";
+    widget.status = "<img src='Retina/images/waiting.gif' style='height: 15px;'> connecting to server...";
 
     // interface default settings
     widget.detailInfo = null;
@@ -163,10 +171,13 @@
     widget.querymode = "attributes";
     widget.detailType = "info";
     widget.blacklist = {};
-
+    widget.dropdownFilters = [];
+    widget.disableCustomFilter = false;
+    
     widget.customButtons = [];
 
     widget.showTitleBar = true;
+    widget.showToolBar = true;
     widget.showResizer = true;
     widget.showDetailBar = true;
     widget.showDetailInfo = true;
@@ -175,6 +186,7 @@
     widget.showDetailAttributes = true;
     widget.keepSelectedFileAfterRefresh = true;
     widget.allowMultiselect = false;
+    widget.middleResize = true;
 
     widget.fileSectionColumns = [ { "path": "file.name", "name": "filename", "sortable": true } ];
 
@@ -230,6 +242,26 @@
 .disable textarea {\
   overflow: hidden;\
 }\
+.shock-pill {\
+  width: auto;\
+  padding-bottom: 5px;\
+  padding-top: 5px;\
+  padding-left: 5px;\
+  border-radius: 5px;\
+  border: 1px solid gray;\
+  background-color: #eee;\
+  cursor: pointer;\
+  margin-left: 10px;\
+  margin-right: 10px;\
+  margin-bottom: 5px;\
+}\
+.shock-pill:hover {\
+  background-color: #ccc;\
+}\
+.shock-pill-active {\
+  color: #2979ff;\
+  border-color: #2979ff;\
+}\
 </style>\
 ';
     };
@@ -283,7 +315,16 @@
 	widget.fileWidth = Math.floor(remainWidth * widget.initialFileDetailRatio);
 	widget.detailWidth = remainWidth - widget.fileWidth;
 
-	widget.topHeight = widget.showTopSection ? (widget.showTitleBar ? 52 : 40) : 0;
+	widget.topHeight = 0;
+	if (widget.showTitleBar) {
+	    widget.topHeight += 22;
+	}
+	if (widget.showToolBar || widget.showDetailBar) {
+	    widget.topHeight += 40;
+	    if (widget.showTitleBar) {
+		widget.topHeight -= 10;
+	    }
+	}
 	widget.middleHeight = widget.height - (widget.showStatusBar ? (22 + widget.topHeight) : (1 + widget.topHeight));
 
 	widget.sections = {};
@@ -424,148 +465,150 @@
 	var toolBar = document.createElement('div');
 	toolBar.setAttribute("style", "position: relative; margin-left: "+(widget.showFilter ? widget.filterWidth : "0")+"px;");
 
-	if (widget.enableUpload) {
-	    // upload bar
-	    var uploadBar = document.createElement('div');
-	    uploadBar.className = "btn-group";
-
-	    var realUploadButton = document.createElement('input');
-	    realUploadButton.setAttribute('type', 'file');
-	    if (widget.allowMultiFileUpload) {
-		realUploadButton.setAttribute('multiple', 'multiple');
+	if (widget.showToolBar) {
+	    if (widget.enableUpload) {
+		// upload bar
+		var uploadBar = document.createElement('div');
+		uploadBar.className = "btn-group";
+		
+		var realUploadButton = document.createElement('input');
+		realUploadButton.setAttribute('type', 'file');
+		if (widget.allowMultiFileUpload) {
+		    realUploadButton.setAttribute('multiple', 'multiple');
+		}
+		realUploadButton.setAttribute('style', 'display: none;');
+		jQuery(realUploadButton).on('change',  function(event){
+		    Retina.WidgetInstances.shockbrowse[1].uploadFileSelected(event);
+		});
+		widget.uploadDialog = realUploadButton;
+		section.appendChild(realUploadButton);
+		
+		var uploadButton = document.createElement('button');
+		uploadButton.className = "btn btn-menu btn-small";
+		uploadButton.title = "upload file";
+		uploadButton.innerHTML = "<img src='Retina/images/upload.png' style='height: 16px;'><div id='progress_button_progress' style='bottom: 20px; position: relative; margin-right: -11px; background-color: green; height: 26px; margin-top: -2px; margin-left: -10px; width: 0px; opacity: 0.4;'></div>";
+		uploadButton.addEventListener('click', function() { Retina.WidgetInstances.shockbrowse[1].uploadDialog.click()});
+		uploadBar.appendChild(uploadButton);
+		widget.uploadButton = uploadButton;
+		
+		var resumeButton = document.createElement('button');
+		resumeButton.className = "btn btn-menu btn-small";
+		resumeButton.title = "resume incomplete uploads";
+		resumeButton.innerHTML = "<i class='icon-play'></i>";
+		resumeButton.addEventListener('click', Retina.WidgetInstances.shockbrowse[1].findResumableUploads);
+		widget.resumeButton = resumeButton;
+		uploadBar.appendChild(resumeButton);
+		
+		if (! widget.user) {
+		    uploadButton.setAttribute('disabled', 'disabled');
+		    resumeButton.setAttribute('disabled', 'disabled');
+		}
+		
+		toolBar.appendChild(uploadBar);
 	    }
-	    realUploadButton.setAttribute('style', 'display: none;');
-	    jQuery(realUploadButton).on('change',  function(event){
-		Retina.WidgetInstances.shockbrowse[1].uploadFileSelected(event);
+	    
+	    // modify bar
+	    var modifyBar = document.createElement('div');
+	    modifyBar.className = "btn-group";
+	    
+	    // download button
+	    if (widget.enableDownload) {
+		var downloadButton = document.createElement('button');
+		downloadButton.className = "btn btn-menu btn-small";
+		downloadButton.title = "download selected file";
+		downloadButton.innerHTML = "<img src='Retina/images/download.png' style='height: 16px;'>";
+		downloadButton.addEventListener('click', function(){
+		    var widget = Retina.WidgetInstances.shockbrowse[1];
+		    if (widget.selectedFile) {
+			var fn = widget.selectedFile.innerHTML.replace(/<(.|\n)*?>/g, "");
+			jQuery.ajax({ url: widget.shockBase + "/node/" + widget.selectedFile.getAttribute('fi') + "?download_url&filename="+fn,
+				      dataType: "json",
+				      success: function(data) {
+					  var widget = Retina.WidgetInstances.shockbrowse[1];
+					  if (data != null) {
+					      if (data.error != null) {
+						  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>There was an error downloading the data, "+data.error+"</div>";
+					      }
+					      window.location = data.data.url;
+					  } else {
+					      widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>The data returned from the server was invalid.</div>";
+					      console.log(data);
+					  }
+				      },
+				      error: function(jqXHR, error) {
+					  var widget = Retina.WidgetInstances.shockbrowse[1];
+					  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred downloading the data.</div>";
+				      },
+				      crossDomain: true,
+				      headers: widget.authHeader
+				    });
+		    } else {
+			alert('no file selected for download');
+		    }
+		});
+		modifyBar.appendChild(downloadButton);
+	    }
+	    
+	    // download as zip button
+	    if (widget.enableCompressedDownload) {
+		var downloadButton = document.createElement('button');
+		downloadButton.className = "btn btn-menu btn-small";
+		downloadButton.title = "download selected file as gzip";
+		downloadButton.innerHTML = "<img src='Retina/images/file-zip.png' style='height: 16px;'>";
+		downloadButton.addEventListener('click', function(){
+		    var widget = Retina.WidgetInstances.shockbrowse[1];
+		    if (widget.selectedFile) {
+			var fn = widget.selectedFile.innerHTML.replace(/<(.|\n)*?>/g, "");
+			jQuery.ajax({ url: widget.shockBase + "/node/" + widget.selectedFile.getAttribute('fi') + "?download_url&compression=gzip&filename="+fn,
+				      dataType: "json",
+				      success: function(data) {
+					  var widget = Retina.WidgetInstances.shockbrowse[1];
+					  if (data != null) {
+					      if (data.error != null) {
+						  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>There was an error downloading the data: "+data.error+"/div>";
+					      }
+					      window.location = data.data.url;
+					  } else {
+					      widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>The data returned from the server was invalid.</div>";
+					      console.log(data);
+					  }
+				      },
+				      error: function(jqXHR, error) {
+					  var widget = Retina.WidgetInstances.shockbrowse[1];
+					  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred contacting the server.</div>";
+					  console.log(error);
+				      },
+				      crossDomain: true,
+				      headers: widget.authHeader
+				    });
+		    } else {
+			alert('no file selected for download');
+		    }
+		});
+		modifyBar.appendChild(downloadButton);
+	    }
+	    
+	    toolBar.appendChild(modifyBar);
+	    
+	    // update bar
+	    var updateBar = document.createElement('div');
+	    updateBar.className = "btn-group";
+	    
+	    var refreshButton = document.createElement('button');
+	    refreshButton.className = "btn btn-menu btn-small";
+	    refreshButton.title = "refresh file list";
+	    refreshButton.innerHTML = "<img src='Retina/images/loop.png' style='height: 16px;'>";
+	    refreshButton.addEventListener('click', function(){
+		var widget = Retina.WidgetInstances.shockbrowse[1];
+		widget.currentOffset = 0;
+		widget.scrollPosition = 0;
+		widget.updateData();
 	    });
-	    widget.uploadDialog = realUploadButton;
-	    section.appendChild(realUploadButton);
-
-	    var uploadButton = document.createElement('button');
-	    uploadButton.className = "btn btn-menu btn-small";
-	    uploadButton.title = "upload file";
-	    uploadButton.innerHTML = "<img src='Retina/images/upload.png' style='height: 16px;'><div id='progress_button_progress' style='bottom: 20px; position: relative; margin-right: -11px; background-color: green; height: 26px; margin-top: -2px; margin-left: -10px; width: 0px; opacity: 0.4;'></div>";
-	    uploadButton.addEventListener('click', function() { Retina.WidgetInstances.shockbrowse[1].uploadDialog.click()});
-	    uploadBar.appendChild(uploadButton);
-	    widget.uploadButton = uploadButton;
-
-	    var resumeButton = document.createElement('button');
-	    resumeButton.className = "btn btn-menu btn-small";
-	    resumeButton.title = "resume incomplete uploads";
-	    resumeButton.innerHTML = "<i class='icon-play'></i>";
-	    resumeButton.addEventListener('click', Retina.WidgetInstances.shockbrowse[1].findResumableUploads);
-	    widget.resumeButton = resumeButton;
-	    uploadBar.appendChild(resumeButton);
-
-	    if (! widget.user) {
-		uploadButton.setAttribute('disabled', 'disabled');
-		resumeButton.setAttribute('disabled', 'disabled');
-	    }
-
-	    toolBar.appendChild(uploadBar);
+	    updateBar.appendChild(refreshButton);
+	    
+	    toolBar.appendChild(updateBar);
 	}
-
-	// modify bar
-	var modifyBar = document.createElement('div');
-	modifyBar.className = "btn-group";
 	
-	// download button
-	if (widget.enableDownload) {
-	    var downloadButton = document.createElement('button');
-	    downloadButton.className = "btn btn-menu btn-small";
-	    downloadButton.title = "download selected file";
-	    downloadButton.innerHTML = "<img src='Retina/images/download.png' style='height: 16px;'>";
-	    downloadButton.addEventListener('click', function(){
-		var widget = Retina.WidgetInstances.shockbrowse[1];
-		if (widget.selectedFile) {
-		    var fn = widget.selectedFile.innerHTML.replace(/<(.|\n)*?>/g, "");
-		    jQuery.ajax({ url: widget.shockBase + "/node/" + widget.selectedFile.getAttribute('fi') + "?download_url&filename="+fn,
-				  dataType: "json",
-				  success: function(data) {
-				      var widget = Retina.WidgetInstances.shockbrowse[1];
-				      if (data != null) {
-					  if (data.error != null) {
-					      widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>There was an error downloading the data, "+data.error+"</div>";
-					  }
-					  window.location = data.data.url;
-				      } else {
-					  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>The data returned from the server was invalid.</div>";
-					  console.log(data);
-				      }
-				  },
-				  error: function(jqXHR, error) {
-				      var widget = Retina.WidgetInstances.shockbrowse[1];
-				      widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred downloading the data.</div>";
-				  },
-				  crossDomain: true,
-				  headers: widget.authHeader
-				});
-		} else {
-		    alert('no file selected for download');
-		}
-	    });
-	    modifyBar.appendChild(downloadButton);
-	}
-
-	// download as zip button
-	if (widget.enableCompressedDownload) {
-	    var downloadButton = document.createElement('button');
-	    downloadButton.className = "btn btn-menu btn-small";
-	    downloadButton.title = "download selected file as gzip";
-	    downloadButton.innerHTML = "<img src='Retina/images/file-zip.png' style='height: 16px;'>";
-	    downloadButton.addEventListener('click', function(){
-		var widget = Retina.WidgetInstances.shockbrowse[1];
-		if (widget.selectedFile) {
-		    var fn = widget.selectedFile.innerHTML.replace(/<(.|\n)*?>/g, "");
-		    jQuery.ajax({ url: widget.shockBase + "/node/" + widget.selectedFile.getAttribute('fi') + "?download_url&compression=gzip&filename="+fn,
-				  dataType: "json",
-				  success: function(data) {
-				      var widget = Retina.WidgetInstances.shockbrowse[1];
-				      if (data != null) {
-					  if (data.error != null) {
-					      widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>There was an error downloading the data: "+data.error+"/div>";
-					  }
-					  window.location = data.data.url;
-				      } else {
-					  widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>The data returned from the server was invalid.</div>";
-					  console.log(data);
-				      }
-				  },
-				  error: function(jqXHR, error) {
-				      var widget = Retina.WidgetInstances.shockbrowse[1];
-				      widget.sections.detailSectionContent.innerHTML = "<div class='alert alert-error' style='margin: 10px;'>An error occurred contacting the server.</div>";
-				      console.log(error);
-				  },
-				  crossDomain: true,
-				  headers: widget.authHeader
-				});
-		} else {
-		    alert('no file selected for download');
-		}
-	    });
-	    modifyBar.appendChild(downloadButton);
-	}
-
-	toolBar.appendChild(modifyBar);
-
-	// update bar
-	var updateBar = document.createElement('div');
-	updateBar.className = "btn-group";
-
-	var refreshButton = document.createElement('button');
-	refreshButton.className = "btn btn-menu btn-small";
-	refreshButton.title = "refresh file list";
-	refreshButton.innerHTML = "<img src='Retina/images/loop.png' style='height: 16px;'>";
-	refreshButton.addEventListener('click', function(){
-	    var widget = Retina.WidgetInstances.shockbrowse[1];
-	    widget.currentOffset = 0;
-	    widget.scrollPosition = 0;
-	    widget.updateData();
-	});
-	updateBar.appendChild(refreshButton);
-
-	toolBar.appendChild(updateBar);
-
 	// custom bar
 	if (widget.customButtons.length) {
 	    var customBar = document.createElement('div');
@@ -628,6 +671,53 @@
      * MIDDLE SECTION INTERNALS
      */
 
+    widget.updateDropdownFilter = function (select) {
+	var widget = this;
+
+	var field = select.getAttribute('fieldname');
+	var value = select.options[select.selectedIndex].value;
+
+	if (value == "0") {
+	    delete widget.presetFilters["attributes."+field];
+	} else {
+	    widget.presetFilters["attributes."+field] = value;
+	}
+
+	widget.currentOffset = 0;
+	widget.scrollPosition = 0;
+	widget.data = null;
+	widget.append = false;
+	widget.updateData();
+    };
+
+    widget.activateFolderfilter = function (index, entry) {
+	var widget = this;
+
+	widget.folderFilters[index].active = entry;
+	widget.presetFilters[widget.folderFilters[index].attribute] = widget.folderFilters[index].entries[entry];
+	widget.currentOffset = 0;
+	widget.scrollPosition = 0;
+	widget.data = null;
+	widget.append = false;
+	widget.updateData();
+	jQuery('[name=sbff'+index+']').removeClass('shock-pill-active');
+	jQuery('#sbff'+index+'_'+entry).addClass('shock-pill-active');
+
+	if (typeof widget.activateFolderfilterCallback == 'function') {
+	    widget.activateFolderfilterCallback.call(null, widget.folderFilters[index].entries[entry]);
+	}
+    };
+
+    widget.folderFilterKeyUp = function (event) {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+
+	event = event || window.event;
+	var index = event.target.getAttribute('index');
+	widget.folderFilters[index].filter = event.target.value;
+	widget.filter_section();
+	jQuery('#shockFolderFilterFilter'+index).focus();
+    };
+    
     widget.filter_section = function () {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
@@ -648,8 +738,50 @@
 	sectionContent.setAttribute("style", "padding-left: 5px; padding-top: 1px; padding-right: 5px; height: inherit; overflow-y: auto;");
 	section.appendChild(sectionContent);
 
-	sectionContent.innerHTML = '\
-<p style="font-weight: bold;">Filter</p>\
+	var html = [];
+
+	if (widget.folderFilters) {
+	    for (var i=0; i<widget.folderFilters.length; i++) {
+		if (! widget.folderFilters[i].hasOwnProperty('active')) {
+		    widget.folderFilters[i].active = 0;
+		}
+		var filterable = "";
+		if (widget.folderFilters[i].filterable) {
+		    filterable = '<input type="text" placeholder="enter filter" style="padding: 2px; width: 150px; margin: 0px; margin-right: 10px; font-size: 12px; height: 14px;" onkeyup="Retina.WidgetInstances.shockbrowse[1].folderFilterKeyUp(event);" id="shockFolderFilterFilter'+i+'" index="'+i+'" class="pull-right" value="'+(widget.folderFilters[i].filter || "")+'">';
+		}
+		html.push('<h5>'+widget.folderFilters[i].title+filterable+'</h5>');
+		if (widget.folderFilters[i].dropdown) {
+
+		} else {
+		    var entries = widget.folderFilters[i].entries ? widget.folderFilters[i].entries : [];
+		    for (var h=0; h<entries.length; h++) {
+			if (! widget.folderFilters[i].filter || entries[h].match(widget.folderFilters[i].filter)) {
+			    html.push('<div style="font-size: 10px;" id="sbff'+i+'_'+h+'" name="sbff'+i+'" class="shock-pill'+(h==widget.folderFilters[i].active ? ' shock-pill-active' : '')+'" onclick="Retina.WidgetInstances.shockbrowse[1].activateFolderfilter('+i+', '+h+');">'+entries[h]+'</div>');
+			}
+		    }
+		}
+	    }
+	}
+
+	if (widget.dropdownFilters.length) {
+	    var preset = "";
+	    if (Retina.keys(widget.presetFilters).length) {
+		var presets = [];
+		for (var i in widget.presetFilters) {
+		    if (widget.presetFilters.hasOwnProperty(i)) {
+			presets.push(i+"="+widget.presetFilters[i]);
+		    }
+		}
+		preset = "&"+presets.join("&");
+	    }
+	    for (var i=0; i<widget.dropdownFilters.length; i++) {
+		html.push('<div style="margin-bottom: 5px;">'+widget.dropdownFilters[i][1]+'</div><div id="sb_dd_filter_'+i+'"></div>');
+	    }
+	}
+
+	if (! widget.disableCustomFilter) {
+	    html.push('\
+<div>\
   <div class="control-group">\
     <label class="control-label" for="filter_key">field</label>\
     <div class="controls">\
@@ -663,28 +795,54 @@
       <button class="btn" onclick="Retina.WidgetInstances.shockbrowse[1].refineFilter(\'add\');">add</button>\
     </div>\
   </div>\
+  </div>\
   <hr>\
   <div id="refine_filter_terms"></div>\
-';
-	
-	var keyselect = document.getElementById('filter_key');
-	var keylist = widget.keylist;
-	document.getElementById('filter_value').addEventListener('keypress', function (e) {
-	    e = e || window.event;
-	    if (e.keyCode == 13) {
-		Retina.WidgetInstances.shockbrowse[1].refineFilter('add');
-	    }
-	});
-	
-	var keyselect_html = "";
-	for (var i=0; i<keylist.length; i++) {
-	    keyselect_html += "<option value='"+keylist[i].name+"'>"+keylist[i].value+"</option>";
+');
 	}
-	keyselect.innerHTML = keyselect_html;
 
-	widget.sections.filterSectionContent = sectionContent;
+	sectionContent.innerHTML = html.join("");
+
+	if (! widget.disableCustomFilter) {
+	    var keyselect = document.getElementById('filter_key');
+	    var keylist = widget.keylist;
+	    document.getElementById('filter_value').addEventListener('keypress', function (e) {
+		e = e || window.event;
+		if (e.keyCode == 13) {
+		    Retina.WidgetInstances.shockbrowse[1].refineFilter('add');
+		}
+	    });
+	    
+	    var keyselect_html = "";
+	    for (var i=0; i<keylist.length; i++) {
+		keyselect_html += "<option value='"+keylist[i].name+"'>"+keylist[i].value+"</option>";
+	    }
+	    keyselect.innerHTML = keyselect_html;
+
+	    widget.refineFilter('restore');
+	}
+
+	for (var i=0; i<widget.dropdownFilters.length; i++) {
+	    jQuery.ajax({ url: widget.shockBase + "/node/?distinct="+widget.dropdownFilters[i][0]+preset,
+			  dataType: "json",
+			  index: i,
+			  success: function(data) {
+			      var widget = Retina.WidgetInstances.shockbrowse[1];
+			      var html = [ '<select fieldname="'+widget.dropdownFilters[this.index][0]+'" onchange="Retina.WidgetInstances.shockbrowse[1].updateDropdownFilter(this);"><option value="0">- select -</option>'];
+			      for (var i=0; i<data.data.length; i++) {
+				  html.push('<option>'+data.data[i]+'</option>');
+			      }
+			      html.push('</select>');
+			      document.getElementById('sb_dd_filter_'+this.index).innerHTML = html.join("");
+			  },
+			  error: function(jqXHR, error) {
+			  },
+			  crossDomain: true,
+			  headers: widget.authHeader
+			});
+	}
 	
-	widget.refineFilter('restore');
+	widget.sections.filterSectionContent = sectionContent;
     };
 
     widget.file_section = function () {
@@ -711,7 +869,7 @@
 	    }
 
 	    sectionContent = document.createElement('div');
-	    sectionContent.setAttribute("style", "padding-left: 5px; padding-top: 1px; padding-right: 5px; height: inherit; overflow-y: scroll; font-size: "+widget.fontSize+"px; word-wrap: break-word;");
+	    sectionContent.setAttribute("style", "padding-top: 1px; height: inherit; overflow-y: scroll; font-size: "+widget.fontSize+"px; word-wrap: break-word;");
 	    section.appendChild(sectionContent);
 	    widget.sections.fileSectionContent = sectionContent
 
@@ -731,12 +889,26 @@
 		}
 	    });
 	}
-
 	if (widget.data) {
-	    var html = "";
+	    var html = [];
 	    if(! widget.append) {
 		widget.fileList = [];
 	    }
+	    var remain = null;
+	    for (var h=0; h<widget.fileSectionColumns.length; h++) {
+		if (widget.fileSectionColumns[h].width == 'remain') {
+		    remain = widget.fileWidth - 1;
+		    for (var i=0; i<widget.fileSectionColumns.length; i++) {
+			if (widget.fileSectionColumns[i].width.match(/px/)) {
+			    remain -= parseInt(widget.fileSectionColumns[i].width);
+			}
+		    }
+		    remain += "px";
+		    widget.fileSectionColumns[h].width = remain;
+		    break;
+		}
+	    }
+
 	    for (var i=widget.currentOffset; i<widget.data.data.length; i++) {
 		var ds = widget.data.data[i];
 		if (widget.blacklist.hasOwnProperty(ds.file.name)) {
@@ -744,14 +916,18 @@
 		}
 		widget.fileList.push(ds);
 		var fn = ds.file.name || ds.id;
-		html += "<div class='fileItem'>";
+		var drag = "";
+		if (widget.enableDrag) {
+		    drag = " draggable='true' ondragstart='Retina.WidgetInstances.shockbrowse[1].dragStart(event);'";
+		}
+		html.push("<div class='fileItem'"+drag+">");
 		for (var h=0; h<widget.fileSectionColumns.length; h++) {
 		    var width = widget.fileSectionColumns[h].width ? widget.fileSectionColumns[h].width : parseInt(100 / widget.fileSectionColumns.length) + "%";
-		    html += "<div style='width: "+width+"; display: inline-block; vertical-align: top; text-align: "+(widget.fileSectionColumns[h].align || "left")+";'><div style='padding-left: 5px; padding-right: 5px;' onclick='Retina.WidgetInstances.shockbrowse[1].showDetails(event);' fi='"+ds.id+"'>";
+		    html.push("<div style='width: "+width+"; display: inline-block; vertical-align: top; text-align: "+(widget.fileSectionColumns[h].align || "left")+";'><div style='padding-left: 5px; padding-right: 5px;' onclick='Retina.WidgetInstances.shockbrowse[1].showDetails(event);' fi='"+ds.id+"'>");
 
 		    // determine file content, filename is the special case that allows drag and drop
 		    if (widget.fileSectionColumns[h].type == "file") {
-			html += "<div id='file"+ds.id+"' draggable='true' data-downloadurl='application/octet-stream:"+fn+":"+widget.shockBase + "/node/" + ds.id + "?download&filename="+fn+"'>" + fn + "</div>";
+			html.push("<div id='file"+ds.id+"' draggable='true' data-downloadurl='application/octet-stream:"+fn+":"+widget.shockBase + "/node/" + ds.id + "?download&filename="+fn+"'>" + fn + "</div>");
 		    } else {
 			// get the cell content
 			var pathItems = widget.fileSectionColumns[h].path.split(".");
@@ -775,16 +951,16 @@
 			} else if (widget.fileSectionColumns[h].type == "date") {
 			    item = Retina.date_string(item);
 			}
-			html += "<div>"+item+"</div>";
+			html.push("<div>"+item+"</div>");
 		    }
-		    html += "</div></div>";
+		    html.push("</div></div>");
 		}
-		html += "</div>";
+		html.push("</div>");
 	    }
 	    if (widget.append) {
-		sectionContent.innerHTML += html;
+		sectionContent.innerHTML += html.join("");
 	    } else {
-		var sectionHeader = "<div style='font-size: 11px; font-weight: bold; background-color: #f3f3f3; border-bottom: 1px solid #838383; margin-left: -5px; margin-right: -4px; margin-top: -1px;'>";
+		var sectionHeader = "<div style='font-size: 11px; font-weight: bold; background-color: #f3f3f3; border-bottom: 1px solid #838383; margin-top: -1px;'>";
 		for (var i=0; i<widget.fileSectionColumns.length; i++) {
 		    var width = widget.fileSectionColumns[i].width ? widget.fileSectionColumns[i].width : parseInt(100 / widget.fileSectionColumns.length) + "%";
 		    var sorterText = "";
@@ -798,16 +974,7 @@
 		    sectionHeader += "<div style='width: "+width+"; display: inline-block; text-align: "+(widget.fileSectionColumns[i].align || "left")+";"+(widget.fileSectionColumns[i].sortable ? " cursor: pointer;" : "")+"'"+sorterEvent+"><div style='border-right: 1px solid darkgray; width: 100%;'><div style='padding-left: 5px; padding-right: 5px;'>"+widget.fileSectionColumns[i].name+sorterText+"</div></div></div>";
 		}
 		sectionHeader += "</div>";
-		sectionContent.innerHTML = sectionHeader + html;
-	    }
-
-	    for (var i=widget.currentOffset; i<widget.data.data.length; i++) {
-		var div = document.getElementById("file"+widget.data.data[i].id);
-		if (div) {
-		    div.addEventListener("dragstart", function(evt){
-			evt.dataTransfer.setData("DownloadURL", typeof this.dataset === "undefined" ? this.getAttribute("data-downloadurl") : this.dataset.downloadurl);
-		    },false);
-		}
+		sectionContent.innerHTML = sectionHeader + html.join("");
 	    }
 	    widget.append = false;
 	}
@@ -815,6 +982,23 @@
 	sectionContent.scrollTop = widget.scrollPosition;
 	
 	widget.sections.fileSectionContent = sectionContent;
+    };
+
+    widget.dragStart = function (event) {
+	var widget = Retina.WidgetInstances.shockbrowse[1];
+	var files = [];
+	for (var i=0; i<widget.selectedFiles.length; i++) {
+	    files.push(widget.selectedFiles[i].id);
+	}
+	if (files.length == 0) {
+	    files.push(event.target.id.substr(4));
+	}
+	var img = new Image(); 
+	img.src = 'Retina/images/file-powerpoint.png';
+	event.dataTransfer.setDragImage(img, 10, 10);
+	event.dataTransfer.effectAllowed = "copy";
+	event.dataTransfer.dropEffect = "copy";
+	event.dataTransfer.setData('text', files.join('|'));
     };
 
     widget.detail_section = function () {
@@ -846,40 +1030,42 @@
 	var height = widget.middleHeight;
 
 	var bar = document.createElement('div');
-	bar.setAttribute('style', "background-color: #E9E9E9; width: 4px; border-left: 1px solid #808080; border-right: 1px solid #808080; height: "+height+"px; float: left; cursor: col-resize;");
+	bar.setAttribute('style', "background-color: #E9E9E9; width: 4px; border-left: 1px solid #808080; border-right: 1px solid #808080; height: "+height+"px; float: left;"+(widget.middleResize ? " cursor: col-resize;" : ""));
 	widget.sections.middleSection.appendChild(bar);
-	
-	var start;
-	var wA;
-	var wB;
 
-	function startSplitMouse(evt) {
-	    start = evt.pageX;
-	    wA = parseInt(bar.previousSibling.style.width);
-	    wB = parseInt(bar.nextSibling.style.width);
-	    jQuery(document)
-		.on("mousemove", doSplitMouse)
-		.on("mouseup", endSplitMouse);
-	}
-	function doSplitMouse(evt) {
-	    bar.previousSibling.style.width = (wA - (start - evt.pageX)) + "px";
-	    bar.nextSibling.style.width = (wB + (start - evt.pageX)) + "px";
-	}
-	function endSplitMouse(evt) {
-	    var widget = Retina.WidgetInstances.shockbrowse[1];
-	    if (bar.previousSibling.previousSibling) {
-		widget.fileWidth = bar.previousSibling.style.width;
-		widget.detailWidth = bar.nextSibling.style.width;
-	    } else {
-		widget.filterWidth = bar.previousSibling.style.width;
-		widget.fileWidth = bar.nextSibling.style.width;
+	if (widget.middleResize) {
+	    var start;
+	    var wA;
+	    var wB;
+	    
+	    function startSplitMouse(evt) {
+		start = evt.pageX;
+		wA = parseInt(bar.previousSibling.style.width);
+		wB = parseInt(bar.nextSibling.style.width);
+		jQuery(document)
+		    .on("mousemove", doSplitMouse)
+		    .on("mouseup", endSplitMouse);
 	    }
-	    jQuery(document)
-		.off("mousemove", doSplitMouse)
-		.off("mouseup", endSplitMouse);
+	    function doSplitMouse(evt) {
+		bar.previousSibling.style.width = (wA - (start - evt.pageX)) + "px";
+		bar.nextSibling.style.width = (wB + (start - evt.pageX)) + "px";
+	    }
+	    function endSplitMouse(evt) {
+		var widget = Retina.WidgetInstances.shockbrowse[1];
+		if (bar.previousSibling.previousSibling) {
+		    widget.fileWidth = bar.previousSibling.style.width;
+		    widget.detailWidth = bar.nextSibling.style.width;
+		} else {
+		    widget.filterWidth = bar.previousSibling.style.width;
+		    widget.fileWidth = bar.nextSibling.style.width;
+		}
+		jQuery(document)
+		    .off("mousemove", doSplitMouse)
+		    .off("mouseup", endSplitMouse);
+	    }
+	    
+	    bar.addEventListener('mousedown', startSplitMouse);
 	}
-
-	bar.addEventListener('mousedown', startSplitMouse);
     };
 
     /*
@@ -1132,14 +1318,14 @@
 	    // delete button
 	    html += '<button class="btn btn-small btn-danger" onclick="if(confirm(\'really delete all selected nodes?\')){Retina.WidgetInstances.shockbrowse[1].removeMultipleNodes();}" style="margin-right: 10px;" id="shockbrowserMultiDeleteButton">delete nodes</button>';
 
-	    if (typeof widget.customMultiPreview == 'function') {
-		html += widget.customMultiPreview.call(null, widget.selectedFiles);
-	    }
-
 	    html += "</div>";
 
 	    // progress area
 	    html += "<div id='shockbrowserMultiProgressDiv' style='margin-top: 25px;'></div>";
+
+	    if (typeof widget.customMultiPreview == 'function') {
+		html = widget.customMultiPreview.call(null, widget.selectedFiles);
+	    }
 	    
 	} else if (! update) {
 
@@ -1172,6 +1358,11 @@
 	    
 	    // set the id of the current file
 	    widget.currentFileId = e.currentTarget.getAttribute('fi');
+	}
+
+	// if we are not to update the right hand side, do nothing else
+	if (widget.preserveDetail) {
+	    return;
 	}
 	
 	if (! widget.selectedFiles.length) {
