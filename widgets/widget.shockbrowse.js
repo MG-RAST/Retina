@@ -716,6 +716,7 @@
 	widget.folderFilters[index].filter = event.target.value;
 	widget.filter_section();
 	jQuery('#shockFolderFilterFilter'+index).focus();
+	document.getElementById(n).setSelectionRange(document.getElementById(n).value.length, document.getElementById(n).value.length);
     };
     
     widget.filter_section = function () {
