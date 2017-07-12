@@ -1018,7 +1018,7 @@
 		var exp = document.createElement('button');
 		exp.setAttribute('class', 'btn btn-mini');
 		exp.setAttribute('style', 'float: right;');
-		exp.setAttribute('title', 'export table data as tsv');
+		exp.setAttribute('title', 'export table data as csv');
 		exp.innerHTML = '<i class="icon icon-file"></i>';
 		exp.setAttribute('index', renderer.index);
 		exp.addEventListener('click', function (e) {
