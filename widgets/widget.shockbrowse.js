@@ -83,6 +83,9 @@
 
   enableDrag - boolean whether to allow dragging of file objects
 
+  requireLogin - boolean to determine if updateData can be called without a login (false = get data without login, true = do not get data without login) default is false
+  initialLoadCallback - function to call when the updateData has completed for the first time
+
   order - stringified object path to order the file list by, default is last_modified
   direction - string, either 'asc' or 'desc' representing ascending and descending sort order respectively, default is desc
   allowMultiselect - boolean to indicate whether multiple files may be selected at a time, default is false
@@ -192,6 +195,10 @@
 
     widget.showStatusBar = true;
 
+    widget.requireLogin = false;
+    widget.initialLoadCallback = null;
+    widget.initialLoad = true;
+    
     widget.enableDownload = true;
     widget.enableCompressedDownload = true;
     widget.enableUpload = true;
@@ -1168,6 +1175,9 @@
     widget.updateData = function () {
 	var widget = Retina.WidgetInstances.shockbrowse[1];
 
+	if (widget.requireLogin && ! widget.user) {
+	    return;
+	}
 	widget.status = "<img src='Retina/images/waiting.gif' style='height: 15px;'> fetching data...";
 	widget.sections.fileSection.className = "disable";
 	widget.sections.fileSection.firstChild.style.overflowY = "hidden";
@@ -1203,6 +1213,7 @@
 							 }
 						     }
 						     widget.updating = false;
+						     
 						     widget.updateDisplay();
 						 },
 						 error: function(jqXHR, error) {
@@ -1235,7 +1246,15 @@
 	    if (widget.keepSelectedFileAfterRefresh && widget.selectedFile) {
 		widget.showDetails(null, true);
 	    }
+
+	    if (widget.initialLoad) {
+		widget.initialLoad = false;
+		if (typeof widget.initialLoadCallback == 'function') {
+		    widget.initialLoadCallback.call(widget);
+		}
+	    }
 	}
+
     };
 
     widget.showDetails = function (e, update) {
@@ -1474,7 +1493,7 @@
 		}
 	    }
 	}
-
+	
 	widget.sections.detailSectionContent.innerHTML = html;
     };
 
