@@ -88,6 +88,9 @@
   show_export (BOOLEAN)
       If true shows an export button that will download the table as a tab separated text file, default is false
 
+  export_filename (STRING)
+      File name to be set when downloading the table. Default is "table.csv"
+
   strip_html (BOOLEAN)
       If true strips html from cells before exporting them, default is true
 
@@ -129,6 +132,7 @@
 		'query_type': 'infix',
 		'asynch_column_mapping': null,
 		'show_export': false,
+		'export_filename': 'table.csv',
 		'strip_html': true
 	    }
       },
@@ -1029,7 +1033,7 @@
 			}
 			d.push(r.join("\t"));
 		    }
-		    stm.saveAs(d.join("\n"), "table.tsv");
+		    stm.saveAs(d.join("\n"), renderer.settings.export_filename);
 		});
 		target.appendChild(exp);
 	    }
