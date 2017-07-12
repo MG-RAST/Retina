@@ -184,8 +184,8 @@
 				provenance.push("<li role='presentation'><a href='#' role='menuitem' class='noclick' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadCSV("+gindex+", true); return false;'>download CSV</a></li>");
 			    }
 			    provenance.push("<li role='presentation'><a href='#' role='menuitem' class='noclick' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadData("+gindex+"); return false;'>download JSON data</a></li>");
-			    provenance.push("<li role='presentation'><a href='#' role='menuitem' class='noclick' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadSVG("+i+"); return false;'>download as SVG</a></li>");
-			    provenance.push("<li role='presentation'><a href='#' role='menuitem' class='noclick' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadPNG("+i+"); return false;'>download as PNG</a></li>");
+			    provenance.push("<li role='presentation'><a href='#' role='menuitem' class='noclick' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadSVG("+i+", "+gindex+"); return false;'>download as SVG</a></li>");
+			    provenance.push("<li role='presentation'><a href='#' role='menuitem' class='noclick' onclick='Retina.RendererInstances.notebook["+this.index+"].downloadPNG("+i+", "+gindex+"); return false;'>download as PNG</a></li>");
 			    
 			    provenance.push('</ul>');
 			    
@@ -476,12 +476,17 @@
 	    document.getElementById('notebookModalBody').innerHTML = html;
 	    jQuery('#notebookModal').modal({});
 	},
-	downloadSVG: function (index) {
+	downloadSVG: function (index, gindex) {
 	    var renderer = this;
 	    var data = document.getElementById('flowGraphic'+index).firstChild.innerHTML;
-	    stm.saveAs(data, "graphic.svg");
+	    var fn = "graphic";
+	    var item = renderer.settings.graphicItems[gindex];
+	    if (item.hasOwnProperty('provenance') && item.provenance.hasOwnProperty('filename')) {
+		fn = renderer.settings.dataContainer.id+'_'+item.provenance.filename;
+	    }
+	    stm.saveAs(data, fn+".svg");
 	},
-	downloadPNG: function (index) {
+	downloadPNG: function (index, gindex) {
 	    var renderer = this;
 
 	    var source = document.getElementById('flowGraphic'+index).firstChild.firstChild;
@@ -489,13 +494,18 @@
 	    var resultDiv = document.createElement('div');
 	    resultDiv.setAttribute('id', 'svgExportDiv');
 	    document.body.appendChild(resultDiv);
-	    Retina.svg2png("#"+source.getAttribute('id'), resultDiv, source.getAttribute('width'), source.getAttribute('height')).then(
+	    Retina.svg2png("#"+source.getAttribute('id'), resultDiv, source.parentNode.style.width, source.parentNode.style.height).then(
 		function() {
 		    // create the href and click it
+		    var fn = "graphic";
+		    var item = renderer.settings.graphicItems[gindex];
+		    if (item.hasOwnProperty('provenance') && item.provenance.hasOwnProperty('filename')) {
+			fn = renderer.settings.dataContainer.id+'_'+item.provenance.filename;
+		    }
 		    var href = document.createElement('a');
 		    var canvas = document.getElementById('svgExportDiv').children[0];
 		    href.setAttribute('href', canvas.toDataURL());
-		    href.setAttribute('download', "graphic.png");
+		    href.setAttribute('download', fn+'.png');
 		    href.setAttribute('style', 'display: none;');
 		    document.body.appendChild(href);
 		    href.click();
@@ -560,7 +570,12 @@
 	    var renderer = this;
 
 	    var data = renderer.settings.graphicItems[index].settings.data;
-	    stm.saveAs(JSON.stringify(data, null, 2), "data.json");
+	    var fn = "data";
+	    var item = renderer.settings.graphicItems[index];
+	    if (item.hasOwnProperty('provenance') && item.provenance.hasOwnProperty('filename')) {
+		fn = renderer.settings.dataContainer.id+'_'+item.provenance.filename;
+	    }
+	    stm.saveAs(JSON.stringify(data, null, 2), fn+".json");
 	},
 	updateTrash: function () {
 	    var renderer = this;
