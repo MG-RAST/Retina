@@ -1449,7 +1449,7 @@
 		return;
 	    } else if (widget.detailType == "preview") {
 		html = detailInfo;
-		if (widget.detailInfo) {
+		if (widget.detailInfo !== null) {
 		    widget.detailInfo = null;
 		} else {
 		    if (node.file.size == 0) {
