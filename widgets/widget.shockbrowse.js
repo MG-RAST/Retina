@@ -701,7 +701,7 @@
 	var widget = this;
 
 	widget.folderFilters[index].active = entry;
-	widget.presetFilters[widget.folderFilters[index].attribute] = widget.folderFilters[index].entries[entry];
+	widget.presetFilters[widget.folderFilters[index].attribute] = widget.folderFilters[index].entries[entry][1];
 	widget.currentOffset = 0;
 	widget.scrollPosition = 0;
 	widget.data = null;
@@ -764,8 +764,12 @@
 		} else {
 		    var entries = widget.folderFilters[i].entries ? widget.folderFilters[i].entries : [];
 		    for (var h=0; h<entries.length; h++) {
-			if (! widget.folderFilters[i].filter || entries[h].match(widget.folderFilters[i].filter)) {
-			    html.push('<div style="font-size: 10px;" id="sbff'+i+'_'+h+'" name="sbff'+i+'" class="shock-pill'+(h==widget.folderFilters[i].active ? ' shock-pill-active' : '')+'" onclick="Retina.WidgetInstances.shockbrowse[1].activateFolderfilter('+i+', '+h+');">'+entries[h]+'</div>');
+			if (typeof entries[h] != 'object') {
+			    entries[h] = [ entries[h], entries[h] ];
+			    widget.folderFilters[i].entries[h] = entries[h];
+			}
+			if (! widget.folderFilters[i].filter || entries[h][0].match(widget.folderFilters[i].filter)) {
+			    html.push('<div style="font-size: 10px;" id="sbff'+i+'_'+h+'" name="sbff'+i+'" class="shock-pill'+(h==widget.folderFilters[i].active ? ' shock-pill-active' : '')+'" onclick="Retina.WidgetInstances.shockbrowse[1].activateFolderfilter('+i+', '+h+');">'+entries[h][0]+'</div>');
 			}
 		    }
 		}
