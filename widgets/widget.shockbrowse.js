@@ -49,6 +49,7 @@
   disableCustomFilter - boolean, set to true to hide custom filter, default is false
 
   folderFilters - array of objects of the following format: [ { attribute, title, dropdown }, { ... }, ... ]
+  folderFiltersExclusive - boolean, if true only one of the sets is active at any one time. If false, multiple sets of filters can be combined. Default is true.
 
   previewChunkSize - size in bytes that is loaded from the server for the preview of a file, default is 2 KB
   uploadChunkSize - size in bytes uploaded to the server per chunk, default is 10 MB
@@ -176,6 +177,7 @@
     widget.blacklist = {};
     widget.dropdownFilters = [];
     widget.disableCustomFilter = false;
+    widget.folderFiltersExclusive = true;
     
     widget.customButtons = [];
 
@@ -700,6 +702,13 @@
     widget.activateFolderfilter = function (index, entry) {
 	var widget = this;
 
+	if (widget.folderFiltersExclusive) {
+	    for (var i=0; i<widget.folderFilters.length; i++) {
+		widget.folderFilters[i].active = null;
+		jQuery('[name=sbff'+i+']').removeClass('shock-pill-active');
+		delete widget.presetFilters[widget.folderFilters[i].attribute];
+	    }
+	}
 	widget.folderFilters[index].active = entry;
 	widget.presetFilters[widget.folderFilters[index].attribute] = widget.folderFilters[index].entries[entry][1];
 	widget.currentOffset = 0;
@@ -758,11 +767,13 @@
 		if (widget.folderFilters[i].filterable) {
 		    filterable = '<input type="text" placeholder="enter filter" style="padding: 2px; width: 150px; margin: 0px; margin-right: 10px; font-size: 12px; height: 14px;" onkeyup="Retina.WidgetInstances.shockbrowse[1].folderFilterKeyUp(event);" id="shockFolderFilterFilter'+i+'" index="'+i+'" class="pull-right" value="'+(widget.folderFilters[i].filter || "")+'">';
 		}
-		html.push('<h5>'+widget.folderFilters[i].title+filterable+'</h5>');
 		if (widget.folderFilters[i].dropdown) {
 
 		} else {
 		    var entries = widget.folderFilters[i].entries ? widget.folderFilters[i].entries : [];
+		    if (entries.length) {
+			html.push('<h5>'+widget.folderFilters[i].title+filterable+'</h5>');
+		    }
 		    for (var h=0; h<entries.length; h++) {
 			if (typeof entries[h] != 'object') {
 			    entries[h] = [ entries[h], entries[h] ];
@@ -876,7 +887,7 @@
 	    } else {
 		var height = widget.middleHeight;
 		section = document.createElement('div');
-		section.setAttribute('style', "height: "+height+"px; width: "+widget.fileWidth+"px; float: left;");
+		section.setAttribute('style', "height: "+height+"px; width: "+widget.fileWidth+"px; float: left; -moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none;");
 		widget.sections.middleSection.appendChild(section);
 		widget.sections.fileSection = section;
 	    }
