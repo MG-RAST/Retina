@@ -720,7 +720,9 @@
 	jQuery('#sbff'+index+'_'+entry).addClass('shock-pill-active');
 
 	if (typeof widget.activateFolderfilterCallback == 'function') {
-	    widget.activateFolderfilterCallback.call(null, widget.folderFilters[index].entries[entry]);
+	    widget.folderActivated = true;
+	    widget.currentFolderIndex = index;
+	    widget.currentFolderEntry = entry;
 	}
     };
 
@@ -1268,6 +1270,11 @@
 		    widget.initialLoadCallback.call(widget);
 		}
 	    }
+
+	    if (widget.folderActivated) {
+		widget.activateFolderfilterCallback.call(null, widget.folderFilters[widget.currentFolderIndex].entries[widget.currentFolderEntry]);
+	    }
+
 	}
 
     };
@@ -1311,7 +1318,7 @@
 	    var multi = [];
 	    var highlightedDivs = [];
 	    var pnode = widget.selectedFile.parentNode;
-	    while (pnode.className !== "fileItem") {
+	    while (! jQuery(pnode).hasClass("fileItem")) {
 		pnode = pnode.parentNode;
 	    }
 	    if (oldIndex > newIndex) {
@@ -1376,7 +1383,7 @@
 	    var pnode;
 	    if (widget.selectedFile != null) {
 		pnode = widget.selectedFile.parentNode;
-		while (pnode.className !== "fileItem") {
+		while (! jQuery(pnode).hasClass("fileItem")) {
 		    pnode = pnode.parentNode;
 		}
 		pnode.style.backgroundColor = null;
@@ -1387,7 +1394,7 @@
 	    
 	    // highlight the new selected node
 	    pnode = widget.selectedFile.parentNode;
-	    while (pnode.className !== "fileItem") {
+	    while (! jQuery(pnode).hasClass("fileItem")) {
 		pnode = pnode.parentNode;
 	    }
 	    pnode.style.backgroundColor = "#e6eaef";
