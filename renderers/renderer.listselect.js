@@ -388,6 +388,14 @@
 			}
 			fhtml.push('</div></div>');
 			break;
+		    case "checkbox":
+			fhtml.push('<div style="font-size: 11px; font-weight: bold; margin-left: 4px; margin-top: 3px; margin-bottom: 3px; margin-right: 5px; float: left;">'+sf.title);
+			for (var h=0; h<sf.options.length; h++) {
+			    var o = sf.options[h];
+			    fhtml.push('<input style="margin-top: 0px; margin-left: 5px;" type="checkbox" '+(o.checked ? ' checked' : '')+' onclick="Retina.RendererInstances.listselect['+renderer.index+'].updateSpecialFilter('+i+', this, '+h+');"> '+o.title);
+			}
+			fhtml.push('</div>');
+			break;
 		    }
 		}
 		specialFilters.innerHTML = fhtml.join('');
@@ -547,17 +555,26 @@
 	    if (renderer.settings.hasOwnProperty('specialFilters')) {
 		for (var i=0; i<renderer.settings.specialFilters.length; i++) {
 		    var sf = renderer.settings.specialFilters[i];
-		    switch (sf.type) {
-		    case "radio":
-			for (var h=0; h<sf.options.length; h++) {
-			    if (sf.options[h].checked) {
-				if (sf.options[h].value != 'all') {
+		    if (! sf.isOption) {
+			switch (sf.type) {
+			case "radio":
+			    for (var h=0; h<sf.options.length; h++) {
+				if (sf.options[h].checked) {
+				    if (sf.options[h].value != 'all') {
+					query.push( { "field": sf.attribute, "searchword": sf.options[h].value, "strict": true });
+				    }
+				    break;
+				}
+			    }
+			    break;
+			case "checkbox":
+			    for (var h=0; h<sf.options.length; h++) {
+				if (sf.options[h].checked) {
 				    query.push( { "field": sf.attribute, "searchword": sf.options[h].value, "strict": true });
 				}
-				break;
 			    }
+			    break;
 			}
-			break;
 		    }
 		}
 	    }
