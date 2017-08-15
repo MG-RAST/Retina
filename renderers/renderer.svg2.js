@@ -548,8 +548,8 @@
 	    
 	    var xfactor = params.width / (scaleX.max - scaleX.min);
 	    var yfactor = params.height / (scaleY.max - scaleY.min);
-	    var xZero = Math.abs(scaleX.min) * xfactor;
-	    var yZero = Math.abs(scaleY.min) * yfactor;
+	    var xZero = scaleX.min * xfactor;
+	    var yZero = scaleY.min * yfactor;
 
 	    var colors = GooglePalette();
 	    var cgroups = {};
@@ -577,8 +577,8 @@
 			}
 			p.shape = sgroups[sh];
 		    }
-		    p.x = xfactor * p.x + xZero;
-		    p.y = yfactor * p.y + yZero;
+		    p.x = xfactor * p.x - xZero;
+		    p.y = yfactor * p.y - yZero;
 		    retval[i].points.push(p);
 		}
 	    }
