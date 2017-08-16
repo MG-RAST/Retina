@@ -1904,7 +1904,7 @@
 	form.append('parts', chunks);
 
 	// do decompression if requested
-	if (widget.doDecompress) {
+	if (widget.doDecompress && (filename.match(/\.gz$/) || filename.match(/\.bz2$/))) {
 	    form.append('compression', file.name.match(/bz2$/) ? 'bz2' : 'gzip');
 	    filename = filename.replace(/\.gz$/, "");
 	    filename = filename.replace(/\.bz2$/, "");
