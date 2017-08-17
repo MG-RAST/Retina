@@ -1878,7 +1878,7 @@
 	var file = widget.uploadDialog.files[widget.currentFileIndex];
 
 	// check if we want to calculate the md5
-	if (widget.calculateMD5) {
+	if (widget.calculateMD5 && ! (file.name.match(/\.gz$/) || file.name.match(/\.bz2$/))) {
 	    widget.calculatingMD5[widget.currentFileIndex] = widget.md5sum(file);
 	    widget.md5Promises[widget.currentFileIndex] = jQuery.Deferred();
 	}
@@ -2599,7 +2599,7 @@
  	// check if the selected file matches the one to be resumed
 	if (file.name == node.attributes.incomplete_name && file.size == node.attributes.incomplete_size) {
 	    widget.currentFileIndex = 0;
-	    if (widget.calculateMD5) {
+	    if (widget.calculateMD5 && ! (file.name.match(/\.gz$/) || file.name.match(/\.bz2$/))) {
 		widget.calculatingMD5[widget.currentFileIndex] = widget.md5sum(file);
 		widget.md5Promises[widget.currentFileIndex] = jQuery.Deferred();
 	    }
