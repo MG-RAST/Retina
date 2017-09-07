@@ -17,17 +17,24 @@
 	widget = this;
 	var index = widget.index;
 
-	params.target.innerHTML = "\
+	var html = [];
+	
+	html.push("\
 <div style='position:relative;top:8px;'>\
   <button type='button' class='btn btn-inverse' data-toggle='dropdown' title='manage profiles'><i class='icon-folder-open icon-white'></i></button>\
   <ul class='dropdown-menu pull-right' role='menu' aria-labelledby='dropdownMenu'>\
     <li class='disabled'><a tabindex='-1' href='#' style='color: black; font-weight: bold;'>Profile Management</a></li>\
     <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.profileManager["+index+"].manage();' title='manage profiles'><img style='height: 16px; position: relative; right: 5px; bottom: 2px;' src='Retina/images/download.png'>manage</a></li>\
     <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.profileManager["+index+"].upload("+index+");' title='load profile from file'><img style='height: 16px; position: relative; right: 5px; bottom: 2px;' src='Retina/images/upload.png'>load from disk</a></li>\
-  </ul>\
+");
+
+	html.push("<li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.profileManager["+index+"].uploadOTU("+index+");' title='load OTU profiles from file'><img style='height: 16px; position: relative; right: 5px; bottom: 2px;' src='Retina/images/upload.png'>load OTU profiles</a></li>");
+	
+	html.push("</ul>\
 </div>\
 <input type='file' id='profileUploadButton' multiple=multiple style='display: none;'>\
-";
+<input type='file' id='OTUprofileUploadButton' multiple=multiple style='display: none;'>\
+");
 
 	var modal = document.createElement('div');
 	modal.innerHTML = "<div id='profileModal' class='modal hide fade' tabindex='-1' style='width: 800px; margin-left: -400px;' role='dialog' aria-labelledby='profileModalLabel' aria-hidden='true' data-backdrop='static'>\
@@ -41,10 +48,15 @@
 	<button class='btn' aria-hidden='true' data-dismiss='modal'>close</button>\
       </div>\
 </div>";
+params.target.innerHTML = html.join("");
 	document.body.appendChild(modal);
 	
 	widget.uploadButton = document.getElementById('profileUploadButton');
 	widget.uploadButton.addEventListener('change', function(e){stm.file_upload(e,widget.profileUpdatedInfo,e);});
+
+	
+	widget.OTUuploadButton = document.getElementById('OTUprofileUploadButton');
+	widget.OTUuploadButton.addEventListener('change', function(e){Retina.WidgetInstances.profileManager[1].performUploadOTU(e);});
     };
     
     widget.manage = function () {
@@ -117,6 +129,38 @@
 	jQuery(elem).animate({top: "8px"},{duration: 800}).delay(3000).animate({top: "-50px"},{duration: 800, complete: function(){document.body.removeChild(elem);}});
 	if (typeof widget.callback == "function") {
 	    widget.callback.call();
+	}
+    };
+
+    widget.uploadOTU = function () {
+	var widget = this;
+
+	widget.OTUuploadButton.click();
+    };
+
+    widget.performUploadOTU = function (evt) {
+	var files = evt.target.files;
+	
+	if (files.length) {
+	    for (var i = 0; i < files.length; i++) {
+		var f = files[i];
+		var reader = new FileReader();
+		reader.onload = (function(theFile) {
+		    return function(e) {
+			try {
+			    var d = JSON.parse(e.target.result.toString().replace(/\n/g, "")).data;
+			    stm.import_data({ merge: true, data: d, type: "otuprofile", structure: "instance", id: d.id+"_"+d.source });
+			    var widget = Retina.WidgetInstances.profileManager[1];
+			    if (typeof widget.callback == "function") {
+				widget.callback.call();
+			    }
+			} catch (error) {
+			    alert('there was an error importing the data');
+			}
+		    };
+		})(f);
+		reader.readAsText(f);
+	    }
 	}
     };
 
