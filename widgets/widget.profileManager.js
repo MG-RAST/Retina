@@ -28,7 +28,9 @@
     <li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.profileManager["+index+"].upload("+index+");' title='load profile from file'><img style='height: 16px; position: relative; right: 5px; bottom: 2px;' src='Retina/images/upload.png'>load from disk</a></li>\
 ");
 
-	html.push("<li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.profileManager["+index+"].uploadOTU("+index+");' title='load OTU profiles from file'><img style='height: 16px; position: relative; right: 5px; bottom: 2px;' src='Retina/images/upload.png'>load OTU profiles</a></li>");
+	if (RetinaConfig && RetinaConfig.showOTU) {
+	    html.push("<li><a tabindex='-1' href='#' onclick='Retina.WidgetInstances.profileManager["+index+"].uploadOTU("+index+");' title='load OTU profiles from file'><img style='height: 16px; position: relative; right: 5px; bottom: 2px;' src='Retina/images/upload.png'>load OTU profiles</a></li>");
+	}
 	
 	html.push("</ul>\
 </div>\
