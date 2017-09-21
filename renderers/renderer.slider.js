@@ -32,7 +32,7 @@
 
 	    var workWidth = renderer.settings.width - 4 - (renderer.settings.showValue ? 30 : 0);
 	    renderer.workWidth = workWidth;
-	    var middle = parseInt(workWidth / (renderer.settings.max - renderer.settings.min) * (renderer.settings.current + Math.abs(renderer.settings.min)));
+	    var middle = parseInt(workWidth / (renderer.settings.max - renderer.settings.min) * (renderer.settings.current - renderer.settings.min));
 	    var rightWidth = parseInt(workWidth - middle - (renderer.settings.sliderWidth / 2));
 	    var leftWidth = workWidth - rightWidth - renderer.settings.sliderWidth;
 
@@ -93,8 +93,8 @@
 	},
 	slid: function (index) {
 	    var renderer = Retina.RendererInstances.slider[index];
-	    if (typeof renderer.callback == "function") {
-		renderer.callback.call(null, renderer.current);
+	    if (typeof renderer.settings.callback == "function") {
+		renderer.settings.callback.call(null, renderer.settings.current);
 	    }
 	},
 	currentValue: function (index) {
