@@ -29,8 +29,6 @@
 	    var current = ((renderer.settings.radius + renderer.settings.border + renderer.settings.border + line + 2) * renderer.settings.currentStep) + (line * renderer.settings.fraction) - 6;
 	    var lineOffset = parseInt((renderer.settings.radius / 2) + (renderer.settings.border / 2));
 
-	    console.log(line);
-	    
 	    var html = [];
 	    html.push('<div><div style="color: red; margin-left: '+current+'px;">&#9660;</div></div><div>');
 	    
