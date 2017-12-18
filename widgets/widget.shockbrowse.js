@@ -1300,7 +1300,7 @@
 	}
 
 	// check if the shift key is pressed and we allow multiselect
-	if (widget.allowMultiselect && e && e.shiftKey && ! widget.selectedFiles.length) {
+	if (widget.allowMultiselect && e && ((e.metaKey && (widget.selectedFile || widget.selectedFiles.length)) || (e.shiftKey && ! widget.selectedFiles.length))) {
 	    var fid = e.currentTarget.getAttribute('fi');
 	    var oldIndex = null;
 	    var newIndex = null;
@@ -1317,26 +1317,64 @@
 	    }
 	    var multi = [];
 	    var highlightedDivs = [];
-	    var pnode = widget.selectedFile.parentNode;
-	    while (! jQuery(pnode).hasClass("fileItem")) {
-		pnode = pnode.parentNode;
-	    }
-	    if (oldIndex > newIndex) {
-		for (var i=newIndex; i<=oldIndex; i++) {
-		    pnode.style.backgroundColor = "#e6eaef";
+	    
+	    if (e.metaKey) {
+		if (widget.selectedFile) {
+		    multi.push(widget.fileList[oldIndex]);
+		    var pnode = widget.selectedFile.parentNode;
+		    while (! jQuery(pnode).hasClass("fileItem")) {
+			pnode = pnode.parentNode;
+		    }
 		    highlightedDivs.push(pnode);
-		    pnode = pnode.previousSibling;
-		    multi.push(widget.fileList[i]);
+		} else {
+		    for (var i=0; i<widget.selectedFiles.length; i++) {
+			multi.push(widget.selectedFiles[i]);
+			highlightedDivs.push(widget.highlightedDivs[i]);
+		    }
 		}
-	    } else if (newIndex > oldIndex) {
-		for (var i=oldIndex; i<=newIndex; i++) {
+		// check if this has already been selected
+		var exindex = -1;
+		for (var i=0; i<multi.length; i++) {
+		    if (multi[i].id == fid) {
+			exindex = i;
+			break;
+		    }
+		}
+		var pnode = e.currentTarget.parentNode;
+		while (! jQuery(pnode).hasClass("fileItem")) {
+		    pnode = pnode.parentNode;
+		}
+		if (exindex > -1) {
+		    pnode.style.backgroundColor = "white";
+		    multi.splice(exindex, 1);
+		    highlightedDivs.splice(exindex, 1);
+		} else {
 		    pnode.style.backgroundColor = "#e6eaef";
+		    multi.push(widget.fileList[newIndex]);
 		    highlightedDivs.push(pnode);
-		    pnode = pnode.nextSibling;
-		    multi.push(widget.fileList[i]);
 		}
-	    } else {
-		return;
+	    } else if (e.shiftKey) {
+		var pnode = widget.selectedFile.parentNode;
+		while (! jQuery(pnode).hasClass("fileItem")) {
+		    pnode = pnode.parentNode;
+		}
+		if (oldIndex > newIndex) {
+		    for (var i=newIndex; i<=oldIndex; i++) {
+			pnode.style.backgroundColor = "#e6eaef";
+			highlightedDivs.push(pnode);
+			pnode = pnode.previousSibling;
+			multi.push(widget.fileList[i]);
+		    }
+		} else if (newIndex > oldIndex) {
+		    for (var i=oldIndex; i<=newIndex; i++) {
+			pnode.style.backgroundColor = "#e6eaef";
+			highlightedDivs.push(pnode);
+			pnode = pnode.nextSibling;
+			multi.push(widget.fileList[i]);
+		    }
+		} else {
+		    return;
+		}
 	    }
 
 	    widget.highlightedDivs = highlightedDivs;
