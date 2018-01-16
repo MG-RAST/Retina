@@ -12,8 +12,10 @@
 		    url: '',
 		    url_suffix: '',
 		    idfield: '',
-		    textfield: ''
+		    textfield: '',
+		    show_total: true
 		},
+		data: {},
 		minkeys: 3,
 		max_search_entries: 8,
 		width: 200,
@@ -31,6 +33,14 @@
 	    var index = renderer.index;
 
 	    var html = [];
+
+	    if (renderer.settings.type == 'api') {
+		html.push('<span id="renderer_listgenerator_title'+index+'" style="position: relative; font-size: 10px; bottom: 18px; right: '+(renderer.settings.width * 2 + 90)+'px;"></span>');
+	    } else {
+		window['listgenerator_mapping_'+index] = renderer.settings.data;
+	    }
+
+	    html.push('<style>#renderer_listgenerator_input'+index+':focus {border-color: #ccc; box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);}</style>');
 	    
 	    html.push('<input type="text" id="renderer_listgenerator_input'+index+'" style="float: left; margin-right: 15px; width: '+renderer.settings.width+'px;">');
 	    html.push('<div style="float: left; margin-right: 15px;"><input type="text" autocomplete="off" value="'+renderer.settings.default_list_name+'" style="margin-bottom: 0px; border-radius: 4px 4px 0 0; background-color: #f5f5f5; background-image: linear-gradient(to bottom,#fff,#e6e6e6); text-shadow: 0 1px 1px rgba(255,255,255,0.75); width: '+(renderer.settings.width - 14)+'px; padding" id="renderer_listgenerator_title'+index+'"><br><select multiple size='+renderer.settings.viewable_list_entries+' id="renderer_listgenerator_list'+index+'" style="position: relative; bottom: 1px; border-radius: 0 0 4px 4px; width: '+renderer.settings.width+'px;"></select></div>');
@@ -39,7 +49,7 @@
 	    renderer.settings.target.innerHTML = html.join('');
 
 	    jQuery('#renderer_listgenerator_input'+index).typeahead({
-		source: renderer.apicall,
+		source: renderer.settings.type == 'api' ? renderer.apicall : Retina.keys(renderer.settings.data).sort(),
 		minLength: renderer.settings.minkeys,
 		items: renderer.settings.max_search_entries,
 		updater: renderer.updatetext
@@ -52,6 +62,7 @@
 	    if (renderer.runningQuery) {
 		renderer.runningQuery.abort();
 	    }
+	    document.getElementById('renderer_listgenerator_title'+renderer.index).innerHTML = '<img src="Retina/images/loading.gif" style="width: 10px;"> searching...';
 	    renderer.runningQuery = jQuery.ajax({
 		url: renderer.settings.api.url+query+renderer.settings.api.url_suffix,
 		method: 'GET',
@@ -60,12 +71,14 @@
 		success: function (result) {
 		    var res = [];
 		    var mapping = {};
+		    var total = result.total_count;
 		    for (var i=0; i<result.data.length; i++) {
 			res.push(result.data[i][this.rend.settings.api.textfield]);
 			mapping[result.data[i][this.rend.settings.api.textfield]] = result.data[i][this.rend.settings.api.idfield];
 		    }
 		    window['listgenerator_mapping_'+this.rend.index] = mapping;
 		    this.rend.runningQuery = null;
+		    document.getElementById('renderer_listgenerator_title'+this.rend.index).innerHTML = total.formatString()+' total matches';
 		    this.cb(res);
 		}
 	    });
@@ -79,6 +92,7 @@
 	    o.value = window['listgenerator_mapping_'+renderer.index][item];
 	    o.innerHTML = item;
 	    document.getElementById('renderer_listgenerator_list'+renderer.index).appendChild(o);
+	    document.getElementById('renderer_listgenerator_title'+renderer.index).innerHTML = '';
 	    
 	    return '';
 	},
