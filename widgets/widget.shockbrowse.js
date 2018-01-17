@@ -69,6 +69,7 @@
   fileUploadCompletedCallback - function to be called when a file upload has completed. Gets passed the created node
   allFileUploadCompletedCallback - function to be called when a selection of multiple files has completed uploading. Gets passed all created nodes
   fileDeletedCallback - function to be called when a file has been deleted. Gets passed true upon success and false upon error and as the second parameter the node object.
+  autoUploadRefresh - boolean of whether the file list should be automatically refreshed after an upload or delete has completed
 
   calculateMD5 - boolean wheather md5 sum should be calculated on the source file and automatically compared with the taget file. Default is false.
   MD5chunksize - size in bytes of the chunks for incremental MD5sum calculation. Default is 10MB
@@ -148,6 +149,7 @@
     widget.fileDoneAttributes = {};
     widget.autoUnarchive = false;
     widget.deleteOriginalArchive = true;
+    widget.autoUploadRefresh = false;
     
     // upload restrictions
     widget.uploadRestrictions = [];
@@ -2321,6 +2323,12 @@
 		    if (typeof widget.fileUploadCompletedCallback == 'function') {
 			widget.fileUploadCompletedCallback.call(null, data);
 		    }
+		}
+
+		// check if the file list should be updated automatically
+		if (widget.autoUploadRefresh) {
+		    widget.preserveDetail = true;
+		    widget.updateData();
 		}
 	    },
 	    error: function(jqXHR, error){
