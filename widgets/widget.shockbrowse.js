@@ -961,7 +961,7 @@
 			var pathItems = widget.fileSectionColumns[h].path.split(".");
 			var item = ds;
 			for (var j=0; j<pathItems.length; j++) {
-			    if (item.hasOwnProperty(pathItems[j])) {
+			    if (item != null && item.hasOwnProperty(pathItems[j])) {
 				item = item[pathItems[j]];
 			    } else {
 				item = "-";
