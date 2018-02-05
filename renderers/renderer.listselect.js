@@ -126,6 +126,7 @@
 		'asynch_keystroke_threshold': 1000,
 		'asynch_filter_min_length': 3,
 		'return_object': false,
+		'use_offset': true,
 		'style': "" }
 	},
 	exampleData: function () {
@@ -642,7 +643,11 @@
 	    var index = renderer.index;
 
 	    if (typeof params == 'string' && params == 'more') {
-		renderer.settings.offset = renderer.settings.data.length;
+		if (renderer.settings.use_offset) {
+		    renderer.settings.offset = renderer.settings.data.length;
+		} else {
+		    renderer.settings.after = renderer.settings.data[renderer.settings.data.length - 1][renderer.settings.async_filter_attribute];
+		}
 		if (renderer.settings.total_count <= renderer.settings.asynch_limit) {
 		    return;
 		}
@@ -686,7 +691,8 @@
 	        }
 	    }
 
-	    var url = renderer.settings.navigation_url + query + (query.length ? "&" : "") +"limit=" + renderer.settings.asynch_limit + "&offset=" + (renderer.settings.offset || 0) + "&order=" +renderer.settings.asynch_filter_attribute;
+	    var offset = renderer.settings.use_offset ? "&offset=" + (renderer.settings.offset || 0) : (renderer.settings.data.length ? "&after=" + renderer.settings.data[renderer.settings.data.length - 1][renderer.settings.asynch_filter_attribute] : "");
+	    var url = renderer.settings.navigation_url + query + (query.length ? "&" : "") +"limit=" + renderer.settings.asynch_limit + offset + "&order=" +renderer.settings.asynch_filter_attribute;
 
             var headers = renderer.settings.hasOwnProperty('headers') ? renderer.settings.headers : (stm.Authentication ? {'AUTH': stm.Authentication} : {});
 	
