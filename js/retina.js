@@ -293,6 +293,25 @@
 	}
 	return values;
     };
+
+    Retina.traverse = function (jsonObject, func) {
+	var props = Retina.keys(jsonObject);
+	for (let h=0; h<props.length; h++) {
+            if (typeof(jsonObject[props[h]]) === 'string') {
+		jsonObject[props[h]] = func(jsonObject[props[h]]);
+	    } else if (jsonObject[props[h]] instanceof Array) {
+		for (let i=0; i<jsonObject[props[h]].length; i++) {
+		    if (typeof(jsonObject[props[h]][i] == 'object')) {
+			Retina.traverse(jsonObject[props[h]][i], func);
+		    } else {
+			jsonObject[prop][i] = func(jsonObject[prop][i]);
+		    }
+		}
+            } else {
+		Retina.traverse(jsonObject[props[h]], func);
+	    }
+	}
+    };
     
     Retina.propSort = function(prop, ltr) {
 	if (ltr) {
