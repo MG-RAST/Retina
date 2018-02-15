@@ -2770,7 +2770,7 @@
 		return;
 	    };
 	
-	    xhr.setRequestHeader("Authorization", widget.authHeader.Authorization);
+	    xhr.setRequestHeader(Retina.keys(widget.authHeader)[0], widget.authHeader[Retina.keys(widget.authHeader)[0]]);
 
 	    widget.deletionProgress.requests[widget.selectedFiles[i].id] = xhr;
 
