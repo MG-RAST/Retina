@@ -77,10 +77,10 @@
 
   Note: All functions require the index of the renderer to be passed as the first parameter.
 
-  selectedNode (index)
+  selectedNode ()
       Returns the currently selected node object or null if no node is selected.
 
-  goTo (index, nodeId)
+  goTo (nodeId)
       Selects the node defined by nodeId, collapses all nodes and then expands all parents of the selected node.
 */
 (function () {
@@ -213,7 +213,7 @@
 	    if (! renderer.hasOwnProperty('parsedNodes')) {
 		renderer.parsedNodes = {};
 		renderer.settings.data.nodes[renderer.settings.data.rootNode].id = renderer.settings.data.rootNode;
-		renderer.setParentNode(index, renderer.settings.data.nodes[renderer.settings.data.rootNode], null);
+		renderer.setParentNode(renderer.settings.data.nodes[renderer.settings.data.rootNode], null);
 	    }
 
 	    // check if a collapse all button should be displayed
@@ -226,7 +226,7 @@
 		cB.index = index;
 		cB.addEventListener('click', function () {
 		    var index = this.index;
-		    Retina.RendererInstances.tree[index].collapseAll(index);
+		    Retina.RendererInstances.tree[index].collapseAll();
 		});
 		renderer.settings.target.appendChild(cB);
 	    }
@@ -241,7 +241,7 @@
 		cB.index = index;
 		cB.addEventListener('click', function () {
 		    var index = this.index;
-		    Retina.RendererInstances.tree[index].expandAll(index);
+		    Retina.RendererInstances.tree[index].expandAll();
 		});
 		renderer.settings.target.appendChild(cB);
 	    }
@@ -302,7 +302,7 @@
 		sB.className = "input-append";
 		sB.innerHTML = "<input type='text' index='"+index+"' style='width: 144px; height: 16px; font-size: 11.9px;' id='tree_search_input_"+index+"' autocomplete='off'>";
 		if (renderer.settings.showGoButton) {
-		    sB.innerHTML += "<button type='button' class='btn btn-small' onclick='Retina.RendererInstances.tree["+index+"].goTo("+index+");'>"+renderer.settings.buttonText+"</button>";
+		    sB.innerHTML += "<button type='button' class='btn btn-small' onclick='Retina.RendererInstances.tree["+index+"].goTo();'>"+renderer.settings.buttonText+"</button>";
 		}
 		renderer.settings.target.appendChild(sB);
 
@@ -311,7 +311,7 @@
 		    var index = this.getAttribute('index');
 		    event = event || window.event;
 		    if (event.keyCode == '13') {
-			Retina.RendererInstances.tree[index].goTo(index);
+			Retina.RendererInstances.tree[index].goTo();
 		    }
 		});
 
@@ -352,7 +352,7 @@
 	// draws the current state of the nodes
 	redraw: function () {
 	    var renderer = this;
-
+	    
 	    // check if we are displaying the root node
 	    var currIndent = -1;
 	    var hide = true;
@@ -368,17 +368,15 @@
 	    renderer.settings.nodeSpace.innerHTML = "";
 
 	    // initiate the first call to the recursive renderNode function
-	    renderer.renderNode( { "index": renderer.index,
-				   "node": renderer.settings.data.nodes[renderer.settings.data.rootNode],
+	    renderer.renderNode( { "node": renderer.settings.data.nodes[renderer.settings.data.rootNode],
 				   "indent": currIndent,
 				   "hide": hide } );
 
-	    return;
+	    return renderer;
 	},
 	
 	renderNode: function (params) {
-	    var index = params.index;
-	    var renderer = Retina.RendererInstances.tree[index];
+	    var renderer = this;
 	    
 	    // create the node div and check if it is the current selection
 	    var nodeDiv = document.createElement('div');
@@ -406,9 +404,9 @@
 		// if the node has children, it needs the expand / collapse graphic
 		if (params.node.childNodes.length) {
 		    if (params.node.expanded) {
-			html += "<span style='cursor: pointer; margin-right: 5px;' onclick='Retina.RendererInstances.tree["+index+"].settings.data.nodes[\""+params.node.id+"\"].expanded=false;Retina.RendererInstances.tree["+index+"].redraw("+index+");'>&dtrif;</span>";
+			html += "<span style='cursor: pointer; margin-right: 5px;' onclick='Retina.RendererInstances.tree["+renderer.index+"].settings.data.nodes[\""+params.node.id+"\"].expanded=false;Retina.RendererInstances.tree["+renderer.index+"].redraw();'>&dtrif;</span>";
 		    } else {
-			html += "<span style='cursor: pointer; margin-right: 5px;' onclick='Retina.RendererInstances.tree["+index+"].settings.data.nodes[\""+params.node.id+"\"].expanded=true;Retina.RendererInstances.tree["+index+"].redraw("+index+");'>&rtrif;</span>";
+			html += "<span style='cursor: pointer; margin-right: 5px;' onclick='Retina.RendererInstances.tree["+renderer.index+"].settings.data.nodes[\""+params.node.id+"\"].expanded=true;Retina.RendererInstances.tree["+renderer.index+"].redraw();'>&rtrif;</span>";
 		    }
 		} else {
 
@@ -449,7 +447,7 @@
 		}
 
 		// create the node label
-		html += "<span "+tooltip+"onclick='Retina.RendererInstances.tree["+index+"].selectNode("+index+", \""+params.node.id+"\");'>"+label+"</span>";
+		html += "<span "+tooltip+"onclick='Retina.RendererInstances.tree["+renderer.index+"].selectNode(\""+params.node.id+"\");'>"+label+"</span>";
 		
 		// add the node html to the node
 		nodeDiv.innerHTML = html;
@@ -465,16 +463,15 @@
 		for (var i=0; i<params.node.childNodes.length; i++) {
 		    var node = renderer.settings.data.nodes[params.node.childNodes[i]];
 		    node.id = params.node.childNodes[i];
-		    renderer.renderNode( { "index": index,
-					   "node": node,
+		    renderer.renderNode( { "node": node,
 					   "indent": params.indent });
 		}
 	    }
 	},
 
 	// collapse all nodes
-	collapseAll: function (index) {
-	    var renderer = Retina.RendererInstances.tree[index];
+	collapseAll: function () {
+	    var renderer = this;
 
 	    for (var i in renderer.settings.data.nodes) {
 		if (renderer.settings.data.nodes.hasOwnProperty(i)) {
@@ -482,12 +479,12 @@
 		}
 	    }
 
-	    renderer.redraw(index);
+	    renderer.redraw();
 	},
 
 	// expand all nodes
-	expandAll: function (index) {
-	    var renderer = Retina.RendererInstances.tree[index];
+	expandAll: function () {
+	    var renderer = this;
 
 	    for (var i in renderer.settings.data.nodes) {
 		if (renderer.settings.data.nodes.hasOwnProperty(i)) {
@@ -495,12 +492,12 @@
 		}
 	    }
 
-	    renderer.redraw(index);
+	    renderer.redraw();
 	},
 
 	// go to a specific node, select it, collapse all nodes and expand the selected nodes parent nodes
-	goTo: function (index, nodeId) {
-	    var renderer = Retina.RendererInstances.tree[index];
+	goTo: function (nodeId) {
+	    var renderer = this;
 
 	    // collapse all nodes
 	    for (var i in renderer.settings.data.nodes) {
@@ -510,7 +507,7 @@
 	    }
 	    
 	    // find the goto node
-	    var id = nodeId || renderer.settings.data.label2id[document.getElementById('tree_search_input_'+index).value];
+	    var id = nodeId || renderer.settings.data.label2id[document.getElementById('tree_search_input_'+renderer.index).value];
 	    var node = renderer.settings.data.nodes[id];
 
 	    if (! node) {
@@ -527,7 +524,7 @@
 	    }
 	    
 	    // rerender the tree
-	    renderer.redraw(index);
+	    renderer.redraw();
 
 	    // check if someone wants to know about the selection
 	    if (typeof renderer.settings.callback == 'function') {
@@ -537,8 +534,8 @@
 	},
 
 	// if the node structure does not contain the parent references, create them here
-	setParentNode: function (index, node, parent) {
-	    var renderer = Retina.RendererInstances.tree[index];
+	setParentNode: function (node, parent) {
+	    var renderer = this;
 
 	    if (node.description === null) {
 		node.description = node.label;
@@ -553,23 +550,24 @@
 	    node.parentNode = parent;
 	    for (var i=0; i<node.childNodes.length; i++) {
 		renderer.settings.data.nodes[node.childNodes[i]].id = node.childNodes[i];
-		renderer.setParentNode(index, renderer.settings.data.nodes[node.childNodes[i]], node.id);
+		renderer.setParentNode(renderer.settings.data.nodes[node.childNodes[i]], node.id);
 	    }
 
 	    return;
 	},
 
 	// select a specified node
-	selectNode: function (index, nodeId) {
-	    var renderer = Retina.RendererInstances.tree[index];
+	selectNode: function (nodeId) {
+	    var renderer = this;
 
 	    // set the selected node to the passed nodeId
 	    renderer.settings.selectedNode = nodeId;
 
 	    // check if we have a searchbar and if so, put the selected term into it
-	    var input = document.getElementById("tree_search_input_"+index);
+	    var input = document.getElementById("tree_search_input_"+renderer.index);
 	    if (input) {
 		input.value = renderer.settings.data.nodes[nodeId].label;
+		input.focus();
 	    }
 
 	    // check if someone wants to know about the selection
@@ -579,12 +577,12 @@
 	    }
 
 	    // redraw with the new settings
-	    renderer.redraw(index);
+	    renderer.redraw();
 	},
 
 	// returns the currently selected node
-	selectedNode: function (index) {
-	    var renderer = Retina.RendererInstances.tree[index];
+	selectedNode: function () {
+	    var renderer = this;
 
 	    return renderer.settings.selectedNode ? renderer.settings.data.nodes[renderer.settings.selectedNode] : null;
 	}
