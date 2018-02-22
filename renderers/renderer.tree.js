@@ -541,7 +541,7 @@
 		node.description = node.label;
 	    }
 	    if (renderer.parsedNodes.hasOwnProperty(node.id)) {
-	    	console.log('recursive call: '+node.id+' - '+node.label);
+	    	//console.log('recursive call: '+node.id+' - '+node.label);
 	    	return;
 	    } else {
 	    	renderer.parsedNodes[node.id] = true;
