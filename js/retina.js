@@ -847,6 +847,17 @@
     Retina.niceScale = function (params) {
  	var minPoint = params.min;
 	var maxPoint = params.max;
+
+	// rounding error checker
+	var mrl = maxPoint - Math.floor(maxPoint);
+	var mrh = maxPoint - Math.ceil(maxPoint);
+	if (mrl < 0.000000001) {
+	    maxPoint = Math.floor(maxPoint);
+	}
+	if (mrh < 0.000000001) {
+	    maxPoint = Math.ceil(maxPoint);
+	}
+	
 	var maxTicks = params.ticks || 10;
 	var range = Retina.niceNum(maxPoint - minPoint, false);
 	var tickSpacing = Retina.niceNum(range / (maxTicks - 1), true);
