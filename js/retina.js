@@ -58,7 +58,9 @@
 	}
 	return widget;
     };
-    
+
+    // load the widget script into memory
+    // returns a promise that fulfills when the script is loaded
     Retina.load_widget = function (widget) {
 	if (typeof widget == "string") {
 	    widget = { name: widget };
@@ -103,6 +105,8 @@
 	return promise;
     };
 
+    // creates the widget instance in memory
+    // calls the display function unless suppressed by param
     Widget.create = function (element, args, nodisplay) {
 	var widgetInstance = jQuery.extend(true, {}, Retina.WidgetInstances[element][0]);
 	widgetInstance.index = Retina.WidgetInstances[element].length;
@@ -140,6 +144,8 @@
 	return renderer;
     };
 
+    // load renderer script into memory
+    // returns a promise that fulfills when the script is loaded
     Retina.load_renderer = function (renderer, synch) {
 	if (typeof renderer == "string") {
 	    renderer = { name: renderer };
@@ -179,6 +185,9 @@
 	return promise;
     };
 
+    // creates the renderer instance in memory
+    // does not call the render function
+    // returns the renderer instance
     Renderer.create = function (rend, settings, replaceIndex) {
 	var renderer_instance = jQuery.extend(true, {}, Retina.RendererInstances[rend][0]);
 	if (replaceIndex == null) {
@@ -234,13 +243,16 @@
 	
 	return promise;
     };
-    
+
+    // loads a library function and returns a promise that fires when the library is loaded
+    // this handles double loading
     Retina.require = function (resource, successCb, errorCb) {
 	var promise = Retina.load_library(resource);
 	promise.then(successCb, errorCb);
 	return promise;
     };
 
+    // error function triggered when a script cannot be loaded
     Retina.parserError = function (script_url) {
 	var error = "ParserError: '" + script_url + "' has a syntax error";
 	
@@ -254,13 +266,16 @@
     /*
       Utility fuctions
     */
+
+    // iterate over each element in an array and call a function on it
     Retina.each = function (array, func) {
 	for (var i = 0; i < array.length; i++) {
 	    func(array[i]);
 	}
 	return array;
     };
-    
+
+    // returns a copy of an object
     Retina.extend = function (object) {
 	Retina.each(Array.prototype.slice.apply(arguments), function (source) {
 	    for (var property in source) {
@@ -271,7 +286,8 @@
 	});
 	return object;
     };
-    
+
+    // returns the keys of an object
     Retina.keys = function (object, nofunctions) {
 	if (object !== Object(object)) return [];//throw new TypeError('Invalid object');
 	var keys = [];
@@ -294,6 +310,7 @@
 	return values;
     };
 
+    // traverse an object and call a function on each value
     Retina.traverse = function (jsonObject, func) {
 	var props = Retina.keys(jsonObject);
 	for (let h=0; h<props.length; h++) {
@@ -312,7 +329,8 @@
 	    }
 	}
     };
-    
+
+    // sort an array of objects by a specified property
     Retina.propSort = function(prop, ltr) {
 	if (ltr) {
 	    return function(a, b) {
@@ -324,8 +342,11 @@
 	    }
 	}
     };
-     
+
+    // returns the full path of a data item
     Retina.dataURI = function (path) { return dataServiceURI + path; };
+
+    // load JSON data
     Retina.getJSON = function (path, callback) {
 	var url = Retina.dataURI(path);
 	jQuery.ajax({
@@ -339,7 +360,8 @@
 	    }
 	});
     };
-    
+
+    // returns an object with x and y properties referencing the coordinates of the mouse of the current event
     Retina.mouseCoords = function (ev) {
 	if (ev.pageX || ev.pageY) {
 	    return {
@@ -353,11 +375,13 @@
 	};
     };
 
+    // returns the capitalized version of the passed string
     Retina.capitalize = function (string) {
 	if (string == null || string == "") return string;
 	return string[0].toUpperCase() + string.slice(1);
     }
 
+    // synchronous wait function
     Retina.wait = function (ms) {
 	ms += new Date().getTime();
 	while (new Date() < ms){}
@@ -387,10 +411,12 @@
 	return [curleft,curtop];
     }
 
+    // sort an array by number value
     Retina.Numsort = function (a, b) {
 	return a - b;
     };
 
+    // sort an array in descending text order
     Retina.sortDesc = function (a, b) {
 	if (a > b) {
 	    return -1;
@@ -440,6 +466,7 @@
 	return promise;
     }
 
+    // base64 encode / decode functions
     Retina.Base64 = {
 	
 	// private property
@@ -576,6 +603,7 @@
 	
     }
 
+    // returns the value of the cgi parameter passed
     Retina.cgiParam = function (name) {
 	name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
 	var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
@@ -583,6 +611,7 @@
 	return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
     };
 
+    // returns a date string of a string
     Retina.dateString = function (date) {
 	var d = (date && typeof date.match != 'function') ? date : new Date(date.replace(/t/, "T"));
 	dformat = [d.getFullYear(),
@@ -595,16 +624,19 @@
 	return dformat;
     };
 
+    // format a number as a string
     Number.prototype.formatString = function(c, d, t) {
 	var n = this, c = isNaN(c = Math.abs(c)) ? 0 : c, d = d == undefined ? "." : d, t = t == undefined ? "," : t, s = n < 0 ? "-" : "", i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", j = (j = i.length) > 3 ? j % 3 : 0;
 	return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
     };
 
+    // fill a number with 0s from the left up to a certain length
     Number.prototype.padLeft = function(base,chr){
 	var  len = (String(base || 10).length - String(this).length)+1;
 	return len > 0? new Array(len).join(chr || '0')+this : this;
     };
-    
+
+    // transform a number into a byte size string
     Number.prototype.byteSize = function() {
 	var size = this;
 	var magnitude = "B";
@@ -643,6 +675,7 @@
 	return size + " " + magnitude;
     };
 
+    // transform a number to a time string
     Number.prototype.timestring = function(precision, longform) {
 	var num = this;
 	precision = precision || 0;
@@ -701,6 +734,7 @@
 	return timestring;
     };
 
+    // convert a number to a base size string
     Number.prototype.baseSize = function() {
 	var size = this;
 	var magnitude = "bp";
@@ -739,6 +773,7 @@
 	return size + " " + magnitude;
     };
 
+    // reverse complement a sequence string
     Retina.reverseComplement = function (seq) {
 	var rc = [];
 	for (var i=0; i<seq.length; i++) {
@@ -821,13 +856,16 @@
 	return { min: niceMin, max: niceMax, space: tickSpacing };
     }
 
+    // decode / encode a hex string
     String.prototype.hexDecode = function(){var r='';for(var i=0;i<this.length;i+=2){r+=unescape('%'+this.substr(i,2));}return r;}
     String.prototype.hexEncode = function(){var r='';var i=0;var h;while(i<this.length){h=this.charCodeAt(i++).toString(16);while(h.length<2){h=h;}r+=h;}return r;}
 
+    // returns the maximum value of an array
     Array.prototype.max = function() {
 	return Math.max.apply(null, this);
     };
-    
+
+    // returns the minimum value of an array
     Array.prototype.min = function() {
 	return Math.min.apply(null, this);
     };
@@ -847,7 +885,8 @@
 	
 	return { "coordinates": newcoords, "weights": weights };
     };
-    
+
+    // transpose a matrix
     Retina.transpose = Retina.transposeMatrix = function (matrix) {
 	var mnew = [];
 	for (var i=0;i<matrix.length; i++) {
@@ -862,6 +901,7 @@
 	return mnew;
     };
 
+    // do a log 10 on all items in a matrix
     Retina.logMatrix = function (matrix) {
 	for (var i=0; i<matrix.length; i++) {
 	    for (var h=0; h<matrix[i].length; h++) {
@@ -872,6 +912,7 @@
 	return matrix;
     };
 
+    // standardize a matrix
     Retina.standardizeMatrix = function (matrix) {
 	// calculate the mean of each column
 	var sums = [];
@@ -909,6 +950,7 @@
 	return matrix;
     };
 
+    // normalize a matrix
     Retina.normalizeMatrix = function (matrix) {
 	// first calculate the total for each column
 	var sums = [];
@@ -931,19 +973,21 @@
 	// calculate the weight factors for each column
 	var factors = [];
 	for (var i=0; i<sums.length; i++) {
-	    factors[i] = max / sums[i];
+	    //factors[i] = max / sums[i];
+	    factors[i] = 1 / sums[i];
 	}
 
 	// apply the weight factors to the cells
 	for (var i=0; i<matrix.length; i++) {
 	    for (var h=0; h<matrix[i].length; h++) {
-		matrix[i][h] = parseInt(matrix[i][h] * factors[i]);
+		matrix[i][h] = parseFloat(matrix[i][h] * factors[i]);
 	    }
 	}
 
 	return matrix;
     };
 
+    // scale a matrix
     Retina.scaleMatrix = function (matrix) {
 	var maxes = [];
 	var mins = [];
@@ -972,6 +1016,7 @@
 	return matrix;
     };
 
+    // create a heatmap matrix
     Retina.heatMatrix = function (matrix) {
 	var sums = [];
 	var means = [];
@@ -1007,6 +1052,7 @@
 	return retval;
     };
 
+    // calculate the average of a vector
     Retina.average = function (vector) {
 	var sum = 0;
 	for (var i=0; i<vector.length; i++) {
@@ -1015,7 +1061,8 @@
 
 	return sum / vector.length;
     };
-    
+
+    // calculate the mean of a vector
     Retina.mean = function (vector) {
 	var mean = 0;
 	for (var i=0; i<vector.length; i++) {
@@ -1104,6 +1151,7 @@
 	return d;
     };
 
+    // return a copy of a matrix
     Retina.copyMatrix = function (matrix) {
 	var ret = [];
 	for (var i=0; i<matrix.length; i++) {
@@ -1133,6 +1181,7 @@
 	return distances;
     };
 
+    // calculate cluster data
     Retina.cluster = function (data) {
 	var num_avail = data.length;
 	var avail = {};
@@ -1316,7 +1365,8 @@
     };
 
     // END OF MATRIX FUNCTIONS
-    
+
+    // id confuscation / deconfuscation method
     Retina.idmap = function (id) {
 
 	// this is a decoded id, encode it
@@ -1336,14 +1386,17 @@
 	return id;
     };
 
+    // convert decimal to hex
     function d2h(d) {
         return d.toString(16);
     }
-    
+
+    // convert hex to decimal
     function h2d (h) {
         return parseInt(h, 16);
     }
-    
+
+    // convert a string to hex
     Retina.stringToHex = function (tmp) {
         var str = '',
             i = 0,
@@ -1356,7 +1409,8 @@
         }
         return str;
     };
-    
+
+    // convert hex to string
     Retina.hexToString = function (tmp) {
 	var l = tmp.length / 2;
 	var str = "";
