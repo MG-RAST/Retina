@@ -130,7 +130,7 @@ must be called before any operations with stm can occur. Possible parameters are
 
 <h2>Retina</h2>
 
-<h3>init({renderer_resources, widget_resources, library_resource})</h3>
+<h3>init({renderer_resource: PATH_TO_RESOURCE , widget_resource: PATH_TO_RESOURCE , library_resource: PATH_TO_RESOURCE })</h3>
 
 <p>Initializes the Retina instance. All passed parameters are optional.</p>
 
