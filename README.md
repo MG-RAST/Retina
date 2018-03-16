@@ -32,6 +32,6 @@ Retina also provides a set of convenience functions for formatting and
 commonly used operations on data. Retina uses jQuery and Bootstrap for
 code and style convenience.
 
-To get started take a look at the [Wiki](./wiki). It contains tutorials, a list
+To get started take a look at the [Wiki](../../wiki). It contains tutorials, a list
 of pre-built renderers and widgets and a reference to all included
 functions in both retina and stm.
