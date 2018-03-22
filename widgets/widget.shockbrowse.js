@@ -194,6 +194,7 @@
     widget.keepSelectedFileAfterRefresh = true;
     widget.allowMultiselect = false;
     widget.middleResize = true;
+    widget.showNodeURL = true;
 
     widget.fileSectionColumns = [ { "path": "file.name", "name": "filename", "sortable": true } ];
 
@@ -1471,6 +1472,7 @@
 		html = "<h4>file information - "+fn+"</h4><table style='text-align: left; font-size: "+widget.fontSize+"px;'>\
 <tr><th style='width: 75px;'>name</th><td>"+fn+"</td></tr>\
 <tr><th style='width: 75px;'>node id</th><td>"+node.id+"</td></tr>\
+"+(widget.showNodeURL ? "<tr><th style='width: 75px;'>node URL</th><td>"+widget.shockBase + "/node/"+node.id+"</td></tr>" : "")+"\
 <tr><th>created</th><td>"+node.created_on+"</td></tr>\
 <tr><th>modified</th><td>"+node.last_modified+"</td></tr>\
 <tr><th>size</th><td>"+node.file.size.formatString()+"</td></tr>\
