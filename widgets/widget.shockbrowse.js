@@ -108,10 +108,7 @@
     });
     
     widget.setup = function () {
-	return [ 
-  	    Retina.load_renderer("table"),
-  	    Retina.load_renderer("listselect")
-	];
+	return [];
     };
 
     /*
