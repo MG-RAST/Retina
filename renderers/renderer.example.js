@@ -30,7 +30,7 @@
 	    // the target parameter should always be the DOM element the renderer
 	    // is to render to. It is usually a good idea to empty the the target
 	    // just in case the renderer is called multiple times
-	    renderer.settings.target.innerHTML = options.data;
+	    renderer.settings.target.innerHTML = renderer.settings.data;
 
 	    return renderer;
 	},

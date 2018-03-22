@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+    <title>Retina Turorial</title>
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    
+    <!-- bootstrap style-->
+    <link rel="stylesheet" href="Retina/css/bootstrap.min.css">
+
+    <!-- custom style-->
+    <link rel="stylesheet" href="css/tutorial.css">
+    
+    <!-- javascript files-->
+    <script type="text/javascript" src="Retina/js/stm.js"></script>
+    <script type="text/javascript" src="Retina/js/retina.js"></script>
+    <script type="text/javascript" src="Retina/js/jquery.min.js"></script>
+    <script type="text/javascript" src="Retina/js/bootstrap.min.js"></script>
+
+    <!-- config file-->
+    <script type="text/javascript" src="js/config.js"></script>
+    
+    <!--initialization-->
+    <script type="text/javascript">
+    jQuery(document).ready(function() {
+	stm.init({});
+        Retina.init({ widget_resource: "widgets" });
+        Retina.load_widget("tutorial").then( function () {
+            Retina.Widget.create("tutorial", { "target": document.getElementById("content")});
+        });
+    });
+    </script>
+    
+  </head>
+  <body>
+    <h2>Welcome to the Retina Tutorial</h2>    
+
+    <div class="content"></div>
+    
+  </body>
+</html>

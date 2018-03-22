@@ -44,7 +44,6 @@
 	    },
 	    setup: function (args) { return [] },
 	    display: function () {},
-	    getJSON: Retina.getJSON
 	});
 	if (widget.about.name) {
 	    if (typeof(Retina.WidgetInstances[widget.about.name]) == 'undefined') {
@@ -267,29 +266,9 @@
       Utility fuctions
     */
 
-    // iterate over each element in an array and call a function on it
-    Retina.each = function (array, func) {
-	for (var i = 0; i < array.length; i++) {
-	    func(array[i]);
-	}
-	return array;
-    };
-
-    // returns a copy of an object
-    Retina.extend = function (object) {
-	Retina.each(Array.prototype.slice.apply(arguments), function (source) {
-	    for (var property in source) {
-		if (!object[property]) {
-		    object[property] = source[property];
-		}
-	    }
-	});
-	return object;
-    };
-
     // returns the keys of an object
     Retina.keys = function (object, nofunctions) {
-	if (object !== Object(object)) return [];//throw new TypeError('Invalid object');
+	if (object !== Object(object)) return [];
 	var keys = [];
 	for (var key in object) {
 	    if (object.hasOwnProperty(key) && (! nofunctions || typeof object[key] !== "function")) {
@@ -346,23 +325,9 @@
     // returns the full path of a data item
     Retina.dataURI = function (path) { return dataServiceURI + path; };
 
-    // load JSON data
-    Retina.getJSON = function (path, callback) {
-	var url = Retina.dataURI(path);
-	jQuery.ajax({
-	    url: url,
-	    contentType: 'application/json',
-	    dataType: 'json',
-	    data: [],
-	    success: callback,
-	    error: function (event, request, settings) {
-		console.warn("AJAX error! ", event, request, settings);
-	    }
-	});
-    };
-
     // returns an object with x and y properties referencing the coordinates of the mouse of the current event
     Retina.mouseCoords = function (ev) {
+	ev = ev || window.event;
 	if (ev.pageX || ev.pageY) {
 	    return {
 		x: ev.pageX,
@@ -412,7 +377,7 @@
     }
 
     // sort an array by number value
-    Retina.Numsort = function (a, b) {
+    Retina.numSort = Retina.Numsort = function (a, b) {
 	return a - b;
     };
 
@@ -773,6 +738,12 @@
 	return size + " " + magnitude;
     };
 
+    /* Round a number to a given number of decimal points. */
+    Number.prototype.round = function(dec) {
+	var num = this;
+	return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
+    }
+
     // reverse complement a sequence string
     Retina.reverseComplement = function (seq) {
 	var rc = [];
@@ -796,12 +767,6 @@
 	    }
 	}
 	return rc.reverse().join('');
-    }
-
-    /* Round a number to a given number of decimal points. */
-    Number.prototype.round = function(dec) {
-	var num = this;
-	return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
     }
     
     /* calculate the log 10 of a number */
@@ -870,6 +835,8 @@
     // decode / encode a hex string
     String.prototype.hexDecode = function(){var r='';for(var i=0;i<this.length;i+=2){r+=unescape('%'+this.substr(i,2));}return r;}
     String.prototype.hexEncode = function(){var r='';var i=0;var h;while(i<this.length){h=this.charCodeAt(i++).toString(16);while(h.length<2){h=h;}r+=h;}return r;}
+    // returns the capitalized version of the passed string
+    String.prototype.capitalize = function () {if (this == null || this == "") return this; return this[0].toUpperCase() + this.slice(1);}
 
     // returns the maximum value of an array
     Array.prototype.max = function() {
