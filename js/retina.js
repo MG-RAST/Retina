@@ -38,7 +38,7 @@
 	}
 	jQuery.extend(widget, spec);
 	
-	Retina.extend(widget, {
+	jQuery.extend(widget, {
 	    loadRenderer: function (args) {
 		return Retina.load_renderer(args);
 	    },
