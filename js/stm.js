@@ -11,14 +11,15 @@
     stm.init = function (params) {
 
 	// global variables
-	stm.DataStore = params.data ? params.data :[];
+	stm.DataStore = {};
 	stm.DataRepositories = params.DataRepositories || [];
 	stm.CallbackList = [];
 	stm.DataRepositoryDefault = params.DataRepositoryDefault || null;
 	stm.SourceOrigin = params.SourceOrigin || "*";
 	stm.TargetOrigin = params.TargetOrigin || "*";
-	if (params && params.Data) {
-	    stm.import_data({ merge: false, data: params.Data });
+	if (params && params.Data) { params.data = params.Data; }
+	if (params && params.data) {
+	    stm.import_data({ merge: false, data: params.data });
 	}
 	if (params.useDB) {
 	    var dbName = params.dbName || 'stm';
@@ -190,6 +191,7 @@
 	if (params.errorCallback && typeof params.errorCallback == 'function') {
 	    xhr.errorCallback = params.errorCallback;
 	}
+
 	xhr.addEventListener("progress", updateProgress, false);
 	if ("withCredentials" in xhr) {
 	    xhr.open(method, base_url, true);
@@ -251,7 +253,7 @@
 	    return;
 	};
 
-	if (stm.authHeader) {
+	if (repo.auth && tm.authHeader) {
 	    xhr.setRequestHeader(stm.authHeader);
 	}
 	
@@ -387,6 +389,8 @@
 	    console.log("Couldn't delete database due to the operation being blocked");
 	    promise.resolve();
 	};
+
+	return promise;
     };
 
     stm.updateHardStorage = function (dbName, attributes, version, p) {
