@@ -65,7 +65,10 @@
 	stm.DataRepositories[params.name] = { url: params.url,
 					      name: params.name,
 					      description: params.description || "",
-					      auth: params.auth || false };
+					      auth: params.auth || false,
+					      data: params.data || 'data',
+					      total_count: params.total_count || 'total_count',
+					      id: params.id || 'id' };
 	if (stm.DataRepositoryDefault == null || params.isDefault) {
 	    stm.DataRepositoryDefault = stm.DataRepositories[params.name];
 	}
@@ -222,14 +225,14 @@
 	    switch (params.return_type) {
 	    case 'text':
 		d[type] = {};
-		d[type][params['id']] = retval.data;
+		d[type][params['id']] = retval[repo.data];
 		stm.import_data({ "data": d, 'merge': true });
 		break;
 	    default:
-		if (retval.hasOwnProperty('data') && retval.hasOwnProperty('total_count')) {
-		    stm.import_data({ "type": type, "data": retval.data, "merge": true, "structure": 'list' });
+		if (retval.hasOwnProperty(repo.data) && retval.hasOwnProperty(repo.total_count)) {
+		    stm.import_data({ "type": params.target || type, "data": retval[repo.data], "merge": true, "structure": 'list', id: repo.id });
 		} else {
-		    stm.import_data({ "type": type, "data": retval, "merge": true, "structure": 'instance' });
+		    stm.import_data({ "type": params.target || type, "data": retval, "merge": true, "structure": 'instance' });
 		}
 		break;
 	    }
