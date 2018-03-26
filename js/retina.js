@@ -13,7 +13,6 @@
       initialization
     */
     Retina.init = function (params) {
-	Retina.dataServiceURI    = params.dataServiceURI     || "";
 	Retina.renderer_resource = params.renderer_resource || "Retina/renderers";
 	Retina.widget_resource   = params.widget_resource   || "widgets";
 	Retina.library_resource  = params.library_resource   || "Retina/js";
@@ -321,9 +320,6 @@
 	    }
 	}
     };
-
-    // returns the full path of a data item
-    Retina.dataURI = function (path) { return dataServiceURI + path; };
 
     // returns an object with x and y properties referencing the coordinates of the mouse of the current event
     Retina.mouseCoords = function (ev) {
