@@ -3,7 +3,7 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
-    <title>Retina Turorial</title>
+    <title>Bookstore</title>
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
     
     <!-- bootstrap style-->
@@ -26,17 +26,21 @@
     jQuery(document).ready(function() {
 	stm.init({});
         Retina.init({ widget_resource: "widgets" });
-        Retina.load_widget("tutorial").then( function () {
-            Retina.Widget.create("tutorial", { "target": document.getElementById("content")});
+        Retina.load_widget("tutorial2").then( function () {
+            Retina.Widget.create("tutorial2", { "target": document.getElementById("content")});
         });
     });
     </script>
     
   </head>
   <body>
-    <h2>Welcome to the Retina Tutorial</h2>    
 
-    <div id="content"></div>
+    <div class="container">
+
+      <div style="text-align: center;"><h2>Welcome to the Bookstore</h2></div>
+      
+      <div id="content"></div>
+    </div>
     
   </body>
 </html>

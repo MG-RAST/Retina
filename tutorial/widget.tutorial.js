@@ -17,7 +17,7 @@
 	var widget = this;
 	var target = params.target;
 	
-	params.target.innerHTML = "<p>Hello World</p>";
+	target.innerHTML = "<p>Hello World</p>";
 
 	return widget;
     };

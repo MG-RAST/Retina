@@ -1,3 +1,3 @@
-var RetinaConfig {
-    "api_url": "http://www.google.de"
+var RetinaConfig = {
+    "api_url": "http://openlibrary.org"
 }
