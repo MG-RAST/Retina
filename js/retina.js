@@ -886,6 +886,27 @@
 	return matrix;
     };
 
+    Retina.roundMatrix = function (matrix, precision) {
+	for (var i=0; i<matrix.length; i++) {
+	    for (var h=0; h<matrix[i].length; h++) {
+		matrix[i][h] = Retina.round(matrix[i][h], precision);
+	    }
+	}
+
+	return matrix;
+    };
+
+    Retina.round = function (number, precision) {
+	var shift = function (number, precision, reverseShift) {
+	    if (reverseShift) {
+		precision = -precision;
+	    }  
+	    numArray = ("" + number).split("e");
+	    return +(numArray[0] + "e" + (numArray[1] ? (+numArray[1] + precision) : precision));
+	};
+	return shift(Math.round(shift(number, precision, false)), precision, true);
+    };
+
     // standardize a matrix
     Retina.standardizeMatrix = function (matrix) {
 	// calculate the mean of each column
