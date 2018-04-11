@@ -214,7 +214,7 @@
 	    filter_list.setAttribute('style', renderer.settings.extra_wide ? 'max-height: 200px; overflow: auto;' : 'max-height: 200px; overflow: auto;');
 	    var filter_string = '';
 	    for (var i=0; i<renderer.settings.filter.length; i++) {
-		filter_string += '<li><a onclick="Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_value=\'\';Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_attribute=this.innerHTML.slice(0, -1);Retina.RendererInstances[\'listselect\']['+renderer.index+'].render();" style="cursor: pointer;">'+renderer.settings.filter[i]+' </a></li>';
+		filter_string += '<li><a onclick="Retina.RendererInstances[\'listselect\']['+renderer.index+'].settings.filter_attribute=this.innerHTML.slice(0, -1);Retina.RendererInstances[\'listselect\']['+renderer.index+'].render();" style="cursor: pointer;">'+renderer.settings.filter[i]+' </a></li>';
 	    }
 	    filter_list.innerHTML = filter_string;
 	    filter_grp.appendChild(filter_input);
