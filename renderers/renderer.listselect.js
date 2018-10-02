@@ -127,6 +127,7 @@
 		'asynch_filter_min_length': 3,
 		'return_object': false,
 		'use_offset': true,
+        'use_after': false,
 		'style': "" }
 	},
 	exampleData: function () {
@@ -645,7 +646,7 @@
 	    if (typeof params == 'string' && params == 'more') {
 		if (renderer.settings.use_offset) {
 		    renderer.settings.offset = renderer.settings.data.length;
-		} else {
+		} else if (renderer.settings.use_after && renderer.settings.data.length) {
 		    renderer.settings.after = renderer.settings.data[renderer.settings.data.length - 1][renderer.settings.async_filter_attribute];
 		}
 		if (renderer.settings.total_count <= renderer.settings.asynch_limit) {
@@ -691,10 +692,15 @@
 	        }
 	    }
 
-	    var offset = renderer.settings.use_offset ? "&offset=" + (renderer.settings.offset || 0) : (renderer.settings.data.length ? "&after=" + renderer.settings.data[renderer.settings.data.length - 1][renderer.settings.asynch_filter_attribute] : "");
+	    var offset = "";
+        if (renderer.settings.use_offset) {
+            offset = "&offset=" + (renderer.settings.offset || 0);
+        } else if (renderer.settings.use_after && renderer.settings.data.length) {
+            offset = "&after=" + renderer.settings.data[renderer.settings.data.length - 1][renderer.settings.asynch_filter_attribute];
+        }
 	    var url = renderer.settings.navigation_url + query + (query.length ? "&" : "") +"limit=" + renderer.settings.asynch_limit + offset + "&order=" +renderer.settings.asynch_filter_attribute;
 
-            var headers = renderer.settings.hasOwnProperty('headers') ? renderer.settings.headers : (stm.Authentication ? {'AUTH': stm.Authentication} : {});
+        var headers = renderer.settings.hasOwnProperty('headers') ? renderer.settings.headers : (stm.Authentication ? {'AUTH': stm.Authentication} : {});
 	
 	    jQuery.ajax({ url: url, headers: headers, dataType: "json", success: function(data) {
 		var renderer =  Retina.RendererInstances.listselect[index];
